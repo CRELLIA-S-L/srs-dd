@@ -1,0 +1,25 @@
+# CI of the SRS-DD framework repository itself.
+# Target projects get their own pipeline from ci/gitlab-ci.yml via
+# tools/srs_init.py — do not copy this file.
+#
+# Full python image on purpose: the *-slim images lack git, which the
+# freshness check needs.
+
+spec-check:
+  image: python:3.12
+  script:
+    - python3 tools/srs_check.py --strict
+    - git add -N specs/90-traceability.md
+    - git diff --exit-code -- specs/90-traceability.md || { echo "specs/90-traceability.md is stale — run python3 tools/srs_check.py and commit the result"; exit 1; }
+
+installer-smoke:
+  image: python:3.12
+  script:
+    # Clean slate: on shell runners a leftover dir would silently flip
+    # the fresh-install step into upgrade mode.
+    - rm -rf /tmp/srs-target
+    # Fresh install into a temp dir must pass its own checker, strictly.
+    - python3 tools/srs_init.py /tmp/srs-target --defaults --ci both
+    - python3 /tmp/srs-target/tools/srs_check.py --strict
+    # Re-running on an initialized target must switch to upgrade mode, not fail.
+    - python3 tools/srs_init.py /tmp/srs-target --defaults

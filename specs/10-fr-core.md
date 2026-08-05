@@ -16,9 +16,9 @@ code: []
 tests: []
 ```
 
-When the application is launched for the first time, the system **shall**
-display a greeting that names the product and offers the initial setup.
+When the application is launched for the first time, the system
+**shall** display a greeting that names the product.
 
-**Rationale.** A placeholder showing the shape of a requirement: an EARS
-event-driven statement with one bolded modal verb, metadata above, rationale
-below. Delete it once you have real requirements.
+**Rationale.** A placeholder showing the shape of a requirement: metadata
+above, one bolded modal verb, rationale below. Delete it once you have
+real requirements.

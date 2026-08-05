@@ -7,9 +7,10 @@ Total requirements: 1.
 
 | Status | Requirements |
 |---|---|
-| `implemented` | 0 |
-| `partial` | 0 |
+| `draft` | 0 |
 | `deferred` | 1 |
+| `partial` | 0 |
+| `implemented` | 0 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification

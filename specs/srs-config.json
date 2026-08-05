@@ -1,5 +1,9 @@
 {
   "areas": ["CORE", "UI", "API", "DATA", "SEC"],
   "code_roots": ["src"],
-  "code_extensions": [".py", ".ts", ".tsx", ".js", ".swift", ".kt", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".m"]
+  "test_roots": ["tests"],
+  "code_extensions": [".py", ".ts", ".tsx", ".js", ".swift", ".kt", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".m"],
+  "modal_verbs": ["shall", "must", "should", "may"],
+  "negation_words": ["not"],
+  "rationale_markers": ["Rationale"]
 }

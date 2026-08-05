@@ -1,0 +1,15 @@
+# SRS-DD specification gate.
+# Template copied into target projects as .gitlab-ci.yml by
+# tools/srs_init.py. If your project already has a .gitlab-ci.yml, merge
+# the job below into it instead.
+#
+# Full python image on purpose: the *-slim images lack git, which the
+# freshness check needs.
+
+spec-check:
+  image: python:3.12
+  script:
+    # Add --strict to fail on warnings as well.
+    - python3 tools/srs_check.py
+    - git add -N specs/90-traceability.md
+    - git diff --exit-code -- specs/90-traceability.md || { echo "specs/90-traceability.md is stale — run python3 tools/srs_check.py and commit the result"; exit 1; }

@@ -1,0 +1,30 @@
+# SRS-DD specification gate.
+# Template copied into target projects as .github/workflows/srs.yml by
+# tools/srs_init.py.
+
+name: srs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Add --strict to fail on warnings as well.
+      - name: Validate specification
+        run: python3 tools/srs_check.py
+
+      - name: Traceability matrix is fresh
+        run: |
+          git add -N specs/90-traceability.md
+          if ! git diff --exit-code -- specs/90-traceability.md; then
+            echo "specs/90-traceability.md is stale — run: python3 tools/srs_check.py and commit the result"
+            exit 1
+          fi

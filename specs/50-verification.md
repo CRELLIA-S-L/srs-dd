@@ -13,3 +13,6 @@ Implemented or partially implemented requirements with an empty `tests`
 field appear in `90-traceability.md` under “Requirements without listed
 tests”, whatever their method — as a reminder to either add the test or
 record how the check was performed.
+
+Test files may additionally carry `verifies:` annotations — see the
+Annotations section of `README.md`.
