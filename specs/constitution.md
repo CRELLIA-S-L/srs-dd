@@ -5,8 +5,11 @@ checked against them. Unlike requirements (what the system does) and ADRs
 (single decisions with their context), articles apply to all work at all
 times and change only through the amendment procedure in ART-090.
 
-- **Version:** 1.0.0
+- **Version:** 1.1.0
 - **Ratified:** 2026-08-05
+- **Amended:** 2026-08-05 — v1.1.0: ART-020 tightened to approved
+  requirements; ART-090 taxonomy extended to classify tightening and
+  relaxing (both changes MINOR per ART-090)
 
 Articles are numbered in steps of 10 and referenced from plans, reviews, and
 ADRs the same way requirements are: “rejected per ART-040”. The set below is
@@ -22,9 +25,11 @@ wrong.
 
 ## ART-020 — Requirement before code
 
-No behavior changes without a requirement that describes the change. The
-mechanics — statuses, numbering, closing the loop — live in
-`specs/README.md`; this article only makes the principle non-negotiable.
+No behavior changes without an **approved** requirement that describes the
+change — a `draft` is recorded, not approved (see the Lifecycle section of
+`specs/README.md`). The mechanics — statuses, numbering, closing the
+loop — live in `specs/README.md`; this article only makes the principle
+non-negotiable.
 
 ## ART-030 — Boundaries of agent autonomy
 
@@ -56,6 +61,7 @@ identifiers it implements.
 ## ART-090 — Amendments
 
 The constitution changes only by a dedicated commit that bumps the version:
-MAJOR — an article is removed or reversed; MINOR — an article is added;
-PATCH — wording changes without a change of meaning. The commit message
-states the reason. The project maintainer ratifies the amendment.
+MAJOR — an article is removed, reversed, or relaxed; MINOR — an article is
+added or tightened; PATCH — wording changes without a change of meaning.
+The commit message states the reason. The project maintainer ratifies the
+amendment.
