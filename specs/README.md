@@ -149,7 +149,10 @@ Initial status: `deferred` when the maintainer asked for the change
 themselves — approval is implicit in the request; `draft` when the
 requirement is proposed by anyone else (an agent decomposing a task, an
 audit finding). Writing code against a `draft` is implementation ahead of
-approval; the checker warns about it.
+approval; the checker warns about it. For behavior that already exists
+and is being recorded after the fact (e.g. a harvested spec), the
+maintainer approves a `draft` straight into `implemented` or `partial`,
+skipping `deferred`.
 
 ## How to phrase
 

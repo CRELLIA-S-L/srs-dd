@@ -26,9 +26,9 @@ reads the modal verbs it enforces from a per-project lexicon.
 | `specs/` | The specification skeleton: glossary, introduction, FR/NFR/interface/invariant files, constitution, baselines log, ADR log |
 | `specs/srs-config.json` | Project settings: areas, code and test roots, extensions, and the statement lexicon |
 | `tools/srs_check.py` | Integrity checker and traceability-matrix generator. Standard library only, Python ≥ 3.9 |
-| `tools/srs_init.py` | Installer: copies the skeleton into a target repository (stays in the framework repo) |
+| `tools/srs_init.py` | Installer: fresh setup, adoption of existing SRS projects, upgrades (stays in the framework repo) |
 | `AGENTS.md` | Canonical agent guide, read by any coding agent; `CLAUDE.md` is a thin pointer to it |
-| `.claude/skills/` | Agent skills: `srs` (the workflow), `srs-new` (author a requirement), `srs-audit` (drift audit), `srs-init` (guided install, framework-only) |
+| `.claude/skills/` | Agent skills: `srs` (the workflow), `srs-new` (author a requirement), `srs-audit` (drift audit), `srs-harvest` (mine a spec from existing code), `srs-init` (guided setup, framework-only) |
 | `ci/` | CI templates for target projects (GitHub Actions, GitLab CI) with a traceability-freshness gate |
 | `CONTRIBUTING.md`, `CHANGELOG.md` | Framework governance and versioning |
 
@@ -57,10 +57,34 @@ Then: replace the placeholder requirement, and commit everything —
 including `specs/90-traceability.md`, which is version-controlled on
 purpose: CI regenerates it and fails if the committed copy is stale.
 
+**Already have an SRS?** The installer detects an existing specification
+and switches to adopt mode: it validates your spec against the proposed
+configuration (areas, lexicon) **before touching anything** — on failure
+the target is left untouched — then installs the tooling and only the
+missing service files. Your spec files are never modified.
+
 Manual fallback: copy `specs/`, `tools/srs_check.py`, the `srs`,
-`srs-new`, and `srs-audit` skills from `.claude/skills/` (not `srs-init` —
-it is framework-only), `AGENTS.md`, `CLAUDE.md`, and `.gitattributes` into
-your repository, then edit `specs/srs-config.json` by hand.
+`srs-new`, `srs-audit`, and `srs-harvest` skills from `.claude/skills/`
+(not `srs-init` — it is framework-only), `AGENTS.md`, `CLAUDE.md`, and
+`.gitattributes` into your repository, then edit `specs/srs-config.json`
+by hand.
+
+## Upgrading
+
+To pick up a new framework version in an initialized project:
+
+```
+git -C path/to/srs-dd pull
+python3 path/to/srs-dd/tools/srs_init.py path/to/your-project
+```
+
+The installer prints the checker version transition and the relevant
+upgrade notes from the CHANGELOG, then refreshes `tools/srs_check.py`
+and the skills (no flags needed). Precious files — CI config,
+`CLAUDE.md`/`AGENTS.md`, `.gitattributes` — are refreshed only with
+`--force`, and only when they carry the SRS-DD marker. Commit the
+refreshed tooling together with the regenerated
+`specs/90-traceability.md`.
 
 ## The loop
 

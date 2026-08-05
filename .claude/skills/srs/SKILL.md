@@ -13,6 +13,10 @@ code.
 restated here: two descriptions of the same rules would eventually diverge.
 Read `specs/README.md` if you have not read it in this session.
 
+The specification language follows the lexicon in
+`specs/srs-config.json` — statements, titles, and rationales are written
+in that language, whatever language this skill is written in.
+
 ## First things first
 
 Before changing code, find out which requirements describe the affected

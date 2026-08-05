@@ -1,6 +1,6 @@
 ---
 name: srs-new
-description: Guided interactive authoring of a single new requirement in specs/ — choosing type, area, number, phrasing, and metadata step by step in a dialog with the user. Invoke when the user wants to add a requirement. For the general specification workflow (finding affected requirements, closing the loop after code) use the srs skill instead.
+description: Guided interactive authoring of a single new requirement in specs/ — choosing type, area, number, phrasing, and metadata step by step in a dialog with the user. Invoke when the user wants to add a requirement. For the general specification workflow (finding affected requirements, closing the loop after code) use the srs skill; for mining a spec from existing code use srs-harvest.
 ---
 
 # Authoring a new requirement
@@ -20,8 +20,10 @@ lexicon.
    the target file (see the map in `specs/README.md`).
 4. **Statement.** Pick the EARS pattern from the How-to-phrase table in
    `specs/README.md`; use a modal verb from the project lexicon
-   (`modal_verbs`) and write in the language of the specification. No
-   vague words — the statement must be verifiable.
+   (`modal_verbs`) and write in the lexicon's language — the lexicon in
+   `specs/srs-config.json` defines the specification language, whatever
+   language this skill is written in. No vague words — the statement must
+   be verifiable.
 5. **Verification method.** Ask how conformance will be checked
    (`T`/`D`/`I`/`A`). No answer means it is not a requirement yet.
 6. **Links.** `derives_from` / `depends_on` / `refines` /

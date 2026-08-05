@@ -21,5 +21,34 @@ installer-smoke:
     # Fresh install into a temp dir must pass its own checker, strictly.
     - python3 tools/srs_init.py /tmp/srs-target --defaults --ci both
     - python3 /tmp/srs-target/tools/srs_check.py --strict
-    # Re-running on an initialized target must switch to upgrade mode, not fail.
-    - python3 tools/srs_init.py /tmp/srs-target --defaults
+    # Re-running on an initialized target = upgrade mode; the checker and
+    # skills must refresh WITHOUT --force, precious files must be skipped.
+    - python3 tools/srs_init.py /tmp/srs-target --defaults | tee /tmp/upgrade.log
+    - grep -q "refreshed:" /tmp/upgrade.log
+    - grep -q "tools/srs_check.py" /tmp/upgrade.log
+    - test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
+
+adopt-smoke:
+  image: python:3.12
+  script:
+    - rm -rf /tmp/srs-adopt /tmp/srs-docs
+    # Fabricate a minimal existing Russian SRS.
+    - mkdir -p /tmp/srs-adopt/specs
+    - printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** сохранять файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
+    - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
+    # Wrong lexicon (English defaults vs Russian spec) must roll back: exit 3, tree unchanged.
+    - python3 tools/srs_init.py /tmp/srs-adopt --defaults; test $? -eq 3
+    - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/after.sum
+    - diff /tmp/before.sum /tmp/after.sum
+    - test ! -e /tmp/srs-adopt/specs/srs-config.json
+    - test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
+    # Correct lexicon adopts cleanly; skills land, matrix generated.
+    - python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" --modal-verbs "должен,должна,должно,должны,следует,может,могут" --negation-words "не" --rationale-markers "Обоснование"
+    - test -f /tmp/srs-adopt/specs/90-traceability.md
+    - test -f /tmp/srs-adopt/.claude/skills/srs-harvest/SKILL.md
+    - python3 /tmp/srs-adopt/tools/srs_check.py --strict --no-write
+    # specs/ with markdown but no requirements must refuse, not go fresh.
+    - mkdir -p /tmp/srs-docs/specs
+    - echo "just docs" > /tmp/srs-docs/specs/notes.md
+    - python3 tools/srs_init.py /tmp/srs-docs --defaults; test $? -eq 2
+    - test ! -e /tmp/srs-docs/specs/srs-config.json
