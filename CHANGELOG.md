@@ -9,6 +9,61 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.5.0] — 2026-08-06
+
+### Added
+
+- `tools/srs_view.py` — a viewer for the specification the checker
+  validates, on the same dependency budget (standard library, Python
+  ≥ 3.9) and sharing its parser. Read-only: it never writes into
+  `specs/` and never gates anything.
+  - Terminal: one requirement with every link resolved in both
+    directions; `--list` with filters; `--code <path>` — which
+    requirements describe a file, by the `code`/`tests` fields and by
+    the file's own `implements:`/`verifies:` annotations; `--tree`;
+    `--coverage`; `--json`.
+  - `--html` — one self-contained page (default `.srs-site/index.html`,
+    a directory that ignores itself): search, filters, clickable links,
+    a status dashboard, and a layered graph of the derivation links.
+    No CDN, no fonts, no network; opens from `file://`.
+  - `--diff <rev>` — the working tree against a baseline revision,
+    per requirement and per field, with a unified diff of the statement.
+- `repo_url` in `specs/srs-config.json` (or `--repo-url`): the blob-URL
+  prefix that turns `code` and `tests` paths into links to your forge.
+  Viewer-only — the checker ignores keys it does not know.
+- CI templates render the page: `spec-site` in `ci/gitlab-ci.yml` (one
+  rename from GitLab Pages) and an artifact upload in
+  `ci/github-workflow.yml` (a commented block switches it to Pages).
+
+### Changed
+
+- `tools/srs_check.py` gained `parse_text()` beside `parse_file()` and
+  now records each requirement's rationale. Both are additive: the
+  checks, the warnings and the generated matrix are unchanged
+  byte-for-byte.
+
+### Fixed
+
+- A specification file that is not readable UTF-8 (an editor saving
+  cp1251, say) is now reported as an error naming the file, in the
+  checker, instead of ending the run with a decoding traceback. The
+  viewer reports it as a problem and shows the remaining requirements.
+- The installer ships only `.md`, `.json` and `.gitkeep` from `specs/`
+  as skeleton content — anything a maintainer generates under `specs/`
+  in their clone no longer travels into fresh targets.
+
+### Upgrade notes
+
+- Re-run the installer: `tools/srs_view.py` arrives beside the refreshed
+  checker. The two must stay in step — the viewer uses the checker's
+  parser and says so if it finds an older one.
+- The new CI job and the `AGENTS.md` line about the viewer are in
+  precious files: they reach an initialized project only with `--force`
+  (CI) or a manual merge (`AGENTS.md`, or the guided `srs-init` upgrade).
+  The skills carry the same advice and refresh on their own.
+- `.srs-site/` writes a `.gitignore` that ignores the directory itself,
+  so nothing needs adding to yours.
+
 ## [0.4.0] — 2026-08-05
 
 ### Added

@@ -12,6 +12,9 @@ references to code.
 - **Engineering principles** — `specs/constitution.md` (`ART-*`); they
   apply to every task.
 - **Check** — `python3 tools/srs_check.py`.
+- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with
+  its links resolved, `--code <path>` for the requirements describing a
+  file, `--html` for a page a non-engineer can read.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain
   markdown; an agent without a skill system reads them directly as
   workflow guides.
@@ -19,7 +22,7 @@ references to code.
 ## The loop
 
 1. Before changing behavior, find the requirements that describe it:
-   `grep -rn "<path/to/file>" specs/*.md`, or the tables in
+   `python3 tools/srs_view.py --code <path/to/file>`, or the tables in
    `specs/90-traceability.md`. None exist — create one first, with the
    initial status per the Lifecycle section of `specs/README.md`.
 2. Plans reference requirement IDs, not prose.

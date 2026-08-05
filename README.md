@@ -26,10 +26,11 @@ reads the modal verbs it enforces from a per-project lexicon.
 | `specs/` | The specification skeleton: glossary, introduction, FR/NFR/interface/invariant files, constitution, baselines log, ADR log |
 | `specs/srs-config.json` | Project settings: areas, code and test roots, extensions, and the statement lexicon |
 | `tools/srs_check.py` | Integrity checker and traceability-matrix generator. Standard library only, Python ≥ 3.9 |
+| `tools/srs_view.py` | Viewer: terminal queries and a self-contained HTML page. Read-only, same dependency budget |
 | `tools/srs_init.py` | Installer: fresh setup, adoption of existing SRS projects, upgrades (stays in the framework repo) |
 | `AGENTS.md` | Canonical agent guide, read by any coding agent; `CLAUDE.md` is a thin pointer to it |
 | `.claude/skills/` | Agent skills: `srs` (the workflow and planning), `srs-new` (author a requirement), `srs-audit` (drift audit and test adequacy), `srs-harvest` (mine a spec from existing code), `srs-init` (guided setup, framework-only) |
-| `ci/` | Gate templates for target projects: CI (GitHub Actions, GitLab CI) and a pre-commit hook, both enforcing traceability freshness |
+| `ci/` | Templates for target projects: CI (GitHub Actions, GitLab CI) and a pre-commit hook enforcing traceability freshness, plus an optional job that publishes the rendered specification |
 | `CONTRIBUTING.md`, `CHANGELOG.md` | Framework governance and versioning |
 
 ## Quickstart
@@ -65,7 +66,8 @@ configuration (areas, lexicon) **before touching anything** — on failure
 the target is left untouched — then installs the tooling and only the
 missing service files. Your spec files are never modified.
 
-Manual fallback: copy `specs/`, `tools/srs_check.py`, the `srs`,
+Manual fallback: copy `specs/`, `tools/srs_check.py`,
+`tools/srs_view.py`, the `srs`,
 `srs-new`, `srs-audit`, and `srs-harvest` skills from `.claude/skills/`
 (not `srs-init` — it is framework-only), `AGENTS.md`, `CLAUDE.md`, and
 `.gitattributes` into your repository, then edit `specs/srs-config.json`
@@ -81,9 +83,9 @@ python3 path/to/srs-dd/tools/srs_init.py path/to/your-project
 ```
 
 The installer prints the checker version transition and the relevant
-upgrade notes from the CHANGELOG, then refreshes `tools/srs_check.py`
-and the skills (no flags needed). Precious files — CI config,
-`CLAUDE.md`/`AGENTS.md`, `.gitattributes` — are refreshed only with
+upgrade notes from the CHANGELOG, then refreshes `tools/srs_check.py`,
+`tools/srs_view.py` and the skills (no flags needed). Precious files —
+CI config, `CLAUDE.md`/`AGENTS.md`, `.gitattributes` — are refreshed only with
 `--force`, and only when they carry the SRS-DD marker. Commit the
 refreshed tooling together with the regenerated
 `specs/90-traceability.md`.
@@ -134,6 +136,34 @@ code paths, no paths that do not exist, no annotation drift. What it cannot chec
 over implementation, verifiability, unambiguity — is still binding; the
 rules live in `specs/README.md`, and the `srs-audit` skill covers the
 semantic side.
+
+## Reading the specification
+
+`tools/srs_view.py` reads what the checker validates. It never writes to
+`specs/` and never gates anything — the traceability matrix stays the
+committed artifact; this is a projection of the same data.
+
+```
+python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
+python3 tools/srs_view.py --code src/app.py  which requirements describe a file
+python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
+python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
+python3 tools/srs_view.py --diff spec/v0.1.0 working tree against a baseline
+python3 tools/srs_view.py --html             a page for people who do not grep
+```
+
+`--html` writes one self-contained file (default `.srs-site/index.html`,
+a directory that ignores itself): search, filters, clickable links in
+both directions, a status dashboard, and a layered graph of the
+derivation links — no CDN, no fonts, no network at all, so it opens
+straight from `file://`. The CI templates in `ci/` publish it as a build
+artifact, one rename away from GitLab or GitHub Pages. Set `repo_url` in
+`specs/srs-config.json` (or pass `--repo-url`) to turn the `code` and
+`tests` paths into links to your forge.
+
+Requirements are what it renders; the glossary, the constitution and the
+ADRs are linked from the page, not rendered — they carry no identifiers
+for the tooling to resolve.
 
 ## Why not just write code
 

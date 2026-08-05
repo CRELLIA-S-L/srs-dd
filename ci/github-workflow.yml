@@ -28,3 +28,26 @@ jobs:
             echo "specs/90-traceability.md is stale — run: python3 tools/srs_check.py and commit the result"
             exit 1
           fi
+
+      # The readable specification as one self-contained HTML file,
+      # downloadable from the run's Artifacts. Delete these two steps if
+      # you do not want it.
+      - name: Render the specification
+        run: |
+          python3 tools/srs_view.py --html site/index.html \
+            --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: specification
+          path: site
+
+      # To publish through GitHub Pages instead of downloading the
+      # artifact, enable Pages for the repository (Settings → Pages →
+      # source "GitHub Actions") and uncomment the block below; it needs
+      # `permissions: {pages: write, id-token: write}` on this job.
+      # - uses: actions/configure-pages@v5
+      # - uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: site
+      # - uses: actions/deploy-pages@v4

@@ -23,15 +23,19 @@ Before changing code, find out which requirements describe the affected
 behavior:
 
 ```
-grep -rn "<path/to/file>" specs/*.md
+python3 tools/srs_view.py --code <path/to/file>
 ```
 
-Or look into `specs/90-traceability.md` — it holds the
-“Requirement → code → verification” table.
+It answers from the `code` and `tests` fields and from the file's own
+`implements:`/`verifies:` annotations; a directory works too. Where that
+tool is absent, `grep -rn "<path/to/file>" specs/*.md` and the
+“Requirement → code → verification” table in `specs/90-traceability.md`
+give the same answer by hand.
 
 Found some — read them in full, together with their `derives_from` and
-`depends_on`. When changing a requirement, check the “Incoming links” section
-for who references it: that is the blast radius.
+`depends_on`; `python3 tools/srs_view.py <ID>` prints one requirement
+with every link resolved in both directions. When changing a
+requirement, the incoming links are the blast radius.
 
 Found nothing — that is not permission to write code silently. It means the
 behavior is not described, and a requirement must be created first.

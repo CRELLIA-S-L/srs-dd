@@ -22,7 +22,7 @@ import os
 import re
 import sys
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPECS = os.path.join(ROOT, "specs")
@@ -174,6 +174,9 @@ class Requirement(object):
         self.line = line          # 1-based line number of the heading
         self.meta = {}
         self.statement = ""
+        # Captured for readers (tools/srs_view.py); the checker itself
+        # judges the statement only.
+        self.rationale = ""
 
     def links(self, field):
         return self.meta.get(field, [])
@@ -219,9 +222,16 @@ def _skip_fence(lines, index):
     return index + 1
 
 
-def parse_file(path, rel, errors):
-    with open(path, "r", encoding="utf-8") as handle:
-        lines = handle.read().split("\n")
+def parse_text(text, rel, errors):
+    """Parses one specification file already held in memory.
+
+    Split out of parse_file so a caller that has the text but not the
+    file — tools/srs_view.py reading a past revision through `git
+    show` — goes through the same parser. The parser is
+    language-neutral: the lexicon is consulted by validate(), never
+    here.
+    """
+    lines = text.split("\n")
 
     requirements = []
     index = 0
@@ -291,9 +301,33 @@ def parse_file(path, rel, errors):
             index += 1
         req.statement = "\n".join(statement).strip()
 
+        # Rationale: from its marker to the next heading. Fenced blocks
+        # are skipped exactly as above — a `###` line inside an example
+        # block must not end the rationale, or the outer loop would
+        # resume on it and mint a phantom requirement. Unlike the
+        # statement, the block's own lines are kept: readers render them.
+        rationale = []
+        if index < total and RE_RATIONALE.match(lines[index]):
+            while index < total:
+                if RE_FENCE.match(lines[index]):
+                    opener = index
+                    index = _skip_fence(lines, index)
+                    rationale.extend(lines[opener:index])
+                    continue
+                if RE_ANY_HEADING.match(lines[index]):
+                    break
+                rationale.append(lines[index])
+                index += 1
+        req.rationale = "\n".join(rationale).strip()
+
         requirements.append(req)
 
     return requirements
+
+
+def parse_file(path, rel, errors):
+    with open(path, "r", encoding="utf-8") as handle:
+        return parse_text(handle.read(), rel, errors)
 
 
 def collect_spec_files():
@@ -666,7 +700,12 @@ def main():
     requirements = []
     files = collect_spec_files()
     for full, rel in files:
-        requirements.extend(parse_file(full, rel, parse_errors))
+        # A specification file saved in some other encoding is a defect
+        # to report, not a stack trace to decipher.
+        try:
+            requirements.extend(parse_file(full, rel, parse_errors))
+        except (OSError, UnicodeDecodeError) as exc:
+            parse_errors.append("%s — cannot read the file: %s" % (rel, exc))
 
     by_id, errors, warnings = validate(requirements)
     scan_annotations(by_id, errors, warnings)

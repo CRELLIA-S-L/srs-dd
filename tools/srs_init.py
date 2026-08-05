@@ -16,9 +16,9 @@ Three modes, detected automatically:
   configuration BEFORE anything else changes; on validation failure the
   target is left untouched (exit 3). Only tooling and missing service
   files are installed — existing specification files are never modified.
-- **upgrade** — `specs/srs-config.json` exists: the checker and the
-  skills are refreshed (no --force needed), the version transition and
-  relevant CHANGELOG upgrade notes are printed.
+- **upgrade** — `specs/srs-config.json` exists: the tooling (checker and
+  viewer) and the skills are refreshed (no --force needed), the version
+  transition and relevant CHANGELOG upgrade notes are printed.
 
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
@@ -63,6 +63,13 @@ TEMP_CHECKER = ".srs_check_adopt.py"
 
 # specs/ files that are generated per target rather than copied.
 SPEC_EXCLUDE = {"90-traceability.md", "srs-config.json", "10-fr-core.md"}
+
+# What the specification skeleton is made of. Anything else under
+# specs/ in the framework clone is not ours to ship.
+SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
+
+# Tooling copied into every target, refreshed by adopt and upgrade.
+TOOLS = ("srs_check.py", "srs_view.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest")
@@ -309,7 +316,12 @@ def scan_target_spec(target):
 
 
 def collect_spec_skeleton():
-    """Framework specs/ files copied verbatim into fresh targets."""
+    """Framework specs/ files copied verbatim into fresh targets.
+
+    Only skeleton file types travel: a maintainer who generated
+    something under specs/ in their clone must not have it land in
+    every target they install afterwards.
+    """
     result = []
     base = os.path.join(ROOT, "specs")
     for current, dirs, files in os.walk(base):
@@ -317,6 +329,8 @@ def collect_spec_skeleton():
         for name in sorted(files):
             rel = os.path.relpath(os.path.join(current, name), ROOT)
             if os.path.basename(rel) in SPEC_EXCLUDE:
+                continue
+            if not name.endswith(SKELETON_SUFFIXES):
                 continue
             result.append(rel)
     return sorted(result)
@@ -328,6 +342,17 @@ def install_ci(installer, choice):
     for key in keys:
         src, dst = CI_TEMPLATES[key]
         installer.copy(src, dst, tooling=True, precious=True)
+
+
+def install_tools(installer, skip=()):
+    """The checker and the viewer travel together: the viewer imports
+    the checker's parser, so a target must never end up with one of
+    them refreshed and the other stale."""
+    for name in TOOLS:
+        if name in skip:
+            continue
+        rel = os.path.join("tools", name)
+        installer.copy(rel, rel, tooling=True)
 
 
 def install_skills(installer, substitute):
@@ -534,8 +559,7 @@ def run_fresh(args, target, batch):
     installer.put(os.path.join("specs", "10-fr-%s.md" % area.lower()),
                   placeholder, tooling=False)
 
-    installer.copy(os.path.join("tools", "srs_check.py"),
-                   os.path.join("tools", "srs_check.py"), tooling=True)
+    install_tools(installer)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
     install_skills(installer, substitute)
@@ -667,6 +691,7 @@ def run_adopt(args, target, batch, found_areas):
                 "(framework language); adapt or translate it as you see "
                 "fit.\n")
 
+        install_tools(installer, skip=("srs_check.py",))   # already placed
         install_skills(installer, substitute)
         installer.copy(".gitattributes", ".gitattributes", tooling=True,
                        precious=True)
@@ -698,7 +723,7 @@ def run_adopt(args, target, batch, found_areas):
 def run_upgrade(args, target):
     installer = Installer(target, args.force, refresh_tooling=True)
     sys.stdout.write("Initialized target detected — upgrade mode: "
-                     "refreshing the checker and the skills.\n")
+                     "refreshing the tooling and the skills.\n")
     sys.stdout.write("CLAUDE.md and AGENTS.md are not refreshed by "
                      "upgrades; merge changes manually if needed.\n")
     ignored = [flag for flag, value in (
@@ -719,8 +744,7 @@ def run_upgrade(args, target):
     show_all = print_version_transition(old_version)
     print_upgrade_notes(old_version, show_all)
 
-    installer.copy(os.path.join("tools", "srs_check.py"),
-                   os.path.join("tools", "srs_check.py"), tooling=True)
+    install_tools(installer)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
     install_skills(installer, substitute=None)

@@ -14,7 +14,10 @@ re-report what the checker reports.
 ## Procedure
 
 1. Run `python3 tools/srs_check.py --no-write` to start from a known
-   mechanical state; note any warnings.
+   mechanical state; note any warnings. `python3 tools/srs_view.py
+   --coverage` then names the areas worth looking at first: realized
+   requirements with no listed tests, drafts that already have code,
+   code files no requirement references.
 2. For every `implemented` and `partial` requirement: read the files in
    its `code` and `tests` fields and judge whether the behavior matches
    the statement — the whole statement, including its condition and

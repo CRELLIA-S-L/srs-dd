@@ -82,10 +82,10 @@ python3 <framework-clone>/tools/srs_init.py <target> --defaults
 ```
 
 The installer prints the checker version transition and the relevant
-CHANGELOG upgrade notes; the checker and the skills refresh
-automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes)
-only with `--force`. Remind the user to commit the refreshed tooling and
-the regenerated matrix.
+CHANGELOG upgrade notes; the tooling (`srs_check.py`, `srs_view.py`) and
+the skills refresh automatically, precious files (CI,
+CLAUDE.md/AGENTS.md, .gitattributes) only with `--force`. Remind the
+user to commit the refreshed tooling and the regenerated matrix.
 
 After the installer finishes, offer to merge the agent docs — the one
 upgrade the script deliberately never performs:

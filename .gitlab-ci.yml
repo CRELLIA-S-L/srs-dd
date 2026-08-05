@@ -26,11 +26,21 @@ installer-smoke:
     # The stub proves upgrades deliver skill content (the fresh install
     # above already wrote the real file — a bare grep would prove nothing).
     - printf 'stub\n' > /tmp/srs-target/.claude/skills/srs/SKILL.md
+    - printf 'stub\n' > /tmp/srs-target/tools/srs_view.py
     - python3 tools/srs_init.py /tmp/srs-target --defaults | tee /tmp/upgrade.log
     - grep -q "refreshed:" /tmp/upgrade.log
     - grep -q "tools/srs_check.py" /tmp/upgrade.log
     - grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKILL.md
+    - grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
     - test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
+    # Whatever a maintainer generates under specs/ in their clone must
+    # not travel into targets as skeleton content.
+    - printf 'stray\n' > specs/stray.html
+    - rm -rf /tmp/srs-clean
+    - rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci none >/dev/null || rc=$?
+    - rm -f specs/stray.html
+    - test "$rc" -eq 0
+    - test ! -e /tmp/srs-clean/specs/stray.html
 
 adopt-smoke:
   image: python:3.12
@@ -55,9 +65,66 @@ adopt-smoke:
     - test -f /tmp/srs-adopt/specs/90-traceability.md
     - test -f /tmp/srs-adopt/.claude/skills/srs-harvest/SKILL.md
     - grep -q "Planning multi-requirement work" /tmp/srs-adopt/.claude/skills/srs/SKILL.md
+    - test -f /tmp/srs-adopt/tools/srs_view.py
     - python3 /tmp/srs-adopt/tools/srs_check.py --strict --no-write
+    # The viewer reads a Russian specification without a UTF-8 locale.
+    - cd /tmp/srs-adopt && LC_ALL=C python3 tools/srs_view.py --list | cat && cd -
     # specs/ with markdown but no requirements must refuse, not go fresh.
     - mkdir -p /tmp/srs-docs/specs
     - echo "just docs" > /tmp/srs-docs/specs/notes.md
     - rc=0; python3 tools/srs_init.py /tmp/srs-docs --defaults || rc=$?; test "$rc" -eq 2
     - test ! -e /tmp/srs-docs/specs/srs-config.json
+
+view-smoke:
+  image: python:3.12
+  script:
+    # Its own directory: ci_selftest.sh runs every job in one session.
+    - rm -rf /tmp/srs-view
+    - python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
+    # Two linked requirements, one of them the target of a refinement:
+    # enough to exercise the tree, the graph and the incoming links.
+    # A literal block — the text contains ": " and would otherwise parse
+    # as a YAML mapping.
+    - |
+      printf '\n### FR-CORE-020 — Second requirement & an ampersand\n\n```yaml\nstatus: implemented\nverification: T\nderives_from: [FR-CORE-010]\ncode: [src/app.py]\ntests: []\n```\n\nThe system **shall** carry a link.\n\n**Rationale.** Exercises the graph and the incoming links.\n\n### FR-CORE-030 — Third requirement\n\n```yaml\nstatus: draft\nverification: T\nrefines: [FR-CORE-020]\n```\n\nThe system **shall** refine the second one.\n' >> /tmp/srs-view/specs/10-fr-core.md
+    - mkdir -p /tmp/srs-view/src
+    # Literal blocks below: these lines contain ": " and would otherwise
+    # be read as YAML mappings.
+    - |
+      printf '# implements: FR-CORE-020\n' > /tmp/srs-view/src/app.py
+    - cd /tmp/srs-view
+    - git init -q . && git add -A
+    - git -c user.email=ci@example.com -c user.name=CI commit -qm baseline
+    - git tag spec/v0.0.1
+    # Change the specification after the baseline so the diff has
+    # content. Python rather than sed: `sed -i` wants a backup suffix on
+    # BSD and refuses one on GNU, and this job also runs locally through
+    # tools/ci_selftest.sh.
+    - |
+      python3 - <<'PY'
+      path = 'specs/10-fr-core.md'
+      text = open(path, encoding='utf-8').read()
+      open(path, 'w', encoding='utf-8').write(
+          text.replace('status: draft', 'status: deferred'))
+      PY
+    - python3 tools/srs_view.py --list | grep -q "FR-CORE-030"
+    - python3 tools/srs_view.py FR-CORE-020 | grep -q "refined by"
+    - python3 tools/srs_view.py --tree FR-CORE-010 | grep -q "FR-CORE-030"
+    - python3 tools/srs_view.py --code src/app.py --list | grep -q "FR-CORE-020"
+    - python3 tools/srs_view.py --coverage | grep -q "Realized without listed tests"
+    - python3 tools/srs_view.py --diff spec/v0.0.1 | grep -q "status .*draft -> deferred"
+    - python3 tools/srs_view.py --json /tmp/model.json >/dev/null
+    - python3 -c "import json; d=json.load(open('/tmp/model.json')); assert len(d['requirements'])==3, d"
+    - python3 tools/srs_view.py --html
+    - grep -q "FR-CORE-030" .srs-site/index.html
+    - grep -q "<svg" .srs-site/index.html
+    - grep -q "&amp;" .srs-site/index.html          # SVG/HTML escaping
+    - grep -qv "https://cdn" .srs-site/index.html   # self-contained, no CDN
+    - test -f .srs-site/.gitignore
+    # Deterministic output: no timestamps, so two runs must be identical.
+    - cp .srs-site/index.html /tmp/first.html
+    - python3 tools/srs_view.py --html >/dev/null
+    - cmp /tmp/first.html .srs-site/index.html
+    # A viewer run must not litter the target with bytecode.
+    - test -z "$(find . -name __pycache__)"
+    - cd -

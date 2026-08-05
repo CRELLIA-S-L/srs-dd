@@ -13,3 +13,17 @@ spec-check:
     - python3 tools/srs_check.py
     - git add -N specs/90-traceability.md
     - git diff --exit-code -- specs/90-traceability.md || { echo "specs/90-traceability.md is stale — run python3 tools/srs_check.py and commit the result"; exit 1; }
+
+# The readable specification as a build artifact: one self-contained
+# HTML file, no Pages setup required. Delete this job if you do not
+# want it. To publish through GitLab Pages instead, rename the job to
+# `pages` — the artifact path is already the one Pages expects.
+spec-site:
+  image: python:3.12
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - python3 tools/srs_view.py --html public/index.html --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+  artifacts:
+    paths:
+      - public

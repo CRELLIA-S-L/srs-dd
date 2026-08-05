@@ -247,6 +247,7 @@ the file falls back to the checker's default.
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
 | `test_roots` | `["tests"]` | Additional roots scanned for annotations |
 | `code_extensions` | `[".py", ".ts", …]` | File extensions treated as source files |
+| `repo_url` | `""` | Blob-URL prefix for links to code, e.g. `https://gitlab.com/acme/app/-/blob/main`. Read by `tools/srs_view.py` only — the checker ignores it |
 | `modal_verbs` | `["shall", "must", "should", "may"]` | Words accepted as the bolded modal verb |
 | `negation_words` | `["not"]` | Words allowed before or after the verb inside the bold |
 | `rationale_markers` | `["Rationale"]` | Words that open the rationale paragraph |
@@ -284,6 +285,11 @@ rewrites `90-traceability.md`.
 The `--no-write` flag — check only, generate nothing. The `--strict` flag
 turns warnings into a failing exit code — for CI, when warnings must not
 accumulate.
+
+Reading the same specification — one requirement with its links
+resolved, the requirements covering a file, a page for a reviewer who
+does not grep — is `tools/srs_view.py`; it validates nothing and writes
+nothing into `specs/`. Its modes are described in the repository README.
 
 Parser notes: fenced code blocks are opaque — headings, modal verbs, and
 rationale markers inside them are ignored. Backtick fences follow the
