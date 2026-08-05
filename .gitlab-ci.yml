@@ -34,7 +34,10 @@ adopt-smoke:
     - rm -rf /tmp/srs-adopt /tmp/srs-docs
     # Fabricate a minimal existing Russian SRS.
     - mkdir -p /tmp/srs-adopt/specs
-    - printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** сохранять файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
+    # A literal block: the requirement text contains ": " and would
+    # otherwise be parsed as a YAML mapping.
+    - |
+      printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** сохранять файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
     - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
     # Wrong lexicon (English defaults vs Russian spec) must roll back: exit 3, tree unchanged.
     - python3 tools/srs_init.py /tmp/srs-adopt --defaults; test $? -eq 3
