@@ -1,6 +1,6 @@
 ---
 name: srs
-description: Working with the project specification (SRS in specs/). Invoke ALWAYS before any code change that alters behavior; when planning any task; when asked what the system should do; when investigating why something is built the way it is; when changing or cancelling a requirement. For a guided dialog that authors a brand-new requirement, prefer the srs-new skill. Not needed only for changes that do not touch behavior — typos, formatting, comments.
+description: Working with the project specification (SRS in specs/). Invoke ALWAYS before any code change that alters behavior; when planning any task — including planning a feature, breaking a task into steps, or sequencing work across several requirements; when asked what the system should do; when investigating why something is built the way it is; when changing or cancelling a requirement. For a guided dialog that authors a brand-new requirement, prefer the srs-new skill. Not needed only for changes that do not touch behavior — typos, formatting, comments.
 ---
 
 # Working with the specification
@@ -54,6 +54,33 @@ behavior is not described, and a requirement must be created first.
 
 Changing behavior — change the requirement in the same set of edits as the
 code. They diverge exactly when one moves without the other.
+
+## Planning multi-requirement work
+
+For a task that spans several requirements, build the plan from the
+specification, not from the code:
+
+1. Resolve the requirements in scope (grep, the matrix), then expand the
+   closure: read everything they list in `depends_on`, `derives_from`,
+   and `refines`, and check “Incoming links” for the blast radius.
+2. Behavior in scope with no covering requirement — the plan's first
+   steps author the missing requirements (see `srs-new`); no step may
+   change behavior silently.
+3. Order the steps so a requirement is implemented only after everything
+   in its `depends_on`. Every step cites IDs — and the constitution
+   articles that constrain it (“per ART-040”) — and notes the
+   requirement's verification method.
+4. A `draft` in scope is a blocker, marked so in the plan — code against
+   it waits for approval (ART-020). A `superseded` requirement in scope
+   is an error; surface it instead of planning around it.
+5. Every plan ends with the same two steps: close the loop (status,
+   `code`, `tests` in the same edit set) and run the checker. Steps that
+   run builds or tests are marked “requires the user's explicit
+   confirmation each time” (ART-030).
+
+The plan lives in the conversation. Do not write it into `specs/` or
+anywhere else — the specification records what the system does, not the
+work queue; and a plan is not approval: statuses are (ART-020).
 
 ## Template
 

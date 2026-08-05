@@ -23,9 +23,13 @@ installer-smoke:
     - python3 /tmp/srs-target/tools/srs_check.py --strict
     # Re-running on an initialized target = upgrade mode; the checker and
     # skills must refresh WITHOUT --force, precious files must be skipped.
+    # The stub proves upgrades deliver skill content (the fresh install
+    # above already wrote the real file — a bare grep would prove nothing).
+    - printf 'stub\n' > /tmp/srs-target/.claude/skills/srs/SKILL.md
     - python3 tools/srs_init.py /tmp/srs-target --defaults | tee /tmp/upgrade.log
     - grep -q "refreshed:" /tmp/upgrade.log
     - grep -q "tools/srs_check.py" /tmp/upgrade.log
+    - grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKILL.md
     - test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
 
 adopt-smoke:
@@ -50,6 +54,7 @@ adopt-smoke:
     - python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" --modal-verbs "должен,должна,должно,должны,следует,может,могут" --negation-words "не" --rationale-markers "Обоснование"
     - test -f /tmp/srs-adopt/specs/90-traceability.md
     - test -f /tmp/srs-adopt/.claude/skills/srs-harvest/SKILL.md
+    - grep -q "Planning multi-requirement work" /tmp/srs-adopt/.claude/skills/srs/SKILL.md
     - python3 /tmp/srs-adopt/tools/srs_check.py --strict --no-write
     # specs/ with markdown but no requirements must refuse, not go fresh.
     - mkdir -p /tmp/srs-docs/specs

@@ -9,6 +9,40 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.4.0] — 2026-08-05
+
+### Added
+
+- Planning in the `srs` skill: a "Planning multi-requirement work"
+  section — dependency-ordered plans whose steps cite requirement IDs
+  and constitution articles, `draft` requirements flagged as approval
+  blockers (ART-020), plans kept in the conversation and never written
+  into `specs/`.
+- Test adequacy in the `srs-audit` skill: decompose an EARS statement
+  into trigger, state, and constraint; derive the implied test cases
+  (including property-style ones for quantified constraints); map them
+  against the `tests` field and report gaps. `verification: T` only;
+  on explicit request the skill may author the missing tests (the one
+  exception to its read-only rule).
+- Agent-doc merge in the `srs-init` skill: the guided upgrade now offers
+  an LLM-performed merge of the target's `CLAUDE.md`/`AGENTS.md` with
+  the framework versions — SRS-DD-marked files only, shown before
+  applying, local content preserved.
+- "Other coding agents" documentation: `AGENTS.md` is the cross-agent
+  entry point (read natively by Cursor, Codex, Gemini CLI, Copilot);
+  skills are plain markdown readable without a skill system; a two-line
+  pointer snippet for tools that want their own rules file.
+
+### Upgrade notes
+
+- Re-run the installer — the enriched `srs` and `srs-audit` skills
+  refresh automatically.
+- `CLAUDE.md` and `AGENTS.md` are still not auto-refreshed: run the
+  guided upgrade (`srs-init` skill, from a framework clone) to have the
+  agent merge the doc changes, or merge manually. The framework copies
+  gained a skills note (`AGENTS.md`) and updated skill mentions
+  (`CLAUDE.md`).
+
 ## [0.3.0] — 2026-08-05
 
 ### Added

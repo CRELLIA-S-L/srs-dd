@@ -28,7 +28,7 @@ reads the modal verbs it enforces from a per-project lexicon.
 | `tools/srs_check.py` | Integrity checker and traceability-matrix generator. Standard library only, Python ≥ 3.9 |
 | `tools/srs_init.py` | Installer: fresh setup, adoption of existing SRS projects, upgrades (stays in the framework repo) |
 | `AGENTS.md` | Canonical agent guide, read by any coding agent; `CLAUDE.md` is a thin pointer to it |
-| `.claude/skills/` | Agent skills: `srs` (the workflow), `srs-new` (author a requirement), `srs-audit` (drift audit), `srs-harvest` (mine a spec from existing code), `srs-init` (guided setup, framework-only) |
+| `.claude/skills/` | Agent skills: `srs` (the workflow and planning), `srs-new` (author a requirement), `srs-audit` (drift audit and test adequacy), `srs-harvest` (mine a spec from existing code), `srs-init` (guided setup, framework-only) |
 | `ci/` | Gate templates for target projects: CI (GitHub Actions, GitLab CI) and a pre-commit hook, both enforcing traceability freshness |
 | `CONTRIBUTING.md`, `CHANGELOG.md` | Framework governance and versioning |
 
@@ -87,6 +87,29 @@ and the skills (no flags needed). Precious files — CI config,
 `--force`, and only when they carry the SRS-DD marker. Commit the
 refreshed tooling together with the regenerated
 `specs/90-traceability.md`.
+
+For `CLAUDE.md`/`AGENTS.md` there is a gentler path than `--force`: run
+the guided upgrade (the `srs-init` skill, from a framework clone) and
+the agent will propose a merge that folds the framework changes in
+while preserving your local content.
+
+## Other coding agents
+
+`AGENTS.md` is the canonical, agent-agnostic guide, and modern agents
+(Cursor, Codex, Gemini CLI, GitHub Copilot, …) read an `AGENTS.md` at
+the repository root natively — for them, an initialized target works
+out of the box. The skills in `.claude/skills/` are plain markdown with
+no Claude-specific machinery; an agent without a skill system can read
+them directly as workflow guides.
+
+If your tool wants its own rules file (for example
+`.cursor/rules/srs.mdc` or `.github/copilot-instructions.md`), a
+two-line pointer is enough — no need to duplicate the rules:
+
+```
+This project follows the SRS-DD standard.
+Read AGENTS.md first; the specification rules live in specs/README.md.
+```
 
 ## The loop
 

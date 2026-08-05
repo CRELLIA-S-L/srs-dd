@@ -12,6 +12,9 @@ references to code.
 - **Engineering principles** — `specs/constitution.md` (`ART-*`); they
   apply to every task.
 - **Check** — `python3 tools/srs_check.py`.
+- **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain
+  markdown; an agent without a skill system reads them directly as
+  workflow guides.
 
 ## The loop
 

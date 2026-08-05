@@ -86,3 +86,17 @@ CHANGELOG upgrade notes; the checker and the skills refresh
 automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes)
 only with `--force`. Remind the user to commit the refreshed tooling and
 the regenerated matrix.
+
+After the installer finishes, offer to merge the agent docs — the one
+upgrade the script deliberately never performs:
+
+1. Diff the target's `CLAUDE.md` and `AGENTS.md` against the framework's
+   copies (the framework versions carry `<Your Project Name>` where the
+   target has its real name — account for that substitution).
+2. For a file that carries the `SRS-DD` marker, propose a merged
+   version: framework additions folded in, the project name and every
+   local addition preserved. Show the result and apply it only on the
+   user's explicit confirmation.
+3. A file without the marker is not ours (same rule the installer
+   follows): report what changed on the framework side and leave the
+   file alone.
