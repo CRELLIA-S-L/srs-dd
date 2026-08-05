@@ -1,93 +1,75 @@
-# Software Requirements Specification Driven Development
+# SRS-DD — Spec-Driven Development on a real SRS
 
+A lightweight standard for spec-driven development built on the bones of a
+classic Software Requirements Specification. The specification — not the
+issue tracker, not the chat log — is the source of truth for what the system
+does; code changes close the loop back to numbered, linked, traceable
+requirements.
 
+The form is deliberately boring and standards-based:
 
-## Getting started
+- **ISO/IEC/IEEE 29148** — section structure, requirement attributes, the
+  sentence-construction formula, traceability;
+- **EARS** — ready-made phrase patterns for statements;
+- **MADR** — the architecture decision log.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Everything is plain Markdown plus one dependency-free Python script. No
+server, no database, no toolchain to install.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## What is in the box
 
-## Add your files
+| Path | What it is |
+|---|---|
+| `specs/README.md` | The single normative document: markup rules, identifier scheme, workflow |
+| `specs/` | The specification skeleton: glossary, introduction, FR/NFR/interface/invariant files, ADR log |
+| `specs/srs-config.json` | Project settings: requirement areas, code roots, source extensions |
+| `tools/srs_check.py` | Integrity checker and traceability-matrix generator. Standard library only, Python ≥ 3.9 |
+| `.claude/skills/srs/` | A skill that teaches a coding agent the workflow: requirement before code, close the loop after |
+| `CLAUDE.md` | Project instructions wiring the skill and the checker into an agent session |
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Quickstart
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/crellia-public/srs-dd.git
-git branch -M main
-git push -uf origin main
-```
+1. Copy `specs/`, `tools/`, `.claude/`, and `CLAUDE.md` into your repository.
+2. In `CLAUDE.md`, replace `<Your Project Name>`.
+3. In `specs/srs-config.json`, set your requirement **areas** (subject-matter
+   partitions like `CORE`, `API`, `SEC`), the roots of your production code,
+   and your source file extensions.
+4. Replace the placeholder requirement in `specs/10-fr-core.md` with your
+   first real one, following `specs/README.md`.
+5. Run the checker:
 
-## Integrate with your tools
+   ```
+   python3 tools/srs_check.py
+   ```
 
-* [Set up project integrations](https://gitlab.com/crellia-public/srs-dd/-/settings/integrations)
+   It validates the specification and regenerates
+   `specs/90-traceability.md` — the requirement → code → tests matrix.
 
-## Collaborate with your team
+## The loop
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Every task that changes behavior goes through the same five steps:
 
-## Test and Deploy
+1. **Requirement before code.** Write down what must change, status
+   `deferred`. If a task changes behavior, it has a requirement — otherwise
+   there is no way to tell when it is finished.
+2. **Plans reference numbers.** `FR-DATA-050`, not “fix the storage layer”.
+3. **Code.**
+4. **Close the loop.** Status to `implemented`, fill `code` and `tests` with
+   real paths.
+5. **Check.** `python3 tools/srs_check.py` in CI and locally.
 
-Use the built-in continuous integration in GitLab.
+The checker enforces what a linter can: unique well-formed identifiers,
+exactly one bolded modal verb per statement (**shall**/**must** /
+**should** / **may**), no dangling links, no cycles, no `implemented` without code paths,
+no paths that do not exist. What it cannot check — behavior over
+implementation, verifiability, unambiguity — is still binding; the rules
+live in `specs/README.md`.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+## Why not just write code
 
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Working with AI coding agents sharpens an old problem: an agent will happily
+change behavior nobody asked for, and a week later nobody can say whether
+the code or the intent is right. A specification with identifiers gives both
+humans and agents a shared, greppable ground truth: plans cite `FR-CORE-020`,
+diffs carry the requirement they close, and drift between spec and code is a
+checkable error, not an archaeology project.
