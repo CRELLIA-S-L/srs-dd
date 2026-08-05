@@ -1,5 +1,22 @@
 # Contributing
 
+## Local gate (one-time setup)
+
+After cloning, point git at the repository's hooks:
+
+```
+git config core.hooksPath .githooks
+```
+
+The pre-commit hook runs `tools/ci_selftest.sh`: it validates the YAML
+of `.gitlab-ci.yml` and `ci/*.yml`, then executes **every**
+`.gitlab-ci.yml` job script locally under the runner's shell semantics
+(bash, `set -eo pipefail`) — the specification gate, the installer
+smoke, and the adopt smoke included. It takes a couple of seconds and
+can also be run manually at any time: `tools/ci_selftest.sh`. Requires
+`ruby` (present on macOS by default) for YAML parsing; without it the
+YAML checks are skipped with a warning.
+
 ## Kinds of change
 
 - **Standard change** — anything that alters `specs/README.md` (the rules,

@@ -22,9 +22,9 @@ Three modes, detected automatically:
 
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
-files (CI config, CLAUDE.md/AGENTS.md, .gitattributes) — and only when
-the existing file carries the "SRS-DD" marker; a file the installer did
-not install is never overwritten.
+files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
+hook) — and only when the existing file carries the "SRS-DD" marker; a
+file the installer did not install is never overwritten.
 
 Interactive by default; --defaults answers every remaining question with
 its default. The script knows no natural language: to write the
@@ -76,6 +76,9 @@ CI_TEMPLATES = {
                os.path.join(".github", "workflows", "srs.yml")),
     "gitlab": (os.path.join("ci", "gitlab-ci.yml"), ".gitlab-ci.yml"),
 }
+
+HOOK_SRC = os.path.join("ci", "pre-commit")
+HOOK_DST = os.path.join(".githooks", "pre-commit")
 
 PLACEHOLDER_REQ = """# Functional requirements — %(area_low)s
 
@@ -190,7 +193,8 @@ class Installer(object):
         self.refreshed = []
         self.skipped = []
 
-    def put(self, dst_rel, content, tooling, precious=False):
+    def put(self, dst_rel, content, tooling, precious=False,
+            executable=False):
         """Writes one file. `content` is str (utf-8) or bytes.
 
         Existing tooling files are refreshed in adopt/upgrade modes (or
@@ -233,9 +237,11 @@ class Installer(object):
         kwargs = {"encoding": "utf-8"} if isinstance(content, str) else {}
         with open(dst, mode, **kwargs) as handle:
             handle.write(content)
+        if executable:
+            os.chmod(dst, 0o755)
 
     def copy(self, src_rel, dst_rel, tooling, substitute=None,
-             precious=False):
+             precious=False, executable=False):
         src = os.path.join(ROOT, src_rel)
         with open(src, "rb") as handle:
             raw = handle.read()
@@ -243,9 +249,11 @@ class Installer(object):
             text = raw.decode("utf-8")
             for old, new in substitute.items():
                 text = text.replace(old, new)
-            self.put(dst_rel, text, tooling, precious=precious)
+            self.put(dst_rel, text, tooling, precious=precious,
+                     executable=executable)
         else:
-            self.put(dst_rel, raw, tooling, precious=precious)
+            self.put(dst_rel, raw, tooling, precious=precious,
+                     executable=executable)
 
     def summary(self):
         lines = []
@@ -327,6 +335,18 @@ def install_skills(installer, substitute):
         rel = os.path.join(".claude", "skills", skill, "SKILL.md")
         if os.path.exists(os.path.join(ROOT, rel)):
             installer.copy(rel, rel, tooling=True, substitute=substitute)
+
+
+def install_hook(installer):
+    installer.copy(HOOK_SRC, HOOK_DST, tooling=True, precious=True,
+                   executable=True)
+
+
+def hook_activation_hint(installer):
+    if HOOK_DST in installer.created:
+        sys.stdout.write(
+            "\nActivate the pre-commit gate (one-time, in the target):\n"
+            "  git config core.hooksPath .githooks\n")
 
 
 def install_agent_docs(installer, substitute):
@@ -521,6 +541,7 @@ def run_fresh(args, target, batch):
     install_skills(installer, substitute)
     install_agent_docs(installer, substitute)
     install_ci(installer, settings["ci"])
+    install_hook(installer)
 
     sys.stdout.write(installer.summary() + "\n")
     installer.gitattributes_hint()
@@ -532,6 +553,7 @@ def run_fresh(args, target, batch):
             "\nNext steps: replace the placeholder requirement in "
             "specs/10-fr-%s.md, then read specs/README.md.\n"
             % area.lower())
+        hook_activation_hint(installer)
     return result
 
 
@@ -650,6 +672,7 @@ def run_adopt(args, target, batch, found_areas):
                        precious=True)
         install_agent_docs(installer, substitute)
         install_ci(installer, settings["ci"])
+        install_hook(installer)
 
         sys.stdout.write("\n" + installer.summary() + "\n")
         installer.gitattributes_hint()
@@ -668,6 +691,7 @@ def run_adopt(args, target, batch, found_areas):
         sys.stdout.write(
             "\nNext steps: commit the regenerated "
             "specs/90-traceability.md together with the new tooling.\n")
+        hook_activation_hint(installer)
     return result
 
 
@@ -702,6 +726,7 @@ def run_upgrade(args, target):
     install_skills(installer, substitute=None)
     if args.ci:
         install_ci(installer, args.ci)
+    install_hook(installer)
     sys.stdout.write(installer.summary() + "\n")
     installer.gitattributes_hint()
     result = run_target_checker(target)
@@ -709,6 +734,8 @@ def run_upgrade(args, target):
         sys.stdout.write(
             "\nNext steps: commit the refreshed tooling and the "
             "regenerated specs/90-traceability.md.\n")
+    if result == 0:
+        hook_activation_hint(installer)
     return result
 
 

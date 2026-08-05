@@ -9,6 +9,22 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.3.0] — 2026-08-05
+
+### Added
+
+- Client pre-commit gate: the installer ships `ci/pre-commit` into
+  targets as `.githooks/pre-commit` (all three modes, precious). It runs
+  the checker and fails when the committed traceability matrix is
+  stale — the same gate CI enforces, caught before the commit.
+  Activation is one command, printed by the installer:
+  `git config core.hooksPath .githooks`.
+
+### Upgrade notes
+
+- Re-run the installer to receive `.githooks/pre-commit`, then activate
+  it once: `git config core.hooksPath .githooks`.
+
 ## [0.2.0] — 2026-08-05
 
 ### Added

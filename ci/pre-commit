@@ -1,0 +1,18 @@
+#!/bin/sh
+# SRS-DD pre-commit gate.
+# Template copied into target projects as .githooks/pre-commit by
+# tools/srs_init.py. One-time activation in the target repository:
+#     git config core.hooksPath .githooks
+#
+# Validates the specification and regenerates the traceability matrix;
+# fails when the matrix being committed is stale. Add --strict below to
+# also fail on warnings.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+python3 tools/srs_check.py
+
+git diff --exit-code -- specs/90-traceability.md >/dev/null 2>&1 || {
+    echo "pre-commit: specs/90-traceability.md was regenerated — stage it and retry." >&2
+    exit 1
+}

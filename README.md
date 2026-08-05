@@ -29,7 +29,7 @@ reads the modal verbs it enforces from a per-project lexicon.
 | `tools/srs_init.py` | Installer: fresh setup, adoption of existing SRS projects, upgrades (stays in the framework repo) |
 | `AGENTS.md` | Canonical agent guide, read by any coding agent; `CLAUDE.md` is a thin pointer to it |
 | `.claude/skills/` | Agent skills: `srs` (the workflow), `srs-new` (author a requirement), `srs-audit` (drift audit), `srs-harvest` (mine a spec from existing code), `srs-init` (guided setup, framework-only) |
-| `ci/` | CI templates for target projects (GitHub Actions, GitLab CI) with a traceability-freshness gate |
+| `ci/` | Gate templates for target projects: CI (GitHub Actions, GitLab CI) and a pre-commit hook, both enforcing traceability freshness |
 | `CONTRIBUTING.md`, `CHANGELOG.md` | Framework governance and versioning |
 
 ## Quickstart
@@ -55,7 +55,9 @@ generates the lexicon for any language and asks you to confirm it.
 
 Then: replace the placeholder requirement, and commit everything —
 including `specs/90-traceability.md`, which is version-controlled on
-purpose: CI regenerates it and fails if the committed copy is stale.
+purpose: CI regenerates it and fails if the committed copy is stale. The
+same gate runs locally once you activate the installed hook:
+`git config core.hooksPath .githooks`.
 
 **Already have an SRS?** The installer detects an existing specification
 and switches to adopt mode: it validates your spec against the proposed

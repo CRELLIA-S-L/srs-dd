@@ -40,7 +40,8 @@ adopt-smoke:
       printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** сохранять файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
     - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
     # Wrong lexicon (English defaults vs Russian spec) must roll back: exit 3, tree unchanged.
-    - python3 tools/srs_init.py /tmp/srs-adopt --defaults; test $? -eq 3
+    # The `|| rc=$?` capture keeps set -e from aborting on the expected failure.
+    - rc=0; python3 tools/srs_init.py /tmp/srs-adopt --defaults || rc=$?; test "$rc" -eq 3
     - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/after.sum
     - diff /tmp/before.sum /tmp/after.sum
     - test ! -e /tmp/srs-adopt/specs/srs-config.json
@@ -53,5 +54,5 @@ adopt-smoke:
     # specs/ with markdown but no requirements must refuse, not go fresh.
     - mkdir -p /tmp/srs-docs/specs
     - echo "just docs" > /tmp/srs-docs/specs/notes.md
-    - python3 tools/srs_init.py /tmp/srs-docs --defaults; test $? -eq 2
+    - rc=0; python3 tools/srs_init.py /tmp/srs-docs --defaults || rc=$?; test "$rc" -eq 2
     - test ! -e /tmp/srs-docs/specs/srs-config.json
