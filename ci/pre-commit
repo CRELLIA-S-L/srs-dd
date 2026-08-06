@@ -4,6 +4,12 @@
 # tools/srs_init.py. One-time activation in the target repository:
 #     git config core.hooksPath .githooks
 #
+# Do that only if nothing else owns pre-commit — the setting redirects
+# every hook, so an existing one would stop running. Where a project
+# already has its own, call this file from it instead:
+#     sh .githooks/pre-commit || exit 1
+# It cds to the repository root itself, so it works from anywhere.
+#
 # Validates the specification and regenerates the traceability matrix;
 # fails when the matrix being committed is stale. Add --strict below to
 # also fail on warnings.

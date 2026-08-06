@@ -37,6 +37,12 @@ for YAML parsing; without it the YAML checks are skipped with a warning.
 - No two sources of truth: if a rule is stated in `specs/README.md`, other
   documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
+- A tool that imports another tool sets `sys.dont_write_bytecode = True`
+  **before** the import. The loader writes `__pycache__` before a
+  module's body runs, so the flag only works in the importer — and a
+  cached module is validated by modification time and size alone, which
+  a version-string change does not alter. Stale bytecode has already
+  made the installer report a version it was not installing.
 
 ## Version schemes
 

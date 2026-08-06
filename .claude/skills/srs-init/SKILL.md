@@ -39,6 +39,11 @@ present). This skill adds the one thing the script cannot do: language.
      --rationale-markers "<...>"
    ```
 
+   Run that command **twice**: first with `--dry-run` appended, which
+   writes nothing and prints the exact created / refreshed / skipped
+   list — show that list to the user together with the lexicon — and
+   then, once they approve, the same command without the flag.
+
 5. After a successful install, rewrite the placeholder requirement in the
    target (`specs/10-fr-<area>.md`) as a grammatical sentence in the
    specification language, then run the target's checker again.
@@ -61,7 +66,9 @@ When the target already has an SRS-shaped spec (numbered requirements in
    discovered areas are its default, but pass `--areas` explicitly with
    what you saw). The installer validates the whole spec against the
    proposed configuration **before changing anything**; on failure
-   (exit 3) the target is untouched.
+   (exit 3) the target is untouched. `--dry-run` lists what would be
+   installed but skips that validation — it needs the checker inside the
+   target — so treat the dry run as a preview of the file list only.
 4. If validation fails, read the checker's output: wrong or incomplete
    lexicon (a missing verb form is the most common cause) — extend the
    lists and re-run; genuine spec defects — report them to the user
@@ -84,8 +91,10 @@ python3 <framework-clone>/tools/srs_init.py <target> --defaults
 The installer prints the checker version transition and the relevant
 CHANGELOG upgrade notes; the tooling (`srs_check.py`, `srs_view.py`) and
 the skills refresh automatically, precious files (CI,
-CLAUDE.md/AGENTS.md, .gitattributes) only with `--force`. Remind the
-user to commit the refreshed tooling and the regenerated matrix.
+CLAUDE.md/AGENTS.md, .gitattributes) only with `--force`. Add
+`--dry-run` first when the user wants to see the file list before
+anything moves. Remind them to commit the refreshed tooling and the
+regenerated matrix.
 
 After the installer finishes, offer to merge the agent docs — the one
 upgrade the script deliberately never performs:

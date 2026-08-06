@@ -9,6 +9,60 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.6.0] — 2026-08-06
+
+### Added
+
+- `--dry-run` for `tools/srs_init.py`: writes nothing at all and prints
+  the created / refreshed / skipped list the real run would produce, in
+  every mode. A maintainer — or an agent proposing an install — sees the
+  change before it happens. In adopt mode the existing specification is
+  not validated under `--dry-run` (that needs the checker running inside
+  the target); the real run validates first and leaves the target
+  byte-identical when validation fails.
+- "Handing this to an agent" in `README.md`: the entry point for a
+  coding agent given nothing but the repository URL. Points at
+  `.claude/skills/srs-init/SKILL.md` as the procedure, gives the
+  clone-and-run one-liner (`git` and `python3` are the only
+  prerequisites), the release-pinning form, the exit codes, and states
+  which two decisions — requirement areas and the lexicon — the agent
+  must bring back to the maintainer instead of settling itself.
+
+### Changed
+
+- The pre-commit gate no longer assumes it owns `pre-commit`. The
+  installer reads `core.hooksPath`, looks for an existing hook and for
+  husky or the pre-commit framework, and when the repository already
+  runs something it says so instead of advising the `core.hooksPath`
+  switch — which would have silently disabled it. Your hook calls the
+  gate (`sh .githooks/pre-commit || exit 1`); when
+  `.githooks/pre-commit` is itself yours, the gate is installed beside it as
+  `.githooks/pre-commit.srs-dd`. Existing hooks were never overwritten
+  before either; what was missing was the advice not to shadow them.
+- The README's first section says what the framework is for: codebases
+  written with AI coding agents, without depending on one. The argument
+  itself stays where it was, at the end.
+- The `srs-init` skill runs the installer with `--dry-run` first and
+  shows the file list before installing — the same approval shape it
+  already required for the lexicon.
+
+### Fixed
+
+- `tools/srs_init.py` no longer writes `__pycache__` into the framework
+  clone. A cached module is validated by modification time and size
+  alone, so a version string that changes without changing the file
+  size could be served stale — the installer then reported, and picked
+  upgrade notes for, a version other than the one it was installing.
+
+### Upgrade notes
+
+- Nothing to do. `--dry-run` is a new flag; no existing command changes
+  behavior, and the checker is untouched apart from its version string.
+- If you were told to run `git config core.hooksPath .githooks` by an
+  earlier version and your repository had a hook of its own, check
+  `git config --get core.hooksPath` — that setting redirects every hook,
+  so the old one has not been running since.
+
 ## [0.5.0] — 2026-08-06
 
 ### Added

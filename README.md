@@ -1,10 +1,15 @@
 # SRS-DD — Spec-Driven Development on a real SRS
 
 A lightweight standard for spec-driven development built on the bones of a
-classic Software Requirements Specification. The specification — not the
-issue tracker, not the chat log — is the source of truth for what the system
-does; code changes close the loop back to numbered, linked, traceable
-requirements.
+classic Software Requirements Specification, made for codebases written
+with AI coding agents. The specification — not the issue tracker, not the
+chat log — is the source of truth for what the system does; code changes
+close the loop back to numbered, linked, traceable requirements, and an
+agent that changes behavior has to name the requirement it closes.
+
+Built for that without depending on it: the rules live in `AGENTS.md` and
+in plain-markdown skills any tool can read, the enforcement is a
+standard-library script, and a team working entirely by hand loses nothing.
 
 The form is deliberately boring and standards-based:
 
@@ -13,7 +18,8 @@ The form is deliberately boring and standards-based:
 - **EARS** — ready-made phrase patterns for statements;
 - **MADR** — the architecture decision log.
 
-Everything is plain Markdown plus two dependency-free Python scripts. No
+Everything is plain Markdown plus dependency-free Python scripts — a
+checker and a viewer in your repository, an installer in this one. No
 server, no database, no toolchain to install. The specification itself can
 be written in **any language**: the tooling knows no natural language and
 reads the modal verbs it enforces from a per-project lexicon.
@@ -46,7 +52,8 @@ It asks for the project name, requirement areas, code/test roots, source
 extensions, a CI template, and the lexicon — then copies the skeleton,
 writes `specs/srs-config.json`, generates a placeholder requirement, and
 runs the checker in your repository. Non-interactive: add `--defaults` or
-pass explicit flags (`--help`).
+pass explicit flags (`--help`). `--dry-run` writes nothing and prints the
+exact created / refreshed / skipped list first.
 
 To write the specification in another language, either pass the word lists
 yourself (`--modal-verbs "должен,должна,…" --negation-words "не"
@@ -60,6 +67,14 @@ purpose: CI regenerates it and fails if the committed copy is stale. The
 same gate runs locally once you activate the installed hook:
 `git config core.hooksPath .githooks`.
 
+**Already run a pre-commit hook?** It is never displaced. The installer
+looks at what the repository does on commit — `core.hooksPath`, an
+existing hook, husky or the pre-commit framework — and when something is
+already there it says so instead of advising the `core.hooksPath` switch,
+which would silently disable it. Your hook then calls the gate:
+`sh .githooks/pre-commit || exit 1`. If `.githooks/pre-commit` is itself
+yours, the gate is installed beside it as `.githooks/pre-commit.srs-dd`.
+
 **Already have an SRS?** The installer detects an existing specification
 and switches to adopt mode: it validates your spec against the proposed
 configuration (areas, lexicon) **before touching anything** — on failure
@@ -67,11 +82,52 @@ the target is left untouched — then installs the tooling and only the
 missing service files. Your spec files are never modified.
 
 Manual fallback: copy `specs/`, `tools/srs_check.py`,
-`tools/srs_view.py`, the `srs`,
-`srs-new`, `srs-audit`, and `srs-harvest` skills from `.claude/skills/`
+`tools/srs_view.py`, the `srs`, `srs-new`, `srs-audit`, and
+`srs-harvest` skills from `.claude/skills/`
 (not `srs-init` — it is framework-only), `AGENTS.md`, `CLAUDE.md`, and
 `.gitattributes` into your repository, then edit `specs/srs-config.json`
 by hand.
+
+## Handing this to an agent
+
+Point a coding agent at this repository and it can install the framework
+itself. The procedure to follow is `.claude/skills/srs-init/SKILL.md` —
+plain markdown, no skill system required:
+
+```
+https://gitlab.com/crellia-public/srs-dd/-/raw/main/.claude/skills/srs-init/SKILL.md
+```
+
+Clone rather than fetch a single file: the installer copies the
+specification skeleton, the skills and the CI templates out of the clone.
+Nothing beyond `git` and `python3` is needed.
+
+```
+rm -rf /tmp/srs-dd    # so a second attempt does not trip over the clone
+git clone --depth 1 https://gitlab.com/crellia-public/srs-dd.git /tmp/srs-dd
+python3 /tmp/srs-dd/tools/srs_init.py path/to/project --dry-run
+python3 /tmp/srs-dd/tools/srs_init.py path/to/project [flags]
+```
+
+Add `--branch vX.Y.Z` to the clone to pin a release. `--dry-run` writes
+nothing and prints the exact created / refreshed / skipped list, so the
+maintainer sees the change before it happens. The installer detects the
+mode itself — fresh, adopt or upgrade — and adopt is transactional: a
+validation failure leaves the target byte-identical. Exit codes:
+
+```
+0  installed
+1  checker errors, or partial completion past adopt's point of no return
+2  refused before changing anything
+3  adopt rolled back, target untouched
+```
+
+Two decisions are not the agent's to make alone, and the skill says so:
+the **requirement areas** — the middle segment of every identifier, and
+identifiers are immutable — and the **lexicon**, which words carry which
+binding force. The agent proposes; the maintainer confirms. The rest —
+code roots, source extensions, the CI platform — the agent can read off
+the repository and pass as flags without asking.
 
 ## Upgrading
 
@@ -86,9 +142,9 @@ The installer prints the checker version transition and the relevant
 upgrade notes from the CHANGELOG, then refreshes `tools/srs_check.py`,
 `tools/srs_view.py` and the skills (no flags needed). Precious files —
 CI config, `CLAUDE.md`/`AGENTS.md`, `.gitattributes` — are refreshed only with
-`--force`, and only when they carry the SRS-DD marker. Commit the
-refreshed tooling together with the regenerated
-`specs/90-traceability.md`.
+`--force`, and only when they carry the SRS-DD marker. `--dry-run` shows
+the whole list without touching anything. Commit the refreshed tooling
+together with the regenerated `specs/90-traceability.md`.
 
 For `CLAUDE.md`/`AGENTS.md` there is a gentler path than `--force`: run
 the guided upgrade (the `srs-init` skill, from a framework clone) and

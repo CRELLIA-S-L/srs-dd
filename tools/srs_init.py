@@ -26,6 +26,12 @@ files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
 hook) — and only when the existing file carries the "SRS-DD" marker; a
 file the installer did not install is never overwritten.
 
+`--dry-run` writes nothing in any mode and prints the created /
+refreshed / skipped list the real run would produce, so the change can
+be reviewed — or shown to a maintainer by an agent — before it happens.
+In adopt mode it skips the spec validation, which needs the checker
+running inside the target; the real run does that first regardless.
+
 Interactive by default; --defaults answers every remaining question with
 its default. The script knows no natural language: to write the
 specification in another language, pass the word lists (--modal-verbs,
@@ -39,15 +45,24 @@ after adopt's point of no return (partial completion, see output);
 stale temp file from a previously crashed adopt run).
 """
 
-import argparse
-import json
-import os
-import re
-import subprocess
 import sys
 
-from srs_check import (DEFAULTS, __version__, parse_file, TYPES,
-                       RE_AREA_NAME, SKIP_FILES, SKIP_DIRS)
+# Importing srs_check writes tools/__pycache__ in this clone, and a
+# cached module is validated by (mtime, size) alone: a version string
+# that changes without changing the file size — 0.5.0 to 0.6.0 — can be
+# served stale, so the installer would report and select upgrade notes
+# for a version it is not installing. This line must stay above the
+# import below.
+sys.dont_write_bytecode = True
+
+import argparse                                            # noqa: E402
+import json                                                # noqa: E402
+import os                                                  # noqa: E402
+import re                                                  # noqa: E402
+import subprocess                                          # noqa: E402
+
+from srs_check import (DEFAULTS, __version__, parse_file,  # noqa: E402
+                       TYPES, RE_AREA_NAME, SKIP_FILES, SKIP_DIRS)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -86,6 +101,9 @@ CI_TEMPLATES = {
 
 HOOK_SRC = os.path.join("ci", "pre-commit")
 HOOK_DST = os.path.join(".githooks", "pre-commit")
+# Where the gate goes when .githooks/pre-commit is already someone
+# else's: a name git will not run by itself, for their hook to call.
+HOOK_ALT = os.path.join(".githooks", "pre-commit.srs-dd")
 
 PLACEHOLDER_REQ = """# Functional requirements — %(area_low)s
 
@@ -129,10 +147,19 @@ def parse_args():
     parser.add_argument("--defaults", action="store_true",
                         help="non-interactive: answer every remaining "
                              "question with its default")
+    parser.add_argument("--dry-run", dest="dry_run", action="store_true",
+                        help="write nothing at all; print the same "
+                             "created/refreshed/skipped list the real run "
+                             "would produce. In adopt mode the existing "
+                             "specification is not validated — that needs "
+                             "the checker inside the target — but the real "
+                             "run validates before touching anything")
     parser.add_argument("--force", action="store_true",
                         help="also refresh existing SRS-DD-marked precious "
                              "files (CI config, CLAUDE.md/AGENTS.md, "
-                             ".gitattributes); the checker and skills are "
+                             ".gitattributes, the pre-commit hook); a hook "
+                             "without the marker is still never touched; "
+                             "the checker and skills are "
                              "refreshed without it in adopt/upgrade modes; "
                              "specification content is never overwritten")
     parser.add_argument("--ci", choices=("github", "gitlab", "both", "none"),
@@ -191,14 +218,28 @@ def is_inside(path, ancestor):
 
 
 class Installer(object):
-    def __init__(self, target, force, refresh_tooling=False):
+    def __init__(self, target, force, refresh_tooling=False, dry_run=False):
         self.target = target
         self.force = force
         # adopt/upgrade refresh tooling freely; fresh stays conservative.
         self.refresh_tooling = refresh_tooling
+        # Classify exactly as a real run would, then stop short of the
+        # write. The lists still fill, so summary() needs no special case.
+        self.dry_run = dry_run
         self.created = []
         self.refreshed = []
         self.skipped = []
+
+    def carries_marker(self, dst_rel):
+        """Whether the target's copy of this file is one of ours. The
+        marker is how the installer tells its own files from a
+        project's; a file without it is never overwritten."""
+        try:
+            with open(os.path.join(self.target, dst_rel), "r",
+                      encoding="utf-8", errors="replace") as handle:
+                return "SRS-DD" in handle.read()
+        except OSError:
+            return False
 
     def put(self, dst_rel, content, tooling, precious=False,
             executable=False):
@@ -215,12 +256,7 @@ class Installer(object):
         exists = os.path.exists(dst)
         if exists:
             if precious:
-                try:
-                    with open(dst, "r", encoding="utf-8",
-                              errors="replace") as handle:
-                        ours = "SRS-DD" in handle.read()
-                except OSError:
-                    ours = False
+                ours = self.carries_marker(dst_rel)
                 if self.force and ours:
                     self.refreshed.append(dst_rel)
                 else:
@@ -237,6 +273,8 @@ class Installer(object):
                 return
         else:
             self.created.append(dst_rel)
+        if self.dry_run:
+            return
         directory = os.path.dirname(dst)
         if directory:
             os.makedirs(directory, exist_ok=True)
@@ -362,16 +400,87 @@ def install_skills(installer, substitute):
             installer.copy(rel, rel, tooling=True, substitute=substitute)
 
 
+def describe_hooks(target):
+    """What the target already runs on commit.
+
+    `core.hooksPath` decides which directory git looks in, so an
+    existing hook may live anywhere; pointing that setting at
+    .githooks would silently stop whatever is there today.
+    """
+    info = {"active": "", "framework": ""}
+    try:
+        # One question to git rather than two guesses: --git-path
+        # resolves core.hooksPath and the shared hooks directory of a
+        # worktree (where .git is a file, not a directory) in one go.
+        out = subprocess.check_output(
+            ["git", "-C", target, "rev-parse", "--git-path", "hooks"],
+            stderr=subprocess.DEVNULL)
+    except (OSError, subprocess.CalledProcessError):
+        return info                 # no git, no repository, no hooks
+    # Relative to the target, since git ran there; join keeps an
+    # absolute answer absolute.
+    hooks_dir = out.decode("utf-8", "replace").strip()
+    # lexists: a dangling symlink at that path is still something git
+    # will try to run.
+    if os.path.lexists(os.path.join(target, hooks_dir, "pre-commit")):
+        info["active"] = os.path.join(hooks_dir, "pre-commit")
+    if os.path.exists(os.path.join(target, ".pre-commit-config.yaml")):
+        info["framework"] = ("the pre-commit framework "
+                             "(.pre-commit-config.yaml)")
+    elif os.path.isdir(os.path.join(target, ".husky")):
+        info["framework"] = "husky (.husky/)"
+    return info
+
+
 def install_hook(installer):
+    """The gate never displaces an existing hook: .githooks/pre-commit is
+    precious, so a copy that is not ours is kept. When that happens the
+    gate is laid down beside it under a name git does not run, for the
+    project's own hook to call."""
     installer.copy(HOOK_SRC, HOOK_DST, tooling=True, precious=True,
                    executable=True)
+    occupied = (os.path.exists(os.path.join(installer.target, HOOK_DST))
+                and not installer.carries_marker(HOOK_DST))
+    if occupied:
+        installer.copy(HOOK_SRC, HOOK_ALT, tooling=True, executable=True)
 
 
-def hook_activation_hint(installer):
-    if HOOK_DST in installer.created:
+def hook_activation_hint(installer, hooks):
+    """Says how to switch the gate on — or, when the repository already
+    has a pre-commit hook, how not to break it."""
+    ours = HOOK_DST in installer.created or installer.carries_marker(HOOK_DST)
+    occupied = os.path.exists(os.path.join(installer.target, HOOK_DST)) \
+        and not ours
+    active = hooks["active"]
+    # Compare resolved paths: core.hooksPath may say ./.githooks, or
+    # .githooks/, or an absolute path to the very same directory.
+    if active and (os.path.realpath(os.path.join(installer.target, active))
+                   == os.path.realpath(os.path.join(installer.target,
+                                                    HOOK_DST))):
+        active = HOOK_DST
+    managed = ((",\nmanaged by %s" % hooks["framework"])
+               if hooks["framework"] else "")
+
+    if occupied:
         sys.stdout.write(
-            "\nActivate the pre-commit gate (one-time, in the target):\n"
-            "  git config core.hooksPath .githooks\n")
+            "\nYour %s was kept. The gate is installed\nbeside it as %s; "
+            "call it from yours:\n  sh %s || exit 1\n"
+            % (HOOK_DST, HOOK_ALT, HOOK_ALT))
+        return
+    if not ours:
+        return
+    if active and active != HOOK_DST:
+        sys.stdout.write(
+            "\nThis repository already runs %s on commit%s.\n"
+            "Pointing core.hooksPath at .githooks would disable it, so the\n"
+            "gate is left off. Call it from your own hook instead:\n"
+            "  sh %s || exit 1\n" % (active, managed, HOOK_DST))
+        return
+    if active == HOOK_DST:
+        return                      # already wired up, nothing to say
+    sys.stdout.write(
+        "\nActivate the pre-commit gate (one-time, in the target):\n"
+        "  git config core.hooksPath .githooks\n")
 
 
 def install_agent_docs(installer, substitute):
@@ -379,6 +488,11 @@ def install_agent_docs(installer, substitute):
         if os.path.exists(os.path.join(ROOT, doc)):
             installer.copy(doc, doc, tooling=True, substitute=substitute,
                            precious=True)
+
+
+def dry_run_notice(extra=""):
+    sys.stdout.write("\nDry run: nothing was written.%s Re-run without "
+                     "--dry-run to apply.\n" % (" " + extra if extra else ""))
 
 
 def run_target_checker(target):
@@ -533,7 +647,8 @@ def config_json(settings):
 
 
 def run_fresh(args, target, batch):
-    installer = Installer(target, args.force, refresh_tooling=False)
+    installer = Installer(target, args.force, refresh_tooling=False,
+                          dry_run=args.dry_run)
     name = args.name or ask("Project name", os.path.basename(target) or
                             "My Project", batch)
     settings = collect_settings(args, batch, DEFAULTS["areas"])
@@ -568,6 +683,9 @@ def run_fresh(args, target, batch):
     install_hook(installer)
 
     sys.stdout.write(installer.summary() + "\n")
+    if args.dry_run:
+        dry_run_notice()
+        return 0
     installer.gitattributes_hint()
     sys.stdout.write("\nInstalled with srs_init (framework %s).\n"
                      % __version__)
@@ -577,12 +695,46 @@ def run_fresh(args, target, batch):
             "\nNext steps: replace the placeholder requirement in "
             "specs/10-fr-%s.md, then read specs/README.md.\n"
             % area.lower())
-        hook_activation_hint(installer)
+        hook_activation_hint(installer, describe_hooks(target))
     return result
 
 
+def install_adopt_files(installer, settings, substitute, target,
+                        had_own_readme, tools_skip=()):
+    """Everything adopt lays down beside the config and the checker.
+
+    Shared by the real run, which reaches it past its point of no
+    return, and by --dry-run, which never reaches that point at all.
+    """
+    for service in ADOPT_SERVICE_FILES:
+        rel = os.path.join("specs", service)
+        if not os.path.exists(os.path.join(target, rel)):
+            installer.copy(rel, rel, tooling=False, substitute=substitute)
+    if had_own_readme:
+        sys.stdout.write(
+            "\nNote: your existing specs/README.md was kept. It may "
+            "predate framework features (draft lifecycle, annotations, "
+            "baselines) — consider merging the relevant sections from "
+            "the framework's specs/README.md.\n")
+    if os.path.join("specs", "constitution.md") in installer.created \
+            and settings["modal_verbs"] != DEFAULTS["modal_verbs"]:
+        sys.stdout.write(
+            "Note: the installed specs/constitution.md is in English "
+            "(framework language); adapt or translate it as you see "
+            "fit.\n")
+
+    install_tools(installer, skip=tools_skip)
+    install_skills(installer, substitute)
+    installer.copy(".gitattributes", ".gitattributes", tooling=True,
+                   precious=True)
+    install_agent_docs(installer, substitute)
+    install_ci(installer, settings["ci"])
+    install_hook(installer)
+
+
 def run_adopt(args, target, batch, found_areas):
-    installer = Installer(target, args.force, refresh_tooling=True)
+    installer = Installer(target, args.force, refresh_tooling=True,
+                          dry_run=args.dry_run)
     settings = collect_settings(args, batch, found_areas or DEFAULTS["areas"])
     if settings is None:
         return 2
@@ -608,6 +760,21 @@ def run_adopt(args, target, batch, found_areas):
     temp_path = os.path.join(tools_dir, TEMP_CHECKER)
     checker_dst = os.path.join(tools_dir, "srs_check.py")
     had_own_readme = os.path.exists(os.path.join(specs_dir, "README.md"))
+
+    if args.dry_run:
+        # The transactional block below is skipped whole: validating the
+        # existing spec needs the checker running inside the target, and
+        # --dry-run promises not to write. The real run validates before
+        # touching anything, so nothing is lost by deferring it.
+        installer.created.append(os.path.join("specs", "srs-config.json"))
+        install_adopt_files(installer, settings, substitute, target,
+                            had_own_readme)
+        sys.stdout.write("\n" + installer.summary() + "\n")
+        dry_run_notice("The existing specification was not validated "
+                       "against the proposed configuration — the real "
+                       "run does that first, and leaves the target "
+                       "untouched if it fails.")
+        return 0
 
     # A leftover from a previously crashed adopt run is ours to remove —
     # the single documented exception to the byte-identical guarantee.
@@ -673,31 +840,9 @@ def run_adopt(args, target, batch, found_areas):
     # Past the point of no return: failures below keep the config and the
     # checker and report partial completion instead of rolling back.
     try:
-        for service in ADOPT_SERVICE_FILES:
-            rel = os.path.join("specs", service)
-            if not os.path.exists(os.path.join(target, rel)):
-                installer.copy(rel, rel, tooling=False,
-                               substitute=substitute)
-        if had_own_readme:
-            sys.stdout.write(
-                "\nNote: your existing specs/README.md was kept. It may "
-                "predate framework features (draft lifecycle, annotations, "
-                "baselines) — consider merging the relevant sections from "
-                "the framework's specs/README.md.\n")
-        if os.path.join("specs", "constitution.md") in installer.created \
-                and settings["modal_verbs"] != DEFAULTS["modal_verbs"]:
-            sys.stdout.write(
-                "Note: the installed specs/constitution.md is in English "
-                "(framework language); adapt or translate it as you see "
-                "fit.\n")
-
-        install_tools(installer, skip=("srs_check.py",))   # already placed
-        install_skills(installer, substitute)
-        installer.copy(".gitattributes", ".gitattributes", tooling=True,
-                       precious=True)
-        install_agent_docs(installer, substitute)
-        install_ci(installer, settings["ci"])
-        install_hook(installer)
+        install_adopt_files(installer, settings, substitute, target,
+                            had_own_readme,
+                            tools_skip=("srs_check.py",))  # already placed
 
         sys.stdout.write("\n" + installer.summary() + "\n")
         installer.gitattributes_hint()
@@ -716,12 +861,13 @@ def run_adopt(args, target, batch, found_areas):
         sys.stdout.write(
             "\nNext steps: commit the regenerated "
             "specs/90-traceability.md together with the new tooling.\n")
-        hook_activation_hint(installer)
+        hook_activation_hint(installer, describe_hooks(target))
     return result
 
 
 def run_upgrade(args, target):
-    installer = Installer(target, args.force, refresh_tooling=True)
+    installer = Installer(target, args.force, refresh_tooling=True,
+                          dry_run=args.dry_run)
     sys.stdout.write("Initialized target detected — upgrade mode: "
                      "refreshing the tooling and the skills.\n")
     sys.stdout.write("CLAUDE.md and AGENTS.md are not refreshed by "
@@ -752,6 +898,9 @@ def run_upgrade(args, target):
         install_ci(installer, args.ci)
     install_hook(installer)
     sys.stdout.write(installer.summary() + "\n")
+    if args.dry_run:
+        dry_run_notice()
+        return 0
     installer.gitattributes_hint()
     result = run_target_checker(target)
     if result == 0 and old_version != __version__:
@@ -759,7 +908,7 @@ def run_upgrade(args, target):
             "\nNext steps: commit the refreshed tooling and the "
             "regenerated specs/90-traceability.md.\n")
     if result == 0:
-        hook_activation_hint(installer)
+        hook_activation_hint(installer, describe_hooks(target))
     return result
 
 
