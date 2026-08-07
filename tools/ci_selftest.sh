@@ -17,9 +17,10 @@ cd "$(dirname "$0")/.."
 
 # Jobs that verify nothing about this repository and must not run on a
 # developer's machine: `pages` renders the site into public/ and would
-# leave it in the working tree on every commit. Add any future job that
+# leave it in the working tree on every commit, and `example-smoke`
+# clones the example project over the network. Add any future job that
 # publishes or reaches the network here.
-SKIP_JOBS="pages"
+SKIP_JOBS="pages example-smoke"
 
 if ! command -v ruby >/dev/null 2>&1; then
     echo "ci-selftest: ruby not found — cannot parse YAML, skipping" >&2

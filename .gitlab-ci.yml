@@ -42,3 +42,21 @@ pages:
   artifacts:
     paths:
       - public
+
+# The example project as a downstream consumer: a change here that stops
+# accepting a specification which was valid shows up against a real
+# project rather than in somebody's repository. Advisory — an external
+# repository must not be able to fail this pipeline. Skipped by
+# tools/ci_selftest.sh: it reaches the network.
+example-smoke:
+  image: python:3.12
+  allow_failure: true
+  script:
+    - rm -rf /tmp/srs-example
+    - git clone --depth 1 https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener.git /tmp/srs-example
+    - cp tools/srs_check.py tools/srs_view.py /tmp/srs-example/tools/
+    # Its own tests are its own CI's business; what this job asks is
+    # whether our tooling still accepts a specification that was valid.
+    - cd /tmp/srs-example
+    - python3 tools/srs_check.py --strict
+    - python3 tools/srs_view.py --html /tmp/example-site/index.html

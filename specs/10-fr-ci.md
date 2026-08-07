@@ -100,3 +100,24 @@ install the chosen one, never this repository's own pipeline configuration.
 
 **Rationale.** Our pipeline tests the framework: smoke-installing into
 temporary directories would be meaningless noise in somebody else's project.
+
+### FR-CI-060 — The example project is checked as a downstream consumer
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-CI-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.gitlab-ci.yml]
+tests: []
+```
+
+The pipeline **shall** run the working tree's checker and viewer against the
+published example project, without letting that result fail the pipeline.
+
+**Rationale.** The example is a real target: a change that stops accepting a
+specification which was valid shows up here rather than in a stranger's
+repository. Advisory on purpose — an external repository, reachable only over
+the network, must not be able to block a release.

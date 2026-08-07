@@ -30,6 +30,13 @@ embedded in `tools/srs_check.py` as `__version__`.
   jobs are one-line calls to them.
 - A `pages` job renders this repository's own specification on the
   default branch.
+- A worked example lives in its own repository,
+  `srs-dd-example-urlshortener`: an ordinary product with eleven
+  requirements, one of them superseded and kept for the record. The
+  pipeline checks it as a downstream consumer (FR-CI-060, advisory), and
+  its own CI runs against this framework's `main` — so a change that
+  stops accepting a valid specification surfaces there rather than in a
+  stranger's project.
 - `docs/` — install, upgrade, agents, and a demonstration of a
   specification written in another language, moved out of the README.
 - `specs/adr/` — five decisions that had been taken but never written

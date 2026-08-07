@@ -16,10 +16,12 @@ adopt smoke, and the viewer smoke. The suites themselves live in
 `tests/`; the jobs are one-line calls to them, so a suite can also be
 run on its own.
 
-One job is skipped locally, listed in `SKIP_JOBS` at the top of the
+Two jobs are skipped locally, listed in `SKIP_JOBS` at the top of the
 script: `pages` renders the site into `public/` and would dirty the
-working tree on every commit without verifying anything. A job that
-publishes or reaches the network belongs in that list too.
+working tree on every commit, and `example-smoke` clones the example
+project over the network. Neither verifies anything about this
+repository; any future job that publishes or reaches the network belongs
+in that list too.
 
 It takes a few seconds and can be run manually at any time:
 `tools/ci_selftest.sh`. Requires `ruby` (present on macOS by default)
