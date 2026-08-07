@@ -16,8 +16,8 @@ jobs:
   suites:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -51,7 +51,7 @@ jobs:
           python3 tools/srs_view.py --html site/index.html \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: specification
           path: site
@@ -64,8 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -80,11 +80,41 @@ jobs:
           python3 tools/srs_check.py --strict
           python3 tools/srs_view.py --html /tmp/example-site/index.html
 
-# To publish the rendered specification through GitHub Pages, enable it
-# for the repository (Settings → Pages → source "GitHub Actions") and add
-# to the `suites` job: `permissions: {pages: write, id-token: write}`
-# plus the three steps
-#   - uses: actions/configure-pages@v5
-#   - uses: actions/upload-pages-artifact@v3
-#     with: {path: site}
-#   - uses: actions/deploy-pages@v4
+  # The published specification (FR-CI-040). Runs only on the default
+  # branch and only after the suites pass — a page is worth publishing
+  # exactly when the specification it renders is valid.
+  #
+  # This job needs Pages enabled for the repository: Settings → Pages →
+  # Build and deployment → Source: "GitHub Actions". Without that setting
+  # `deploy-pages` fails with "Get Pages site failed".
+  pages:
+    needs: suites
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Render the specification
+        run: |
+          python3 tools/srs_view.py --html site/index.html \
+            --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v5
