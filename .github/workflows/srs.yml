@@ -46,6 +46,9 @@ jobs:
       - name: Viewer smoke
         run: tests/view-smoke.sh
 
+      - name: Upgrade smoke
+        run: tests/upgrade-smoke.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \

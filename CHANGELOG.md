@@ -4,10 +4,59 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions are framework releases, tagged `vX.Y.Z`; the same number is
 embedded in `tools/srs_check.py` as `__version__`.
 
-<!-- Format contract, relied upon by tools/srs_init.py when printing
-     upgrade notes: a version section starts with `## [X.Y.Z]`; its
-     upgrade notes are the lines after a `### Upgrade notes` heading up
-     to the next `##`/`###` heading. Keep that shape. -->
+<!-- Format contract, relied upon by tools/srs_init.py when it reports an
+     upgrade: a version section starts with `## [X.Y.Z]`; the lines after
+     a `### <heading>` heading, up to the next `##`/`###`, belong to it.
+     `### Upgrade notes` is printed in full; `### Added` and `### Changed`
+     are printed one line per `- ` entry, so keep every entry's first
+     sentence self-contained. Keep that shape. -->
+
+## [0.8.0] — 2026-08-08
+
+### Added
+
+- `tools/srs_upgrade.py` ships with every project. One command picks up a
+  new framework version: it fetches the framework the project was
+  installed from, prints the version transition, the upgrade notes and the
+  file list, asks, and then applies — removing what it fetched either way.
+  No clone to keep around, no address to look up. `--ref` pins a release,
+  `--from` uses a clone already on disk and never touches the network,
+  `--yes` is required where there is no terminal to confirm at
+  (FR-INIT-120, FR-INIT-130).
+- The `srs-upgrade` skill ships with it. An agent working inside an
+  installed project can now upgrade without being handed the framework's
+  address — which until now it had to be, because nothing in a project
+  mentioned upgrading at all (FR-SKILL-060).
+- A fresh install ends with the first steps, agent procedures first.
+  It names every skill it just installed and what each
+  is for, then where the first requirement goes, what validates the
+  specification, what renders it as a page, and how the framework is
+  upgraded later — the two lines it printed before said none of that.
+  The skills lead because they are the point: the framework exists so
+  that code written with agents still has requirements behind it
+  (FR-INIT-150).
+- An upgrade reports what arrived, not only what to do about it. The
+  versions it crosses are summarized one line per changelog entry, marked
+  `+` for added and `~` for changed, above the upgrade notes and with a
+  pointer to the full text. Somebody who upgrades across three versions
+  used to learn nothing about a new tool or skill, and so never used it
+  (FR-INIT-160).
+- `framework_url` in `specs/srs-config.json` records where to upgrade from.
+  It is written at install time from the installing clone's own remote,
+  SSH rewritten to HTTPS. A fork or a
+  mirror sends its projects back to itself; a project installed before this
+  field existed falls back to the framework's canonical address
+  (FR-INIT-140).
+
+### Upgrade notes
+
+- Upgrade once the old way — `python3 path/to/srs-dd/tools/srs_init.py
+  path/to/your-project` — and from then on the project upgrades itself with
+  `python3 tools/srs_upgrade.py`.
+- That first upgrade does not add `framework_url` to your config: an
+  upgrade never rewrites `specs/srs-config.json`. Without it the upgrader
+  uses the framework's canonical address, which is right unless you install
+  from a fork — in that case add the key by hand, pointing at your fork.
 
 ## [0.7.2] — 2026-08-08
 

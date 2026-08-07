@@ -15,8 +15,40 @@ grep -q "nothing was written" /tmp/dry.log
 test ! -e /tmp/srs-target
 
 # Fresh install into a temp dir must pass its own checker, strictly.
-python3 tools/srs_init.py /tmp/srs-target --defaults --ci both
+python3 tools/srs_init.py /tmp/srs-target --defaults --ci both | tee /tmp/fresh.log
 python3 /tmp/srs-target/tools/srs_check.py --strict
+
+# It also has to leave the maintainer knowing what to do next: where the
+# first requirement goes, what reads and checks the specification, and how
+# the framework is upgraded later.
+grep -q "First steps:" /tmp/fresh.log
+grep -q "specs/10-fr-core.md" /tmp/fresh.log
+grep -q "tools/srs_check.py" /tmp/fresh.log
+grep -q "tools/srs_view.py --html" /tmp/fresh.log
+grep -q "tools/srs_upgrade.py" /tmp/fresh.log
+grep -q "AGENTS.md" /tmp/fresh.log
+# Every skill that ships is named, and none that does not.
+for skill in srs srs-new srs-audit srs-harvest srs-upgrade; do
+    grep -qE "^       $skill +" /tmp/fresh.log
+done
+if grep -qE "^       srs-init +" /tmp/fresh.log; then
+    echo "srs-init is framework-only and must not be offered to a target"
+    exit 1
+fi
+# The first thing a maintainer sees must not wrap: everything the
+# installer prints stays inside 79 columns, except the target path, which
+# is theirs and not ours to shorten.
+python3 - <<'PY2'
+wide = [l.rstrip('\n') for l in open('/tmp/fresh.log', encoding='utf-8')
+        if len(l.rstrip('\n')) > 79 and not l.startswith('Installing into ')]
+assert not wide, 'installer output wraps: %r' % wide[:2]
+PY2
+
+# The agent procedures come first: the framework exists so that code
+# written with agents still has requirements behind it.
+agents=$(grep -n "AGENTS.md" /tmp/fresh.log | head -1 | cut -d: -f1)
+first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh.log | head -1 | cut -d: -f1)
+test "$agents" -lt "$first"
 
 # Re-running on an initialized target = upgrade mode; the checker and
 # skills must refresh WITHOUT --force, precious files must be skipped.

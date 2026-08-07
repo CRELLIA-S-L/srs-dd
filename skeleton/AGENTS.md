@@ -18,6 +18,10 @@ references to code.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain
   markdown; an agent without a skill system reads them directly as
   workflow guides.
+- **Upgrade the framework** — `python3 tools/srs_upgrade.py`. It shows the
+  version transition, the upgrade notes and the file list, then asks;
+  `.claude/skills/srs-upgrade/SKILL.md` is the procedure. Nothing else is
+  needed — no framework clone, no address to look up.
 
 ## The loop
 

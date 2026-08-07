@@ -82,6 +82,9 @@ TEMP_CHECKER = ".srs_check_adopt.py"
 # framework's own tooling must never travel into somebody's project.
 SKELETON = "skeleton"
 
+# Where a target upgrades from when this clone has no remote of its own.
+DEFAULT_FRAMEWORK_URL = "https://github.com/CRELLIA-S-L/srs-dd.git"
+
 # What the specification skeleton is made of. Anything else under
 # skeleton/specs/ in the framework clone is not ours to ship.
 SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
@@ -93,10 +96,10 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 SPEC_STANDARD = os.path.join("specs", "README.md")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
-TOOLS = ("srs_check.py", "srs_view.py")
+TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
-SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest")
+SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade")
 
 # Service spec files adopt lays down when (and only when) absent.
 ADOPT_SERVICE_FILES = ("README.md", "constitution.md", "00-glossary.md",
@@ -565,56 +568,114 @@ def print_version_transition(old):
     return False
 
 
-def print_upgrade_notes(old_version, show_all):
-    """Prints CHANGELOG 'Upgrade notes' blocks newer than old_version.
+def changelog_sections(headings):
+    """{version: {heading: [lines]}} for the `### <heading>` blocks named.
 
     The format contract is documented in CHANGELOG.md's header. Missing
-    or unparseable CHANGELOG — silently skip.
+    or unparseable CHANGELOG — an empty result, and the caller says
+    nothing.
     """
     path = os.path.join(ROOT, "CHANGELOG.md")
     try:
         with open(path, "r", encoding="utf-8") as handle:
             lines = handle.read().split("\n")
     except OSError:
-        return
+        return {}
     re_section = re.compile(r"^## \[(\d+\.\d+\.\d+)\]")
-    notes = {}
+    wanted = set("### %s" % h for h in headings)
+    found = {}
     version = None
-    in_notes = False
+    heading = None
     for line in lines:
         match = re_section.match(line)
         if match:
-            version = match.group(1)
-            in_notes = False
+            version, heading = match.group(1), None
             continue
         if line.startswith("### "):
-            in_notes = (version is not None
-                        and line.strip() == "### Upgrade notes")
+            heading = line.strip() if (version is not None
+                                       and line.strip() in wanted) else None
             continue
         if line.startswith("## "):
-            in_notes = False
+            heading = None
             continue
-        if in_notes and line.strip():
-            notes.setdefault(version, []).append(line)
-    if not notes:
-        return
+        if heading and line.strip():
+            found.setdefault(version, {}).setdefault(
+                heading[4:], []).append(line)
+    return found
+
+
+def crossed_versions(collected, old_version, show_all):
+    """The versions an upgrade steps over, oldest first, and a caveat."""
     if show_all:
-        relevant = sorted(notes, key=version_tuple)
-        caveat = " (target version unknown — showing all)"
-    else:
-        try:
-            old_t = version_tuple(old_version)
-        except ValueError:
-            return
-        relevant = sorted((v for v in notes if version_tuple(v) > old_t),
-                          key=version_tuple)
-        caveat = ""
+        return sorted(collected, key=version_tuple), \
+            " (target version unknown — showing all)"
+    try:
+        old_t = version_tuple(old_version)
+    except ValueError:
+        return [], ""
+    return sorted((v for v in collected if version_tuple(v) > old_t),
+                  key=version_tuple), ""
+
+
+def one_line(bullet, width=76):
+    """A bullet reduced to its first sentence, or to one cut line.
+
+    Whole entries would be a wall of text across several versions; a raw
+    first line ends mid-sentence, which reads worse than a cut one.
+    """
+    text = " ".join(part.strip() for part in bullet).strip()
+    stop = text.find(". ")
+    if 0 < stop <= width:
+        return text[:stop + 1]
+    if len(text) <= width:
+        return text
+    cut = text.rfind(" ", 0, width)
+    return text[:cut if cut > 0 else width].rstrip(",;:") + "…"
+
+
+def bullets(lines):
+    """Groups the lines of a section into its `- ` entries."""
+    entries = []
+    for line in lines:
+        if line.lstrip().startswith("- ") and not line.startswith("  "):
+            entries.append([line.lstrip()[2:]])
+        elif entries:
+            entries[-1].append(line)
+    return entries
+
+
+def print_whats_new(old_version, show_all):
+    """What the crossed versions added and changed, one line per entry."""
+    collected = changelog_sections(("Added", "Changed"))
+    if not collected:
+        return
+    relevant, caveat = crossed_versions(collected, old_version, show_all)
+    if not relevant:
+        return
+    sys.stdout.write("\nWhat is new%s:\n" % caveat)
+    for version in relevant:
+        sys.stdout.write("[%s]\n" % version)
+        for heading in ("Added", "Changed"):
+            for bullet in bullets(collected[version].get(heading, [])):
+                sys.stdout.write("  %s %s\n"
+                                 % ("+" if heading == "Added" else "~",
+                                    one_line(bullet)))
+    sys.stdout.write("  Full text: CHANGELOG.md in the framework "
+                     "repository.\n")
+
+
+def print_upgrade_notes(old_version, show_all):
+    """Prints CHANGELOG 'Upgrade notes' blocks newer than old_version."""
+    collected = changelog_sections(("Upgrade notes",))
+    if not collected:
+        return
+    relevant, caveat = crossed_versions(collected, old_version, show_all)
     if not relevant:
         return
     sys.stdout.write("\nUpgrade notes%s:\n" % caveat)
     for version in relevant:
         sys.stdout.write("[%s]\n" % version)
-        for line in notes[version]:
+        for line in collected[version].get("Upgrade notes", []):
             sys.stdout.write("%s\n" % line)
     sys.stdout.write("\n")
 
@@ -665,10 +726,38 @@ def collect_settings(args, batch, area_default):
     return settings
 
 
+def framework_url():
+    """The address a target upgrades from: this clone's own remote.
+
+    A fork or a mirror must send its targets back to itself, not to the
+    address compiled into the tooling. SSH remotes are rewritten to HTTPS
+    — the target that upgrades is somebody else's machine, without this
+    maintainer's keys.
+    """
+    try:
+        remotes = subprocess.check_output(
+            ["git", "-C", ROOT, "remote"],
+            stderr=subprocess.DEVNULL).decode("utf-8").split()
+        # `origin` when it exists: a clone with several remotes usually has
+        # the one it came from under that name, and the alphabetically
+        # first is nobody's idea of the canonical source.
+        chosen = "origin" if "origin" in remotes else remotes[0]
+        url = subprocess.check_output(
+            ["git", "-C", ROOT, "remote", "get-url", chosen],
+            stderr=subprocess.DEVNULL).decode("utf-8").strip()
+    except (OSError, subprocess.CalledProcessError, IndexError):
+        return DEFAULT_FRAMEWORK_URL
+    match = re.match(r"^(?:ssh://)?git@([^:/]+)[:/](.+)$", url)
+    if match:
+        url = "https://%s/%s" % (match.group(1), match.group(2))
+    return url or DEFAULT_FRAMEWORK_URL
+
+
 def config_json(settings):
     config = dict((key, settings[key]) for key in
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
+    config["framework_url"] = settings.get("framework_url") or framework_url()
     return json.dumps(config, ensure_ascii=False, indent=2) + "\n"
 
 
@@ -718,8 +807,29 @@ def run_fresh(args, target, batch):
     result = run_target_checker(target)
     if result == 0:
         sys.stdout.write(
-            "\nNext steps: replace the placeholder requirement in "
-            "specs/10-fr-%s.md, then read specs/README.md.\n"
+            "\nFirst steps:\n"
+            "  1. Point your coding agent at AGENTS.md — every agent "
+            "reads it. The\n"
+            "     procedures it follows are in .claude/skills/:\n"
+            "       srs          find the requirement a change belongs "
+            "to, then code\n"
+            "       srs-new      author one requirement through a "
+            "dialog\n"
+            "       srs-audit    specification against code, and whether "
+            "tests prove it\n"
+            "       srs-harvest  mine requirements out of code that has "
+            "none yet\n"
+            "       srs-upgrade  pick up a new framework version\n"
+            "  2. Replace the placeholder requirement in "
+            "specs/10-fr-%s.md; the\n"
+            "     rules are in specs/README.md.\n"
+            "  3. python3 tools/srs_check.py — validates the "
+            "specification and\n"
+            "     regenerates the traceability matrix.\n"
+            "  4. python3 tools/srs_view.py --html — the same thing as "
+            "a page.\n"
+            "  Later, to pick up a new framework version: "
+            "python3 tools/srs_upgrade.py\n"
             % area.lower())
         hook_activation_hint(installer, describe_hooks(target))
     return result
@@ -915,6 +1025,7 @@ def run_upgrade(args, target):
 
     old_version = read_target_version(target)       # before the refresh
     show_all = print_version_transition(old_version)
+    print_whats_new(old_version, show_all)
     print_upgrade_notes(old_version, show_all)
 
     install_tools(installer)

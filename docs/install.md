@@ -90,12 +90,14 @@ Copy into your repository, by hand:
 
 - `skeleton/specs/` → `specs/` (the starter files), plus `specs/README.md`
   from this repository — the standard itself;
-- `tools/srs_check.py` and `tools/srs_view.py` (not `srs_init.py`, which
-  stays in the framework repository);
-- from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`
-  (not `srs-init` — framework-only);
+- `tools/srs_check.py`, `tools/srs_view.py` and `tools/srs_upgrade.py`
+  (not `srs_init.py`, which stays in the framework repository);
+- from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`,
+  `srs-upgrade` (not `srs-init` — framework-only);
 - `skeleton/AGENTS.md`, `skeleton/CLAUDE.md` → repository root;
 - `.gitattributes`, and a CI template from `ci/`.
 
 Then write `specs/srs-config.json` by hand — the keys are documented in the
-Configuration section of `specs/README.md`.
+Configuration section of `specs/README.md`. Add `framework_url` pointing at
+the repository you copied from, so `tools/srs_upgrade.py` knows where to go
+back to.

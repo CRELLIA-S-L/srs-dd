@@ -247,6 +247,7 @@ the file falls back to the checker's default.
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
 | `test_roots` | `["tests"]` | Additional roots scanned for annotations |
 | `code_extensions` | `[".py", ".ts", …]` | File extensions treated as source files |
+| `framework_url` | the framework's own address | Where `tools/srs_upgrade.py` fetches the framework from. Written at install time from the installing clone's remote; edit it if you install from a fork |
 | `repo_url` | `""` | Blob-URL prefix for links to code, e.g. `https://gitlab.com/acme/app/-/blob/main`. Read by `tools/srs_view.py` only — the checker ignores it |
 | `modal_verbs` | `["shall", "must", "should", "may"]` | Words accepted as the bolded modal verb |
 | `negation_words` | `["not"]` | Words allowed before or after the verb inside the bold |

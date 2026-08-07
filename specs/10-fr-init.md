@@ -232,3 +232,120 @@ upgrade notes recorded for the versions being crossed.
 
 **Rationale.** A maintainer who upgrades three versions at once needs the
 notes for all three, and nobody reads a changelog they were not handed.
+
+### FR-INIT-120 — Upgrading is one command inside the project
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-060]
+depends_on: [FR-INIT-140]
+refines: []
+conflicts_with: []
+code: [tools/srs_upgrade.py]
+tests: [tests/upgrade-smoke.sh]
+```
+
+When run inside an initialized project, the upgrader **shall** fetch the
+framework that project was installed from, run its installer against the
+project, and remove what it fetched.
+
+**Rationale.** The old procedure asked a maintainer to keep a framework clone
+somewhere, remember where, and pull it before every upgrade. Nothing in the
+project pointed at any of that, so an agent working there could not upgrade
+without being handed the address — which is the whole reason this exists.
+
+### FR-INIT-130 — The upgrade is shown before it happens
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-070]
+depends_on: [FR-INIT-120]
+refines: []
+conflicts_with: []
+code: [tools/srs_upgrade.py]
+tests: [tests/upgrade-smoke.sh]
+```
+
+Before writing anything into the project, the upgrader **shall** print the
+version transition, the upgrade notes for the versions being crossed and the
+list of files it would touch, and then wait for confirmation unless it was
+told to proceed.
+
+**Rationale.** A command that reaches the network and then rewrites files in
+a repository has to show its hand first; the same shape the installer already
+has with `--dry-run`, made the default here because the person running it
+usually cannot see the framework's changelog any other way.
+
+### FR-INIT-140 — A project records the framework it came from
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/upgrade-smoke.sh]
+```
+
+When installing into a project, the installer **shall** record in
+`specs/srs-config.json` the framework repository the project is being
+installed from.
+
+**Rationale.** A fork or a mirror must upgrade from where it came, not from
+an address compiled into the tooling; and a project that predates this field
+still upgrades, because the compiled-in address remains the fallback.
+
+### FR-INIT-150 — A fresh install says what to do first
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+```
+
+When a fresh installation finishes, the installer **shall** print what to do
+next in that project, beginning with the agent procedures it just installed
+and followed by where the first requirement goes, the commands that check
+and read the specification, and how the framework is upgraded later.
+
+**Rationale.** Installation ends with a maintainer alone in front of a
+directory of unfamiliar files. "Replace the placeholder" does not cover it:
+neither the checker, nor the viewer, nor the one-command upgrade follow from
+anything they can see, and those are what turn an install into a workflow.
+The agent procedures come first because they are the point of the framework:
+it exists so that code written with agents still has requirements behind it,
+and a maintainer who never learns the skills are there gets the bookkeeping
+without the reason for it. Switching the commit gate on is deliberately left
+out of the list — it depends on what the project already runs, and
+FR-INIT-080 answers it.
+
+### FR-INIT-160 — An upgrade says what arrived, not only what to do
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-110]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/upgrade-smoke.sh]
+```
+
+When an upgrade crosses one or more framework versions, the installer
+**shall** print what those versions added and changed, one line per entry,
+beside the upgrade notes and with a pointer to the changelog for the rest.
+
+**Rationale.** Upgrade notes answer "what must I do now", and only that.
+Somebody who upgrades across three versions never learns that a new tool or
+a new skill arrived, and so never uses it. One line per entry keeps the jump
+across several versions readable, which the full sections would not be.

@@ -27,7 +27,7 @@ on that.
 | `specs/README.md` | The standard itself — the normative document on the specification format. Shipped to every target from here; there is no second copy |
 | `specs/` | This framework's own specification: requirements about the checker, the viewer, the installer, the skills and the CI templates |
 | `skeleton/` | The payload: starter specification files and the target-facing `AGENTS.md`/`CLAUDE.md`, copied into projects by the installer |
-| `tools/` | `srs_check.py` and `srs_view.py` (shipped to targets), `srs_init.py` and `ci_selftest.sh` (framework-only) |
+| `tools/` | `srs_check.py`, `srs_view.py` and `srs_upgrade.py` (shipped to targets), `srs_init.py` and `ci_selftest.sh` (framework-only) |
 | `tests/` | The suites this repository's pipeline runs; requirements cite them by path |
 | `ci/` | CI and pre-commit templates for target projects — not this repository's own pipeline |
 | `.claude/skills/` | Agent skills; `srs-init` is framework-only, the rest ship to targets |

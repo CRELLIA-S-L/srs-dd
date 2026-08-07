@@ -105,3 +105,25 @@ and the code without changing either side on its own.
 **Rationale.** When the two disagree it is unknown which one is wrong, and
 that is the maintainer's call — a helpful fix here would silently pick a
 side.
+
+### FR-SKILL-060 — The upgrade procedure travels with the project
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-120]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-upgrade/SKILL.md, tools/srs_init.py]
+tests: [tests/upgrade-smoke.sh]
+```
+
+The skills installed into a project **shall** include the upgrade procedure,
+so that an agent working there can upgrade the framework without being told
+where it lives.
+
+**Rationale.** `srs-init` stays framework-only by design — it installs into
+somebody else's repository. Upgrading is the one part of it a project needs
+to carry itself, and until now nothing in an installed project mentioned
+upgrades at all.

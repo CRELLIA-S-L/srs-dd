@@ -45,12 +45,13 @@ ART-070 of `specs/constitution.md` makes non-negotiable:
   reach every project installed afterwards and fail its checker on the
   first run.
 
-For the same reason `tools/srs_check.py` and `tools/srs_view.py` — the two
-files that travel — never carry `implements:`/`verifies:` annotations:
+For the same reason `tools/srs_check.py`, `tools/srs_view.py` and
+`tools/srs_upgrade.py` — the files that travel — never carry
+`implements:`/`verifies:` annotations:
 in a target our requirement areas are unknown, the annotation check warns,
 and `--strict` turns that warning into a failed pipeline. Link them from the
-requirement's `code` field instead. `tools/srs_init.py`, `tests/` and `ci/`
-stay here and may be annotated freely.
+requirement's `code` field instead. `tools/srs_init.py`, `tools/ci_selftest.sh`,
+`tests/` and `ci/` stay here and may be annotated freely.
 
 ## Kinds of change
 
