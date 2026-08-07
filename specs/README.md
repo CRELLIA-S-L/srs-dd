@@ -289,7 +289,7 @@ accumulate.
 Reading the same specification — one requirement with its links
 resolved, the requirements covering a file, a page for a reviewer who
 does not grep — is `tools/srs_view.py`; it validates nothing and writes
-nothing into `specs/`. Its modes are described in the repository README.
+nothing into `specs/`. Its modes are listed by `srs_view.py --help`.
 
 Parser notes: fenced code blocks are opaque — headings, modal verbs, and
 rationale markers inside them are ignored. Backtick fences follow the

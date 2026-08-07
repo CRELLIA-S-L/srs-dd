@@ -9,6 +9,85 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.7.0] — 2026-08-07
+
+### Added
+
+- The framework now has a specification of its own: 53 requirements in
+  `specs/` describing the checker, the viewer, the installer, the agent
+  procedures and the gates, across six areas — `SPEC`, `CHK`, `VIEW`,
+  `INIT`, `SKILL`, `CI`. Mined from the code with the `srs-harvest`
+  procedure and approved in one batch. The repository is now an SRS-DD
+  project like any other, which is also the framework's own example.
+- `skeleton/` — the payload the installer copies into a target, separated
+  from the framework's own files. Requirements about our tooling can no
+  longer travel into somebody's project, which ART-070 of
+  `specs/constitution.md` now states as a standing principle and
+  `tests/installer-smoke.sh` asserts on every run.
+- `tests/` — the four suites the pipeline runs (`spec-check`,
+  `installer-smoke`, `adopt-smoke`, `view-smoke`), moved out of the CI
+  configuration so requirements can cite them by path. `.gitlab-ci.yml`
+  jobs are one-line calls to them.
+- A `pages` job renders this repository's own specification on the
+  default branch.
+- A worked example lives in its own repository,
+  `srs-dd-example-urlshortener`: an ordinary product with eleven
+  requirements, one of them superseded and kept for the record. The
+  pipeline checks it as a downstream consumer (FR-CI-060, advisory), and
+  its own CI runs against this framework's `main` — so a change that
+  stops accepting a valid specification surfaces there rather than in a
+  stranger's project.
+- `docs/` — install, upgrade, agents, and a demonstration of a
+  specification written in another language, moved out of the README.
+- `specs/adr/` — five decisions that had been taken but never written
+  down: the English-only framework with per-project lexicons, the
+  committed traceability matrix, the standard-library-only rule, the
+  `skeleton/` split, and the choice of a classic SRS over the agentic
+  spec formats.
+
+### Changed
+
+- The root `AGENTS.md` and `CLAUDE.md` now describe the framework
+  repository itself. The target-facing templates live in
+  `skeleton/AGENTS.md` and `skeleton/CLAUDE.md`; the installer copies
+  them from there. An agent handed this repository's URL no longer reads
+  a guide meant for somebody else's project.
+- `README.md` is a landing page: what the framework is for, what a
+  requirement looks like, and how to install it. Reference material moved
+  to `docs/`. The canonical clone and raw-skill URLs stay on it, marked
+  with `canonical-url` comments.
+- `specs/README.md` — the standard itself — remains the single canonical
+  copy and still ships from `specs/`; only the starter files moved to
+  `skeleton/`.
+- The `srs-init` procedure now diffs a target's agent guides against
+  `skeleton/`, not against this repository's root copies.
+- The `srs-audit` procedure lists all four sections `--coverage` prints.
+
+### Fixed
+
+- `tools/srs_check.py` carried two example annotations in its own header
+  comment without `srs-ignore`. In a target that put `tools` in
+  `code_roots`, the shipped checker reported an error against itself
+  (`annotation references unknown requirement FR-UI-020`). Both example
+  lines are now exempt.
+- `specs/README.md` pointed at "the repository README" for the viewer's
+  modes — a file that does not exist in a target. It now points at
+  `srs_view.py --help`.
+
+### Upgrade notes
+
+- Re-run the installer as usual; nothing in a target changes shape. The
+  refreshed `tools/srs_check.py` no longer reports an annotation error
+  against its own header comment, so a project that put `tools` in
+  `code_roots` and worked around that can drop the workaround.
+- If you script against a framework **clone**, note that the skeleton
+  moved: `skeleton/specs/`, `skeleton/AGENTS.md`, `skeleton/CLAUDE.md`.
+  Installed targets are unaffected.
+- Two questions are recorded in `specs/91-open-issues.md` rather than
+  silently resolved: the checker's individual rules have no rule-level
+  tests, and an area holds at most 99 requirements because identifiers
+  carry exactly three digits.
+
 ## [0.6.0] — 2026-08-06
 
 ### Added

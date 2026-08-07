@@ -76,12 +76,21 @@ RE_VERSION = re.compile(r'^__version__\s*=\s*"([^"]+)"', re.M)
 
 TEMP_CHECKER = ".srs_check_adopt.py"
 
-# specs/ files that are generated per target rather than copied.
-SPEC_EXCLUDE = {"90-traceability.md", "srs-config.json", "10-fr-core.md"}
+# The payload directory: starter files a target edits into its own
+# specification. It is deliberately not specs/ — this repository keeps a
+# real specification of the framework there, and requirements about the
+# framework's own tooling must never travel into somebody's project.
+SKELETON = "skeleton"
 
 # What the specification skeleton is made of. Anything else under
-# specs/ in the framework clone is not ours to ship.
+# skeleton/specs/ in the framework clone is not ours to ship.
 SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
+
+# The standard itself: identical for the framework and for every target,
+# so it stays in specs/ as the single canonical copy and ships from
+# there. It carries no requirements (srs_check.SKIP_FILES), so nothing
+# framework-specific can leak through it.
+SPEC_STANDARD = os.path.join("specs", "README.md")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
 TOOLS = ("srs_check.py", "srs_view.py")
@@ -353,25 +362,39 @@ def scan_target_spec(target):
     return raw_md, len(strict), areas
 
 
+def skeleton_src(rel):
+    """Where a specs/-relative payload file lives in the framework clone.
+
+    Everything comes from skeleton/, except the standard itself, which
+    has one canonical copy under specs/ and would otherwise have to be
+    maintained twice.
+    """
+    if rel == SPEC_STANDARD:
+        return rel
+    return os.path.join(SKELETON, rel)
+
+
 def collect_spec_skeleton():
-    """Framework specs/ files copied verbatim into fresh targets.
+    """(source, destination) pairs of the skeleton copied into fresh
+    targets, destinations being specs/-relative.
 
     Only skeleton file types travel: a maintainer who generated
-    something under specs/ in their clone must not have it land in
-    every target they install afterwards.
+    something under skeleton/specs/ in their clone must not have it land
+    in every target they install afterwards.
     """
     result = []
-    base = os.path.join(ROOT, "specs")
+    base = os.path.join(ROOT, SKELETON, "specs")
     for current, dirs, files in os.walk(base):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
         for name in sorted(files):
-            rel = os.path.relpath(os.path.join(current, name), ROOT)
-            if os.path.basename(rel) in SPEC_EXCLUDE:
-                continue
             if not name.endswith(SKELETON_SUFFIXES):
                 continue
-            result.append(rel)
-    return sorted(result)
+            src = os.path.relpath(os.path.join(current, name), ROOT)
+            dst = os.path.relpath(os.path.join(current, name),
+                                  os.path.join(ROOT, SKELETON))
+            result.append((src, dst))
+    result.append((SPEC_STANDARD, SPEC_STANDARD))
+    return sorted(result, key=lambda pair: pair[1])
 
 
 def install_ci(installer, choice):
@@ -484,9 +507,12 @@ def hook_activation_hint(installer, hooks):
 
 
 def install_agent_docs(installer, substitute):
+    """The target's agent guides come from skeleton/: the ones in this
+    repository's root describe the framework repository itself."""
     for doc in ("CLAUDE.md", "AGENTS.md"):
-        if os.path.exists(os.path.join(ROOT, doc)):
-            installer.copy(doc, doc, tooling=True, substitute=substitute,
+        src = os.path.join(SKELETON, doc)
+        if os.path.exists(os.path.join(ROOT, src)):
+            installer.copy(src, doc, tooling=True, substitute=substitute,
                            precious=True)
 
 
@@ -658,8 +684,8 @@ def run_fresh(args, target, batch):
 
     sys.stdout.write("\nInstalling into %s\n\n" % target)
 
-    for rel in collect_spec_skeleton():
-        installer.copy(rel, rel, tooling=False, substitute=substitute)
+    for src, dst in collect_spec_skeleton():
+        installer.copy(src, dst, tooling=False, substitute=substitute)
 
     installer.put(os.path.join("specs", "srs-config.json"),
                   config_json(settings), tooling=False)
@@ -709,7 +735,8 @@ def install_adopt_files(installer, settings, substitute, target,
     for service in ADOPT_SERVICE_FILES:
         rel = os.path.join("specs", service)
         if not os.path.exists(os.path.join(target, rel)):
-            installer.copy(rel, rel, tooling=False, substitute=substitute)
+            installer.copy(skeleton_src(rel), rel, tooling=False,
+                           substitute=substitute)
     if had_own_readme:
         sys.stdout.write(
             "\nNote: your existing specs/README.md was kept. It may "

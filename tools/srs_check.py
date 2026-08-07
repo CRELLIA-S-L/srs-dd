@@ -22,7 +22,7 @@ import os
 import re
 import sys
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPECS = os.path.join(ROOT, "specs")
@@ -157,9 +157,12 @@ RE_MODAL = re.compile(
 RE_RATIONALE = re.compile(
     r"^\s*\*\*(?:%s)\.?\*\*" % _alternation(CFG["rationale_markers"]))
 
-# Optional traceability annotations in source and test files:
-#   implements: FR-CORE-010            (maps to the requirement's `code`)
-#   verifies: FR-CORE-010, FR-UI-020   (maps to the requirement's `tests`)
+# Optional traceability annotations in source and test files. The two
+# examples end in "srs-ignore" because this file is copied into every
+# target, where they would otherwise be read as real annotations naming
+# requirements that project never had.
+#   implements: FR-CORE-010          -> the `code` field    srs-ignore
+#   verifies: FR-CORE-010, FR-UI-020 -> the `tests` field   srs-ignore
 # A line containing "srs-ignore" is exempt from annotation checking.
 _ANNOT_ID = r"[A-Z]+-[A-Z0-9]+-\d{3}(?!\d)"
 RE_ANNOTATION = re.compile(

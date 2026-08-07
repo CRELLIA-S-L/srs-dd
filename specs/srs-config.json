@@ -1,9 +1,33 @@
 {
-  "areas": ["CORE", "UI", "API", "DATA", "SEC"],
-  "code_roots": ["src"],
-  "test_roots": ["tests"],
-  "code_extensions": [".py", ".ts", ".tsx", ".js", ".swift", ".kt", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".m"],
-  "modal_verbs": ["shall", "must", "should", "may"],
-  "negation_words": ["not"],
-  "rationale_markers": ["Rationale"]
+  "areas": [
+    "SPEC",
+    "CHK",
+    "VIEW",
+    "INIT",
+    "SKILL",
+    "CI"
+  ],
+  "code_roots": [
+    "tools"
+  ],
+  "test_roots": [
+    "tests"
+  ],
+  "code_extensions": [
+    ".py",
+    ".sh"
+  ],
+  "repo_url": "https://gitlab.com/crellia-public/srs-dd/-/blob/main",
+  "modal_verbs": [
+    "shall",
+    "must",
+    "should",
+    "may"
+  ],
+  "negation_words": [
+    "not"
+  ],
+  "rationale_markers": [
+    "Rationale"
+  ]
 }
