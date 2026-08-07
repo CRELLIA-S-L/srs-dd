@@ -9,6 +9,35 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.7.2] — 2026-08-08
+
+### Added
+
+- The specification is published: <https://crellia-s-l.github.io/srs-dd/>.
+  The page is rendered on the default branch, only after the suites pass —
+  a page is worth serving exactly when what it renders is valid — and its
+  code links point at the commit it was built from rather than at a moving
+  branch. FR-CI-040 is `implemented`.
+
+### Changed
+
+- Every GitHub Action moved to its current major: `checkout` v4 → v7,
+  `setup-python` v5 → v7, `upload-artifact` v4 → v7, `configure-pages`
+  v5 → v6, `upload-pages-artifact` v3 → v5, `deploy-pages` v4 → v5.
+  GitHub already forces the Node 20 actions onto Node 24 and will stop
+  doing so. `ci/github-workflow.yml` — the template installed into target
+  projects — is bumped with them, including its commented Pages block.
+
+### Upgrade notes
+
+- If your project runs the `.github/workflows/srs.yml` this framework
+  installed, its actions are on the retiring Node 20 runtime. That file is
+  precious, so an upgrade will not touch it: refresh it with `--force`, or
+  edit it by hand to `actions/checkout@v7`, `actions/setup-python@v7`,
+  `actions/upload-artifact@v7`, `actions/configure-pages@v6`,
+  `actions/upload-pages-artifact@v5`, `actions/deploy-pages@v5`.
+  A GitLab project is unaffected.
+
 ## [0.7.1] — 2026-08-07
 
 ### Changed

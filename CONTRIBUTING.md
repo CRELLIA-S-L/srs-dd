@@ -79,6 +79,10 @@ silently:
 ## Ground rules
 
 - `python3 tools/srs_check.py --strict` must pass on your branch.
+- An `### Upgrade notes` entry stands on its own. The installer prints
+  that section and nothing around it, so "see the list above", "the fix
+  described earlier" and their kind reach the reader as dangling
+  references — spell the thing out instead.
 - If your change affects the generated matrix, commit the regenerated
   `specs/90-traceability.md` in the same change set — CI compares it
   byte-for-byte.

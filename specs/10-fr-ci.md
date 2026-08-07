@@ -70,7 +70,7 @@ rather than turning the whole run into a green tick.
 ### FR-CI-040 — The rendered specification is published from the default branch
 
 ```yaml
-status: partial
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-VIEW-060]
@@ -86,13 +86,6 @@ published page with links back to the source at the built revision.
 **Rationale.** The audience for a specification includes people who will
 never clone the repository, and a page whose code links point at a moving
 branch lies as soon as the branch moves.
-
-**Partial since the move to GitHub:** the page is rendered on every run and
-kept as a build artifact, with the links pointing at the built commit, but it
-is not served anywhere. Publishing needs GitHub Pages switched on for the
-repository (Settings → Pages → source "GitHub Actions"); the workflow carries
-the three steps for it, commented out, because enabling them before the
-setting exists turns the pipeline red.
 
 ### FR-CI-050 — A target gets a pipeline, not our pipeline
 

@@ -5,4 +5,4 @@ a row here. The procedure is in the Baselines section of `README.md`.
 
 | Version | Date | Tag | What changed |
 |---|---|---|---|
-| — | — | — | *No baseline yet. This specification was harvested from the existing code and approved on 2026-08-06; the first baseline is cut with the 0.7.1 release.* |
+| 0.7.1 | 2026-08-07 | `spec/v0.7.1` | The first baseline. 54 requirements in six areas — `SPEC`, `CHK`, `VIEW`, `INIT`, `SKILL`, `CI` — harvested from the code and approved on 2026-08-06, of which 53 `implemented` and one `partial`: FR-CI-040, whose page was not served yet. |
