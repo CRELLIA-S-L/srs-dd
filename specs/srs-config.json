@@ -17,7 +17,7 @@
     ".py",
     ".sh"
   ],
-  "repo_url": "https://gitlab.com/crellia-public/srs-dd/-/blob/main",
+  "repo_url": "https://github.com/CRELLIA-S-L/srs-dd/blob/main",
   "modal_verbs": [
     "shall",
     "must",

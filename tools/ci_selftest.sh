@@ -1,61 +1,55 @@
 #!/bin/sh
-# Local CI self-test. Run manually or via the pre-commit hook
+# Local gate. Run manually or via the pre-commit hook
 # (git config core.hooksPath .githooks).
 #
-# Two checks, each of which exists because it caught a real bug that
-# reached the repository:
-#   1. YAML syntax of .gitlab-ci.yml and ci/*.yml — shell quoting does
-#      not protect ": " sequences from the YAML parser.
-#   2. Every .gitlab-ci.yml job script, executed under the GitLab
-#      runner's shell semantics (bash, set -eo pipefail) — an
+# Two checks:
+#   1. YAML syntax of the pipeline and of the templates shipped to target
+#      projects — shell quoting does not protect ": " sequences from a
+#      YAML parser, and a broken template is a stranger's problem.
+#   2. Every suite in tests/ — the same scripts the pipeline runs, so a
+#      green pre-commit and a green pipeline mean the same thing. Each
+#      suite sets its own shell semantics (bash, set -eo pipefail); an
 #      interactive shell without set -e hides aborted-line bugs.
 #
-# This covers the specification gate (spec-check job) too: it runs the
-# checker and fails when the committed traceability matrix is stale.
+# The suites include the specification gate: it runs the checker and
+# fails when the committed traceability matrix is stale.
+#
+# The jobs that are not suites — publishing the rendered page, and the
+# advisory run against the example project — are deliberately not run
+# here: the first would leave a rendered site in the working tree on
+# every commit, the second reaches the network, and neither verifies
+# anything about this repository.
 set -e
 cd "$(dirname "$0")/.."
-
-# Jobs that verify nothing about this repository and must not run on a
-# developer's machine: `pages` renders the site into public/ and would
-# leave it in the working tree on every commit, and `example-smoke`
-# clones the example project over the network. Add any future job that
-# publishes or reaches the network here.
-SKIP_JOBS="pages example-smoke"
-
-if ! command -v ruby >/dev/null 2>&1; then
-    echo "ci-selftest: ruby not found — cannot parse YAML, skipping" >&2
-    exit 0
-fi
-
-for f in .gitlab-ci.yml ci/*.yml; do
-    ruby -ryaml -e "YAML.load_file('$f')" 2>/dev/null || {
-        echo "ci-selftest: invalid YAML: $f" >&2
-        ruby -ryaml -e "YAML.load_file('$f')" 2>&1 | head -3 >&2
-        exit 1
-    }
-done
-echo "ci-selftest: YAML valid"
 
 tmpdir=$(mktemp -d)
 trap 'rm -rf "$tmpdir"' EXIT
 
-ruby -ryaml -e '
-skip = ARGV[1].split
-cfg = YAML.load_file(".gitlab-ci.yml")
-cfg.each do |name, job|
-  next unless job.is_a?(Hash) && job["script"].is_a?(Array)
-  next if skip.include?(name)
-  script = (["set -eo pipefail"] + job["script"]).join("\n") + "\n"
-  File.write(File.join(ARGV[0], name + ".sh"), script)
-end' "$tmpdir" "$SKIP_JOBS"
+# YAML first: the suites fail routinely on a regenerated matrix that is
+# not staged yet, and a run that stops there must not swallow a broken
+# template — that one ships to other people. Missing ruby costs this
+# check and nothing else; the pipeline performs it regardless.
+if command -v ruby >/dev/null 2>&1; then
+    for f in .github/workflows/srs.yml ci/*.yml; do
+        [ -e "$f" ] || continue
+        ruby -ryaml -e "YAML.load_file('$f')" 2>/dev/null || {
+            echo "ci-selftest: invalid YAML: $f" >&2
+            ruby -ryaml -e "YAML.load_file('$f')" 2>&1 | head -3 >&2
+            exit 1
+        }
+    done
+    echo "ci-selftest: YAML valid"
+else
+    echo "ci-selftest: ruby not found — skipping the YAML checks" >&2
+fi
 
-for script in "$tmpdir"/*.sh; do
-    name=$(basename "$script" .sh)
-    echo "ci-selftest: running job '$name' under set -eo pipefail"
-    if ! bash "$script" >"$tmpdir/$name.log" 2>&1; then
-        echo "ci-selftest: job '$name' FAILED; last output:" >&2
+for suite in tests/*.sh; do
+    name=$(basename "$suite" .sh)
+    echo "ci-selftest: running $name"
+    if ! "$suite" >"$tmpdir/$name.log" 2>&1; then
+        echo "ci-selftest: $name FAILED; last output:" >&2
         tail -20 "$tmpdir/$name.log" >&2
         exit 1
     fi
 done
-echo "ci-selftest: all jobs pass"
+echo "ci-selftest: all suites pass"

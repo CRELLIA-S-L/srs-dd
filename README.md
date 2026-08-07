@@ -82,7 +82,7 @@ statement patterns, **MADR** for the decision log — and that is the point:
 <!-- canonical-url: keep in sync with the block below -->
 
 ```
-git clone https://gitlab.com/crellia-public/srs-dd.git
+git clone https://github.com/CRELLIA-S-L/srs-dd.git
 python3 srs-dd/tools/srs_init.py path/to/your-project
 ```
 
@@ -113,7 +113,7 @@ markdown, no skill system required:
 <!-- canonical-url: the published entry point; see CONTRIBUTING.md -->
 
 ```
-https://gitlab.com/crellia-public/srs-dd/-/raw/main/.claude/skills/srs-init/SKILL.md
+https://raw.githubusercontent.com/CRELLIA-S-L/srs-dd/main/.claude/skills/srs-init/SKILL.md
 ```
 
 Clone rather than fetch that one file: the installer copies the skeleton,
@@ -122,7 +122,7 @@ the skills and the CI templates out of the clone. Nothing beyond `git` and
 
 ```
 rm -rf /tmp/srs-dd    # so a second attempt does not trip over the clone
-git clone --depth 1 https://gitlab.com/crellia-public/srs-dd.git /tmp/srs-dd
+git clone --depth 1 https://github.com/CRELLIA-S-L/srs-dd.git /tmp/srs-dd
 python3 /tmp/srs-dd/tools/srs_init.py path/to/project --dry-run
 python3 /tmp/srs-dd/tools/srs_init.py path/to/project [flags]
 ```

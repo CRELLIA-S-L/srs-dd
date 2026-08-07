@@ -9,8 +9,8 @@ Total requirements: 54.
 |---|---|
 | `draft` | 0 |
 | `deferred` | 0 |
-| `partial` | 0 |
-| `implemented` | 54 |
+| `partial` | 1 |
+| `implemented` | 53 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification
@@ -31,12 +31,12 @@ Total requirements: 54.
 | **FR-CHK-100** A readable failure for a broken configuration | `implemented` | T | `tools/srs_check.py` | — |
 | **FR-CHK-110** Code blocks are opaque | `implemented` | T | `tools/srs_check.py` | — |
 | **FR-CHK-120** Strict mode | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh` |
-| **FR-CI-010** The matrix is compared, not trusted | `implemented` | T | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`.gitlab-ci.yml` | `tests/spec-check.sh` |
+| **FR-CI-010** The matrix is compared, not trusted | `implemented` | T | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`.github/workflows/srs.yml` | `tests/spec-check.sh` |
 | **FR-CI-020** The same gate runs before a commit | `implemented` | I | `ci/pre-commit`<br>`.githooks/pre-commit`<br>`tools/ci_selftest.sh` | — |
 | **FR-CI-030** The local self-test runs the real pipeline | `implemented` | I | `tools/ci_selftest.sh` | — |
-| **FR-CI-040** The rendered specification is published from the default branch | `implemented` | I | `.gitlab-ci.yml`<br>`ci/gitlab-ci.yml` | — |
+| **FR-CI-040** The rendered specification is published from the default branch | `partial` | I | `ci/gitlab-ci.yml`<br>`.github/workflows/srs.yml` | — |
 | **FR-CI-050** A target gets a pipeline, not our pipeline | `implemented` | T | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-CI-060** The example project is checked as a downstream consumer | `implemented` | I | `.gitlab-ci.yml` | — |
+| **FR-CI-060** The example project is checked as a downstream consumer | `implemented` | I | `.github/workflows/srs.yml` | — |
 | **FR-INIT-010** Three modes, detected from the target | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh` |
 | **FR-INIT-020** Fresh install leaves a target its checker accepts | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-030** Adoption is transactional | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
@@ -113,7 +113,7 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-CHK-110** (`implemented`, method `T`) — Code blocks are opaque
 - **FR-CI-020** (`implemented`, method `I`) — The same gate runs before a commit
 - **FR-CI-030** (`implemented`, method `I`) — The local self-test runs the real pipeline
-- **FR-CI-040** (`implemented`, method `I`) — The rendered specification is published from the default branch
+- **FR-CI-040** (`partial`, method `I`) — The rendered specification is published from the default branch
 - **FR-CI-060** (`implemented`, method `I`) — The example project is checked as a downstream consumer
 - **FR-INIT-100** (`implemented`, method `I`) — The installer refuses to install into itself
 - **FR-INIT-110** (`implemented`, method `I`) — Upgrade notes come from the changelog

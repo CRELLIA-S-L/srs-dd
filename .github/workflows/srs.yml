@@ -1,0 +1,90 @@
+# CI of the SRS-DD framework repository itself.
+# Target projects get their own workflow from ci/github-workflow.yml via
+# tools/srs_init.py — do not copy this file.
+#
+# The suites live in tests/ and are the same ones tools/ci_selftest.sh
+# runs locally, so a green pipeline and a green pre-commit mean the same
+# thing.
+
+name: srs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  suites:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The templates end up in other people's repositories, so their
+      # syntax is checked where a YAML parser is guaranteed to exist:
+      # tools/ci_selftest.sh does the same locally, but skips it on a
+      # machine without ruby.
+      - name: CI templates are valid YAML
+        run: |
+          for f in ci/*.yml .github/workflows/srs.yml; do
+            [ -e "$f" ] || continue
+            ruby -ryaml -e "YAML.load_file('$f')" || exit 1
+          done
+
+      # Separate steps rather than one loop: the failing suite is then
+      # the name in the summary, not a line in a log.
+      - name: Specification gate
+        run: tests/spec-check.sh
+
+      - name: Installer smoke
+        run: tests/installer-smoke.sh
+
+      - name: Adopt smoke
+        run: tests/adopt-smoke.sh
+
+      - name: Viewer smoke
+        run: tests/view-smoke.sh
+
+      - name: Render the specification
+        run: |
+          python3 tools/srs_view.py --html site/index.html \
+            --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: specification
+          path: site
+
+  # The example project as a downstream consumer: a change here that
+  # stops accepting a specification which was valid shows up against a
+  # real project rather than in somebody's repository. Advisory on
+  # purpose — an external repository must not be able to block a release.
+  example-smoke:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Its own tests are its own CI's business; what this job asks is
+      # whether our tooling still accepts a specification that was valid.
+      - name: Check the example against this working tree
+        run: |
+          git clone --depth 1 \
+            https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener.git /tmp/srs-example
+          cp tools/srs_check.py tools/srs_view.py /tmp/srs-example/tools/
+          cd /tmp/srs-example
+          python3 tools/srs_check.py --strict
+          python3 tools/srs_view.py --html /tmp/example-site/index.html
+
+# To publish the rendered specification through GitHub Pages, enable it
+# for the repository (Settings → Pages → source "GitHub Actions") and add
+# to the `suites` job: `permissions: {pages: write, id-token: write}`
+# plus the three steps
+#   - uses: actions/configure-pages@v5
+#   - uses: actions/upload-pages-artifact@v3
+#     with: {path: site}
+#   - uses: actions/deploy-pages@v4

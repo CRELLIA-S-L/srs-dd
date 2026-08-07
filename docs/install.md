@@ -6,7 +6,7 @@ modes, the edge cases, and the manual path.
 ## What the installer does
 
 ```
-git clone https://gitlab.com/crellia-public/srs-dd.git
+git clone https://github.com/CRELLIA-S-L/srs-dd.git
 python3 srs-dd/tools/srs_init.py path/to/your-project
 ```
 

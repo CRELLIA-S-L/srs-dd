@@ -9,11 +9,49 @@ embedded in `tools/srs_check.py` as `__version__`.
      upgrade notes are the lines after a `### Upgrade notes` heading up
      to the next `##`/`###` heading. Keep that shape. -->
 
+## [0.7.1] — 2026-08-07
+
+### Changed
+
+- The repository moved to GitHub, and the canonical URLs moved with it:
+  the clone command, and the raw entry point an agent is handed, now
+  `raw.githubusercontent.com/CRELLIA-S-L/srs-dd/main/.claude/skills/srs-init/SKILL.md`.
+  The `repo_url` in `specs/srs-config.json` moved too, so the code links
+  on the rendered page point at the new host.
+- `.github/workflows/srs.yml` is the framework's own pipeline;
+  `.gitlab-ci.yml` is removed. The GitLab template for target projects
+  (`ci/gitlab-ci.yml`) stays — a project on GitLab is still installed
+  with one.
+- `tools/ci_selftest.sh` no longer derives the local gate from a CI
+  configuration. It parses the YAML of the pipeline and of the shipped
+  templates, then runs `tests/*.sh` directly — the same scripts CI runs,
+  so the two cannot drift apart, and the skip list it used to need is
+  gone. Two consequences worth knowing: a machine without `ruby` now
+  loses the YAML parse alone instead of skipping the whole run with a
+  zero exit, and the parse happens first, because a suite fails routinely
+  on a regenerated matrix that is not staged yet and that must not hide a
+  broken template.
+- FR-CI-040 stands at `partial`: the specification is rendered on every
+  run and kept as a build artifact, but nothing serves it until GitHub
+  Pages is enabled for the repository. The workflow carries the three
+  steps for it, commented out — enabling them before the setting exists
+  turns the pipeline red.
+
+### Upgrade notes
+
+- Nothing in a target changes: the checker, the viewer, the skills and
+  the templates are byte-identical to 0.7.0 apart from the version
+  string. Re-running the installer is optional.
+- If you saved the old GitLab raw URL of `srs-init/SKILL.md` — in a
+  runbook, a prompt, or an agent's memory — replace it with
+  `https://raw.githubusercontent.com/CRELLIA-S-L/srs-dd/main/.claude/skills/srs-init/SKILL.md`.
+  The old host no longer serves this project.
+
 ## [0.7.0] — 2026-08-07
 
 ### Added
 
-- The framework now has a specification of its own: 53 requirements in
+- The framework now has a specification of its own: 54 requirements in
   `specs/` describing the checker, the viewer, the installer, the agent
   procedures and the gates, across six areas — `SPEC`, `CHK`, `VIEW`,
   `INIT`, `SKILL`, `CI`. Mined from the code with the `srs-harvest`
@@ -26,7 +64,7 @@ embedded in `tools/srs_check.py` as `__version__`.
   `tests/installer-smoke.sh` asserts on every run.
 - `tests/` — the four suites the pipeline runs (`spec-check`,
   `installer-smoke`, `adopt-smoke`, `view-smoke`), moved out of the CI
-  configuration so requirements can cite them by path. `.gitlab-ci.yml`
+  configuration so requirements can cite them by path; the pipeline's
   jobs are one-line calls to them.
 - A `pages` job renders this repository's own specification on the
   default branch.

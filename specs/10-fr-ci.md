@@ -12,7 +12,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .gitlab-ci.yml]
+code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml]
 tests: [tests/spec-check.sh]
 ```
 
@@ -54,24 +54,29 @@ code: [tools/ci_selftest.sh]
 tests: []
 ```
 
-The self-test **shall** execute this repository's own CI jobs under the
-runner's shell semantics, skipping only jobs that verify nothing about the
-repository, such as the one publishing the rendered page.
+The self-test **shall** run every suite in `tests/` and validate the YAML of
+the pipeline and of the shipped templates, so that a green pre-commit and a
+green pipeline mean the same thing.
 
-**Rationale.** Job scripts that are never run locally rot in ways YAML
-validation cannot see — every check in the self-test exists because a bug
-reached the repository through that gap.
+**Rationale.** The suites are files, not fragments of a CI configuration, so
+both the runner and the hook execute the same scripts and cannot drift
+apart. What is deliberately not run here — publishing the page, reaching the
+example over the network — verifies nothing about this repository. The YAML
+check runs before the suites, because a suite fails routinely on a matrix
+that has been regenerated but not staged, and a run that stops there must
+not swallow a broken template; a missing parser costs that check alone
+rather than turning the whole run into a green tick.
 
 ### FR-CI-040 — The rendered specification is published from the default branch
 
 ```yaml
-status: implemented
+status: partial
 verification: I
 derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [.gitlab-ci.yml, ci/gitlab-ci.yml]
+code: [ci/gitlab-ci.yml, .github/workflows/srs.yml]
 tests: []
 ```
 
@@ -81,6 +86,13 @@ published page with links back to the source at the built revision.
 **Rationale.** The audience for a specification includes people who will
 never clone the repository, and a page whose code links point at a moving
 branch lies as soon as the branch moves.
+
+**Partial since the move to GitHub:** the page is rendered on every run and
+kept as a build artifact, with the links pointing at the built commit, but it
+is not served anywhere. Publishing needs GitHub Pages switched on for the
+repository (Settings → Pages → source "GitHub Actions"); the workflow carries
+the three steps for it, commented out, because enabling them before the
+setting exists turns the pipeline red.
 
 ### FR-CI-050 — A target gets a pipeline, not our pipeline
 
@@ -110,7 +122,7 @@ derives_from: [FR-CI-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [.gitlab-ci.yml]
+code: [.github/workflows/srs.yml]
 tests: []
 ```
 

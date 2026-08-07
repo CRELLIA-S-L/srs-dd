@@ -8,25 +8,26 @@ After cloning, point git at the repository's hooks:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs `tools/ci_selftest.sh`: it validates the YAML
-of `.gitlab-ci.yml` and `ci/*.yml`, then executes the `.gitlab-ci.yml`
-job scripts locally under the runner's shell semantics (bash,
-`set -eo pipefail`) — the specification gate, the installer smoke, the
-adopt smoke, and the viewer smoke. The suites themselves live in
-`tests/`; the jobs are one-line calls to them, so a suite can also be
-run on its own.
+The pre-commit hook runs `tools/ci_selftest.sh`: a YAML parse of the
+pipeline and of the templates shipped to target projects, then every
+suite in `tests/` — the specification gate, the installer smoke, the
+adopt smoke, the viewer smoke. The parse goes first because a suite
+fails routinely on a matrix that has been regenerated but not staged,
+and that must not hide a broken template.
 
-Two jobs are skipped locally, listed in `SKIP_JOBS` at the top of the
-script: `pages` renders the site into `public/` and would dirty the
-working tree on every commit, and `example-smoke` clones the example
-project over the network. Neither verifies anything about this
-repository; any future job that publishes or reaches the network belongs
-in that list too.
+These are the same scripts `.github/workflows/srs.yml` runs, so the local
+gate and CI cannot drift apart, and any suite can also be run on its own:
+`tests/adopt-smoke.sh`.
+
+Two things the pipeline does are deliberately not run locally: rendering
+the page, which would leave a site in the working tree on every commit,
+and the advisory check against the example project, which reaches the
+network. Neither verifies anything about this repository.
 
 It takes a few seconds and can be run manually at any time:
-`tools/ci_selftest.sh`. Requires `ruby` (present on macOS by default)
-for YAML parsing; without it the whole self-test is skipped with a
-warning — a green run means nothing if `ruby` is absent.
+`tools/ci_selftest.sh`. The YAML parse needs `ruby` (present on macOS by
+default); without it that one check is skipped with a warning while the
+suites still run — and CI performs it regardless.
 
 ## Framework or payload
 

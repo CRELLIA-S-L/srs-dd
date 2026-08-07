@@ -31,7 +31,7 @@ on that.
 | `tests/` | The suites this repository's pipeline runs; requirements cite them by path |
 | `ci/` | CI and pre-commit templates for target projects — not this repository's own pipeline |
 | `.claude/skills/` | Agent skills; `srs-init` is framework-only, the rest ship to targets |
-| `.gitlab-ci.yml` | This repository's own pipeline. Target projects get theirs from `ci/` |
+| `.github/workflows/srs.yml` | This repository's own pipeline. Target projects get theirs from `ci/` |
 
 ## Two rules that protect other people's repositories
 
@@ -56,6 +56,6 @@ then write the code, then close the loop.
 - **Specification rules** — `specs/README.md`.
 - **Check** — `python3 tools/srs_check.py` (`--strict` in CI).
 - **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--html`.
-- **Local gate** — `tools/ci_selftest.sh` runs the pipeline's jobs locally;
+- **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does;
   `git config core.hooksPath .githooks` wires it into `pre-commit`.
 - **Contribution and release rules** — `CONTRIBUTING.md`.

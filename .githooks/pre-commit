@@ -1,7 +1,7 @@
 #!/bin/sh
 # SRS-DD pre-commit gate. One-time setup after cloning:
 #     git config core.hooksPath .githooks
-# Runs the local CI self-test: YAML validation plus every .gitlab-ci.yml
-# job executed under the runner's shell semantics. See
+# Runs the local gate: YAML validation of the pipeline and the shipped
+# templates, then every suite in tests/ — the same scripts CI runs. See
 # tools/ci_selftest.sh for details.
 exec tools/ci_selftest.sh
