@@ -1,18 +1,37 @@
 # Verification
 
-How each verification method is carried out in this project.
+How the methods in the `verification` field are carried out in this
+repository.
 
-| Method | Meaning here |
+| Method | What it means here |
 |---|---|
-| `T` — test | Automated test in the repository, path listed in the requirement's `tests` field |
-| `D` — demonstration | Manual scenario; describe the steps and the expected observation |
-| `I` — inspection | Reading the code or configuration confirms conformance |
-| `A` — analysis | Reasoning, measurement, or modeling; link the write-up |
+| `T` | An automated suite in `tests/` asserts it. The suite is named in the requirement's `tests` field |
+| `D` | Demonstrated by running the tool and observing the result |
+| `I` | Inspection of the file named in `code` — used where the requirement is about the content of a document or a procedure rather than executable behavior |
+| `A` | Analysis or measurement, with the reasoning recorded next to the requirement |
 
-Implemented or partially implemented requirements with an empty `tests`
-field appear in `90-traceability.md` under “Requirements without listed
-tests”, whatever their method — as a reminder to either add the test or
-record how the check was performed.
+## The suites
 
-Test files may additionally carry `verifies:` annotations — see the
-Annotations section of `README.md`.
+| Suite | Covers |
+|---|---|
+| `tests/spec-check.sh` | This repository's own specification passes strictly, and the committed matrix matches what the checker generates now |
+| `tests/installer-smoke.sh` | Fresh install, upgrade, dry-run honesty, precious files, hook coexistence, payload isolation |
+| `tests/adopt-smoke.sh` | Adoption of a non-English specification, transactional rollback, dry-run/real parity, refusal on markdown without requirements |
+| `tests/view-smoke.sh` | Every viewer query mode, and the page: content, escaping, no CDN, determinism, no bytecode left behind |
+
+All four run in CI and locally through `tools/ci_selftest.sh`, which executes
+the pipeline's own job scripts rather than a copy of them.
+
+## Recorded measurements
+
+| Requirement | Measurement | Date |
+|---|---|---|
+| NFR-CHK-010 | A generated specification of 500 requirements validates in 45 ms wall clock, interpreter startup included (`--no-write`, Python 3.14, Apple silicon) | 2026-08-06 |
+
+## Known gap
+
+The suites are end-to-end: they exercise the installer and the viewer through
+whole scenarios, and they prove the checker accepts a valid specification.
+They do *not* exercise the checker's individual rules — each `FR-CHK-*`
+requirement with an empty `tests` field is a rule no test would notice the
+loss of. This is recorded in `91-open-issues.md`.

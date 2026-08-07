@@ -1,21 +1,20 @@
 # Constitution
 
-Standing engineering principles of the SRS-DD framework itself. Every plan
-and every diff is checked against them. Unlike requirements (what the system
-does) and ADRs (single decisions with their context), articles apply to all
-work at all times and change only through the amendment procedure in ART-090.
+Standing engineering principles of the project. Every plan and every diff is
+checked against them. Unlike requirements (what the system does) and ADRs
+(single decisions with their context), articles apply to all work at all
+times and change only through the amendment procedure in ART-090.
 
-- **Version:** 1.2.0
-- **Ratified:** 2026-08-06 — this repository's own constitution, adopted
-  from the skeleton it ships (v1.1.0)
-- **Amended:** 2026-08-06 — v1.2.0: ART-070 added, so that keeping
-  framework content out of installed projects is a standing principle
-  rather than a note in a guide (adding an article is MINOR per ART-090)
+- **Version:** 1.1.0
+- **Ratified:** 2026-08-05
+- **Amended:** 2026-08-05 — v1.1.0: ART-020 tightened to approved
+  requirements; ART-090 taxonomy extended to classify tightening and
+  relaxing (both changes MINOR per ART-090)
 
 Articles are numbered in steps of 10 and referenced from plans, reviews, and
-ADRs the same way requirements are: “rejected per ART-040”. The starting
-point targets receive is `skeleton/specs/constitution.md`; this file is this
-repository's own copy, and the two diverge as either side is amended.
+ADRs the same way requirements are: “rejected per ART-040”. The set below is
+a starting point — adapt the articles to your project, but keep the
+amendment procedure.
 
 ## ART-010 — Hierarchy of truth
 
@@ -58,14 +57,6 @@ field. Verification by `D`, `I`, or `A` is carried out as described in
 A change merges only when `python3 tools/srs_check.py` passes and, if the
 change alters behavior, the commit or PR description names the requirement
 identifiers it implements.
-
-## ART-070 — Nothing of ours in other people's repositories
-
-What this repository ships — the payload in `skeleton/`, the checker, the
-viewer and the skills — carries no content specific to the framework:
-no requirement identifiers of ours, no annotations naming them, no paths
-that exist only here. A stranger's first install must pass their own
-checker on the first run.
 
 ## ART-090 — Amendments
 

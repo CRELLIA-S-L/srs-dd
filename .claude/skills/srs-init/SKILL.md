@@ -99,9 +99,11 @@ regenerated matrix.
 After the installer finishes, offer to merge the agent docs — the one
 upgrade the script deliberately never performs:
 
-1. Diff the target's `CLAUDE.md` and `AGENTS.md` against the framework's
-   copies (the framework versions carry `<Your Project Name>` where the
-   target has its real name — account for that substitution).
+1. Diff the target's `CLAUDE.md` and `AGENTS.md` against the shipped
+   templates in `skeleton/` — **not** against the ones in the framework
+   repository's root, which describe that repository rather than a target.
+   The templates carry `<Your Project Name>` where the target has its real
+   name; account for that substitution.
 2. For a file that carries the `SRS-DD` marker, propose a merged
    version: framework additions folded in, the project name and every
    local addition preserved. Show the result and apply it only on the

@@ -2,194 +2,43 @@
 # Target projects get their own pipeline from ci/gitlab-ci.yml via
 # tools/srs_init.py — do not copy this file.
 #
+# The suites live in tests/ rather than inline here: requirements in
+# specs/ cite them by path, and a job script is not a citable artifact.
+# tools/ci_selftest.sh runs every job below locally, which is what the
+# pre-commit hook does.
+#
 # Full python image on purpose: the *-slim images lack git, which the
 # freshness check needs.
 
 spec-check:
   image: python:3.12
   script:
-    - python3 tools/srs_check.py --strict
-    - git add -N specs/90-traceability.md
-    - git diff --exit-code -- specs/90-traceability.md || { echo "specs/90-traceability.md is stale — run python3 tools/srs_check.py and commit the result"; exit 1; }
+    - tests/spec-check.sh
 
 installer-smoke:
   image: python:3.12
   script:
-    # Clean slate: on shell runners a leftover dir would silently flip
-    # the fresh-install step into upgrade mode.
-    - rm -rf /tmp/srs-target
-    # --dry-run must list the whole install and create nothing at all.
-    - python3 tools/srs_init.py /tmp/srs-target --defaults --ci both --dry-run | tee /tmp/dry.log
-    - grep -q "tools/srs_view.py" /tmp/dry.log
-    - grep -q "nothing was written" /tmp/dry.log
-    - test ! -e /tmp/srs-target
-    # Fresh install into a temp dir must pass its own checker, strictly.
-    - python3 tools/srs_init.py /tmp/srs-target --defaults --ci both
-    - python3 /tmp/srs-target/tools/srs_check.py --strict
-    # Re-running on an initialized target = upgrade mode; the checker and
-    # skills must refresh WITHOUT --force, precious files must be skipped.
-    # The stub proves upgrades deliver skill content (the fresh install
-    # above already wrote the real file — a bare grep would prove nothing).
-    - printf 'stub\n' > /tmp/srs-target/.claude/skills/srs/SKILL.md
-    - printf 'stub\n' > /tmp/srs-target/tools/srs_view.py
-    # An upgrade dry-run reports the same refresh list and still changes
-    # nothing — checked byte-for-byte, not by eye.
-    - find /tmp/srs-target -type f | sort | xargs cksum > /tmp/before.dry
-    - python3 tools/srs_init.py /tmp/srs-target --defaults --dry-run > /tmp/upgrade-dry.log
-    - grep -q "tools/srs_view.py" /tmp/upgrade-dry.log
-    - find /tmp/srs-target -type f | sort | xargs cksum > /tmp/after.dry
-    - diff /tmp/before.dry /tmp/after.dry
-    - python3 tools/srs_init.py /tmp/srs-target --defaults | tee /tmp/upgrade.log
-    - grep -q "refreshed:" /tmp/upgrade.log
-    - grep -q "tools/srs_check.py" /tmp/upgrade.log
-    - grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKILL.md
-    - grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
-    - test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
-    # A project's own pre-commit hook is never displaced: the gate lands
-    # beside it, and the advice must not tell the user to point
-    # core.hooksPath at .githooks, which would disable what they have.
-    - rm -rf /tmp/srs-hook
-    - mkdir -p /tmp/srs-hook/.githooks
-    - |
-      printf '#!/bin/sh\necho theirs\n' > /tmp/srs-hook/.githooks/pre-commit
-    - git -C /tmp/srs-hook init -q .
-    - git -C /tmp/srs-hook config core.hooksPath .githooks
-    - python3 tools/srs_init.py /tmp/srs-hook --defaults --ci none > /tmp/hook.log
-    - grep -q "echo theirs" /tmp/srs-hook/.githooks/pre-commit
-    - test -x /tmp/srs-hook/.githooks/pre-commit.srs-dd
-    - grep -q "pre-commit.srs-dd" /tmp/hook.log
-    # Not `grep -qv`: that inverts per line, so on GNU grep it passes
-    # whenever any line differs — a check that can never fail.
-    - if grep -q "git config core.hooksPath" /tmp/hook.log; then echo "must not advise switching hooksPath over an existing hook"; exit 1; fi
-    # A hook of theirs somewhere else must not be shadowed either.
-    - rm -rf /tmp/srs-hook2 && mkdir -p /tmp/srs-hook2
-    - git -C /tmp/srs-hook2 init -q .
-    - |
-      printf '#!/bin/sh\necho mine\n' > /tmp/srs-hook2/.git/hooks/pre-commit
-    - chmod +x /tmp/srs-hook2/.git/hooks/pre-commit
-    - python3 tools/srs_init.py /tmp/srs-hook2 --defaults --ci none > /tmp/hook2.log
-    - grep -q "already runs .git/hooks/pre-commit" /tmp/hook2.log
-    # Whatever a maintainer generates under specs/ in their clone must
-    # not travel into targets as skeleton content.
-    - printf 'stray\n' > specs/stray.html
-    - rm -rf /tmp/srs-clean
-    - rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci none >/dev/null || rc=$?
-    - rm -f specs/stray.html
-    - test "$rc" -eq 0
-    - test ! -e /tmp/srs-clean/specs/stray.html
+    - tests/installer-smoke.sh
 
 adopt-smoke:
   image: python:3.12
   script:
-    - rm -rf /tmp/srs-adopt /tmp/srs-docs
-    # Fabricate a minimal existing Russian SRS.
-    - mkdir -p /tmp/srs-adopt/specs
-    # A literal block: the requirement text contains ": " and would
-    # otherwise be parsed as a YAML mapping.
-    - |
-      printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** сохранять файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
-    - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
-    # Adopt under --dry-run lists the install and leaves the tree alone.
-    - python3 tools/srs_init.py /tmp/srs-adopt --defaults --dry-run --areas "APP" --modal-verbs "должен,должна,должно,должны,следует,может,могут" --negation-words "не" --rationale-markers "Обоснование" > /tmp/adopt-dry.log
-    - grep -q "specs/srs-config.json" /tmp/adopt-dry.log
-    - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/after.dry.sum
-    - diff /tmp/before.sum /tmp/after.dry.sum
-    - test ! -e /tmp/srs-adopt/specs/srs-config.json
-    # Wrong lexicon (English defaults vs Russian spec) must roll back: exit 3, tree unchanged.
-    # The `|| rc=$?` capture keeps set -e from aborting on the expected failure.
-    - rc=0; python3 tools/srs_init.py /tmp/srs-adopt --defaults || rc=$?; test "$rc" -eq 3
-    - find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/after.sum
-    - diff /tmp/before.sum /tmp/after.sum
-    - test ! -e /tmp/srs-adopt/specs/srs-config.json
-    - test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
-    # Correct lexicon adopts cleanly; skills land, matrix generated.
-    - python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" --modal-verbs "должен,должна,должно,должны,следует,может,могут" --negation-words "не" --rationale-markers "Обоснование" | tee /tmp/adopt-real.log
-    # Adopt is the one mode where --dry-run takes a separate branch, so
-    # the two lists are compared entry by entry: a file added to the real
-    # path and forgotten in the dry-run one would be a silent lie.
-    - |
-      python3 - <<'PY'
-      def entries(path):
-          out, section = [], None
-          for line in open(path, encoding='utf-8'):
-              line = line.rstrip('\n')
-              head = line.split(':')[0]
-              if line.endswith(':') and head in ('created', 'refreshed', 'skipped'):
-                  section = head
-              elif section and line.startswith('  ') and line.strip():
-                  out.append(section + ' ' + line.strip())
-              elif section and not line.startswith('  '):
-                  section = None
-          return sorted(out)
-      dry, real = entries('/tmp/adopt-dry.log'), entries('/tmp/adopt-real.log')
-      assert dry and dry == real, (
-          'dry-run list differs from the real run',
-          [x for x in dry if x not in real], [x for x in real if x not in dry])
-      print('adopt --dry-run matches the real run: %d entries' % len(dry))
-      PY
-    - test -f /tmp/srs-adopt/specs/90-traceability.md
-    - test -f /tmp/srs-adopt/.claude/skills/srs-harvest/SKILL.md
-    - grep -q "Planning multi-requirement work" /tmp/srs-adopt/.claude/skills/srs/SKILL.md
-    - test -f /tmp/srs-adopt/tools/srs_view.py
-    - python3 /tmp/srs-adopt/tools/srs_check.py --strict --no-write
-    # The viewer reads a Russian specification without a UTF-8 locale.
-    - cd /tmp/srs-adopt && LC_ALL=C python3 tools/srs_view.py --list | cat && cd -
-    # specs/ with markdown but no requirements must refuse, not go fresh.
-    - mkdir -p /tmp/srs-docs/specs
-    - echo "just docs" > /tmp/srs-docs/specs/notes.md
-    - rc=0; python3 tools/srs_init.py /tmp/srs-docs --defaults || rc=$?; test "$rc" -eq 2
-    - test ! -e /tmp/srs-docs/specs/srs-config.json
+    - tests/adopt-smoke.sh
 
 view-smoke:
   image: python:3.12
   script:
-    # Its own directory: ci_selftest.sh runs every job in one session.
-    - rm -rf /tmp/srs-view
-    - python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
-    # Two linked requirements, one of them the target of a refinement:
-    # enough to exercise the tree, the graph and the incoming links.
-    # A literal block — the text contains ": " and would otherwise parse
-    # as a YAML mapping.
-    - |
-      printf '\n### FR-CORE-020 — Second requirement & an ampersand\n\n```yaml\nstatus: implemented\nverification: T\nderives_from: [FR-CORE-010]\ncode: [src/app.py]\ntests: []\n```\n\nThe system **shall** carry a link.\n\n**Rationale.** Exercises the graph and the incoming links.\n\n### FR-CORE-030 — Third requirement\n\n```yaml\nstatus: draft\nverification: T\nrefines: [FR-CORE-020]\n```\n\nThe system **shall** refine the second one.\n' >> /tmp/srs-view/specs/10-fr-core.md
-    - mkdir -p /tmp/srs-view/src
-    # Literal blocks below: these lines contain ": " and would otherwise
-    # be read as YAML mappings.
-    - |
-      printf '# implements: FR-CORE-020\n' > /tmp/srs-view/src/app.py
-    - cd /tmp/srs-view
-    - git init -q . && git add -A
-    - git -c user.email=ci@example.com -c user.name=CI commit -qm baseline
-    - git tag spec/v0.0.1
-    # Change the specification after the baseline so the diff has
-    # content. Python rather than sed: `sed -i` wants a backup suffix on
-    # BSD and refuses one on GNU, and this job also runs locally through
-    # tools/ci_selftest.sh.
-    - |
-      python3 - <<'PY'
-      path = 'specs/10-fr-core.md'
-      text = open(path, encoding='utf-8').read()
-      open(path, 'w', encoding='utf-8').write(
-          text.replace('status: draft', 'status: deferred'))
-      PY
-    - python3 tools/srs_view.py --list > /tmp/v-list.log && grep -q "FR-CORE-030" /tmp/v-list.log
-    - python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log && grep -q "refined by" /tmp/v-card.log
-    - python3 tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log && grep -q "FR-CORE-030" /tmp/v-tree.log
-    - python3 tools/srs_view.py --code src/app.py --list > /tmp/v-code.log && grep -q "FR-CORE-020" /tmp/v-code.log
-    - python3 tools/srs_view.py --coverage > /tmp/v-cov.log && grep -q "Realized without listed tests" /tmp/v-cov.log
-    - python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log && grep -q "status .*draft -> deferred" /tmp/v-diff.log
-    - python3 tools/srs_view.py --json /tmp/model.json >/dev/null
-    - python3 -c "import json; d=json.load(open('/tmp/model.json')); assert len(d['requirements'])==3, d"
-    - python3 tools/srs_view.py --html
-    - grep -q "FR-CORE-030" .srs-site/index.html
-    - grep -q "<svg" .srs-site/index.html
-    - grep -q "&amp;" .srs-site/index.html          # SVG/HTML escaping
-    - if grep -q "https://cdn" .srs-site/index.html; then echo "the page must not reference a CDN"; exit 1; fi
-    - test -f .srs-site/.gitignore
-    # Deterministic output: no timestamps, so two runs must be identical.
-    - cp .srs-site/index.html /tmp/first.html
-    - python3 tools/srs_view.py --html >/dev/null
-    - cmp /tmp/first.html .srs-site/index.html
-    # A viewer run must not litter the target with bytecode.
-    - test -z "$(find . -name __pycache__)"
-    - cd -
+    - tests/view-smoke.sh
+
+# This framework's own specification, rendered. Skipped by
+# tools/ci_selftest.sh: it verifies nothing and would leave public/ in
+# the working tree on every commit.
+pages:
+  image: python:3.12
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - python3 tools/srs_view.py --html public/index.html --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+  artifacts:
+    paths:
+      - public

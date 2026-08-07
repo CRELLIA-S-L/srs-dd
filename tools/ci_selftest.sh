@@ -15,6 +15,12 @@
 set -e
 cd "$(dirname "$0")/.."
 
+# Jobs that verify nothing about this repository and must not run on a
+# developer's machine: `pages` renders the site into public/ and would
+# leave it in the working tree on every commit. Add any future job that
+# publishes or reaches the network here.
+SKIP_JOBS="pages"
+
 if ! command -v ruby >/dev/null 2>&1; then
     echo "ci-selftest: ruby not found — cannot parse YAML, skipping" >&2
     exit 0
@@ -33,12 +39,14 @@ tmpdir=$(mktemp -d)
 trap 'rm -rf "$tmpdir"' EXIT
 
 ruby -ryaml -e '
+skip = ARGV[1].split
 cfg = YAML.load_file(".gitlab-ci.yml")
 cfg.each do |name, job|
   next unless job.is_a?(Hash) && job["script"].is_a?(Array)
+  next if skip.include?(name)
   script = (["set -eo pipefail"] + job["script"]).join("\n") + "\n"
   File.write(File.join(ARGV[0], name + ".sh"), script)
-end' "$tmpdir"
+end' "$tmpdir" "$SKIP_JOBS"
 
 for script in "$tmpdir"/*.sh; do
     name=$(basename "$script" .sh)
