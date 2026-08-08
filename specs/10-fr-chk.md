@@ -247,3 +247,26 @@ were reported even if no error was.
 **Rationale.** Warnings that never fail anything accumulate until nobody
 reads them; a project decides once, in its CI configuration, whether it
 tolerates them.
+
+### FR-CHK-130 — A baseline tag without a log entry is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-070]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/installer-smoke.sh]
+```
+
+If the repository holds a `spec/vX.Y.Z` tag that `92-baselines.md` has no row
+for, the checker **shall** report it as a warning naming the tag.
+
+**Rationale.** Cutting a baseline is two acts — a tag and a row — performed in
+that order and therefore in separate commits, which is exactly the gap a
+person or an agent forgets in. This project forgot it twice. A warning rather
+than an error because the gap is legitimate for the length of one commit;
+`--strict`, which the gate runs, closes it. Nothing is reported where git or
+the tags are absent: a project may keep its baselines elsewhere.

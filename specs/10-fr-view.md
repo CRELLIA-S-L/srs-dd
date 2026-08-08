@@ -162,3 +162,73 @@ the project it was run in.
 
 **Rationale.** The traceability matrix stays the checker's artifact, with one
 generator; a viewer that also wrote would create a second source of truth.
+
+### FR-VIEW-090 — The page says what it is showing
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The rendered page **shall** state the specification's current baseline and
+the framework version that generated it.
+
+**Rationale.** The page lives at a stable address and outlives a dozen
+releases. A reader arriving from a bookmark cannot tell a fresh page from a
+six-month-old one, and the two questions — how current is the specification,
+what rendered it — have different answers when a project stops upgrading.
+
+### FR-VIEW-100 — Any two baselines can be compared on the page
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-050]
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The rendered page **shall** let a reader pick any two of the specification's
+baselines and see which requirements were added, removed, or had a field or
+their statement changed between them.
+
+**Rationale.** The baseline log records what was frozen, not what changed
+while freezing it; that answer exists only in `--diff`, which needs a clone.
+Comparing an arbitrary pair means the page carries the specification at every
+baseline, so it carries it the way a repository does: the oldest baseline in
+full and each later one as its change, folded up on demand. Statements travel
+as fingerprints — a rewording still shows as a change, without the text of
+the whole specification riding along once per baseline.
+
+### FR-VIEW-110 — The graph can be explored
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The derivation graph on the page **shall** let a reader move and scale it,
+pull a node aside, and see what a node links to and what links to it.
+
+**Rationale.** A specification of any size draws a graph larger than the
+viewport, and a picture that can only be scrolled is a picture nobody
+studies. Done in the page's own script rather than with a graph library: the
+layout is a layered one this project computes itself — the right shape for a
+derivation DAG, and not what a force layout would give — so a library would
+be paid for in every reader's download and every installed project, in
+exchange for panning and dragging.

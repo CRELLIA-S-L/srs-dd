@@ -33,6 +33,7 @@ sys.dont_write_bytecode = True
 
 import argparse                                            # noqa: E402
 import difflib                                             # noqa: E402
+import hashlib                                             # noqa: E402
 import html                                                # noqa: E402
 import json                                                # noqa: E402
 import os                                                  # noqa: E402
@@ -551,6 +552,80 @@ def load_revision(rev):
     return build_model(requirements, problems, with_code_scan=False)
 
 
+def baseline_tags():
+    """`spec/v*` tags, oldest first. Empty where git or tags are absent."""
+    try:
+        listed = git(["tag", "-l", "spec/v*"]).decode("utf-8", "replace")
+    except (OSError, subprocess.CalledProcessError, ViewError):
+        return []
+
+    def key(tag):
+        parts = tag[len("spec/v"):].split(".")
+        return tuple(int(p) if p.isdigit() else 0 for p in parts[:3])
+
+    return sorted(filter(None, listed.split()), key=key)
+
+
+def fingerprint(text):
+    """Enough of a statement to notice it was reworded, not enough to
+    carry the whole specification into the page once per baseline."""
+    return hashlib.sha1(" ".join(text.split()).encode("utf-8")).hexdigest()[:12]
+
+
+def baseline_snapshots():
+    """[{tag, version, requirements: {id: {fields…}}}], oldest first.
+
+    A snapshot per baseline is what lets the page compare an arbitrary
+    pair without a clone; statements travel as fingerprints.
+    """
+    snapshots = []
+    for tag in baseline_tags():
+        try:
+            model = load_revision(tag)
+        except ViewError:
+            continue
+        requirements = {}
+        for entry in model["requirements"]:
+            requirements[entry["id"]] = {
+                "title": entry["title"],
+                "status": entry["status"],
+                "verification": entry["verification"],
+                "code": entry["code"],
+                "tests": entry["tests"],
+                "derives_from": entry["derives_from"],
+                "depends_on": entry["depends_on"],
+                "refines": entry["refines"],
+                "statement": fingerprint(entry["statement"]),
+            }
+        snapshots.append({"tag": tag, "version": tag[len("spec/v"):],
+                          "requirements": requirements})
+    return as_deltas(snapshots)
+
+
+def as_deltas(snapshots):
+    """The first baseline in full, every later one as its change.
+
+    A snapshot per baseline costs the size of the whole specification
+    each time; the page is meant to be carried around, and ten baselines
+    of a growing specification is not a page any more. The reader still
+    compares an arbitrary pair — the page folds the deltas up to each
+    end first.
+    """
+    out = []
+    for index, snap in enumerate(snapshots):
+        entry = {"tag": snap["tag"], "version": snap["version"]}
+        if index == 0:
+            entry["full"] = snap["requirements"]
+        else:
+            before = snapshots[index - 1]["requirements"]
+            now = snap["requirements"]
+            entry["put"] = dict((rid, fields) for rid, fields in now.items()
+                                if before.get(rid) != fields)
+            entry["drop"] = sorted(rid for rid in before if rid not in now)
+        out.append(entry)
+    return out
+
+
 DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
                "code", "tests") + LINK_FIELDS
 
@@ -725,6 +800,13 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
   fill: var(--fg); }
 .graph .node rect { fill: var(--panel); stroke: var(--line); }
 .graph .node.dim { opacity: .2; }
+#graph-svg { cursor: grab; touch-action: none; }
+#graph-svg:active { cursor: grabbing; }
+#graph-svg.focused .node, #graph-svg.focused .edge { opacity: .25; }
+#graph-svg.focused .node.sel, #graph-svg.focused .node.lit,
+#graph-svg.focused .edge.lit { opacity: 1; }
+.graph .node.sel rect { stroke-width: 2.5; }
+.graph .edge.lit { stroke: var(--fg); stroke-width: 2; }
 .graph .edge { stroke: var(--muted); fill: none; }
 .graph .edge.refines { stroke-dasharray: 5 3; }
 .graph .edge.back { stroke-dasharray: 1 3; }
@@ -743,6 +825,183 @@ JS = """
 (function () {
   var cards = Array.prototype.slice.call(
     document.querySelectorAll('article[data-id]'));
+  var gsvg = document.getElementById('graph-svg');
+  if (gsvg) {
+    var stage = document.getElementById('graph-stage');
+    var NW = +gsvg.dataset.nw, NH = +gsvg.dataset.nh;
+    var view = { x: 0, y: 0, k: 1 };
+    var edges = Array.prototype.slice.call(gsvg.querySelectorAll('path.edge'));
+    var nodes = {};
+    Array.prototype.forEach.call(gsvg.querySelectorAll('g.node'), function (g) {
+      nodes[g.dataset.id] = g;
+    });
+
+    function apply() {
+      stage.setAttribute('transform', 'translate(' + view.x + ',' + view.y
+        + ') scale(' + view.k + ')');
+    }
+
+    function redraw(id) {
+      edges.forEach(function (path) {
+        if (path.dataset.from !== id && path.dataset.to !== id) { return; }
+        var a = nodes[path.dataset.from], b = nodes[path.dataset.to];
+        if (!a || !b) { return; }
+        path.setAttribute('d', 'M ' + (+a.dataset.x + NW / 2) + ' '
+          + a.dataset.y + ' L ' + (+b.dataset.x + NW / 2) + ' '
+          + (+b.dataset.y + NH));
+      });
+    }
+
+    function moveNode(g, dx, dy) {
+      var x = +g.dataset.x + dx, y = +g.dataset.y + dy;
+      g.dataset.x = x; g.dataset.y = y;
+      var rect = g.querySelector('rect'), text = g.querySelector('text');
+      rect.setAttribute('x', x); rect.setAttribute('y', y);
+      text.setAttribute('x', x + NW / 2); text.setAttribute('y', y + NH / 2 + 4);
+      redraw(g.dataset.id);
+    }
+
+    gsvg.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var box = gsvg.getBoundingClientRect();
+      var mx = e.clientX - box.left, my = e.clientY - box.top;
+      var k = Math.min(4, Math.max(0.2, view.k * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+      view.x = mx - (mx - view.x) * (k / view.k);
+      view.y = my - (my - view.y) * (k / view.k);
+      view.k = k;
+      apply();
+    }, { passive: false });
+
+    // Pointer events, not mouse ones: the same code then works for a
+    // finger and a pen, and the CSS turns native scrolling off in
+    // exchange — which would leave a touch device with no way to move
+    // the graph at all if only mice were handled.
+    var held = null, last = null, moved = false;
+    gsvg.addEventListener('pointerdown', function (e) {
+      var node = e.target.closest ? e.target.closest('g.node') : null;
+      held = node || 'stage';
+      last = { x: e.clientX, y: e.clientY };
+      moved = false;
+      gsvg.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    gsvg.addEventListener('pointermove', function (e) {
+      if (!held) { return; }
+      var dx = e.clientX - last.x, dy = e.clientY - last.y;
+      if (dx || dy) { moved = true; }
+      last = { x: e.clientX, y: e.clientY };
+      if (held === 'stage') { view.x += dx; view.y += dy; apply(); }
+      else { moveNode(held, dx / view.k, dy / view.k); }
+    });
+    function release(e) {
+      held = null;
+      if (e && e.pointerId !== undefined
+          && gsvg.hasPointerCapture(e.pointerId)) {
+        gsvg.releasePointerCapture(e.pointerId);
+      }
+    }
+    gsvg.addEventListener('pointerup', release);
+    gsvg.addEventListener('pointercancel', release);
+
+    // Clicking a node lights what it links to and what links to it; the
+    // rest dims, which is the whole reason to click rather than squint.
+    gsvg.addEventListener('click', function (e) {
+      if (moved) { moved = false; return; }
+      var node = e.target.closest ? e.target.closest('g.node') : null;
+      gsvg.classList.toggle('focused', !!node);
+      Object.keys(nodes).forEach(function (id) {
+        nodes[id].classList.remove('sel', 'lit');
+      });
+      edges.forEach(function (p) { p.classList.remove('lit'); });
+      if (!node) { return; }
+      var id = node.dataset.id;
+      node.classList.add('sel');
+      edges.forEach(function (p) {
+        if (p.dataset.from !== id && p.dataset.to !== id) { return; }
+        p.classList.add('lit');
+        var other = p.dataset.from === id ? p.dataset.to : p.dataset.from;
+        if (nodes[other]) { nodes[other].classList.add('lit'); }
+      });
+    });
+  }
+
+  var baseNode = document.getElementById('baselines-data');
+  var baselines = baseNode ? JSON.parse(baseNode.textContent || '[]') : [];
+  var LIST_FIELDS = ['code', 'tests', 'derives_from', 'depends_on', 'refines'];
+  var FLAT_FIELDS = ['title', 'status', 'verification', 'statement'];
+
+  function snapshotAt(index) {
+    var state = {};
+    for (var i = 0; i <= index; i++) {
+      var step = baselines[i];
+      if (step.full) { Object.keys(step.full).forEach(function (id) {
+        state[id] = step.full[id]; }); continue; }
+      (step.drop || []).forEach(function (id) { delete state[id]; });
+      Object.keys(step.put || {}).forEach(function (id) {
+        state[id] = step.put[id]; });
+    }
+    return state;
+  }
+
+  function compareBaselines(from, to) {
+    var a = snapshotAt(from), b = snapshotAt(to);
+    var added = [], removed = [], changed = [];
+    Object.keys(b).sort().forEach(function (id) {
+      if (!(id in a)) { added.push([id, b[id].title]); return; }
+      var fields = [];
+      FLAT_FIELDS.forEach(function (f) {
+        if (a[id][f] !== b[id][f]) fields.push(f);
+      });
+      LIST_FIELDS.forEach(function (f) {
+        if (a[id][f].join('\u0000') !== b[id][f].join('\u0000')) fields.push(f);
+      });
+      if (fields.length) changed.push([id, b[id].title, fields]);
+    });
+    Object.keys(a).sort().forEach(function (id) {
+      if (!(id in b)) removed.push([id, a[id].title]);
+    });
+    return { added: added, removed: removed, changed: changed };
+  }
+
+  function renderBaselines() {
+    var fromSel = document.getElementById('base-from');
+    var toSel = document.getElementById('base-to');
+    var out = document.getElementById('base-result');
+    if (!fromSel || !toSel || !out) { return; }
+    var from = parseInt(fromSel.value, 10), to = parseInt(toSel.value, 10);
+    var d = compareBaselines(from, to);
+    var html = '<p>' + baselines[from].version + ' → ' + baselines[to].version
+      + ': ' + d.added.length + ' added, ' + d.removed.length + ' removed, '
+      + d.changed.length + ' changed.</p>';
+    function block(title, rows, render) {
+      if (!rows.length) { return ''; }
+      return '<h3>' + title + '</h3><ul>'
+        + rows.map(render).join('') + '</ul>';
+    }
+    html += block('Added', d.added, function (r) {
+      return '<li><a href="#' + r[0] + '"><code>' + r[0] + '</code></a> '
+        + r[1] + '</li>';
+    });
+    html += block('Removed', d.removed, function (r) {
+      return '<li><code>' + r[0] + '</code> ' + r[1] + '</li>';
+    });
+    html += block('Changed', d.changed, function (r) {
+      return '<li><a href="#' + r[0] + '"><code>' + r[0] + '</code></a> '
+        + r[1] + ' — ' + r[2].join(', ') + '</li>';
+    });
+    out.innerHTML = html;
+  }
+
+  if (baselines.length > 1) {
+    var fromSel = document.getElementById('base-from');
+    var toSel = document.getElementById('base-to');
+    fromSel.value = String(baselines.length - 2);
+    toSel.value = String(baselines.length - 1);
+    fromSel.addEventListener('change', renderBaselines);
+    toSel.addEventListener('change', renderBaselines);
+    renderBaselines();
+  }
+
   var search = document.getElementById('search');
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
   var shown = document.getElementById('shown');
@@ -1073,6 +1332,36 @@ def svg_escape(text):
                 .replace(">", "&gt;").replace('"', "&quot;"))
 
 
+def order_layers(layers, parents):
+    """Nodes within each layer, ordered to pull edges straight.
+
+    The classic layered-drawing heuristic: a node sits at the average
+    position of what it derives from, so lines run down the page instead
+    of across it. Alphabetical order breaks ties and orders whatever has
+    no parent in the layer above — the drawing has to be the same on
+    every run (FR-VIEW-070), so nothing may depend on dictionary order.
+    """
+    ordered = {}
+    previous = []
+    for level in sorted(layers):
+        members = sorted(layers[level])
+        if previous:
+            rank = dict((node, index) for index, node in enumerate(previous))
+            def barycentre(node):
+                spots = [rank[p] for p in parents.get(node, []) if p in rank]
+                if not spots:
+                    return (1, 0.0, node)      # no anchor: keep it last
+                spots.sort()
+                middle = len(spots) // 2
+                median = (spots[middle] if len(spots) % 2
+                          else (spots[middle - 1] + spots[middle]) / 2.0)
+                return (0, median, node)
+            members.sort(key=barycentre)
+        ordered[level] = members
+        previous = members
+    return ordered
+
+
 def build_graph(model):
     """Layered layout over derives_from/refines.
 
@@ -1126,8 +1415,9 @@ def build_graph(model):
     # scrolls horizontally is a page nobody reads.
     position = {}
     top = 1
+    ordered = order_layers(layers, parents)
     for level in sorted(layers):
-        members = sorted(layers[level])
+        members = ordered[level]
         rows = 0
         for index, node in enumerate(members):
             row, column = divmod(index, ROW_LIMIT)
@@ -1140,9 +1430,12 @@ def build_graph(model):
     width = max(x for x, _y in position.values()) + NODE_W + 2
     height = max(y for _x, y in position.values()) + NODE_H + 2
 
-    parts = ['<div class="scroll"><svg class="graph" viewBox="0 0 %d %d" '
-             'width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">'
-             % (width, height, width, height)]
+    parts = ['<div class="scroll"><svg id="graph-svg" class="graph" '
+             'viewBox="0 0 %d %d" width="%d" height="%d" '
+             'data-nw="%d" data-nh="%d" '
+             'xmlns="http://www.w3.org/2000/svg">'
+             % (width, height, width, height, NODE_W, NODE_H)]
+    parts.append('<g id="graph-stage">')
     parts.append('<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" '
                  'markerWidth="6" markerHeight="6" orient="auto-start-reverse">'
                  '<path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>'
@@ -1154,22 +1447,25 @@ def build_graph(model):
         px, py = position[parent]
         back = depth.get(parent, 0) >= depth.get(child, 0)
         klass = "edge back" if back else "edge %s" % field
-        parts.append('<path class="%s" d="M %d %d L %d %d" '
-                     'marker-end="url(#a)"/>'
-                     % (klass, cx + NODE_W / 2, cy,
+        parts.append('<path class="%s" data-from="%s" data-to="%s" '
+                     'd="M %d %d L %d %d" marker-end="url(#a)"/>'
+                     % (klass, svg_escape(child), svg_escape(parent),
+                        cx + NODE_W / 2, cy,
                         px + NODE_W / 2, py + NODE_H))
     for node in nodes:
         x, y = position[node]
         entry = known.get(node, {})
-        parts.append('<g class="node st-%s" data-id="%s"><title>%s</title>'
+        parts.append('<g class="node st-%s" data-id="%s" data-x="%d" '
+                     'data-y="%d"><title>%s</title>'
                      '<rect x="%d" y="%d" width="%d" height="%d" rx="5" '
                      'stroke="currentColor"/>'
                      '<text x="%d" y="%d" text-anchor="middle">%s</text></g>'
                      % (svg_escape(entry.get("status", "")), svg_escape(node),
+                        x, y,
                         svg_escape("%s — %s" % (node, entry.get("title", ""))),
                         x, y, NODE_W, NODE_H,
                         x + NODE_W / 2, y + NODE_H / 2 + 4, svg_escape(node)))
-    parts.append("</svg></div>")
+    parts.append("</g></svg></div>")
     return "".join(parts), dropped
 
 
@@ -1189,11 +1485,12 @@ PAGE = """<!doctype html>
 <header>
   <h1>__TITLE__</h1>
   <div class="counts"><span id="shown">__COUNT__</span> of __COUNT__ \
-requirements</div>
+requirements · __VERSIONS__</div>
   <nav>
     <button data-view="view-reqs" aria-selected="true">Requirements</button>
     <button data-view="view-dash" aria-selected="false">Dashboard</button>
     <button data-view="view-graph" aria-selected="false">Graph</button>
+    <button data-view="view-base" aria-selected="false">Baselines</button>
   </nav>
 </header>
 <div class="layout">
@@ -1208,16 +1505,40 @@ requirements</div>
   <section id="view-reqs">__DIFF____CARDS__</section>
   <section id="view-dash" hidden>__DASHBOARD__</section>
   <section id="view-graph" hidden>__GRAPH__</section>
+  <section id="view-base" hidden>__BASELINES__</section>
 </main>
 </div>
 <footer>__FOOTER__</footer>
+<script id="baselines-data" type="application/json">__BASEDATA__</script>
 <script>__JS__</script>
 </body>
 </html>
 """
 
 
-def render_page(model, links, diff=None):
+def render_baselines(snapshots):
+    """The picker and the legend; the comparison itself happens in the
+    page, from the snapshots embedded beside it."""
+    if not snapshots:
+        return ("<p>No baselines yet. A baseline is a <code>spec/vX.Y.Z</code> "
+                "tag and a row in <code>92-baselines.md</code>; see the "
+                "Baselines section of the standard.</p>")
+    options = "".join('<option value="%d">%s</option>' % (index, esc(snap["version"]))
+                      for index, snap in enumerate(snapshots))
+    if len(snapshots) < 2:
+        return ("<p>One baseline so far (<strong>%s</strong>) — nothing to "
+                "compare it against yet.</p>" % esc(snapshots[-1]["version"]))
+    return ('<div class="pickers">'
+            '<label>from <select id="base-from">%s</select></label> '
+            '<label>to <select id="base-to">%s</select></label>'
+            '</div>'
+            '<div id="base-result"></div>'
+            '<p class="hint">Statements are compared by fingerprint: a '
+            'reworded statement shows as a change, its text is not carried '
+            'into the page.</p>' % (options, options))
+
+
+def render_page(model, links, diff=None, baselines=None):
     entries = model["requirements"]
     known = by_id(model)
     diff_state = {}
@@ -1293,6 +1614,14 @@ def render_page(model, links, diff=None):
                                   for e in entries)),
             ("__DASHBOARD__", render_dashboard(model, links)),
             ("__GRAPH__", graph),
+            ("__BASELINES__", render_baselines(baselines or [])),
+            ("__BASEDATA__", json.dumps(baselines or [], sort_keys=True,
+                                        separators=(",", ":"))
+             .replace("</", "<\\/")),
+            ("__VERSIONS__", esc(
+                ("baseline %s" % (baselines or [{}])[-1].get("version", ""))
+                if baselines else "no baseline")
+             + esc(" · srs_check %s" % model["checker_version"])),
             # No wall-clock stamp on purpose: two runs of the generator
             # must produce byte-identical output.
             ("__FOOTER__", "Generated by tools/srs_view.py from srs_check %s. "
@@ -1336,8 +1665,11 @@ def ensure_parent(target):
 def write_site(model, target, diff=None):
     out_dir = ensure_parent(target)
     links = Links(model, out_dir)
+    # Only here: build_model runs inside load_revision too, and a model
+    # that collected baselines would load a revision to build a model.
+    baselines = baseline_snapshots()
     with open(target, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write(render_page(model, links, diff))
+        handle.write(render_page(model, links, diff, baselines))
     # Only the default directory ignores itself: writing a .gitignore
     # into a path the user named would be presumptuous.
     if os.path.realpath(out_dir) == os.path.realpath(DEFAULT_SITE):

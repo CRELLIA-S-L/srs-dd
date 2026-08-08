@@ -5,6 +5,46 @@ unresolved questions. Each entry states what diverged, where it was found,
 and what decision is needed. Entries are removed once the maintainer decides
 which side is right and the fix lands.
 
+## Nothing in the suites exercises a gesture
+
+**Found:** while building the explorable graph (2026-08-08).
+
+**What diverged:** FR-VIEW-110 promises panning, zooming, dragging and
+highlighting, and carries `verification: I` because no browser and no
+JavaScript engine is a dependency of this project. `tests/view-smoke.sh`
+asserts that the handlers and the stage are in the page — which catches a
+deletion, and nothing else. The same limit applies to the comparison of
+FR-VIEW-100: its data is checked against git, its script is checked by
+having been read.
+
+**Why it is recorded rather than fixed:** every way out adds a dependency
+the framework does not have. A headless browser in CI is the honest one and
+the heaviest; a JavaScript engine would run the logic but not the gestures;
+transliterating the script into Python, as the baseline comparison already
+does, tests a copy rather than the thing that ships.
+
+**Decision needed:** accept inspection as the method for anything the page
+does in the browser and say so in `50-verification.md`, or take on a
+headless browser for the graph and the comparison.
+
+## The graph cannot be pinched, and skip-layer edges have no anchor
+
+**Found:** while reviewing the explorable graph (2026-08-08).
+
+**What diverged:** two limits of FR-VIEW-110 and of the layered layout, both
+deliberate at the time and neither written down. One finger pans and a wheel
+zooms, but two fingers do nothing — a touch device can move the graph and
+not scale it. And `order_layers` places a node by the barycentre of its
+parents *in the layer immediately above*; a requirement deriving from
+something two layers up finds no anchor and falls to the end of its layer.
+Neither shows on this repository's own graph, where crossings are already
+zero.
+
+**Decision needed:** whether either is worth code. Pinch zoom is a pointer
+handler counting two contacts; the layout would have to rank against every
+layer above, not just the previous one — more code in the part of the viewer
+that has to stay deterministic.
+
 ## An area holds at most 99 requirements, and the standard does not say so
 
 **Found:** while measuring NFR-CHK-010 against a generated specification of

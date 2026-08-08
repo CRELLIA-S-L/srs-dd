@@ -11,6 +11,48 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.9.0] — 2026-08-08
+
+### Added
+
+- The checker reports a `spec/vX.Y.Z` tag the baseline log has no row for.
+  Cutting a baseline is a tag and a row, in that order and so in separate
+  commits — the gap between them is where it gets forgotten, twice in this
+  repository already. A warning, which `--strict` turns into a failed
+  build; silent where git or the tags are absent (FR-CHK-130).
+- The rendered page says which baseline it shows and what rendered it.
+  A page lives at a stable address
+  and outlives a dozen releases; a reader arriving from a bookmark could
+  not tell a fresh one from a six-month-old one (FR-VIEW-090).
+- The graph can be explored. Pan it, zoom around the pointer, pull a node
+  aside with its edges following, and click one to light what it links to
+  and what links to it while the rest dims. Written in the page's own
+  script: the layout is layered, which is the right shape for a
+  derivation DAG and not what a force layout gives, so a graph library
+  would have been paid for in every reader's download and every installed
+  project in exchange for panning (FR-VIEW-110).
+- Nodes within a layer are ordered by the barycentre of what they derive
+  from. Edges run down the page instead of across it — three crossings
+  became none in this repository's own graph — and the order is still
+  computed the same way on every run, so the page stays byte-identical.
+- The page compares any two baselines. It carries a snapshot of the
+  specification at each, so a reader picks a pair and sees what was
+  added, removed, or changed — without a clone and without the network.
+  Statements travel as fingerprints: a reworded statement shows up as a
+  change, and the page does not grow by the length of the whole
+  specification per baseline (FR-VIEW-100).
+
+### Upgrade notes
+
+- A project that already cut baselines will see a warning for every tag
+  its `92-baselines.md` has no row for. That is the point; write the rows
+  or, if the log is not how the project records them, the warning is
+  harmless outside `--strict`.
+- The page carries the specification at every baseline: the oldest in
+  full, each later one as its change. Sixty requirements and three
+  baselines cost 14 KB, and the cost grows with what changes rather than
+  with the size of the specification.
+
 ## [0.8.0] — 2026-08-08
 
 ### Added

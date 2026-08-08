@@ -108,6 +108,30 @@ rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html
 
+# A baseline tag with no row in the log is reported, and --strict makes
+# it a failure: cutting a baseline is a tag and a row in separate
+# commits, and the gap between them is where it gets forgotten.
+rm -rf /tmp/srs-base
+python3 tools/srs_init.py /tmp/srs-base --defaults --ci none >/dev/null
+(
+    cd /tmp/srs-base
+    git init -q .
+    git add -A
+    git -c user.email=ci@example.com -c user.name=CI commit -qm base
+    git tag spec/v0.1.0
+    python3 tools/srs_check.py --no-write 2>&1 | grep -q "no row for baseline tag spec/v0.1.0"
+    rc=0; python3 tools/srs_check.py --no-write --strict >/dev/null 2>&1 || rc=$?
+    test "$rc" -eq 1
+    python3 - <<'PY2'
+path = 'specs/92-baselines.md'
+text = open(path, encoding='utf-8').read()
+open(path, 'w', encoding='utf-8').write(text.replace(
+    '*No baselines yet.*',
+    '| 0.1.0 | 2026-01-01 | `spec/v0.1.0` | First freeze. |'))
+PY2
+    python3 tools/srs_check.py --no-write --strict >/dev/null
+)
+
 # specs/ here is the framework's own specification, not payload (ART-070).
 # A fresh target must hold exactly one requirement — the generated
 # placeholder — and nothing of ours. Asked through the parser rather than

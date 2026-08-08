@@ -236,6 +236,10 @@ A baseline freezes the specification at a milestone. To cut one:
 The `spec/v*` tag namespace is reserved for specification baselines; do not
 use it for release tags.
 
+The tag and the row are two acts in two commits, and the second is the one
+that gets forgotten — so the checker reports a `spec/v*` tag the log has no
+row for. Under `--strict` that is a failed build.
+
 ## Configuration
 
 All project settings live in `specs/srs-config.json`; any key absent from

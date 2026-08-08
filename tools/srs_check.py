@@ -20,9 +20,10 @@ markers it matches all come from the lexicon in the config.
 import json
 import os
 import re
+import subprocess
 import sys
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPECS = os.path.join(ROOT, "specs")
@@ -568,6 +569,31 @@ def scan_annotations(by_id, errors, warnings):
                                 % (where, keyword, rid, field))
 
 
+def check_baselines(warnings):
+    """A `spec/v*` tag the baseline log has no row for.
+
+    Cutting a baseline is a tag and a row, in that order and so in
+    separate commits — the gap between them is where it gets forgotten.
+    Silent where git or the tags are absent: a project may freeze its
+    specification some other way.
+    """
+    rel = os.path.join("specs", "92-baselines.md")
+    try:
+        with open(os.path.join(ROOT, rel), "r", encoding="utf-8") as handle:
+            logged = set(re.findall(r"`(spec/v[^`]+)`", handle.read()))
+    except OSError:
+        return
+    try:
+        listed = subprocess.check_output(
+            ["git", "-C", ROOT, "tag", "-l", "spec/v*"],
+            stderr=subprocess.DEVNULL).decode("utf-8", "replace").split()
+    except (OSError, subprocess.CalledProcessError):
+        return
+    for tag in sorted(tag for tag in listed if tag not in logged):
+        warnings.append("%s — no row for baseline tag %s; the tag freezes a "
+                        "state the log does not describe" % (rel, tag))
+
+
 def collect_code_files():
     result = set()
     extensions = tuple(CODE_EXTENSIONS)
@@ -712,6 +738,7 @@ def main():
 
     by_id, errors, warnings = validate(requirements)
     scan_annotations(by_id, errors, warnings)
+    check_baselines(warnings)
     errors = parse_errors + errors
 
     for text in warnings:
