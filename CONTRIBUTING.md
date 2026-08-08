@@ -97,6 +97,27 @@ silently:
   a version-string change does not alter. Stale bytecode has already
   made the installer report a version it was not installing.
 
+## Cutting a release
+
+Write the `## [X.Y.Z]` section in `CHANGELOG.md` — that part is yours —
+commit everything, then:
+
+```
+python3 tools/srs_release.py X.Y.Z --dry-run
+python3 tools/srs_release.py X.Y.Z
+```
+
+It dates the section, bumps `__version__`, adds the baseline row, commits
+those files and creates both tags. It refuses before touching anything if
+the tree is dirty, the section is missing, either tag exists, or the
+checker does not pass. It does not push.
+
+The row goes in before the tag, and that order is the point: a tag placed
+first points at a state the log does not describe until a later commit
+fixes it, and that later commit is the one that gets forgotten. The
+Baselines section of `specs/README.md` states the order for every project;
+this command is how this one obeys it.
+
 ## Version schemes
 
 Three independent version numbers exist by design; do not mix them.
@@ -109,3 +130,14 @@ Three independent version numbers exist by design; do not mix them.
 
 `tools/srs_check.py` prints the framework version it shipped with — the
 first thing to ask for when debugging a target project.
+
+What the framework's own number means, read from the target's side:
+
+| Step | When |
+|---|---|
+| MAJOR | An installed project has to change something to keep working |
+| MINOR | A new tool, skill or capability; a shipped file behaving differently in a way a project may notice |
+| PATCH | A fixed defect, wording, anything a project cannot observe |
+
+The number is a claim about compatibility, so it is the maintainer's to
+make — the `srs-release` procedure proposes and asks.

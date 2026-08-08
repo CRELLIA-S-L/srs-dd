@@ -229,16 +229,23 @@ missing from the requirement's corresponding field. A line containing
 A baseline freezes the specification at a milestone. To cut one:
 
 1. Make sure the checker passes and the matrix is regenerated.
-2. Tag the commit `spec/vX.Y.Z`.
-3. Add a row to `92-baselines.md`: version, date, tag, what changed since
-   the previous baseline.
+2. Add a row to `92-baselines.md` naming the tag you are about to create:
+   version, date, tag, what changed since the previous baseline.
+   `srs_view.py --baseline X.Y.Z` prints that row ready to paste.
+3. Commit, then tag that commit `spec/vX.Y.Z`.
+
+The row comes before the tag on purpose. Tagging first leaves the tag
+pointing at a state the log does not describe until a later commit fixes it
+— and that later commit is the one that gets forgotten. Written in this
+order there is no gap to forget: the tag lands on a commit that already
+describes itself.
 
 The `spec/v*` tag namespace is reserved for specification baselines; do not
 use it for release tags.
 
-The tag and the row are two acts in two commits, and the second is the one
-that gets forgotten — so the checker reports a `spec/v*` tag the log has no
-row for. Under `--strict` that is a failed build.
+The checker still reports a `spec/v*` tag the log has no row for — under
+`--strict` a failed build — but in this order that means somebody really did
+skip a step, not that a release is halfway done.
 
 ## Configuration
 

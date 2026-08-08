@@ -17,12 +17,21 @@ code: [.claude/skills/srs/SKILL.md]
 tests: []
 ```
 
-Before changing behavior, the `srs` procedure **shall** require finding the
-requirements that describe it, and require creating one when none exists.
+The `srs` procedure **shall** require naming the requirements a change
+belongs to before the code is written, creating one where none exists, and
+re-reading their statements as the loop is closed, so that anything built
+and not described is written down or taken out.
 
 **Rationale.** Everything else in the framework is downstream of this single
 habit; the checker can prove a link exists but never that the change was
-thought about first.
+thought about first. Both ends are needed, and the second was learned the
+hard way: a change that begins as a fix to an existing requirement is exempt
+from writing a new one, and that exemption quietly covers whatever else gets
+added along the way — a control appeared on the rendered page that no
+statement mentioned, because the work was framed as repair and nobody
+re-read the requirement it repaired. Re-reading one statement costs a
+paragraph; a change that names no requirement at all is itself the signal
+that either nothing behavioural happened or the requirement is missing.
 
 ### FR-SKILL-020 — Rules are stated once
 
@@ -127,3 +136,31 @@ where it lives.
 somebody else's repository. Upgrading is the one part of it a project needs
 to carry itself, and until now nothing in an installed project mentioned
 upgrades at all.
+
+### FR-SKILL-070 — The release procedure travels with the framework
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-CI-070]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-release/SKILL.md]
+tests: [tests/installer-smoke.sh]
+```
+
+Before cutting a release, the `srs-release` procedure **shall** have the
+agent propose the version number for the maintainer to confirm and draft the
+changelog section by its format contract; it stays in the framework
+repository and is never installed into a project.
+
+**Rationale.** The command is one line, but two of its inputs are not the
+agent's to settle. The version number follows from what actually changed —
+an article amended, a shipped file touched, a requirement reworded — and
+that reading belongs to the maintainer, exactly as the areas and the lexicon
+do in `srs-init`. The changelog section an agent can draft, provided it
+knows the rule this project tripped over four times: the first sentence of
+every entry stands alone, because the installer prints that sentence and
+cuts the rest. Framework-only, like `srs-init`: a target releases nothing of
+ours.

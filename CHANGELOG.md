@@ -11,6 +11,71 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.10.0]
+
+### Added
+
+- `tools/srs_release.py` cuts a release in one command. It dates the
+  changelog section, bumps the checker's version, adds the baseline row,
+  commits those files and creates both tags — refusing before it touches
+  anything if the tree is dirty, the section is missing, a tag exists or
+  the checker does not pass. It writes no prose and does not push
+  (FR-CI-070).
+- The `srs-release` procedure carries what the command will not decide.
+  Which number the release takes is a claim about compatibility
+  and belongs to the maintainer; the changelog section an agent may draft,
+  provided it knows that the first sentence of every entry stands alone,
+  because an upgrade prints that sentence and cuts the rest. Framework-only,
+  like `srs-init` (FR-SKILL-070).
+- `srs_view.py --baseline X.Y.Z` prints the baseline row, ready to paste.
+  It carries the version, the date, the tag and what changed since the
+  previous baseline. Four rows of this project's own log were reduced by
+  hand from a matrix and a diff — mechanical work that invites a wrong
+  count nobody would ever notice (FR-VIEW-120).
+
+### Changed
+
+- Closing the loop now includes re-reading the statement. The `srs`
+  procedure asked for a requirement before the code and, at the end, only
+  for bookkeeping — status, `code`, `tests` — so nothing ever asked
+  whether the statement still described what had been built. A change
+  that starts as a fix needs no new requirement, and that exemption
+  covers whatever else is added along the way: it is how a control
+  reached the rendered page with no statement mentioning it
+  (FR-SKILL-010).
+- The Baselines procedure in the standard now writes the row before the
+  tag. Tagging first leaves the tag pointing at a state the log does not
+  describe until a later commit fixes it — and that later commit is the
+  one that gets forgotten, three times here. Written in this order there
+  is no gap to forget.
+
+### Fixed
+
+- The graph now fills its panel. Its canvas used to be sized from the
+  drawing, so a small specification got a postage stamp to drag nodes
+  around in, and a node left it at the first tug; the panel is the canvas
+  now, the drawing is fitted into it, and a reset control brings back
+  whatever was dragged out of sight. The gestures convert screen pixels
+  into the drawing's own units, which they never had to while an unstretched
+  canvas made the two the same by accident — and zooming converts a point
+  rather than a distance, so it also accounts for the margin a centred
+  drawing leaves inside its panel. FR-VIEW-110 says both now: the graph
+  fills its area, and the view can be returned to where it started.
+
+### Upgrade notes
+
+- An upgrade brings three things into a project. `tools/srs_view.py` gains
+  `--baseline X.Y.Z`, which prints the row for your own baseline log. The
+  `srs` skill gains a step: closing the loop now means re-reading the
+  statement and asking whether it describes what you built. And the
+  release command is framework-only — nothing of it is installed.
+- What an upgrade does not bring is the standard itself: `specs/README.md`
+  is yours once installed, and this release reordered its Baselines
+  procedure to write the log row before the tag. Copy that paragraph over
+  if you want the order that keeps a tag from ever pointing at a state the
+  log does not describe; a project that keeps tagging first loses nothing
+  but the guarantee.
+
 ## [0.9.0] — 2026-08-08
 
 ### Added

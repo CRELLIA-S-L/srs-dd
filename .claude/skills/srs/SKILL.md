@@ -51,13 +51,24 @@ behavior is not described, and a requirement must be created first.
    the storage layer”. The plan must not conflict with
    `specs/constitution.md`; cite its articles (`ART-*`) the same way.
 3. **Code.**
-4. **Close the loop.** Status per Lifecycle, fill `code` and `tests` with
-   real paths. Optionally annotate the files themselves
-   (`implements:` / `verifies:` — see Annotations in `specs/README.md`).
+4. **Close the loop.** Re-read the statement of every requirement this
+   change names: does it describe what you actually built? Whatever it
+   does not describe is written down or taken out — not left as a
+   surprise for the next reader. Then status per Lifecycle, `code` and
+   `tests` filled with real paths, and optionally the files themselves
+   annotated (`implements:` / `verifies:` — see Annotations in
+   `specs/README.md`).
 5. **Check:** `python3 tools/srs_check.py`.
 
 Changing behavior — change the requirement in the same set of edits as the
 code. They diverge exactly when one moves without the other.
+
+A change that begins as a fix is where this goes wrong most often: repairing
+an existing requirement needs no new one, and that exemption quietly covers
+whatever else gets added while you are in there. If step 4 finds the
+statement silent about something you built, the statement is what is wrong.
+And a change that names no requirement at all is its own signal — either
+nothing about the system's behavior moved, or the requirement is missing.
 
 ## Planning multi-requirement work
 

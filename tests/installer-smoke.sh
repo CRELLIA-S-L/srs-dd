@@ -31,10 +31,16 @@ grep -q "AGENTS.md" /tmp/fresh.log
 for skill in srs srs-new srs-audit srs-harvest srs-upgrade; do
     grep -qE "^       $skill +" /tmp/fresh.log
 done
-if grep -qE "^       srs-init +" /tmp/fresh.log; then
-    echo "srs-init is framework-only and must not be offered to a target"
-    exit 1
-fi
+for framework_only in srs-init srs-release; do
+    if grep -qE "^       $framework_only +" /tmp/fresh.log; then
+        echo "$framework_only is framework-only and must not be offered"
+        exit 1
+    fi
+    if [ -e "/tmp/srs-target/.claude/skills/$framework_only" ]; then
+        echo "$framework_only travelled into a target"
+        exit 1
+    fi
+done
 # The first thing a maintainer sees must not wrap: everything the
 # installer prints stays inside 79 columns, except the target path, which
 # is theirs and not ours to shorten.

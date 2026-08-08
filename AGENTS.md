@@ -58,4 +58,6 @@ then write the code, then close the loop.
 - **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--html`.
 - **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does;
   `git config core.hooksPath .githooks` wires it into `pre-commit`.
+- **Cut a release** — the `srs-release` procedure; it decides nothing
+  about the version or the notes on its own.
 - **Contribution and release rules** — `CONTRIBUTING.md`.

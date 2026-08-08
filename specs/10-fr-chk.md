@@ -264,9 +264,10 @@ tests: [tests/installer-smoke.sh]
 If the repository holds a `spec/vX.Y.Z` tag that `92-baselines.md` has no row
 for, the checker **shall** report it as a warning naming the tag.
 
-**Rationale.** Cutting a baseline is two acts — a tag and a row — performed in
-that order and therefore in separate commits, which is exactly the gap a
-person or an agent forgets in. This project forgot it twice. A warning rather
-than an error because the gap is legitimate for the length of one commit;
-`--strict`, which the gate runs, closes it. Nothing is reported where git or
-the tags are absent: a project may keep its baselines elsewhere.
+**Rationale.** Cutting a baseline is two acts — a row and a tag. This project
+performed them in the other order, tagging first, and forgot the row three
+times before the standard was changed to write it first; the check stays
+because an order is a convention, and conventions get skipped. A warning
+rather than an error, so that a release halfway done does not block the
+work; `--strict`, which the gate runs, closes it. Nothing is reported where
+git or the tags are absent: a project may keep its baselines elsewhere.

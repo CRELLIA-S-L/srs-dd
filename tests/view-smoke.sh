@@ -167,8 +167,22 @@ python3 - <<'PY2'
 page = open('.srs-site/index.html', encoding='utf-8').read()
 for token in ('id="graph-stage"', 'data-nw=', "getElementById('graph-svg')",
               "addEventListener('wheel'", "addEventListener('pointerdown'",
-              '#graph-svg.focused'):
+              '#graph-svg.focused', 'id="graph-reset"', 'getScreenCTM',
+              'toDrawing('):
     assert token in page, 'the graph lost %s' % token
+# The canvas is the panel, not the drawing: sized in CSS, with no width or
+# height baked in from the content, or a small specification gets a postage
+# stamp to drag things around in.
+import re as _re
+svg = _re.search(r'<svg id="graph-svg"[^>]*>', page).group(0)
+assert ' width=' not in svg and ' height=' not in svg, svg
+assert 'viewBox=' in svg and 'preserveAspectRatio=' in svg, svg
+assert 'height: 70vh' in page
+# The zoom anchor goes through the inverse matrix, not through the scale
+# alone: the drawing is centred in the panel, and dividing by the scale
+# ignores that margin.
+assert 'getBoundingClientRect' not in page.split("addEventListener('wheel'")[1][:400], \
+    'the wheel handler is measuring the element instead of inverting the matrix'
 # Pointer events, not mouse ones: the CSS turns native scrolling off, so
 # handling only mice would leave a touch device unable to move the graph.
 assert "addEventListener('mousedown'" not in page, 'mouse-only dragging is back'
@@ -205,6 +219,15 @@ assert crossings(ordered) == 0, (ordered, crossings(ordered))
 # And it is the same order every run: the page must stay byte-identical.
 assert v.order_layers(layers, parents) == ordered
 PY2
+
+# The baseline row is printed ready to paste, and names the previous
+# baseline it was computed against.
+python3 tools/srs_view.py --baseline 0.0.3 --date 2026-01-02 > /tmp/v-row.log
+grep -q '^| 0.0.3 | 2026-01-02 | `spec/v0.0.3` |' /tmp/v-row.log
+# It names the baseline it was computed against — whether anything
+# changed since it or not.
+grep -q '0.0.2' /tmp/v-row.log
+grep -q 'requirements' /tmp/v-row.log
 
 # A viewer run must not litter the target with bytecode.
 test -z "$(find . -name __pycache__)"

@@ -32,6 +32,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import argparse                                            # noqa: E402
+import datetime                                            # noqa: E402
 import difflib                                             # noqa: E402
 import hashlib                                             # noqa: E402
 import html                                                # noqa: E402
@@ -800,7 +801,9 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
   fill: var(--fg); }
 .graph .node rect { fill: var(--panel); stroke: var(--line); }
 .graph .node.dim { opacity: .2; }
-#graph-svg { cursor: grab; touch-action: none; }
+.stage { position: relative; }
+#graph-svg { display: block; width: 100%; height: 70vh; min-height: 320px; cursor: grab; touch-action: none; }
+#graph-reset { position: absolute; right: 8px; top: 8px; font: inherit; font-size: 12px; padding: 2px 8px; cursor: pointer; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; }
 #graph-svg:active { cursor: grabbing; }
 #graph-svg.focused .node, #graph-svg.focused .edge { opacity: .25; }
 #graph-svg.focused .node.sel, #graph-svg.focused .node.lit,
@@ -841,6 +844,27 @@ JS = """
         + ') scale(' + view.k + ')');
     }
 
+    // Screen pixels per viewBox unit. The canvas fills its panel, so this
+    // is whatever the browser chose when fitting the viewBox — without it
+    // a drag of ten pixels would move a node by ten user units, which is
+    // only the same thing by accident.
+    function unit() {
+      var m = gsvg.getScreenCTM();
+      return m && m.a ? m.a : 1;
+    }
+
+    // A point needs the whole inverse, not just the scale: the drawing is
+    // centred in the panel, so there is a margin between the element's
+    // corner and the viewBox origin — and it is most of the panel when a
+    // wide graph sits in a tall one.
+    function toDrawing(clientX, clientY) {
+      var m = gsvg.getScreenCTM();
+      if (!m) { return { x: 0, y: 0 }; }
+      var i = m.inverse();
+      return { x: clientX * i.a + clientY * i.c + i.e,
+               y: clientX * i.b + clientY * i.d + i.f };
+    }
+
     function redraw(id) {
       edges.forEach(function (path) {
         if (path.dataset.from !== id && path.dataset.to !== id) { return; }
@@ -863,11 +887,10 @@ JS = """
 
     gsvg.addEventListener('wheel', function (e) {
       e.preventDefault();
-      var box = gsvg.getBoundingClientRect();
-      var mx = e.clientX - box.left, my = e.clientY - box.top;
+      var at = toDrawing(e.clientX, e.clientY);
       var k = Math.min(4, Math.max(0.2, view.k * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
-      view.x = mx - (mx - view.x) * (k / view.k);
-      view.y = my - (my - view.y) * (k / view.k);
+      view.x = at.x - (at.x - view.x) * (k / view.k);
+      view.y = at.y - (at.y - view.y) * (k / view.k);
       view.k = k;
       apply();
     }, { passive: false });
@@ -890,8 +913,12 @@ JS = """
       var dx = e.clientX - last.x, dy = e.clientY - last.y;
       if (dx || dy) { moved = true; }
       last = { x: e.clientX, y: e.clientY };
-      if (held === 'stage') { view.x += dx; view.y += dy; apply(); }
-      else { moveNode(held, dx / view.k, dy / view.k); }
+      var px = unit();
+      if (held === 'stage') {
+        view.x += dx / px; view.y += dy / px; apply();
+      } else {
+        moveNode(held, dx / (px * view.k), dy / (px * view.k));
+      }
     });
     function release(e) {
       held = null;
@@ -902,6 +929,15 @@ JS = """
     }
     gsvg.addEventListener('pointerup', release);
     gsvg.addEventListener('pointercancel', release);
+
+    var reset = document.getElementById('graph-reset');
+    if (reset) {
+      reset.addEventListener('click', function (e) {
+        e.stopPropagation();
+        view = { x: 0, y: 0, k: 1 };
+        apply();
+      });
+    }
 
     // Clicking a node lights what it links to and what links to it; the
     // rest dims, which is the whole reason to click rather than squint.
@@ -1430,11 +1466,11 @@ def build_graph(model):
     width = max(x for x, _y in position.values()) + NODE_W + 2
     height = max(y for _x, y in position.values()) + NODE_H + 2
 
-    parts = ['<div class="scroll"><svg id="graph-svg" class="graph" '
-             'viewBox="0 0 %d %d" width="%d" height="%d" '
+    parts = ['<div class="stage"><svg id="graph-svg" class="graph" '
+             'viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" '
              'data-nw="%d" data-nh="%d" '
              'xmlns="http://www.w3.org/2000/svg">'
-             % (width, height, width, height, NODE_W, NODE_H)]
+             % (width, height, NODE_W, NODE_H)]
     parts.append('<g id="graph-stage">')
     parts.append('<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" '
                  'markerWidth="6" markerHeight="6" orient="auto-start-reverse">'
@@ -1465,7 +1501,8 @@ def build_graph(model):
                         svg_escape("%s — %s" % (node, entry.get("title", ""))),
                         x, y, NODE_W, NODE_H,
                         x + NODE_W / 2, y + NODE_H / 2 + 4, svg_escape(node)))
-    parts.append("</g></svg></div>")
+    parts.append('</g></svg><button id="graph-reset" type="button">'
+                 'reset view</button></div>')
     return "".join(parts), dropped
 
 
@@ -1514,6 +1551,49 @@ requirements · __VERSIONS__</div>
 </body>
 </html>
 """
+
+
+def baseline_row(version, date=None):
+    """The row for `92-baselines.md`, ready to paste.
+
+    Computed against the newest existing baseline, because the row is
+    written before its own tag exists — that order is what keeps the tag
+    from ever pointing at a state the log does not describe.
+    """
+    tags = baseline_tags()
+    counts = {}
+    total = 0
+    for entry in load_current()["requirements"]:
+        counts[entry["status"]] = counts.get(entry["status"], 0) + 1
+        total += 1
+    shape = ", ".join("%d `%s`" % (counts[s], s)
+                      for s in STATUSES if counts.get(s))
+
+    if not tags:
+        changed = "The first baseline."
+    else:
+        previous = tags[-1]
+        diff = compute_diff(load_revision(previous), load_current())
+        parts = []
+        if diff["added"]:
+            parts.append("added %s"
+                         % ", ".join(e["id"] for e in diff["added"]))
+        if diff["removed"]:
+            parts.append("removed %s"
+                         % ", ".join(e["id"] for e in diff["removed"]))
+        if diff["changed"]:
+            parts.append("changed %s"
+                         % ", ".join(c["entry"]["id"]
+                                     for c in diff["changed"]))
+        changed = ("Since %s: %s." % (previous[len("spec/v"):],
+                                      "; ".join(parts))
+                   if parts else
+                   "No requirement added, removed or changed since %s."
+                   % previous[len("spec/v"):])
+
+    return "| %s | %s | `spec/v%s` | %s %d requirements: %s. |" % (
+        version, date or datetime.date.today().isoformat(), version,
+        changed, total, shape)
 
 
 def render_baselines(snapshots):
@@ -1714,6 +1794,11 @@ def parse_args(argv):
     parser.add_argument("--html", nargs="?", const=os.path.join(
         DEFAULT_SITE, "index.html"), metavar="PATH",
         help="write a self-contained page (default .srs-site/index.html)")
+    parser.add_argument("--baseline", metavar="X.Y.Z",
+                        help="print the row for specs/92-baselines.md, "
+                             "computed against the previous baseline")
+    parser.add_argument("--date", metavar="YYYY-MM-DD",
+                        help="the date for --baseline; today by default")
     parser.add_argument("--json", nargs="?", const="-", metavar="PATH",
                         help="write the model as JSON (default stdout); with "
                              "--diff it carries the comparison too")
@@ -1740,6 +1825,14 @@ def main(argv=None):
     model = load_current()
     if args.repo_url:
         model["repo_url"] = args.repo_url.rstrip("/")
+    if args.baseline:
+        try:
+            sys.stdout.write("%s\n" % baseline_row(args.baseline, args.date))
+        except ViewError as exc:
+            sys.stderr.write("%s\n" % exc)
+            return 2
+        return 0
+
     diff = None
     if args.diff:
         try:

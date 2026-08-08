@@ -49,6 +49,9 @@ jobs:
       - name: Upgrade smoke
         run: tests/upgrade-smoke.sh
 
+      - name: Release smoke
+        run: tests/release-smoke.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \

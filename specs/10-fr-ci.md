@@ -126,3 +126,29 @@ published example project, without letting that result fail the pipeline.
 specification which was valid shows up here rather than in a stranger's
 repository. Advisory on purpose — an external repository, reachable only over
 the network, must not be able to block a release.
+
+### FR-CI-070 — Cutting a release is one command
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-120]
+refines: []
+conflicts_with: []
+code: [tools/srs_release.py]
+tests: [tests/release-smoke.sh]
+```
+
+When cutting a release, the release command **shall** date the changelog
+section, bump the checker's version, add the baseline row, commit those
+files and create both tags — refusing before it touches anything if the
+working tree is dirty, the changelog has no section for that version, or the
+specification does not pass the checker.
+
+**Rationale.** A release was three files, two tags and an order that had to
+be remembered, and the order is what went wrong twice. One command performs
+it in the order the standard now prescribes — row first, tag last — so the
+tag lands on a commit that already describes itself. It writes no prose: the
+changelog section is written by a person, and its absence is what the command
+refuses on. It does not push, because that is the one step worth pausing at.

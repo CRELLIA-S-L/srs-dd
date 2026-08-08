@@ -222,13 +222,40 @@ code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 ```
 
-The derivation graph on the page **shall** let a reader move and scale it,
-pull a node aside, and see what a node links to and what links to it.
+The derivation graph on the page **shall** fill the area it is drawn in and
+let a reader move and scale it, pull a node aside, return the view to where
+it started, and see what a node links to and what links to it.
 
 **Rationale.** A specification of any size draws a graph larger than the
 viewport, and a picture that can only be scrolled is a picture nobody
-studies. Done in the page's own script rather than with a graph library: the
-layout is a layered one this project computes itself — the right shape for a
-derivation DAG, and not what a force layout would give — so a library would
-be paid for in every reader's download and every installed project, in
-exchange for panning and dragging.
+studies. The area is the panel rather than the drawing: sized from the
+drawing, a small specification gets a postage stamp to work in and loses a
+node past its edge at the first tug — which is also why the view can be
+returned, since a node dragged out of sight is otherwise hunted for. Done in
+the page's own script rather than with a graph library: the layout is a
+layered one this project computes itself — the right shape for a derivation
+DAG, and not what a force layout would give — so a library would be paid for
+in every reader's download and every installed project, in exchange for
+panning and dragging.
+
+### FR-VIEW-120 — The baseline row is written by the tooling
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-050]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/release-smoke.sh]
+```
+
+When asked for a baseline row, the viewer **shall** print it ready to paste:
+version, date, tag, and what changed since the previous baseline.
+
+**Rationale.** Four rows were written by hand into this project's own log,
+each time by reading a matrix and reducing a diff — mechanical work that
+invites a wrong count nobody would ever notice. Printed rather than written
+into the file: the viewer never touches `specs/` (FR-VIEW-080), and a row a
+person pastes is a row a person has read.
