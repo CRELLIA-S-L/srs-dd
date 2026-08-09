@@ -6,14 +6,15 @@
 # Full python image on purpose: the *-slim images lack git, which the
 # freshness check needs.
 #
-# GIT_DEPTH: 0 on purpose too: the baselines the rendered page compares are
-# commits, and GitLab's default shallow clone holds none of them.
-
-variables:
-  GIT_DEPTH: 0
+# GIT_DEPTH: 0 is per job rather than global: the baselines the rendered
+# page compares are commits, and GitLab's default shallow clone holds none
+# of them — but a global `variables:` here would collide with the one your
+# project may already have.
 
 spec-check:
   image: python:3.12
+  variables:
+    GIT_DEPTH: 0
   script:
     # Add --strict to fail on warnings as well.
     - python3 tools/srs_check.py
@@ -26,6 +27,8 @@ spec-check:
 # `pages` — the artifact path is already the one Pages expects.
 spec-site:
   image: python:3.12
+  variables:
+    GIT_DEPTH: 0
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:

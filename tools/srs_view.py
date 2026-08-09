@@ -607,15 +607,26 @@ def introduces(revision, path, version, top):
         parent = git(["rev-parse", "-q", "--verify", "%s^" % revision],
                      cwd=top).decode("utf-8").strip()
     except (OSError, subprocess.CalledProcessError):
-        # No parent to compare against. A true root commit did introduce
-        # it; a shallow boundary only looks like one, and there the honest
-        # answer is that this cannot be known.
+        # No parent to compare against: a root commit, or the boundary of
+        # a shallow one — and at a boundary the honest answer is that this
+        # cannot be known.
         try:
             shallow = git(["rev-parse", "--is-shallow-repository"],
                           cwd=top).decode("utf-8").strip()
         except (OSError, subprocess.CalledProcessError):
             return False
-        return shallow == "false"
+        if shallow != "false":
+            return False
+        # A parentless commit brought its whole log in at once — history
+        # that was squashed or imported looks exactly like this. Only the
+        # newest version it names describes the tree it left behind; the
+        # states the older rows froze are not in this repository at all.
+        try:
+            blob = git(["show", "%s:%s" % (revision, path)], cwd=top)
+        except (OSError, subprocess.CalledProcessError):
+            return False
+        present = versions_in(blob.decode("utf-8", "replace"))
+        return bool(present) and version == present[-1]
     try:
         blob = git(["show", "%s:%s" % (parent, path)], cwd=top)
     except (OSError, subprocess.CalledProcessError):

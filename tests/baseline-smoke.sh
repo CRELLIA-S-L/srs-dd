@@ -62,6 +62,32 @@ test "$rc" -eq 2
 grep -q "already in specs/92-baselines.md" /tmp/base-again.log
 test -z "$(git status --porcelain)"
 
+# History that was squashed, or imported from another forge, is one commit
+# holding every row at once. Only the newest of them describes the tree
+# that commit left behind; claiming the rest would report a specification
+# that never changed.
+rm -rf /tmp/srs-base-squashed
+git clone --quiet "file:///tmp/srs-base-target" /tmp/srs-base-squashed
+(
+  cd /tmp/srs-base-squashed
+  git config user.email ci@example.com
+  git config user.name CI
+  git checkout -q --orphan imported
+  git add -A
+  git commit -qm "imported from elsewhere"
+  python3 - <<'PY1'
+import subprocess, sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import srs_view
+head = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()
+assert srs_view.logged_baselines() == ['1.0.0', '2.0.0'], 'the log still reads'
+assert srs_view.baseline_revision('2.0.0') == head, 'the newest is that tree'
+assert srs_view.baseline_revision('1.0.0') is None, \
+    'the state 1.0.0 froze is not in this repository, and must not be faked'
+PY1
+)
+
 # --- In a clone of this repository, where there is history to read.
 cd "$FRAMEWORK"
 rm -rf /tmp/srs-base
