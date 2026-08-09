@@ -28,7 +28,7 @@ grep -q "tools/srs_view.py --html" /tmp/fresh.log
 grep -q "tools/srs_upgrade.py" /tmp/fresh.log
 grep -q "AGENTS.md" /tmp/fresh.log
 # Every skill that ships is named, and none that does not.
-for skill in srs srs-new srs-audit srs-harvest srs-upgrade; do
+for skill in srs srs-new srs-audit srs-harvest srs-upgrade srs-baseline; do
     grep -qE "^       $skill +" /tmp/fresh.log
 done
 for framework_only in srs-init srs-release; do

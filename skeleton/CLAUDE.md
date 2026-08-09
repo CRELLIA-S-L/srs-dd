@@ -8,5 +8,8 @@ Claude-specific additions:
   and when planning a task — it also covers multi-requirement plans.
 - To author a new requirement through a dialog, use the `srs-new` skill;
   to audit spec ↔ code drift and test adequacy, use `srs-audit`.
+- To freeze the specification at a milestone, use the `srs-baseline`
+  skill — it shows what changed, agrees the number with you, and writes
+  the row; the commit stays yours.
 - To pick up a new framework version, use the `srs-upgrade` skill — one
   command, no framework clone to keep around.

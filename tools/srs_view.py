@@ -553,18 +553,82 @@ def load_revision(rev):
     return build_model(requirements, problems, with_code_scan=False)
 
 
-def baseline_tags():
-    """`spec/v*` tags, oldest first. Empty where git or tags are absent."""
+BASELINE_LOG = "92-baselines.md"
+
+
+def version_key(version):
+    parts = version.split(".")
+    return tuple(int(p) if p.isdigit() else 0 for p in parts[:3])
+
+
+def versions_in(text):
+    """The versions a baseline log names, oldest first. Spacing inside the
+    cells is the writer's business: a row typed by hand is as valid as one
+    the tooling wrote."""
+    seen = []
+    for version in re.findall(r"^\|\s*(\d+(?:\.\d+)+)\s*\|", text, re.M):
+        if version not in seen:
+            seen.append(version)
+    return sorted(seen, key=version_key)
+
+
+def logged_baselines():
+    """The versions the baseline log records, oldest first.
+
+    The log is what defines a baseline: a `spec/v*` tag is a bookmark
+    somebody may or may not have made, and requiring one would put the
+    process at the mercy of whichever git client a project uses.
+    """
     try:
-        listed = git(["tag", "-l", "spec/v*"]).decode("utf-8", "replace")
-    except (OSError, subprocess.CalledProcessError, ViewError):
+        with open(os.path.join(SPECS, BASELINE_LOG), "r",
+                  encoding="utf-8") as handle:
+            return versions_in(handle.read())
+    except OSError:
         return []
 
-    def key(tag):
-        parts = tag[len("spec/v"):].split(".")
-        return tuple(int(p) if p.isdigit() else 0 for p in parts[:3])
 
-    return sorted(filter(None, listed.split()), key=key)
+def has_tag(version):
+    try:
+        listed = git(["tag", "-l", "spec/v%s" % version])
+    except (OSError, subprocess.CalledProcessError, ViewError):
+        return False
+    return bool(listed.decode("utf-8", "replace").strip())
+
+
+def baseline_revision(version):
+    """The revision a baseline froze: its tag where one was made,
+    otherwise the commit that added its row.
+
+    Both halves are needed. Rows have been written a release late for
+    this project's whole history, so their commit is not what those tags
+    froze; and a project that never tags still has baselines.
+    """
+    if has_tag(version):
+        return "spec/v%s" % version
+    try:
+        top = git(["rev-parse", "--show-toplevel"]).decode("utf-8").strip()
+        prefix = os.path.relpath(os.path.realpath(ROOT),
+                                 os.path.realpath(top)).replace(os.sep, "/")
+        prefix = "" if prefix == "." else prefix + "/"
+        path = prefix + "specs/" + BASELINE_LOG
+        # One call finds a row written the way the tooling writes it. A row
+        # typed by hand may space its cells otherwise — and this reads such
+        # a row perfectly well — so a miss falls back to the file's own
+        # history rather than declaring the baseline lost.
+        found = git(["log", "--reverse", "--format=%H",
+                     "-S", "| %s |" % version, "--", path], cwd=top)
+        commits = found.decode("utf-8", "replace").split()
+        if commits:
+            return commits[0]
+        history = git(["log", "--reverse", "--format=%H", "--", path],
+                      cwd=top).decode("utf-8", "replace").split()
+        for revision in history:
+            blob = git(["show", "%s:%s" % (revision, path)], cwd=top)
+            if version in versions_in(blob.decode("utf-8", "replace")):
+                return revision
+    except (OSError, subprocess.CalledProcessError, ViewError):
+        return None
+    return None
 
 
 def fingerprint(text):
@@ -580,9 +644,12 @@ def baseline_snapshots():
     pair without a clone; statements travel as fingerprints.
     """
     snapshots = []
-    for tag in baseline_tags():
+    for version in logged_baselines():
+        revision = baseline_revision(version)
+        if not revision:
+            continue
         try:
-            model = load_revision(tag)
+            model = load_revision(revision)
         except ViewError:
             continue
         requirements = {}
@@ -598,7 +665,7 @@ def baseline_snapshots():
                 "refines": entry["refines"],
                 "statement": fingerprint(entry["statement"]),
             }
-        snapshots.append({"tag": tag, "version": tag[len("spec/v"):],
+        snapshots.append({"tag": "spec/v%s" % version, "version": version,
                           "requirements": requirements})
     return as_deltas(snapshots)
 
@@ -1556,24 +1623,50 @@ requirements · __VERSIONS__</div>
 def baseline_row(version, date=None):
     """The row for `92-baselines.md`, ready to paste.
 
-    Computed against the newest existing baseline, because the row is
-    written before its own tag exists — that order is what keeps the tag
-    from ever pointing at a state the log does not describe.
+    Normally computed from the working tree against the newest existing
+    baseline, because the row is written before its own tag exists — that
+    order is what keeps the tag from ever pointing at a state the log does
+    not describe.
+
+    Where the tag is already there — somebody tagged by hand — the row is
+    computed from that revision against the baseline before it, and dated
+    from its commit. A row written late then says what it would have said
+    on time, instead of describing whatever the working tree holds now.
     """
-    tags = baseline_tags()
+    earlier = [logged for logged in logged_baselines()
+               if version_key(logged) < version_key(version)]
+    previous = earlier[-1] if earlier else None
+    own = "spec/v%s" % version
+    if has_tag(version):
+        # Tagged before its row was written. The row then describes the
+        # tagged revision, not a working tree that has moved on since.
+        model = load_revision(own)
+        if not date:
+            try:
+                date = git(["log", "-1", "--format=%cd", "--date=short",
+                            own]).decode("utf-8").strip()
+            except (OSError, subprocess.CalledProcessError):
+                date = None
+    else:
+        model = load_current()
+
     counts = {}
     total = 0
-    for entry in load_current()["requirements"]:
+    for entry in model["requirements"]:
         counts[entry["status"]] = counts.get(entry["status"], 0) + 1
         total += 1
     shape = ", ".join("%d `%s`" % (counts[s], s)
                       for s in STATUSES if counts.get(s))
 
-    if not tags:
+    if previous is None:
         changed = "The first baseline."
     else:
-        previous = tags[-1]
-        diff = compute_diff(load_revision(previous), load_current())
+        revision = baseline_revision(previous)
+        if not revision:
+            raise ViewError("baseline %s is in the log but nothing in git "
+                            "history holds it — no tag, and no commit that "
+                            "added its row" % previous)
+        diff = compute_diff(load_revision(revision), model)
         parts = []
         if diff["added"]:
             parts.append("added %s"
@@ -1585,15 +1678,15 @@ def baseline_row(version, date=None):
             parts.append("changed %s"
                          % ", ".join(c["entry"]["id"]
                                      for c in diff["changed"]))
-        changed = ("Since %s: %s." % (previous[len("spec/v"):],
-                                      "; ".join(parts))
+        changed = ("Since %s: %s." % (previous, "; ".join(parts))
                    if parts else
                    "No requirement added, removed or changed since %s."
-                   % previous[len("spec/v"):])
+                   % previous)
 
-    return "| %s | %s | `spec/v%s` | %s %d requirements: %s. |" % (
+    return "| %s | %s | `spec/v%s` | %s %d %s: %s. |" % (
         version, date or datetime.date.today().isoformat(), version,
-        changed, total, shape)
+        changed, total, "requirement" if total == 1 else "requirements",
+        shape)
 
 
 def render_baselines(snapshots):
@@ -1790,7 +1883,7 @@ def parse_args(argv):
                              "specification, drafts with code")
     parser.add_argument("--diff", metavar="REV",
                         help="compare the working tree against a revision, "
-                             "usually a spec/vX.Y.Z baseline tag")
+                             "or against a baseline by version (1.2.0)")
     parser.add_argument("--html", nargs="?", const=os.path.join(
         DEFAULT_SITE, "index.html"), metavar="PATH",
         help="write a self-contained page (default .srs-site/index.html)")
@@ -1835,8 +1928,14 @@ def main(argv=None):
 
     diff = None
     if args.diff:
+        # A bare version names a baseline, which may have no tag: the log
+        # says which ones exist and git history says where they are.
+        revision = args.diff
+        if re.match(r"^\d+\.\d+\.\d+$", args.diff) \
+                and args.diff in logged_baselines():
+            revision = baseline_revision(args.diff) or args.diff
         try:
-            diff = compute_diff(load_revision(args.diff), model)
+            diff = compute_diff(load_revision(revision), model)
         except ViewError as exc:
             sys.stderr.write("%s\n" % exc)
             return 2

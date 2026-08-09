@@ -71,7 +71,7 @@ Three independent numbers exist by design:
 | Scheme | Versions what |
 |---|---|
 | `vX.Y.Z` tags + `CHANGELOG.md` in the framework repository | the framework: checker, viewer, installer, skills, skeleton |
-| `spec/vX.Y.Z` tags + `specs/92-baselines.md` in your repository | baselines of your specification |
+| rows in `specs/92-baselines.md` in your repository | baselines of your specification; a `spec/vX.Y.Z` tag on the row's commit is optional |
 | The version field in `specs/constitution.md` | your constitution, amended per ART-090 |
 
 Every checker run ends with the framework version your copy shipped with —

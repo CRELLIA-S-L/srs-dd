@@ -18,6 +18,10 @@ references to code.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain
   markdown; an agent without a skill system reads them directly as
   workflow guides.
+- **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the
+  row into `specs/92-baselines.md`; the commit that carries it is the
+  baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure
+  around it. Nothing here commits or tags for you.
 - **Upgrade the framework** — `python3 tools/srs_upgrade.py`. It shows the
   version transition, the upgrade notes and the file list, then asks;
   `.claude/skills/srs-upgrade/SKILL.md` is the procedure. Nothing else is

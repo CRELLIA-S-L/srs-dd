@@ -107,16 +107,24 @@ python3 tools/srs_release.py X.Y.Z --dry-run
 python3 tools/srs_release.py X.Y.Z
 ```
 
-It dates the section, bumps `__version__`, adds the baseline row, commits
-those files and creates both tags. It refuses before touching anything if
-the tree is dirty, the section is missing, either tag exists, or the
-checker does not pass. It does not push.
+It dates the section, bumps `__version__`, regenerates the matrix and
+stops. Commit those three files — that commit is the release — and tag it
+`vX.Y.Z` if you want the bookmark. It refuses before touching anything if
+the section is missing or already dated, or if the checker does not pass;
+nothing it does needs a git client (CON-SPEC-030).
 
-The row goes in before the tag, and that order is the point: a tag placed
-first points at a state the log does not describe until a later commit
-fixes it, and that later commit is the one that gets forgotten. The
-Baselines section of `specs/README.md` states the order for every project;
-this command is how this one obeys it.
+It cuts no baseline. Freezing the specification is its own act, with its
+own command and its own number:
+
+```
+python3 tools/srs_baseline.py X.Y.Z
+```
+
+Cut one when the specification reached a milestone, cut the other when the
+framework ships, and cut both when both are true — in either order. The
+Baselines section of `specs/README.md` describes the first for every
+project, because every project baselines its own specification; this
+repository is no exception.
 
 ## Version schemes
 
@@ -125,7 +133,7 @@ Three independent version numbers exist by design; do not mix them.
 | Scheme | Lives in | Versions what |
 |---|---|---|
 | `vX.Y.Z` tags + `CHANGELOG.md` | this repository | the framework: checker, installer, skills, skeleton |
-| `spec/vX.Y.Z` tags + `specs/92-baselines.md` | each project, this one included | baselines of that project's specification |
+| rows in `specs/92-baselines.md` | each project, this one included | baselines of that project's specification; a `spec/vX.Y.Z` tag is an optional bookmark |
 | Version field in `specs/constitution.md` | each project | its constitution, amended per ART-090 |
 
 `tools/srs_check.py` prints the framework version it shipped with — the

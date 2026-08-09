@@ -14,3 +14,7 @@ Claude-specific additions:
   available only here and is never copied into targets.
 - To author a new requirement through a dialog, use `srs-new`; to audit
   spec ↔ code drift and test adequacy, use `srs-audit`.
+- To freeze the specification at a milestone, use `srs-baseline`; to cut a
+  release of the framework, `srs-release`. They are separate acts with
+  separate numbers, and neither command commits or tags — that is left to
+  the git client this repository is driven by.

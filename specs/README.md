@@ -226,26 +226,43 @@ missing from the requirement's corresponding field. A line containing
 
 ## Baselines
 
-A baseline freezes the specification at a milestone. To cut one:
+A baseline freezes the specification at a milestone. It is a row in
+`92-baselines.md`, and the commit that adds that row is the baseline:
 
-1. Make sure the checker passes and the matrix is regenerated.
-2. Add a row to `92-baselines.md` naming the tag you are about to create:
-   version, date, tag, what changed since the previous baseline.
-   `srs_view.py --baseline X.Y.Z` prints that row ready to paste.
-3. Commit, then tag that commit `spec/vX.Y.Z`.
+```
+python3 tools/srs_baseline.py X.Y.Z
+```
 
-The row comes before the tag on purpose. Tagging first leaves the tag
-pointing at a state the log does not describe until a later commit fixes it
-— and that later commit is the one that gets forgotten. Written in this
-order there is no gap to forget: the tag lands on a commit that already
-describes itself.
+The command writes the row — version, date, and what changed since the
+previous baseline — and stops there. Commit it with whatever git client the
+project uses. `--dry-run` prints the row first; the command refuses on a
+specification the checker rejects, or a version the log already records. By
+hand it is the same act: `srs_view.py --baseline X.Y.Z` prints the row ready
+to paste.
 
-The `spec/v*` tag namespace is reserved for specification baselines; do not
-use it for release tags.
+**Numbering.** A baseline numbers the specification, not the product. Raise
+the last part for wording, status, links and field changes; the middle part
+when requirements were added; the first when one was removed or superseded,
+or restated so that something conforming to the previous baseline no longer
+conforms. It is independent of any release number the project also keeps.
 
-The checker still reports a `spec/v*` tag the log has no row for — under
-`--strict` a failed build — but in this order that means somebody really did
-skip a step, not that a release is halfway done.
+**The tag is optional.** `spec/vX.Y.Z` on that commit is a bookmark: it
+makes the baseline easy to name in git and in `srs_view.py --diff`, and
+nothing depends on it. Where there is none, the baseline is located by the
+commit that added its row. Make one where your git client makes it easy,
+skip it where it does not — the log is the record either way.
+
+Where a tag was made first, the row describes that revision rather than the
+working tree, so writing it afterwards costs nothing in accuracy.
+
+The `spec/v*` namespace is reserved for specification baselines; do not use
+it for release tags. The checker reports a `spec/v*` tag the log has no row
+for — under `--strict` a failed build — because a tag claiming to freeze
+something the log does not record is a claim no reader can check.
+
+**A baseline is not a release.** It freezes what the system must do; a
+release ships what it does. Neither implies the other, they are numbered
+independently, and the same number in both places asserts nothing.
 
 ## Configuration
 

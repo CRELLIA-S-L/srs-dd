@@ -137,6 +137,31 @@ somebody else's repository. Upgrading is the one part of it a project needs
 to carry itself, and until now nothing in an installed project mentioned
 upgrades at all.
 
+### FR-SKILL-080 — The baseline procedure travels with the project
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-SPEC-010]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-baseline/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+```
+
+The skills installed into a project **shall** include the baseline
+procedure, which shows what changed since the previous baseline and proposes
+the version for the maintainer to confirm before the row is written.
+
+**Rationale.** The command is one line, and neither of the two things around
+it is the agent's to settle: the number is a claim about the specification,
+and the commit that makes the baseline real happens in whatever git client
+the project uses (CON-SPEC-030). A procedure is where that sequence lives —
+without one, the command leaves an agent guessing at the number and stopping
+in the wrong place. It travels because every project baselines its own
+specification, unlike `srs-release`, which stays here.
+
 ### FR-SKILL-070 — The release procedure travels with the framework
 
 ```yaml

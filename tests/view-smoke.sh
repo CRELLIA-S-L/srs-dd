@@ -43,6 +43,18 @@ mkdir -p /tmp/srs-view/src
 printf '# implements: FR-CORE-020\n' > /tmp/srs-view/src/app.py  # srs-ignore
 
 cd /tmp/srs-view
+# A baseline is a row in the log; the tag beside it is the optional
+# bookmark, and it is here so the tag-resolution path gets exercised too
+# (INV-SPEC-040). The tagless path is baseline-smoke's business.
+python3 - <<'PY0'
+import re
+path = 'specs/92-baselines.md'
+text = open(path, encoding='utf-8').read()
+anchor = re.search(r'^\|---\|---\|---\|---\|$', text, re.M)
+row = '| 0.0.1 | 2026-01-01 | `spec/v0.0.1` | The first baseline. |'
+open(path, 'w', encoding='utf-8').write(
+    text[:anchor.end()] + '\n' + row + text[anchor.end():])
+PY0
 git init -q . && git add -A
 git -c user.email=ci@example.com -c user.name=CI commit -qm baseline
 git tag spec/v0.0.1
@@ -68,6 +80,10 @@ grep -q "FR-CORE-020" /tmp/v-code.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
 python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
+# The same baseline named by version rather than by tag (FR-VIEW-050): a
+# baseline need not have been tagged to be compared against.
+python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-version.log
+cmp <(tail -n +2 /tmp/v-diff.log) <(tail -n +2 /tmp/v-diff-version.log)
 grep -q "status .*draft -> deferred" /tmp/v-diff.log
 
 python3 tools/srs_view.py --json /tmp/model.json >/dev/null
@@ -96,6 +112,15 @@ open(path, 'w', encoding='utf-8').write(
     text.replace('status: deferred', 'status: implemented', 1)
         .replace('code: []', 'code: [src/app.py]', 1))
 PY2
+python3 - <<'PY3'
+import re
+path = 'specs/92-baselines.md'
+text = open(path, encoding='utf-8').read()
+anchor = re.search(r'^\|---\|---\|---\|---\|$', text, re.M)
+row = '| 0.0.2 | 2026-01-02 | `spec/v0.0.2` | One requirement realized. |'
+open(path, 'w', encoding='utf-8').write(
+    text[:anchor.end()] + '\n' + row + text[anchor.end():])
+PY3
 git add -A
 git -c user.email=ci@example.com -c user.name=CI commit -qm second
 git tag spec/v0.0.2

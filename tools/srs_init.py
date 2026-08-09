@@ -96,10 +96,12 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 SPEC_STANDARD = os.path.join("specs", "README.md")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
-TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py")
+TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
+         "srs_baseline.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
-SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade")
+SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
+          "srs-baseline")
 
 # Service spec files adopt lays down when (and only when) absent.
 ADOPT_SERVICE_FILES = ("README.md", "constitution.md", "00-glossary.md",
@@ -820,6 +822,8 @@ def run_fresh(args, target, batch):
             "       srs-harvest  mine requirements out of code that has "
             "none yet\n"
             "       srs-upgrade  pick up a new framework version\n"
+            "       srs-baseline freeze the specification at a "
+            "milestone\n"
             "  2. Replace the placeholder requirement in "
             "specs/10-fr-%s.md; the\n"
             "     rules are in specs/README.md.\n"
@@ -828,8 +832,8 @@ def run_fresh(args, target, batch):
             "     regenerates the traceability matrix.\n"
             "  4. python3 tools/srs_view.py --html — the same thing as "
             "a page.\n"
-            "  Later, to pick up a new framework version: "
-            "python3 tools/srs_upgrade.py\n"
+            "  For a new framework version: python3 "
+            "tools/srs_upgrade.py\n"
             % area.lower())
         hook_activation_hint(installer, describe_hooks(target))
     return result

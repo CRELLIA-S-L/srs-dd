@@ -97,11 +97,15 @@ code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 ```
 
-When given a git revision, the viewer **shall** print how the specification
-changed since it: requirements added, removed, and the fields that differ.
+When given a git revision or the version of a logged baseline, the viewer
+**shall** print how the specification changed since it: requirements added,
+removed, and the fields that differ.
 
 **Rationale.** A baseline is only useful if the difference from it can be
-read; a raw `git diff` of the specification is dominated by reflow.
+read; a raw `git diff` of the specification is dominated by reflow. A
+version is accepted because a baseline need not have a tag to name it by
+(INV-SPEC-040), and asking a reader to find the commit themselves would put
+the tag back in the middle of the process.
 
 ### FR-VIEW-060 — A page that opens from the filesystem
 
@@ -248,14 +252,18 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
-tests: [tests/release-smoke.sh]
+tests: [tests/baseline-smoke.sh]
 ```
 
 When asked for a baseline row, the viewer **shall** print it ready to paste:
-version, date, tag, and what changed since the previous baseline.
+version, date, tag, and what changed since the previous baseline — reading
+the working tree, or the tagged revision itself where that tag already
+exists.
 
 **Rationale.** Four rows were written by hand into this project's own log,
 each time by reading a matrix and reducing a diff — mechanical work that
 invites a wrong count nobody would ever notice. Printed rather than written
 into the file: the viewer never touches `specs/` (FR-VIEW-080), and a row a
-person pastes is a row a person has read.
+person pastes is a row a person has read. A row asked for after its tag
+exists describes that tag rather than whatever the working tree has drifted
+to since, so writing it late costs nothing in accuracy.

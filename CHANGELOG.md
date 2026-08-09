@@ -11,6 +11,50 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.11.0]
+
+### Added
+
+- `tools/srs_baseline.py` freezes the specification with one command. It
+  writes the row into `specs/92-baselines.md` — version, date, and what
+  changed since the previous baseline — and stops there; it ships with the
+  framework, because every project baselines its own specification
+  (FR-SPEC-010).
+
+- The `srs-baseline` skill installs into every project. It is the way to
+  ask for a baseline by name: it reads what changed, proposes the version
+  for you to confirm, runs the command, and hands back the commit
+  (FR-SKILL-080).
+
+### Changed
+
+- A baseline is the row in the log, not the tag. The commit that adds the
+  row is the baseline, a `spec/vX.Y.Z` tag is an optional bookmark, and
+  where there is none the baseline is found by that commit (INV-SPEC-040).
+- No command commits, tags or pushes any more. `srs_release.py` and
+  `srs_baseline.py` prepare files and report what to commit, so neither
+  needs a console git set up (CON-SPEC-030).
+- `tools/srs_release.py` cuts no baseline any more. It dates the changelog
+  section, bumps the checker's version and stops; freezing the
+  specification is its own command with its own number (FR-CI-070).
+- `srs_view.py --diff` accepts a baseline version, not only a revision.
+  Asked for `0.9.0` it finds that baseline whether or not anybody tagged it
+  (FR-VIEW-050).
+
+### Upgrade notes
+
+- A release and a baseline are independent from now on (INV-SPEC-030): they
+  need not share a number, neither implies the other, and one command each
+  prepares them.
+- `tools/srs_baseline.py` and the `srs-baseline` skill arrive with this
+  upgrade. Ask an agent for a baseline, or run
+  `python3 tools/srs_baseline.py X.Y.Z` yourself, then commit the row it
+  writes — that commit is the baseline, and a `spec/v*` tag on it is
+  optional from here on.
+- Nothing in the framework runs `git commit` or `git tag` for you. If you
+  drive git through an application rather than the console, the commands
+  now stop where that application takes over.
+
 ## [0.10.0]
 
 ### Added

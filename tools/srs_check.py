@@ -572,10 +572,10 @@ def scan_annotations(by_id, errors, warnings):
 def check_baselines(warnings):
     """A `spec/v*` tag the baseline log has no row for.
 
-    Cutting a baseline is a tag and a row, in that order and so in
-    separate commits — the gap between them is where it gets forgotten.
-    Silent where git or the tags are absent: a project may freeze its
-    specification some other way.
+    The row is what makes a baseline; a tag is a bookmark on it. One
+    without the other is a claim to freeze something no reader can look
+    up. Silent where git or the tags are absent — a project that never
+    tags is keeping a perfectly good log.
     """
     rel = os.path.join("specs", "92-baselines.md")
     try:

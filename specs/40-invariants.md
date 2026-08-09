@@ -43,6 +43,75 @@ relation to be computed.
 **Rationale.** A link written at both ends is a link that will one day
 disagree with itself, and nothing would say which end was right.
 
+### INV-SPEC-030 — A baseline and a release are separate acts
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_baseline.py, tools/srs_release.py, specs/README.md]
+tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
+```
+
+A specification baseline and a release **shall** be cut as separate acts,
+neither creating the other's tag nor constraining the other's number.
+
+**Rationale.** They answer different questions — a baseline freezes what the
+system must do, a release ships what it does — and they move at different
+rates: a specification can be frozen mid-development, and a release can ship
+with no requirement touched. One command doing both made every release mint
+a baseline, including one whose own row records that nothing had changed.
+
+### INV-SPEC-040 — The log defines the baselines
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-SPEC-030]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py, tools/srs_baseline.py, specs/README.md]
+tests: [tests/baseline-smoke.sh]
+```
+
+The baseline log **shall** define the specification's baselines, a
+`spec/v*` tag naming the revision of one only where such a tag was made.
+
+**Rationale.** Making a tag from a script needs a git client configured for
+it, and many developers drive git through an application that keeps its own
+credentials and signing; a process resting on the tag is a process resting
+on the client. A row is a file, and committing files is the one thing every
+client does. Where a tag exists it names the revision — rows have been
+written a release late for this project's whole history, so their own commit
+is not what those tags froze — and where none exists, the commit that added
+the row is the baseline.
+
+### CON-SPEC-030 — The tooling does not write git history
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-SPEC-040]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_baseline.py, tools/srs_release.py]
+tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
+```
+
+The framework's commands **shall not** commit, tag, or push; each prepares
+files and reports what is left to do.
+
+**Rationale.** A command that commits is a command that fails for whoever
+has no console git set up, and one that silently bypasses the signing and
+identity their application configures. Preparing files leaves the history to
+the tool the project already trusts with it, and makes every command safe to
+run twice.
+
 ### CON-SPEC-010 — The traceability matrix is generated
 
 ```yaml

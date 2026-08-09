@@ -169,7 +169,7 @@ python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
 python3 tools/srs_view.py --code src/app.py  which requirements describe a file
 python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
 python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
-python3 tools/srs_view.py --diff spec/v0.1.0 working tree against a baseline
+python3 tools/srs_view.py --diff 0.1.0       working tree against a baseline
 python3 tools/srs_view.py --html             a page for people who do not grep
 ```
 
@@ -182,8 +182,8 @@ The viewer never writes to `specs/` and never gates anything.
 | `specs/README.md` | The standard: markup rules, identifier scheme, lifecycle, annotations, baselines, configuration |
 | `specs/` | This framework's own specification — it uses itself |
 | `skeleton/` | What the installer copies into your project |
-| `tools/` | `srs_check.py`, `srs_view.py` (yours after install), `srs_init.py` (stays here) |
-| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, and `srs-init` (framework-only) |
+| `tools/` | `srs_check.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py` (yours after install); `srs_init.py`, `srs_release.py` (stay here) |
+| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any language](docs/multilingual.md) |

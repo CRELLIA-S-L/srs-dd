@@ -132,8 +132,8 @@ the network, must not be able to block a release.
 ```yaml
 status: implemented
 verification: T
-derives_from: []
-depends_on: [FR-VIEW-120]
+derives_from: [INV-SPEC-030]
+depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_release.py]
@@ -141,14 +141,15 @@ tests: [tests/release-smoke.sh]
 ```
 
 When cutting a release, the release command **shall** date the changelog
-section, bump the checker's version, add the baseline row, commit those
-files and create both tags — refusing before it touches anything if the
-working tree is dirty, the changelog has no section for that version, or the
-specification does not pass the checker.
+section, bump the checker's version and report what to commit — refusing
+where the section is missing or already dated, or where the specification
+does not pass the checker.
 
 **Rationale.** A release was three files, two tags and an order that had to
-be remembered, and the order is what went wrong twice. One command performs
-it in the order the standard now prescribes — row first, tag last — so the
-tag lands on a commit that already describes itself. It writes no prose: the
-changelog section is written by a person, and its absence is what the command
-refuses on. It does not push, because that is the one step worth pausing at.
+be remembered, and the order is what went wrong twice. One command prepares
+it, and it stops at the release: the baseline is its own act with its own
+command, because the two are independent and this one used to mint a
+baseline whether or not the specification had moved. It writes no prose: the
+changelog section is written by a person, and its absence is what the
+command refuses on. It commits and tags nothing (CON-SPEC-030) — the dated
+section is what tells it the release was already cut.
