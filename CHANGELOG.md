@@ -11,7 +11,7 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
-## [0.11.0]
+## [0.11.0] — 2026-08-09
 
 ### Added
 
@@ -54,6 +54,11 @@ embedded in `tools/srs_check.py` as `__version__`.
 - Nothing in the framework runs `git commit` or `git tag` for you. If you
   drive git through an application rather than the console, the commands
   now stop where that application takes over.
+- A `spec/v*` tag with no row in `specs/92-baselines.md` is no longer a
+  baseline, and drops off the rendered page. The checker has been warning
+  about exactly those tags; where your log fell behind them, `python3
+  tools/srs_baseline.py X.Y.Z` writes each missing row from the tagged
+  revision, so nothing has to be retagged or deleted.
 
 ## [0.10.0]
 

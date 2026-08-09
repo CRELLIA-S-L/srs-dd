@@ -6,6 +6,7 @@ optional bookmark. The procedure is in the Baselines section of `README.md`.
 
 | Version | Date | Tag | What changed |
 |---|---|---|---|
+| 0.11.0 | 2026-08-09 | `spec/v0.11.0` | Since 0.10.0: added CON-SPEC-030, FR-SKILL-080, FR-SPEC-010, INV-SPEC-030, INV-SPEC-040; changed FR-CI-070, FR-VIEW-050, FR-VIEW-120. 72 requirements: 72 `implemented`. |
 | 0.10.0 | 2026-08-08 | `spec/v0.10.0` | Since 0.9.0: added FR-CI-070, FR-SKILL-070, FR-VIEW-120; changed FR-SKILL-010, FR-VIEW-110. 67 requirements: 67 `implemented`. |
 | 0.9.0 | 2026-08-08 | `spec/v0.9.0` | Four requirements added, none removed or reworded: FR-CHK-130 reports a baseline tag this log has no row for, and FR-VIEW-090/100/110 make the page state what it shows, compare any two baselines, and let the graph be explored. 64 requirements, all `implemented`. |
 | 0.8.0 | 2026-08-08 | `spec/v0.8.0` | Six requirements added, none removed or reworded: FR-INIT-120…160 and FR-SKILL-060 — a project upgrades itself with one command, records the framework it came from, and is told what to do after an install and what arrived after an upgrade. 60 requirements, all `implemented`. |
