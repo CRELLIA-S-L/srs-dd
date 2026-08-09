@@ -595,9 +595,38 @@ def has_tag(version):
     return bool(listed.decode("utf-8", "replace").strip())
 
 
+def introduces(revision, path, version, top):
+    """Whether this commit is where that version's row appeared.
+
+    A commit that merely *contains* the row proves nothing: in a shallow
+    checkout the oldest commit available contains every row there has ever
+    been, and answering with it would date every baseline to the same
+    revision and report that nothing ever changed.
+    """
+    try:
+        parent = git(["rev-parse", "-q", "--verify", "%s^" % revision],
+                     cwd=top).decode("utf-8").strip()
+    except (OSError, subprocess.CalledProcessError):
+        # No parent to compare against. A true root commit did introduce
+        # it; a shallow boundary only looks like one, and there the honest
+        # answer is that this cannot be known.
+        try:
+            shallow = git(["rev-parse", "--is-shallow-repository"],
+                          cwd=top).decode("utf-8").strip()
+        except (OSError, subprocess.CalledProcessError):
+            return False
+        return shallow == "false"
+    try:
+        blob = git(["show", "%s:%s" % (parent, path)], cwd=top)
+    except (OSError, subprocess.CalledProcessError):
+        return True                     # the log did not exist yet
+    return version not in versions_in(blob.decode("utf-8", "replace"))
+
+
 def baseline_revision(version):
     """The revision a baseline froze: its tag where one was made,
-    otherwise the commit that added its row.
+    otherwise the commit that added its row — and nothing at all where
+    neither can be established.
 
     Both halves are needed. Rows have been written a release late for
     this project's whole history, so their commit is not what those tags
@@ -617,14 +646,18 @@ def baseline_revision(version):
         # history rather than declaring the baseline lost.
         found = git(["log", "--reverse", "--format=%H",
                      "-S", "| %s |" % version, "--", path], cwd=top)
-        commits = found.decode("utf-8", "replace").split()
-        if commits:
-            return commits[0]
-        history = git(["log", "--reverse", "--format=%H", "--", path],
-                      cwd=top).decode("utf-8", "replace").split()
-        for revision in history:
-            blob = git(["show", "%s:%s" % (revision, path)], cwd=top)
-            if version in versions_in(blob.decode("utf-8", "replace")):
+        candidates = found.decode("utf-8", "replace").split()
+        if not candidates:
+            candidates = []
+            history = git(["log", "--reverse", "--format=%H", "--", path],
+                          cwd=top).decode("utf-8", "replace").split()
+            for revision in history:
+                blob = git(["show", "%s:%s" % (revision, path)], cwd=top)
+                if version in versions_in(blob.decode("utf-8", "replace")):
+                    candidates = [revision]
+                    break
+        for revision in candidates:
+            if introduces(revision, path, version, top):
                 return revision
     except (OSError, subprocess.CalledProcessError, ViewError):
         return None
@@ -1689,19 +1722,36 @@ def baseline_row(version, date=None):
         shape)
 
 
-def render_baselines(snapshots):
+def render_baselines(snapshots, logged=()):
     """The picker and the legend; the comparison itself happens in the
     page, from the snapshots embedded beside it."""
     if not snapshots:
-        return ("<p>No baselines yet. A baseline is a <code>spec/vX.Y.Z</code> "
-                "tag and a row in <code>92-baselines.md</code>; see the "
-                "Baselines section of the standard.</p>")
+        if logged:
+            # The log is a file and reads anywhere; the states it names
+            # live in commits, and a shallow checkout has none of them.
+            # Saying nothing here would show a page that quietly claims
+            # this specification has never been frozen.
+            return ("<p><strong>%d baselines are recorded</strong> in "
+                    "<code>92-baselines.md</code>, and none of them could be "
+                    "read here: comparing them needs the repository's "
+                    "history, and this page was rendered without it. Check "
+                    "out the full history — <code>fetch-depth: 0</code> on "
+                    "GitHub Actions, <code>GIT_DEPTH: 0</code> on GitLab "
+                    "CI.</p>" % len(logged))
+        return ("<p>No baselines yet. A baseline is a row in "
+                "<code>92-baselines.md</code> and the commit that adds it; "
+                "see the Baselines section of the standard.</p>")
+    missing = len(logged) - len(snapshots)
+    short = ("<p class=\"hint\">%d of the %d baselines in the log could not "
+             "be read from this checkout's history.</p>"
+             % (missing, len(logged)) if missing > 0 else "")
     options = "".join('<option value="%d">%s</option>' % (index, esc(snap["version"]))
                       for index, snap in enumerate(snapshots))
     if len(snapshots) < 2:
         return ("<p>One baseline so far (<strong>%s</strong>) — nothing to "
-                "compare it against yet.</p>" % esc(snapshots[-1]["version"]))
-    return ('<div class="pickers">'
+                "compare it against yet.</p>%s"
+                % (esc(snapshots[-1]["version"]), short))
+    return (short + '<div class="pickers">'
             '<label>from <select id="base-from">%s</select></label> '
             '<label>to <select id="base-to">%s</select></label>'
             '</div>'
@@ -1712,6 +1762,10 @@ def render_baselines(snapshots):
 
 
 def render_page(model, links, diff=None, baselines=None):
+    # From the log, not from the snapshots: which baselines exist is a
+    # question the log answers on its own, and it answers it in a checkout
+    # too shallow to hold the states they name.
+    logged = logged_baselines()
     entries = model["requirements"]
     known = by_id(model)
     diff_state = {}
@@ -1787,13 +1841,12 @@ def render_page(model, links, diff=None, baselines=None):
                                   for e in entries)),
             ("__DASHBOARD__", render_dashboard(model, links)),
             ("__GRAPH__", graph),
-            ("__BASELINES__", render_baselines(baselines or [])),
+            ("__BASELINES__", render_baselines(baselines or [], logged)),
             ("__BASEDATA__", json.dumps(baselines or [], sort_keys=True,
                                         separators=(",", ":"))
              .replace("</", "<\\/")),
             ("__VERSIONS__", esc(
-                ("baseline %s" % (baselines or [{}])[-1].get("version", ""))
-                if baselines else "no baseline")
+                ("baseline %s" % logged[-1]) if logged else "no baseline")
              + esc(" · srs_check %s" % model["checker_version"])),
             # No wall-clock stamp on purpose: two runs of the generator
             # must produce byte-identical output.

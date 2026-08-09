@@ -245,6 +245,33 @@ assert crossings(ordered) == 0, (ordered, crossings(ordered))
 assert v.order_layers(layers, parents) == ordered
 PY2
 
+# A checkout without history — what CI gives by default — must not invent
+# baselines out of the one commit it has. The log still names them, so the
+# page says they could not be read rather than showing six identical
+# snapshots that agree nothing ever changed.
+rm -rf /tmp/srs-view-shallow
+git clone --quiet --depth 1 --no-tags "file:///tmp/srs-view" /tmp/srs-view-shallow
+(
+  cd /tmp/srs-view-shallow
+  python3 tools/srs_view.py --html shallow/index.html >/dev/null
+  grep -q 'baselines are recorded' shallow/index.html
+  grep -q 'fetch-depth: 0' shallow/index.html
+  # No picker, and no snapshot data to compare with.
+  ! grep -q 'id="base-from"' shallow/index.html
+  grep -q '<script id="baselines-data" type="application/json">\[\]' \
+      shallow/index.html
+  # The current baseline is read from the log, which needs no history.
+  grep -q 'baseline 0.0.2' shallow/index.html
+  python3 - <<'PY0'
+import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools')
+import srs_view
+assert srs_view.logged_baselines() == ['0.0.1', '0.0.2'], 'the log still reads'
+assert all(srs_view.baseline_revision(v) is None
+           for v in srs_view.logged_baselines()), \
+    'a shallow checkout cannot locate a baseline, and must not claim to'
+PY0
+)
+
 # The baseline row is printed ready to paste, and names the previous
 # baseline it was computed against.
 python3 tools/srs_view.py --baseline 0.0.3 --date 2026-01-02 > /tmp/v-row.log

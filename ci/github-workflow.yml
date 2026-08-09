@@ -12,7 +12,11 @@ jobs:
   spec:
     runs-on: ubuntu-latest
     steps:
+      # The whole history: the baselines the rendered page compares are
+      # commits in it, and the default shallow checkout holds none of them.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"

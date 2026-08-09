@@ -5,6 +5,12 @@
 #
 # Full python image on purpose: the *-slim images lack git, which the
 # freshness check needs.
+#
+# GIT_DEPTH: 0 on purpose too: the baselines the rendered page compares are
+# commits, and GitLab's default shallow clone holds none of them.
+
+variables:
+  GIT_DEPTH: 0
 
 spec-check:
   image: python:3.12

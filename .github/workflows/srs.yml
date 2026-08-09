@@ -16,7 +16,12 @@ jobs:
   suites:
     runs-on: ubuntu-latest
     steps:
+      # The whole history, and the tags with it: baselines are commits in
+      # it, and the suites clone this repository to exercise the tooling
+      # against a real one.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -111,7 +116,11 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
+      # The baselines the page compares are commits; a shallow checkout
+      # has none of them and the page says so instead of showing them.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"

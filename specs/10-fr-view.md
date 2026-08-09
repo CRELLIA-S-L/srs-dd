@@ -180,8 +180,10 @@ code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 ```
 
-The rendered page **shall** state the specification's current baseline and
-the framework version that generated it.
+The rendered page **shall** state the specification's current baseline, the
+framework version that generated it, and — where the history those
+baselines name was not available to the render — that they could not be
+read.
 
 **Rationale.** The page lives at a stable address and outlives a dozen
 releases. A reader arriving from a bookmark cannot tell a fresh page from a

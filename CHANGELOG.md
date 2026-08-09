@@ -11,6 +11,34 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.11.1]
+
+### Changed
+
+- The CI templates check out the whole history. The page compares
+  baselines by reading the commits they name, and both templates asked for
+  the shallow clone their platform gives by default.
+
+### Fixed
+
+- A baseline is no longer reported from a checkout that cannot hold it.
+  Without history, `srs_view.py` answered every baseline with the one
+  commit it had, so the page showed six baselines that agreed nothing had
+  ever changed between any two of them; it now says how many it could not
+  reach and names the setting that fixes that (FR-VIEW-090, INV-SPEC-040).
+- The page reads the current baseline from the log rather than from the
+  snapshots it managed to load, so it names one even where the history to
+  compare against is absent (FR-VIEW-090).
+
+### Upgrade notes
+
+- Your rendered page shows baselines only where CI checks out the whole
+  history. Refresh the shipped CI template with `python3
+  tools/srs_upgrade.py --force`, or add `fetch-depth: 0` under
+  `actions/checkout` on GitHub, `GIT_DEPTH: 0` on GitLab, by hand.
+- If your page has been showing baselines that all report no changes, that
+  is this defect and not your specification.
+
 ## [0.11.0] — 2026-08-09
 
 ### Added
