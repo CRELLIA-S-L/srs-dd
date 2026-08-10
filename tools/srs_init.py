@@ -101,7 +101,7 @@ TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
 
 # Skills shipped to targets. srs-init itself stays framework-only.
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
-          "srs-baseline")
+          "srs-baseline", "srs-check", "srs-page")
 
 # Service spec files adopt lays down when (and only when) absent.
 ADOPT_SERVICE_FILES = ("README.md", "constitution.md", "00-glossary.md",
@@ -831,6 +831,9 @@ def run_fresh(args, target, batch):
             "       srs-upgrade  pick up a new framework version\n"
             "       srs-baseline freeze the specification at a "
             "milestone\n"
+            "       srs-check    name and run the checks a change calls "
+            "for\n"
+            "       srs-page     read the specification as a page\n"
             "  2. Replace the placeholder requirement in "
             "specs/10-fr-%s.md; the\n"
             "     rules are in specs/README.md.\n"

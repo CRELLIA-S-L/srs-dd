@@ -15,17 +15,22 @@ git config user.name CI
 # A clone carries what is committed; what is under test is the working
 # tree. Bring it in and commit it, so the command under test is the current
 # one and the tree it starts from is a known state.
-cp "$FRAMEWORK/tools/srs_release.py" "$FRAMEWORK/tools/srs_view.py" \
-   "$FRAMEWORK/tools/srs_check.py" tools/
-# The specification too, and not only the baseline log: the command runs
-# the checker under --strict, and a working-tree checker judging a
-# committed specification is a pair that never existed. A commit that adds
-# a rule and the links it asks for would otherwise fail here on its own
-# way in.
-cp "$FRAMEWORK"/specs/*.md "$FRAMEWORK"/specs/*.json specs/
-# And regenerate the matrix: the copied files are new to this clone's
-# specification, and the command refuses on a matrix that is not fresh.
-python3 tools/srs_check.py >/dev/null
+# The whole working tree, not a chosen few files. A working-tree checker
+# judging a committed specification is a pair that never existed, and the
+# specification names more than tools and specs: a requirement whose `code`
+# field points at a skill fails here the moment that skill is newer than
+# HEAD. Copying everything is the only rule that does not need revisiting
+# each time the specification learns to reference something else.
+( cd "$FRAMEWORK" && tar --exclude ./.git --exclude ./.srs-site \
+                       --exclude ./public -cf - . ) | tar -xf -
+# Regenerate the matrix: the copies are new to this clone, and the command
+# refuses on a matrix that is not fresh. The output is kept — a suite that
+# discards it reports a dead hook and no reason, which is exactly what the
+# commands were taught not to do.
+python3 tools/srs_check.py > /tmp/rel-precheck.log 2>&1 || {
+    echo "the clone does not pass its own checker:"; cat /tmp/rel-precheck.log
+    exit 1
+}
 git add -A
 # Only when there is something to commit: in CI the working tree is the
 # committed state, so the copies above change nothing and `git commit`

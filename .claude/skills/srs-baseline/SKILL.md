@@ -25,7 +25,17 @@ commit.
    baseline is about to freeze, and it is the last moment to notice
    something in it that was not meant to be frozen yet.
 
-2. **Propose the version, and let the maintainer settle it.** The scheme is
+2. **Offer an audit of what is about to be frozen.** The diff from step 1
+   names it: the requirements added and reworded, and the ones they link
+   to. A baseline is the last cheap moment — after it, the frozen state is
+   what every reader compares against, and a statement nobody can test
+   freezes exactly as well as a good one.
+
+   Scoped to what the diff names, never the whole specification: an audit
+   of everything at every baseline is the step people stop taking. The
+   procedure is `srs-audit`; offer it and accept a no.
+
+3. **Propose the version, and let the maintainer settle it.** The scheme is
    in the Baselines section of `specs/README.md`. Read step 1 against it and
    say which reading you used, out loud — "MINOR, because two requirements
    were added and none removed".
@@ -33,7 +43,7 @@ commit.
    Do not settle it yourself. The number is a claim about the
    specification, and the person who owns the project owns that claim.
 
-3. **Write the row.**
+4. **Write the row.**
 
    ```
    python3 tools/srs_baseline.py X.Y.Z --dry-run
@@ -44,14 +54,14 @@ commit.
    something the diff in step 1 did not, one of the two is wrong, and
    finding out which is cheaper now than after the commit.
 
-4. **Hand the commit back.** The command writes `specs/92-baselines.md`,
+5. **Hand the commit back.** The command writes `specs/92-baselines.md`,
    the checker it ran may have refreshed `specs/90-traceability.md` beside
    it, and there it stops — nothing is committed, tagged or pushed
    (CON-SPEC-030). Say which files are waiting and that **the commit
    carrying them is the baseline**; the maintainer makes it with whatever
    git client this project is driven by.
 
-5. **Offer the tag once.** `spec/vX.Y.Z` on that commit makes the baseline
+6. **Offer the tag once.** `spec/vX.Y.Z` on that commit makes the baseline
    easy to name in git later. Nothing depends on it — where there is none,
    the baseline is found by the commit that added its row. Mention it and
    move on; do not turn it into a step.

@@ -20,6 +20,26 @@ embedded in `tools/srs_check.py` as `__version__`.
   does not know stays a warning — which is what lets a later version add
   one without breaking a specification written against an earlier one
   (IF-SPEC-010, FR-CHK-170).
+- The `srs-check` skill names and runs the checks a change calls for. It
+  reads the `verification` method and the `tests` field of every
+  requirement the change touched, offers exactly those, and says in words
+  what a person still has to look at (FR-SKILL-100).
+- The `srs-page` skill renders the specification and opens it. It also
+  says what the commands do not: the file is self-contained and can be
+  sent to somebody, `--repo-url` is what makes its links to the code work,
+  and CI may already publish the same page (FR-SKILL-110).
+- Authoring a requirement and building it are two acts now. `srs-new` ends
+  at the written requirement and the decision the discussion settled, and
+  `srs` gained a second way in — from an approved requirement nobody has
+  built yet, not only from a file about to change (FR-SKILL-090,
+  ADR-0006).
+- The authoring dialog judges what no checker reaches. One capability,
+  verifiable, free of vague wording — no word list can do it, because what
+  reads as vague depends on the sentence and a specification may be
+  written in any language (FR-SKILL-120).
+- The baseline procedure offers an audit before it freezes. Scoped to the
+  requirements the diff names, because auditing everything at every
+  baseline is the step people stop taking (FR-SKILL-130).
 - The graph draws every kind of link, told apart by its own form. Layers
   still come from `derives_from` and `refines` alone — a layer claims a
   level of abstraction, and a requirement must not sink because something
@@ -96,6 +116,9 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Upgrade notes
 
+- Two skills arrive with this upgrade, `srs-check` and `srs-page`. Ask an
+  agent to check a finished change or to show you the specification, and
+  they are what answers.
 - Two new rules may report on your specification the first time you upgrade:
   a requirement claiming `verification: T` with an empty `tests` field, and
   one no link touches. Both are warnings, so only a `--strict` gate fails on

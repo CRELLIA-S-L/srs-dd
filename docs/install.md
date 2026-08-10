@@ -94,8 +94,8 @@ Copy into your repository, by hand:
   `tools/srs_baseline.py` (not `srs_init.py` or `srs_release.py`, which stay
   in the framework repository);
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`,
-  `srs-upgrade`, `srs-baseline` (not `srs-init` or `srs-release`, which are
-  framework-only);
+  `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or
+  `srs-release`, which are framework-only);
 - `skeleton/AGENTS.md`, `skeleton/CLAUDE.md` → repository root;
 - `.gitattributes`, and a CI template from `ci/`.
 

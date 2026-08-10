@@ -97,12 +97,15 @@ git config user.email ci@example.com
 git config user.name CI
 
 # A clone carries what is committed; what is under test is the working
-# tree. Bring it in, and the baseline log with it: a clone taken mid-change
-# inherits whatever the log is missing.
-cp "$FRAMEWORK/tools/srs_baseline.py" "$FRAMEWORK/tools/srs_view.py" \
-   "$FRAMEWORK/tools/srs_check.py" tools/
-cp "$FRAMEWORK/specs/92-baselines.md" specs/
-python3 tools/srs_check.py >/dev/null
+# tree — all of it, not a chosen few files. The specification names skills
+# and templates as well as tools, so a partial copy is a pair that never
+# existed and fails for a reason that has nothing to do with baselines.
+( cd "$FRAMEWORK" && tar --exclude ./.git --exclude ./.srs-site \
+                       --exclude ./public -cf - . ) | tar -xf -
+python3 tools/srs_check.py > /tmp/base-precheck.log 2>&1 || {
+    echo "the clone does not pass its own checker:"; cat /tmp/base-precheck.log
+    exit 1
+}
 git add -A
 git diff --cached --quiet || git commit -qm "the working tree's tooling"
 clean=$(git rev-parse HEAD)

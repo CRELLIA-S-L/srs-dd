@@ -40,15 +40,44 @@ requirement, the incoming links are the blast radius.
 Found nothing — that is not permission to write code silently. It means the
 behavior is not described, and a requirement must be created first.
 
-## Order of work for a new task
+## Two acts, and they are not the same one
 
-1. **Requirement before code.** Create it with the initial status chosen
-   per the Lifecycle section of `specs/README.md`. Phrase it by the rules
-   there: one bolded modal verb from the project lexicon, about behavior,
-   not about internals. (For an interactive authoring dialog, use the
-   `srs-new` skill.)
-2. **Plans reference numbers.** The work plan says `FR-CORE-050`, not “fix
-   the storage layer”. The plan must not conflict with
+Writing a requirement and building it are separate acts (FR-SKILL-090).
+Authoring ends at the written requirement and at whatever architecture
+decision the discussion settled; building it is a task started
+deliberately, later, and often by somebody else. Sliding from one into the
+other is how a specification ends up recording only what already shipped —
+`deferred` never happens, and a baseline has nothing to freeze but the
+past.
+
+This procedure is the second act. For the first, use `srs-new`.
+
+## Building a requirement
+
+There are two ways in, and they meet at step 2.
+
+**From a file you are about to change.** Find what describes it — see
+*First things first* above. Nothing found is not permission to write code:
+it means the behavior is not described, and authoring comes first.
+
+**From an approved requirement nobody has built yet.** `deferred` is the
+status that says so:
+
+```
+python3 tools/srs_view.py --coverage
+grep -n "status: deferred" specs/*.md
+```
+
+Read it in full with its `derives_from` and `depends_on`, and read what
+links back to it — `python3 tools/srs_view.py <ID>` resolves both
+directions. Incoming links are the blast radius.
+
+Then:
+
+1. **Check the requirement still says what you are about to build.** If it
+   does not, you are authoring, not building — stop and go to `srs-new`.
+2. **Plans reference numbers.** The work plan says `FR-CORE-050`, not "fix
+   the storage layer". The plan must not conflict with
    `specs/constitution.md`; cite its articles (`ART-*`) the same way.
 3. **Code.**
 4. **Close the loop.** Re-read the statement of every requirement this

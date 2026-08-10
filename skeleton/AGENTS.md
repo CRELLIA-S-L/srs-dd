@@ -14,7 +14,11 @@ references to code.
 - **Check** — `python3 tools/srs_check.py`.
 - **Read** — `python3 tools/srs_view.py <ID>` for one requirement with
   its links resolved, `--code <path>` for the requirements describing a
-  file, `--html` for a page a non-engineer can read.
+  file, `--open` for a page a non-engineer can read;
+  `.claude/skills/srs-page/SKILL.md` is the procedure around it.
+- **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads
+  the `verification` method and the `tests` field of every requirement the
+  change touched, and offers exactly those. It runs nothing unasked.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain
   markdown; an agent without a skill system reads them directly as
   workflow guides.

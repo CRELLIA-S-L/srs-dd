@@ -90,3 +90,35 @@ meanwhile, so the behaviour is guarded even while the rule is homeless.
 terminal of a stated width, record the width somewhere it can be argued
 with, or drop the assertion if the wrapping does not in fact matter. To be
 taken up when the requirements frozen in baseline 0.12.0 are implemented.
+
+## The graph is layered over a specification that is not
+
+**Found:** while drawing every kind of link (2026-08-10).
+
+**What diverged:** FR-VIEW-060 promises a graph layered by derivation, and
+the data does not support the axis. This specification holds 21 derivation
+links against 54 dependencies; 64 of its 85 requirements have no derivation
+parent at all and land in one row, and the deepest derivation chain is two.
+The drawing measures 8689 by 179 — a ribbon that says almost nothing
+vertically and cannot be read when fitted to a screen. FR-VIEW-150 narrows
+it in a click, but the default view is the one a newcomer sees.
+
+The structure the specification actually has is the area: six of them,
+between 9 and 19 requirements each, with 48 of the 75 links staying inside
+one. Types do not group — 70 of 85 are `FR`.
+
+**Why it is recorded rather than fixed:** the candidate is an arc diagram
+grouped by area — a column of requirements ordered by area and identifier,
+links drawn as arcs beside it, roughly 1200 by 1900 instead of the ribbon,
+and less code than the layered layout it would replace. That is a change of
+what the page promises, not a repair: FR-VIEW-060 would be reworded,
+ADR-0010 loses its subject entirely and would have to be superseded rather
+than amended, and FR-VIEW-110's "pull a node aside" stops meaning anything
+where a node's position is its place in an ordering. Authoring does not
+ride along with an implementation phase (FR-SKILL-090).
+
+**Decision needed:** adopt the arc diagram and supersede ADR-0010, deciding
+at the same time what replaces dragging a node — nothing, a collapse of a
+whole area, or dragging kept as decoration. Or keep the layered drawing and
+accept that its vertical axis carries two levels for a fifth of the
+requirements.
