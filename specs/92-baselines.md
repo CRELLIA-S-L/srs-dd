@@ -6,6 +6,7 @@ optional bookmark. The procedure is in the Baselines section of `README.md`.
 
 | Version | Date | Tag | What changed |
 |---|---|---|---|
+| 0.12.0 | 2026-08-10 | `spec/v0.12.0` | Since 0.11.1: added FR-CHK-140, FR-CHK-150, FR-CHK-160, FR-CHK-170, FR-CHK-180, FR-SKILL-090, FR-SKILL-100, FR-SKILL-110, FR-SKILL-120, FR-VIEW-130, FR-VIEW-140, FR-VIEW-150, FR-VIEW-160; changed FR-SKILL-080, FR-VIEW-060, FR-VIEW-110, IF-SPEC-010, NFR-VIEW-010. 85 requirements: 12 `deferred`, 3 `partial`, 70 `implemented`. Two restatements narrow conformance: FR-SKILL-080 now requires the baseline procedure to offer an audit, and FR-VIEW-060 now promises a graph of every kind of link, not of derivation alone — a skill or a page built to 0.11.1 no longer conforms. |
 | 0.11.1 | 2026-08-09 | `spec/v0.11.1` | Since 0.11.0: changed FR-VIEW-090. 72 requirements: 72 `implemented`. |
 | 0.11.0 | 2026-08-09 | `spec/v0.11.0` | Since 0.10.0: added CON-SPEC-030, FR-SKILL-080, FR-SPEC-010, INV-SPEC-030, INV-SPEC-040; changed FR-CI-070, FR-VIEW-050, FR-VIEW-120. 72 requirements: 72 `implemented`. |
 | 0.10.0 | 2026-08-08 | `spec/v0.10.0` | Since 0.9.0: added FR-CI-070, FR-SKILL-070, FR-VIEW-120; changed FR-SKILL-010, FR-VIEW-110. 67 requirements: 67 `implemented`. |

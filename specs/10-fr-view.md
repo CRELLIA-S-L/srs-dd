@@ -110,7 +110,7 @@ the tag back in the middle of the process.
 ### FR-VIEW-060 — A page that opens from the filesystem
 
 ```yaml
-status: implemented
+status: partial
 verification: T
 derives_from: []
 depends_on: []
@@ -121,9 +121,9 @@ tests: [tests/view-smoke.sh]
 ```
 
 The viewer **shall** render the specification into a single self-contained
-HTML file — search, filters, a status dashboard, a layered graph of the
-derivation links, and links in both directions — that requests nothing over
-the network.
+HTML file — search, filters, a status dashboard, a graph of the links
+between requirements layered by derivation, and links in both directions —
+that requests nothing over the network.
 
 **Rationale.** A reviewer who does not grep still has to read the
 specification, and a page that needs a CDN is a page that stops working
@@ -228,7 +228,7 @@ code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 ```
 
-The derivation graph on the page **shall** fill the area it is drawn in and
+The graph on the page **shall** fill the area it is drawn in and
 let a reader move and scale it, pull a node aside, return the view to where
 it started, and see what a node links to and what links to it.
 
@@ -269,3 +269,102 @@ into the file: the viewer never touches `specs/` (FR-VIEW-080), and a row a
 person pastes is a row a person has read. A row asked for after its tag
 exists describes that tag rather than whatever the working tree has drifted
 to since, so writing it late costs nothing in accuracy.
+
+### FR-VIEW-130 — A requirement is reachable from every view
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+When a requirement is picked from any view of the page — a link in the
+dashboard or in a baseline comparison, a node in the graph — the page
+**shall** show that requirement, switching to the view that renders it and
+clearing whatever filter would hide it.
+
+**Rationale.** Following links in both directions is what this page is for,
+and three of its four views could not do it: the dashboard and the baseline
+comparison render links whose target lives in a hidden section, so following
+one moved the reader nowhere and gave no sign of why. The graph reached it
+by its own handler rather than by this rule, which is how it stayed broken
+unnoticed when a later change stopped its clicks from firing at all.
+
+### FR-VIEW-140 — The rendered page can be opened where it is made
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where opening is asked for, the viewer **shall** open the page it has just
+rendered in the reader's browser.
+
+**Rationale.** Rendering and opening are one act for a reader and two
+commands with a path between them, and the path differs by platform — which
+puts the knowledge in a procedure an agent reads, and leaves whoever works
+without one to look it up. The standard library opens a browser in a line,
+so the tool can carry it once instead of every reader carrying it forever.
+
+### FR-VIEW-150 — The graph can be narrowed to one requirement's surroundings
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+When a requirement is chosen as the root, the graph **shall** draw only that
+requirement and what lies within a chosen number of links of it.
+
+**Rationale.** A drawing of everything is the one view a specification of any
+size cannot use, and the tools that solve this converge on the same answer: a
+root and a radius, whether it is `root_id` with `root_depth` in
+sphinx-needs or impact analysis from a selected item in the commercial
+tools. StrictDoc still lists the whole-project view as wanted rather than
+done. The page already lights a node's immediate links on hover, which is
+this idea stopped one step short — the neighbourhood is computed and then
+thrown away instead of becoming the drawing.
+
+### FR-VIEW-160 — Every kind of link is drawn, and the reader chooses which
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The graph **shall** draw each kind of link between requirements in a form
+that tells it from the others, and let the reader leave out the kinds not
+wanted.
+
+**Rationale.** Two of the four link fields were drawn and two were not, which
+in this specification meant showing twenty-one edges and hiding forty-four:
+the reader was studying the minority relation without being told. Drawing
+everything and subtracting is what `needflow` does with its `link_types`
+option, and it is the safer default — a link that exists and is not drawn is
+invisible, while one that is drawn and unwanted is one click away. Layers
+stay derived from `derives_from` alone: it is the relation that means
+"higher level", and a layer computed from the union would silently change
+the vertical axis from abstraction to order of work.

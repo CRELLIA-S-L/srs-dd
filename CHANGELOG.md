@@ -11,6 +11,28 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.12.0]
+
+### Added
+
+- A requirement is reachable from every view of the page. Links in the
+  dashboard and in a baseline comparison, and nodes in the graph, now open
+  the requirement they name — switching to the view that renders it and
+  clearing a filter that would hide it (FR-VIEW-130).
+
+### Changed
+
+- The graph lights a node's links on hover, not on click. That leaves the
+  click free to open the requirement the node names (FR-VIEW-110,
+  FR-VIEW-130).
+
+### Fixed
+
+- Clicking a graph node does something again. Cancelling `pointerdown`
+  suppressed the compatibility mouse events, and with them every click the
+  graph relied on, so neither the highlight nor the jump to a requirement
+  had been firing (FR-VIEW-110).
+
 ## [0.11.1] — 2026-08-09
 
 ### Changed

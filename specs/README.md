@@ -246,6 +246,12 @@ when requirements were added; the first when one was removed or superseded,
 or restated so that something conforming to the previous baseline no longer
 conforms. It is independent of any release number the project also keeps.
 
+While the first part is still zero the specification is finding its shape,
+and a change that would raise it raises the middle part instead; what
+stopped conforming is then said in the row's own words rather than by the
+number. The first baseline to carry a one is a claim that the shape has
+settled — worth making deliberately, and not by arithmetic.
+
 **The tag is optional.** `spec/vX.Y.Z` on that commit is a bookmark: it
 makes the baseline easy to name in git and in `srs_view.py --diff`, and
 nothing depends on it. Where there is none, the baseline is located by the

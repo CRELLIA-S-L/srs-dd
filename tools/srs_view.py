@@ -913,7 +913,7 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
 .graph .node rect { fill: var(--panel); stroke: var(--line); }
 .graph .node.dim { opacity: .2; }
 .stage { position: relative; }
-#graph-svg { display: block; width: 100%; height: 70vh; min-height: 320px; cursor: grab; touch-action: none; }
+#graph-svg { display: block; width: 100%; height: 70vh; min-height: 320px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
 #graph-reset { position: absolute; right: 8px; top: 8px; font: inherit; font-size: 12px; padding: 2px 8px; cursor: pointer; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; }
 #graph-svg:active { cursor: grabbing; }
 #graph-svg.focused .node, #graph-svg.focused .edge { opacity: .25; }
@@ -1017,7 +1017,10 @@ JS = """
       last = { x: e.clientX, y: e.clientY };
       moved = false;
       gsvg.setPointerCapture(e.pointerId);
-      e.preventDefault();
+      // No preventDefault here: cancelling pointerdown suppresses the
+      // compatibility mouse events, and with them the click that opens a
+      // requirement. Scrolling is held off by touch-action in the CSS,
+      // and selection by user-select.
     });
     gsvg.addEventListener('pointermove', function (e) {
       if (!held) { return; }
@@ -1043,18 +1046,16 @@ JS = """
 
     var reset = document.getElementById('graph-reset');
     if (reset) {
-      reset.addEventListener('click', function (e) {
-        e.stopPropagation();
+      reset.addEventListener('click', function () {
         view = { x: 0, y: 0, k: 1 };
         apply();
       });
     }
 
-    // Clicking a node lights what it links to and what links to it; the
-    // rest dims, which is the whole reason to click rather than squint.
-    gsvg.addEventListener('click', function (e) {
-      if (moved) { moved = false; return; }
-      var node = e.target.closest ? e.target.closest('g.node') : null;
+    // Hovering a node lights what it links to and what links to it; the
+    // rest dims, which is the whole reason to point at one rather than
+    // squint. The click is left to open the requirement itself.
+    function light(node) {
       gsvg.classList.toggle('focused', !!node);
       Object.keys(nodes).forEach(function (id) {
         nodes[id].classList.remove('sel', 'lit');
@@ -1068,6 +1069,23 @@ JS = """
         p.classList.add('lit');
         var other = p.dataset.from === id ? p.dataset.to : p.dataset.from;
         if (nodes[other]) { nodes[other].classList.add('lit'); }
+      });
+    }
+
+    Object.keys(nodes).forEach(function (id) {
+      var g = nodes[id];
+      // Not while a drag is under way: the pointer sweeps over half the
+      // graph on its way, and the highlight would strobe.
+      g.addEventListener('pointerenter', function () {
+        if (!held) { light(g); }
+      });
+      g.addEventListener('pointerleave', function () {
+        if (!held) { light(null); }
+      });
+      g.addEventListener('click', function () {
+        if (moved) { moved = false; return; }
+        location.hash = id;
+        jump();        // hashchange stays silent when the hash repeats
       });
     });
   }
@@ -1195,42 +1213,39 @@ JS = """
   });
   search.addEventListener('input', apply);
 
-  // A link to a requirement the current filter hides would otherwise do
-  // nothing — and following links in both directions is the point of
-  // this page. Clear the filters and go there.
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('nav button'));
+  function showView(name) {
+    tabs.forEach(function (tab) {
+      var on = tab.dataset.view === name;
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      document.getElementById(tab.dataset.view).hidden = !on;
+    });
+  }
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () { showView(tab.dataset.view); });
+  });
+
+  // Following links in both directions is the point of this page, and a
+  // link is followed from wherever the reader happens to be. The card it
+  // names lives in one view and may be hidden by a filter; both are this
+  // function's business, whichever view the reader came from.
   function jump() {
     var id = location.hash.replace(/^#/, '');
     if (!id) return;
     var card = cards.filter(function (c) { return c.dataset.id === id; })[0];
-    if (!card || !card.hidden) return;
-    search.value = '';
-    chips.forEach(function (chip) {
-      chip.setAttribute('aria-pressed', 'false');
-      active[chip.dataset.key].delete(chip.dataset.value);
-    });
-    apply();
+    if (!card) return;
+    showView('view-reqs');
+    if (card.hidden) {
+      search.value = '';
+      chips.forEach(function (chip) {
+        chip.setAttribute('aria-pressed', 'false');
+        active[chip.dataset.key].delete(chip.dataset.value);
+      });
+      apply();
+    }
     if (card.scrollIntoView) card.scrollIntoView();
   }
   window.addEventListener('hashchange', jump);
-
-  var tabs = Array.prototype.slice.call(document.querySelectorAll('nav button'));
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (other) {
-        var on = other === tab;
-        other.setAttribute('aria-selected', on ? 'true' : 'false');
-        document.getElementById(other.dataset.view).hidden = !on;
-      });
-    });
-  });
-
-  document.querySelectorAll('.graph .node').forEach(function (node) {
-    node.addEventListener('click', function () {
-      tabs[0].click();
-      location.hash = node.dataset.id;
-      jump();          // hashchange stays silent when the hash repeats
-    });
-  });
 
   apply();
   jump();

@@ -14,8 +14,11 @@ highlighting, and carries `verification: I` because no browser and no
 JavaScript engine is a dependency of this project. `tests/view-smoke.sh`
 asserts that the handlers and the stage are in the page — which catches a
 deletion, and nothing else. The same limit applies to the comparison of
-FR-VIEW-100: its data is checked against git, its script is checked by
-having been read.
+FR-VIEW-100 — its data is checked against git, its script by having been
+read — and to FR-VIEW-130, where the suite holds that every view links to a
+requirement but not that following such a link arrives anywhere. The set
+this covers grows with the page: each addition to it is one more behaviour
+verified by a person who remembers to look.
 
 **Why it is recorded rather than fixed:** every way out adds a dependency
 the framework does not have. A headless browser in CI is the honest one and

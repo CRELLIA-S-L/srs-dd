@@ -271,3 +271,132 @@ caught up with them. A warning rather than an error, so that a baseline
 halfway written does not block the work; `--strict`, which the gate runs,
 closes it. Nothing is reported where git or the tags are absent: a project
 that never tags is keeping a perfectly good log.
+
+### FR-CHK-140 — A realized requirement with no test is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-CHK-060]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a requirement is `implemented` or `partial` and lists no test, the
+checker **shall** report it as a warning naming the requirement.
+
+**Rationale.** The data has been collected all along and shown only to
+whoever asked for `--coverage` — a report nobody runs on the way to a
+commit. This project's own specification has twenty-nine such requirements
+and a green gate, which is the argument: a fact worth reporting is worth
+reporting where it is read. A warning rather than an error because a
+verification method other than `T` is legitimate and common, and because a
+project mid-harvest would otherwise be unable to commit at all.
+
+### FR-CHK-150 — A requirement no link touches is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-CHK-030]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a requirement neither links to another nor is linked to by one, the
+checker **shall** report it as a warning naming the requirement.
+
+**Rationale.** A missing link is invisible: the checker proves that what is
+written resolves, never that something was left out, and an empty
+`depends_on` is valid on every requirement in the file. Total isolation is
+the one case where the omission shows — a requirement connected to nothing
+is either genuinely standalone or, far more often, one whose links nobody
+wrote. It is also what makes a derived work plan degenerate into a flat list
+with no order, so the cheapest place to notice it is here.
+
+### FR-CHK-160 — What a rule costs is the project's to set
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-CHK-120]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The checker **shall** let a project lower a rule to a report or silence it
+altogether — for the whole project in its configuration, or for one
+requirement in that requirement's own block.
+
+**Rationale.** A gate is only obeyed while its output is worth reading, and
+a rule that cannot be tuned is a rule that teaches people to ignore the
+whole run. Strict mode already moves severity in one direction
+(FR-CHK-120); this is the other. Per requirement rather than only
+per project because the honest case is singular — this one requirement is
+verified by inspection and will never list a test — and an exemption written
+in the block is diffed in review and dies with the requirement it excuses,
+which a list of identifiers in a configuration file does neither.
+
+The two levers meet strict mode without contradicting it: a rule lowered to
+a report no longer produces a warning, and `--strict` fails on warnings
+(FR-CHK-120), so lowering is what makes a gate survivable while raising
+stays the default. Silence removes the rule from the run entirely and is the
+heavier of the two admissions.
+
+### FR-CHK-170 — A missing required key is named as missing
+
+```yaml
+status: deferred
+verification: T
+derives_from: [IF-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a requirement omits a key the format requires, the checker **shall**
+report that key as missing rather than as holding a bad value.
+
+**Rationale.** Omitting `verification` is answered today with "method '' is
+not one of T/D/I/A", which describes the symptom and hides the cause: the
+reader looks for a typo in a value that was never written. The distinction
+also has to exist in the code before the format can promise anything about
+optional keys, since obligation is currently an accident of validating
+values.
+
+### FR-CHK-180 — A retired key is reported with what replaced it
+
+```yaml
+status: deferred
+verification: T
+derives_from: [IF-SPEC-010]
+depends_on: [FR-CHK-170]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a requirement uses a key a later version of the format renamed or
+withdrew, the checker **shall** report it as an error naming the version
+that did so and the key that replaced it, where one did.
+
+**Rationale.** Renaming a key should not happen and one day will. The
+project that meets it is holding a specification the framework can no longer
+read, and the difference between an afternoon and a week is whether the tool
+says "`depends` became `depends_on` in 0.14.0" or "unknown key". An error
+rather than a warning because, unlike an unrecognised key, this one is known
+to be wrong and known to be fixable. The framework rewrites nothing itself:
+the specification belongs to the project, and a mechanical rename is what
+agents and `sed` are for.

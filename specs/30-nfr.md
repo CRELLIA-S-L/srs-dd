@@ -55,8 +55,8 @@ code: [tools/srs_view.py]
 tests: []
 ```
 
-Where the derivation graph exceeds the node limit the page can lay out, the
-viewer **shall** state on the page what was left out rather than truncating
+Where the graph exceeds the node limit the page can lay out, the viewer
+**shall** state on the page what was left out rather than truncating
 silently.
 
 **Rationale.** A graph that quietly drops nodes is worse than no graph: it

@@ -245,6 +245,21 @@ assert crossings(ordered) == 0, (ordered, crossings(ordered))
 assert v.order_layers(layers, parents) == ordered
 PY2
 
+# The views that name a requirement in the rendered file name it in a way
+# the page can follow (FR-VIEW-130). Baselines are not among them: that
+# list is built in the page from the embedded snapshots, so there is
+# nothing static to assert. The following of a link is browser behaviour
+# and is inspected, not tested.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+for name in ('view-dash', 'view-graph'):
+    section = page[page.index('<section id="%s"' % name):]
+    section = section[:section.index('</section>')]
+    assert re.search(r'(href="#|data-id=")FR-CORE-0', section), \
+        '%s names no requirement to reach' % name
+PY2
+
 # A checkout without history — what CI gives by default — must not invent
 # baselines out of the one commit it has. The log still names them, so the
 # page says they could not be read rather than showing six identical

@@ -70,7 +70,7 @@ documentation, so renaming or moving it breaks installs already in the wild.
 ### IF-SPEC-010 — The requirement block is a stable format
 
 ```yaml
-status: implemented
+status: partial
 verification: I
 derives_from: []
 depends_on: []
@@ -83,9 +83,18 @@ tests: []
 A requirement **shall** be written as a level-three heading, a fenced `yaml`
 metadata block of flat keys with scalar or bracketed-list values, a
 statement, and an optional rationale — a shape a standard-library parser and
-a future external tool can both read.
+a future external tool can both read, whose keys are declared either
+required or optional, a key it declares neither being no error.
 
 **Rationale.** The format is deliberately poorer than YAML allows: nesting
 and multi-line values would make the files unreadable by the very
 line-oriented tools — grep, diff, review — that make a specification in git
 worth having.
+
+The three classes of key are what make the format extensible. Which keys are
+obligatory was until now an accident of validation — omit `verification` and
+the complaint was about its value being empty — and a key the checker does
+not know has always been tolerated rather than refused, which is what lets a
+later version of the framework add one without breaking a specification
+written against an earlier one. Saying so out loud turns an emergent
+property into a promise: an addition is compatible, a removal is not.

@@ -38,3 +38,9 @@ templates target GitHub Actions and GitLab CI. The rendered page opens from
   repository whenever freshness or baselines are checked.
 - Agents read `AGENTS.md` at the repository root, and a project that uses a
   different rules file points that file at it rather than duplicating it.
+- There is no installed base beyond this repository and the example project
+  (2026-08-10). A change to the metadata format therefore needs no migration
+  path, and the only pipeline it can break is the example's, which is
+  advisory by design. Requirements that exist for the sake of a future
+  installed base — FR-CHK-180 among them — are insurance until this ceases
+  to hold, and the day it ceases is the day they stop being optional.
