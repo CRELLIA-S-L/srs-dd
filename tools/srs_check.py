@@ -52,6 +52,20 @@ DEFAULTS = {
 RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
 
 
+# Every rule that reports something short of an error carries a name, so a
+# project can say what it costs — in `rules` in its configuration, or in a
+# requirement's `exempt` field. The names are a published contract with the
+# same one-way property as a metadata key: adding one is compatible,
+# renaming one is not (ADR-0009).
+RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
+         "annotation-unknown-area", "annotation-superseded",
+         "annotation-unlisted", "baseline-without-row")
+
+# `warn` fails a --strict run, `report` is printed and fails nothing, `off`
+# is not printed at all.
+SEVERITIES = ("warn", "report", "off")
+
+
 def _config_fail(message):
     sys.stderr.write("specs/srs-config.json: %s\n" % message)
     sys.exit(2)
@@ -84,6 +98,20 @@ def load_config():
     for area in cfg["areas"]:
         if not RE_AREA_NAME.match(area):
             _config_fail("area %r must match [A-Z][A-Z0-9]*" % area)
+    # `rules` is a mapping rather than a list, so it is validated apart from
+    # the loop above — and by name, because a silently ignored typo here
+    # would look exactly like a rule that never fires.
+    rules = data.get("rules", {})
+    if not isinstance(rules, dict):
+        _config_fail("rules must be an object of rule name to severity")
+    for name in sorted(rules):
+        if name not in RULES:
+            _config_fail("rules names an unknown rule %r; the rules are %s"
+                         % (name, ", ".join(RULES)))
+        if rules[name] not in SEVERITIES:
+            _config_fail("rules[%r] must be one of %s"
+                         % (name, "/".join(SEVERITIES)))
+    cfg["rules"] = rules
     return cfg
 
 
@@ -92,6 +120,22 @@ AREAS = CFG["areas"]
 CODE_ROOTS = CFG["code_roots"]
 TEST_ROOTS = CFG["test_roots"]
 CODE_EXTENSIONS = CFG["code_extensions"]
+RULE_SEVERITY = CFG["rules"]
+
+
+def rule_finding(warnings, reports, rule, text, req=None):
+    """Route one rule's finding by what the project decided it costs.
+
+    A requirement may excuse itself from a rule in its own block; the
+    project may lower or silence the rule everywhere. Anything not spoken
+    for is a warning, which is what a --strict gate fails on.
+    """
+    if req is not None and rule in (req.meta.get("exempt") or []):
+        return
+    severity = RULE_SEVERITY.get(rule, "warn")
+    if severity == "off":
+        return
+    (warnings if severity == "warn" else reports).append(text)
 
 TYPES = ("FR", "NFR", "IF", "INV", "CON")
 
@@ -100,7 +144,7 @@ STATUSES = ("draft", "deferred", "partial", "implemented", "superseded")
 VERIFICATIONS = ("T", "D", "I", "A")
 
 LINK_FIELDS = ("derives_from", "refines", "depends_on", "conflicts_with")
-LIST_FIELDS = LINK_FIELDS + ("code", "tests")
+LIST_FIELDS = LINK_FIELDS + ("code", "tests", "exempt")
 SCALAR_FIELDS = ("status", "verification", "superseded_by")
 KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 
@@ -109,6 +153,7 @@ KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 # what lets a later version of the format add one without breaking a
 # specification written against an earlier version.
 REQUIRED_FIELDS = ("status", "verification")
+
 
 # Keys a later version of the format renamed or withdrew, as
 # {old: (replacement or None, version)}. Empty until the format first
@@ -392,8 +437,12 @@ def normalize_meta(req, errors):
     for field in LIST_FIELDS:
         value = req.meta.get(field)
         if value is not None and not isinstance(value, list):
-            example = ("[src/app.py]" if field in ("code", "tests")
-                       else "[FR-CORE-010]")
+            if field in ("code", "tests"):
+                example = "[src/app.py]"
+            elif field == "exempt":
+                example = "[%s]" % RULES[0]
+            else:
+                example = "[FR-CORE-010]"
             errors.append("%s — %s must be a bracketed list, e.g. %s"
                           % (req.where, field, example))
             req.meta[field] = []
@@ -408,6 +457,7 @@ def normalize_meta(req, errors):
 def validate(requirements):
     errors = []
     warnings = []
+    reports = []
 
     by_id = {}
     for req in requirements:
@@ -434,7 +484,14 @@ def validate(requirements):
                        "renamed to %r" % replacement if replacement
                        else "withdrawn", version))
             elif key not in KNOWN_FIELDS:
-                warnings.append("%s — unknown field %r" % (req.where, key))
+                rule_finding(warnings, reports, "unknown-key",
+                             "%s — unknown field %r" % (req.where, key), req)
+
+        for name in req.meta.get("exempt") or []:
+            if name not in RULES:
+                errors.append("%s — exempt names an unknown rule %r; the "
+                              "rules are %s"
+                              % (req.where, name, ", ".join(RULES)))
 
         # A key that is absent is named as absent. Reporting it through the
         # value check instead — "status '' is not one of" — describes the
@@ -474,9 +531,10 @@ def validate(requirements):
 
         # Implementation ahead of approval.
         if status == "draft" and code:
-            warnings.append("%s — status draft but the code field is not "
-                            "empty: implementation ahead of approval"
-                            % req.where)
+            rule_finding(warnings, reports, "draft-with-code",
+                         "%s — status draft but the code field is not "
+                         "empty: implementation ahead of approval"
+                         % req.where, req)
 
         for field in ("code", "tests"):
             for rel in req.meta.get(field, []):
@@ -506,9 +564,10 @@ def validate(requirements):
                 elif (status in ("implemented", "partial")
                         and field in ("derives_from", "depends_on", "refines")
                         and by_id[target].meta.get("status") == "draft"):
-                    warnings.append("%s — %s requirement rests on draft %s "
-                                    "(%s): approve or revisit it"
-                                    % (req.where, status, target, field))
+                    rule_finding(warnings, reports, "rests-on-draft",
+                                 "%s — %s requirement rests on draft %s "
+                                 "(%s): approve or revisit it"
+                                 % (req.where, status, target, field), req)
         replacement = req.meta.get("superseded_by", "")
         if replacement:
             if replacement not in by_id:
@@ -521,7 +580,7 @@ def validate(requirements):
         for cycle in find_cycles(requirements, field):
             errors.append("cycle in %s links: %s" % (field, " → ".join(cycle)))
 
-    return by_id, errors, warnings
+    return by_id, errors, warnings, reports
 
 
 def iter_source_files():
@@ -547,7 +606,7 @@ def iter_source_files():
                 yield rel
 
 
-def scan_annotations(by_id, errors, warnings):
+def scan_annotations(by_id, errors, warnings, reports):
     """Cross-checks implements:/verifies: annotations against the spec.
 
     The code/tests fields remain the source of truth; annotations are an
@@ -576,26 +635,30 @@ def scan_annotations(by_id, errors, warnings):
                                     "%s — annotation references unknown "
                                     "requirement %s" % (where, rid))
                             else:
-                                warnings.append(
+                                rule_finding(
+                                    warnings, reports,
+                                    "annotation-unknown-area",
                                     "%s — annotation references %s with an "
                                     "unknown type or area (an example? add "
                                     "srs-ignore to the line if intended)"
                                     % (where, rid))
                             continue
                         if req.meta.get("status") == "superseded":
-                            warnings.append(
+                            rule_finding(
+                                warnings, reports, "annotation-superseded",
                                 "%s — annotation points at superseded "
-                                "requirement %s" % (where, rid))
+                                "requirement %s" % (where, rid), req)
                             continue
                         field = field_by_keyword[keyword]
                         if rel not in req.meta.get(field, []):
-                            warnings.append(
+                            rule_finding(
+                                warnings, reports, "annotation-unlisted",
                                 "%s — file carries `%s: %s` but is not "
                                 "listed in that requirement's %s field"
-                                % (where, keyword, rid, field))
+                                % (where, keyword, rid, field), req)
 
 
-def check_baselines(warnings):
+def check_baselines(warnings, reports):
     """A `spec/v*` tag the baseline log has no row for.
 
     The row is what makes a baseline; a tag is a bookmark on it. One
@@ -616,8 +679,9 @@ def check_baselines(warnings):
     except (OSError, subprocess.CalledProcessError):
         return
     for tag in sorted(tag for tag in listed if tag not in logged):
-        warnings.append("%s — no row for baseline tag %s; the tag freezes a "
-                        "state the log does not describe" % (rel, tag))
+        rule_finding(warnings, reports, "baseline-without-row",
+                     "%s — no row for baseline tag %s; the tag freezes a "
+                     "state the log does not describe" % (rel, tag))
 
 
 def collect_code_files():
@@ -762,13 +826,17 @@ def main():
         except (OSError, UnicodeDecodeError) as exc:
             parse_errors.append("%s — cannot read the file: %s" % (rel, exc))
 
-    by_id, errors, warnings = validate(requirements)
-    scan_annotations(by_id, errors, warnings)
-    check_baselines(warnings)
+    by_id, errors, warnings, reports = validate(requirements)
+    scan_annotations(by_id, errors, warnings, reports)
+    check_baselines(warnings, reports)
     errors = parse_errors + errors
 
     for text in warnings:
         sys.stdout.write("warning: %s\n" % text)
+    # Lowered rules are still said out loud; what they no longer do is fail
+    # a --strict run, which is the whole difference the project asked for.
+    for text in reports:
+        sys.stdout.write("note: %s\n" % text)
 
     if errors:
         sys.stdout.write("\n")

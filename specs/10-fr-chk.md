@@ -323,14 +323,14 @@ with no order, so the cheapest place to notice it is here.
 ### FR-CHK-160 — What a rule costs is the project's to set
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py, tools/srs_view.py]
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** let a project lower a rule to a report or silence it

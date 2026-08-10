@@ -739,7 +739,7 @@ def as_deltas(snapshots):
 
 
 DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
-               "code", "tests") + LINK_FIELDS
+               "code", "tests", "exempt") + LINK_FIELDS
 
 
 def compute_diff(old_model, new_model):
@@ -1353,6 +1353,12 @@ def render_card(entry, model, known, links, diff_state):
                 '<span class="rel">%s</span><span></span>'
                 '<span><a href="%s"><code>%s</code></a></span>'
                 % (field, esc(links.href(path)), esc(path)))
+    # An exemption is a claim about this requirement, so it is shown beside
+    # it: an excuse nobody can see is an excuse nobody revisits (ADR-0008).
+    for name in entry.get("exempt", []):
+        link_html.append(
+            '<span class="rel">exempt</span><span></span>'
+            '<span><code>%s</code></span>' % esc(name))
 
     parts = ['<article id="%s" data-id="%s" data-status="%s" data-type="%s" '
              'data-area="%s" data-file="%s" data-search="%s"%s>'

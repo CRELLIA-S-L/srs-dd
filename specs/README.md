@@ -114,6 +114,7 @@ undo history noisy.
 | `superseded_by` | no | one identifier | Only with `status: superseded` |
 | `code` | no | list of paths | Where it is implemented. Mandatory for `implemented` |
 | `tests` | no | list of paths | What verifies it |
+| `exempt` | no | list of rule names | Rules this requirement is excused from — see *Configuration* |
 
 A required key that is absent is an error naming the key. An optional one
 may be left out entirely; the checker reads it as empty. **A key that is
@@ -286,6 +287,7 @@ the file falls back to the checker's default.
 | Key | Default | Meaning |
 |---|---|---|
 | `areas` | `["CORE", "UI", "API", "DATA", "SEC"]` | Requirement areas — the middle segment of every ID. Uppercase: `[A-Z][A-Z0-9]*` |
+| `rules` | `{}` | What a rule costs: `warn` (the default, and what `--strict` fails on), `report` (said but never fatal), `off` (not said at all). Keys are rule names; `srs_check.py` lists them when you name one it does not know |
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
 | `test_roots` | `["tests"]` | Additional roots scanned for annotations |
 | `code_extensions` | `[".py", ".ts", …]` | File extensions treated as source files |

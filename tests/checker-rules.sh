@@ -255,6 +255,61 @@ grep -qF "key 'depends' was withdrawn in 9.9.9" /tmp/srs-rules.log \
          cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
 
+# --- FR-CHK-160: what a rule costs is the project's to set. The rule used
+# --- throughout is `unknown-key`, because it needs nothing but a key.
+UNKNOWN='status: deferred
+verification: I
+bogus: [x]'
+
+config() { printf '%s\n' "$1" > "$LAB/specs/srs-config.json"; }
+BASE='"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"]'
+
+spec < <(block FR-CORE-010 "Carries a key nobody knows" "$UNKNOWN" \
+               'The system **shall** act.')
+config "{$BASE}"
+rule "FR-CHK-160 warns by default" 0 "warning: "
+rule "FR-CHK-160 and fails a strict gate" 1 "treated as errors" --strict
+
+config "{$BASE, \"rules\": {\"unknown-key\": \"report\"}}"
+rule "FR-CHK-160 lowered to a report" 0 "note: "
+# The point of lowering: the gate survives it.
+rule "FR-CHK-160 a report does not fail --strict" 0 "note: " --strict
+
+config "{$BASE, \"rules\": {\"unknown-key\": \"off\"}}"
+silent "FR-CHK-160 silenced says nothing" 0 "unknown field"
+
+# One requirement may excuse itself while the rule stays on for the rest.
+config "{$BASE}"
+spec < <(block FR-CORE-010 "Excuses itself by name" \
+               "$UNKNOWN
+exempt: [unknown-key]" 'The system **shall** act.')
+silent "FR-CHK-160 exempt in the block" 0 "unknown field"
+
+# The shape is a list, and the advice names a rule rather than a
+# requirement — the field holds rule names, and a suggestion pointing at the
+# wrong vocabulary sends the reader to the wrong page of the standard.
+spec < <(block FR-CORE-010 "Exempt is not a list" \
+               "$UNKNOWN
+exempt: unknown-key" 'The system **shall** act.')
+rule "FR-CHK-160 exempt must be a list" 1 \
+     "exempt must be a bracketed list, e.g. [unknown-key]"
+
+# A name nobody knows is refused rather than ignored — in the block…
+spec < <(block FR-CORE-010 "Excuses itself from nothing" \
+               "$UNKNOWN
+exempt: [no-such-rule]" 'The system **shall** act.')
+rule "FR-CHK-160 unknown name in exempt" 1 "exempt names an unknown rule"
+
+# …and in the configuration, where it is a refusal to start at all.
+spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
+config "{$BASE, \"rules\": {\"no-such-rule\": \"off\"}}"
+rule "FR-CHK-160 unknown name in config" 2 "names an unknown rule"
+config "{$BASE, \"rules\": {\"unknown-key\": \"loud\"}}"
+rule "FR-CHK-160 unknown severity" 2 "must be one of"
+config "{$BASE, \"rules\": []}"
+rule "FR-CHK-160 rules is not an object" 2 "rules must be an object"
+config "{$BASE}"
+
 # The backdrop itself has to pass, or every fixture above proved nothing.
 spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
 rule "the valid specification passes" 0 "Requirements: 1"

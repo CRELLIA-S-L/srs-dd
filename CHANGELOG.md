@@ -20,6 +20,11 @@ embedded in `tools/srs_check.py` as `__version__`.
   does not know stays a warning — which is what lets a later version add
   one without breaking a specification written against an earlier one
   (IF-SPEC-010, FR-CHK-170).
+- What a rule costs is the project's to set. Every rule short of an error
+  now carries a name, and `rules` in `specs/srs-config.json` lowers one to
+  a note that never fails `--strict`, or silences it; a single requirement
+  excuses itself with `exempt: [rule-name]` in its own block, where the
+  excuse is diffed in review and shows on the page (FR-CHK-160, ADR-0008).
 - A retired key is reported by name. Where a later version of the format
   renames or withdraws one, the checker says which version did it and what
   replaced it; the framework never rewrites your specification, it tells

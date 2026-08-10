@@ -8,9 +8,9 @@ Total requirements: 85.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 10 |
+| `deferred` | 9 |
 | `partial` | 2 |
-| `implemented` | 73 |
+| `implemented` | 74 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification
@@ -35,7 +35,7 @@ Total requirements: 85.
 | **FR-CHK-130** A baseline tag without a log entry is reported | `implemented` | T | `tools/srs_check.py` | `tests/installer-smoke.sh` |
 | **FR-CHK-140** A realized requirement with no test is reported | `deferred` | T | — | — |
 | **FR-CHK-150** A requirement no link touches is reported | `deferred` | T | — | — |
-| **FR-CHK-160** What a rule costs is the project's to set | `deferred` | T | — | — |
+| **FR-CHK-160** What a rule costs is the project's to set | `implemented` | T | `tools/srs_check.py`<br>`tools/srs_view.py` | `tests/checker-rules.sh` |
 | **FR-CHK-170** A missing required key is named as missing | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-180** A retired key is reported with what replaced it | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CI-010** The matrix is compared, not trusted | `implemented` | T | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`.github/workflows/srs.yml` | `tests/spec-check.sh` |
