@@ -30,7 +30,11 @@ executes every suite in `tests/` rather than a copy of them.
 
 | Requirement | Measurement | Date |
 |---|---|---|
+| NFR-CHK-010 | 52 ms by the same method, after five rules were added — the required-key and retired-key checks, the two reports on tests and links, and the routing that gives every rule a severity | 2026-08-11 |
 | NFR-CHK-010 | A generated specification of 500 requirements validates in 45 ms wall clock, interpreter startup included (`--no-write`, Python 3.14, Apple silicon) | 2026-08-06 |
+
+Newest first, as in the baseline log. A measurement is not replaced when it
+is retaken: the older row is what the newer one is a change from.
 
 ## Known gap
 
