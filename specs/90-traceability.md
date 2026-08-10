@@ -8,9 +8,9 @@ Total requirements: 85.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 12 |
-| `partial` | 3 |
-| `implemented` | 70 |
+| `deferred` | 10 |
+| `partial` | 2 |
+| `implemented` | 73 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification
@@ -36,8 +36,8 @@ Total requirements: 85.
 | **FR-CHK-140** A realized requirement with no test is reported | `deferred` | T | — | — |
 | **FR-CHK-150** A requirement no link touches is reported | `deferred` | T | — | — |
 | **FR-CHK-160** What a rule costs is the project's to set | `deferred` | T | — | — |
-| **FR-CHK-170** A missing required key is named as missing | `deferred` | T | — | — |
-| **FR-CHK-180** A retired key is reported with what replaced it | `deferred` | T | — | — |
+| **FR-CHK-170** A missing required key is named as missing | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-180** A retired key is reported with what replaced it | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CI-010** The matrix is compared, not trusted | `implemented` | T | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`.github/workflows/srs.yml` | `tests/spec-check.sh` |
 | **FR-CI-020** The same gate runs before a commit | `implemented` | I | `ci/pre-commit`<br>`.githooks/pre-commit`<br>`tools/ci_selftest.sh` | — |
 | **FR-CI-030** The local self-test runs the real pipeline | `implemented` | I | `tools/ci_selftest.sh` | — |
@@ -93,7 +93,7 @@ Total requirements: 85.
 | **IF-CI-010** Exit codes of the installer | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
 | **IF-CI-020** Exit codes of the checker | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh` |
 | **IF-SKILL-010** The published entry point for an agent | `implemented` | I | `.claude/skills/srs-init/SKILL.md`<br>`README.md` | — |
-| **IF-SPEC-010** The requirement block is a stable format | `partial` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
+| **IF-SPEC-010** The requirement block is a stable format | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-010** Identifiers are immutable and never reused | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-020** Links are stored in one direction only | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-030** A baseline and a release are separate acts | `implemented` | T | `tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`specs/README.md` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
@@ -159,7 +159,7 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-SKILL-040** (`implemented`, method `I`) — Setup brings two decisions back to the maintainer
 - **FR-SKILL-050** (`implemented`, method `I`) — An audit reports, it does not repair
 - **IF-SKILL-010** (`implemented`, method `I`) — The published entry point for an agent
-- **IF-SPEC-010** (`partial`, method `I`) — The requirement block is a stable format
+- **IF-SPEC-010** (`implemented`, method `I`) — The requirement block is a stable format
 - **INV-SPEC-010** (`implemented`, method `I`) — Identifiers are immutable and never reused
 - **INV-SPEC-020** (`implemented`, method `I`) — Links are stored in one direction only
 - **NFR-CHK-010** (`implemented`, method `A`) — Validation stays under a second at 500 requirements

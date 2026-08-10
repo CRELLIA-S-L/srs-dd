@@ -355,14 +355,14 @@ heavier of the two admissions.
 ### FR-CHK-170 — A missing required key is named as missing
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 Where a requirement omits a key the format requires, the checker **shall**
@@ -378,14 +378,14 @@ values.
 ### FR-CHK-180 — A retired key is reported with what replaced it
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [IF-SPEC-010]
 depends_on: [FR-CHK-170]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 Where a requirement uses a key a later version of the format renamed or

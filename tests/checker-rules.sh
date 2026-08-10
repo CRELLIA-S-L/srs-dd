@@ -203,7 +203,60 @@ printf 'not json at all\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 unparsable" 2 "invalid JSON"
 mv "$LAB/specs/srs-config.json.bak" "$LAB/specs/srs-config.json"
 
+# --- FR-CHK-170: a key that is absent is named as absent, not reported
+# --- through the value it does not have.
+spec < <(block FR-CORE-010 "No verification method" \
+               "${META/verification: I/}" 'The system **shall** act.')
+rule "FR-CHK-170 names the missing key" 1 \
+     "required key 'verification' is missing"
+silent "FR-CHK-170 does not blame the value" 1 "method '' is not one of"
+
+# --- FR-CHK-180: a key a later version of the format retired is an error
+# --- naming what replaced it and when. The table is empty until the format
+# --- first moves, so the fixture supplies an entry and runs the real path.
+spec < <(block FR-CORE-010 "Uses a key that was renamed" \
+               "$META
+depends: [FR-CORE-020]" 'The system **shall** act.'
+         block FR-CORE-020 "The other one" "$META" \
+               'The system **shall** respond.')
+rc=0
+( cd "$LAB" && python3 -c "
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import srs_check
+srs_check.RETIRED_FIELDS['depends'] = ('depends_on', '9.9.9')
+sys.exit(srs_check.main())
+" --no-write ) > /tmp/srs-rules.log 2>&1 || rc=$?
+test "$rc" -eq 1 || { echo "FAIL FR-CHK-180 — exit $rc, expected 1"
+                      cat /tmp/srs-rules.log; exit 1; }
+grep -qF "key 'depends' was renamed to 'depends_on' in 9.9.9" \
+     /tmp/srs-rules.log || { echo "FAIL FR-CHK-180 — wrong message"
+                             cat /tmp/srs-rules.log; exit 1; }
+# A retired key is an error, so it must not also be reported as merely
+# unknown — the reader would be told two different things about one key.
+grep -qF "unknown field 'depends'" /tmp/srs-rules.log \
+    && { echo "FAIL FR-CHK-180 — also called it unknown"; exit 1; }
+passes=$((passes + 2))
+
+# A key that was withdrawn without a replacement says so instead of naming
+# one that does not exist.
+rc=0
+( cd "$LAB" && python3 -c "
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import srs_check
+srs_check.RETIRED_FIELDS['depends'] = (None, '9.9.9')
+sys.exit(srs_check.main())
+" --no-write ) > /tmp/srs-rules.log 2>&1 || rc=$?
+grep -qF "key 'depends' was withdrawn in 9.9.9" /tmp/srs-rules.log \
+    || { echo "FAIL FR-CHK-180 withdrawn — wrong message"
+         cat /tmp/srs-rules.log; exit 1; }
+passes=$((passes + 1))
+
 # The backdrop itself has to pass, or every fixture above proved nothing.
+spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
 rule "the valid specification passes" 0 "Requirements: 1"
 
 echo "checker-rules: $passes fixtures pass"

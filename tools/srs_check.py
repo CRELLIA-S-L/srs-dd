@@ -104,6 +104,18 @@ LIST_FIELDS = LINK_FIELDS + ("code", "tests")
 SCALAR_FIELDS = ("status", "verification", "superseded_by")
 KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 
+# Of the known keys, the ones a requirement must carry. Everything else is
+# optional, and a key that is neither is not an error (IF-SPEC-010): that is
+# what lets a later version of the format add one without breaking a
+# specification written against an earlier version.
+REQUIRED_FIELDS = ("status", "verification")
+
+# Keys a later version of the format renamed or withdrew, as
+# {old: (replacement or None, version)}. Empty until the format first
+# moves. The checker reports them; it never rewrites a specification —
+# that belongs to the project (ADR-0009).
+RETIRED_FIELDS = {}
+
 
 def _alternation(words):
     return "|".join(re.escape(w) for w in words)
@@ -414,16 +426,30 @@ def validate(requirements):
             errors.append("%s — requirement has no title" % req.where)
 
         for key in req.meta:
-            if key not in KNOWN_FIELDS:
+            if key in RETIRED_FIELDS:
+                replacement, version = RETIRED_FIELDS[key]
+                errors.append(
+                    "%s — key %r was %s in %s"
+                    % (req.where, key,
+                       "renamed to %r" % replacement if replacement
+                       else "withdrawn", version))
+            elif key not in KNOWN_FIELDS:
                 warnings.append("%s — unknown field %r" % (req.where, key))
 
+        # A key that is absent is named as absent. Reporting it through the
+        # value check instead — "status '' is not one of" — describes the
+        # symptom and hides the cause.
+        missing = set(key for key in REQUIRED_FIELDS if key not in req.meta)
+        for key in sorted(missing):
+            errors.append("%s — required key %r is missing" % (req.where, key))
+
         status = req.meta.get("status", "")
-        if status not in STATUSES:
+        if "status" not in missing and status not in STATUSES:
             errors.append("%s — status %r is not one of %s"
                           % (req.where, status, "/".join(STATUSES)))
 
         verification = req.meta.get("verification", "")
-        if verification not in VERIFICATIONS:
+        if "verification" not in missing and verification not in VERIFICATIONS:
             errors.append("%s — verification method %r is not one of %s"
                           % (req.where, verification, "/".join(VERIFICATIONS)))
 

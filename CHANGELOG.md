@@ -15,6 +15,15 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Added
 
+- The metadata block declares which keys are required. `status` and
+  `verification` are; everything else is optional, and a key the checker
+  does not know stays a warning — which is what lets a later version add
+  one without breaking a specification written against an earlier one
+  (IF-SPEC-010, FR-CHK-170).
+- A retired key is reported by name. Where a later version of the format
+  renames or withdraws one, the checker says which version did it and what
+  replaced it; the framework never rewrites your specification, it tells
+  you what to change (FR-CHK-180, ADR-0009).
 - A requirement is reachable from every view of the page. Links in the
   dashboard and in a baseline comparison, and nodes in the graph, now open
   the requirement they name — switching to the view that renders it and
@@ -43,6 +52,9 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Fixed
 
+- Omitting a required key is answered by naming it. `verification` left out
+  used to be reported as `method '' is not one of T/D/I/A`, which describes
+  the symptom and hides the cause (FR-CHK-170).
 - A baseline is no longer reported from a checkout that cannot hold it.
   Given a shallow clone — or a history that was squashed or imported —
   `srs_view.py` answered every baseline with the one commit it had, so the
