@@ -66,6 +66,14 @@ The form is deliberately boring and standards-based — **ISO/IEC/IEEE 29148**
 for the structure, requirement attributes and traceability, **EARS** for the
 statement patterns, **MADR** for the decision log — and that is the point:
 
+- **Finding what a change touches stops depending on the size of the
+  system.** `srs_view.py --code src/app.py` names the requirements that
+  describe that file; `srs_view.py FR-CORE-020` then resolves one of them
+  in both directions — what it derives from, and what breaks if it changes.
+  Neither is a search across the codebase. The work becomes proportional to
+  the neighbourhood of the change rather than to the size of the project,
+  which is where the time and the tokens of every fix, every review and
+  every "why is this here" actually go.
 - **Traceability is enforced, not agreed on.** The matrix is a committed
   artifact; CI regenerates it and compares byte-for-byte.
 - **Requirements have immutable identifiers and a lifecycle.** Superseded
@@ -73,7 +81,7 @@ statement patterns, **MADR** for the decision log — and that is the point:
 - **The specification can be written in any language.** The tooling reads
   the modal verbs it enforces from a per-project lexicon —
   [docs/multilingual.md](docs/multilingual.md).
-- **Nothing to install.** Two dependency-free Python scripts in your
+- **Nothing to install.** Four dependency-free Python scripts in your
   repository; no server, no database, no toolchain.
 - **Agent-agnostic, and optional.** `AGENTS.md` is read natively by Cursor,
   Codex, Gemini CLI and Copilot; the skills are plain markdown; a team
