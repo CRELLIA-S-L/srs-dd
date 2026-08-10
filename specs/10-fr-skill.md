@@ -59,7 +59,7 @@ to prevent.
 status: implemented
 verification: I
 derives_from: []
-depends_on: []
+depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-harvest/SKILL.md]
@@ -101,7 +101,7 @@ happens to be driving the agent.
 status: implemented
 verification: I
 derives_from: []
-depends_on: []
+depends_on: [FR-VIEW-040]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-audit/SKILL.md]

@@ -214,7 +214,7 @@ compilation traceback, which tells the user nothing about what to fix.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
@@ -272,41 +272,47 @@ halfway written does not block the work; `--strict`, which the gate runs,
 closes it. Nothing is reported where git or the tags are absent: a project
 that never tags is keeping a perfectly good log.
 
-### FR-CHK-140 — A realized requirement with no test is reported
+### FR-CHK-140 — A requirement verified by test and carrying none is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
-Where a requirement is `implemented` or `partial` and lists no test, the
-checker **shall** report it as a warning naming the requirement.
+Where a requirement is `implemented` or `partial`, says it is verified by
+test, and lists none, the checker **shall** report it as a warning naming
+the requirement.
 
 **Rationale.** The data has been collected all along and shown only to
 whoever asked for `--coverage` — a report nobody runs on the way to a
-commit. This project's own specification has twenty-nine such requirements
-and a green gate, which is the argument: a fact worth reporting is worth
-reporting where it is read. A warning rather than an error because a
-verification method other than `T` is legitimate and common, and because a
-project mid-harvest would otherwise be unable to commit at all.
+commit. A fact worth reporting is worth reporting where it is read.
+
+Only where the method is `T`, and that is the whole difference between a
+rule with a bottom and noise. Of the twenty-nine requirements in this
+project's own specification that listed no test, ten said `T` — those were
+violations of ART-050, and the harness that verifies the checker's rules
+cleared them. The other nineteen say `I` or `A` and will never carry a
+test, by design; reported, they would be nineteen permanent warnings
+burying the ten that meant something. A warning rather than an error
+because a project mid-harvest would otherwise be unable to commit at all.
 
 ### FR-CHK-150 — A requirement no link touches is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 Where a requirement neither links to another nor is linked to by one, the

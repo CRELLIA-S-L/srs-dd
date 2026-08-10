@@ -20,6 +20,13 @@ embedded in `tools/srs_check.py` as `__version__`.
   does not know stays a warning — which is what lets a later version add
   one without breaking a specification written against an earlier one
   (IF-SPEC-010, FR-CHK-170).
+- A requirement that says it is verified by test and lists none is
+  reported. Only where the method is `T` — one verified by inspection or
+  analysis has no test by design, and reporting those would bury the ones
+  that mean something (FR-CHK-140).
+- A requirement no link touches is reported. Total isolation is the one
+  case where a forgotten link shows: the checker can prove that what is
+  written resolves, never that something was left out (FR-CHK-150).
 - What a rule costs is the project's to set. Every rule short of an error
   now carries a name, and `rules` in `specs/srs-config.json` lowers one to
   a note that never fails `--strict`, or silences it; a single requirement
@@ -72,6 +79,13 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Upgrade notes
 
+- Two new rules may report on your specification the first time you upgrade:
+  a requirement claiming `verification: T` with an empty `tests` field, and
+  one no link touches. Both are warnings, so only a `--strict` gate fails on
+  them. Fill the field or the link where the report is right, and where it
+  is not, lower the rule in `specs/srs-config.json` or excuse the one
+  requirement with `exempt: [test-missing]` or `exempt: [unlinked]` in its
+  own block.
 - Your rendered page shows baselines only where CI checks out the whole
   history. Refresh the shipped CI template with `python3
   tools/srs_upgrade.py --force`, or add it by hand: `fetch-depth: 0` under

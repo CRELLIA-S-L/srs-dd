@@ -58,6 +58,7 @@ RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
 # same one-way property as a metadata key: adding one is compatible,
 # renaming one is not (ADR-0009).
 RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
+         "test-missing", "unlinked",
          "annotation-unknown-area", "annotation-superseded",
          "annotation-unlisted", "baseline-without-row")
 
@@ -568,6 +569,19 @@ def validate(requirements):
                                  "%s — %s requirement rests on draft %s "
                                  "(%s): approve or revisit it"
                                  % (req.where, status, target, field), req)
+        # Only where the method is `T`: a requirement verified by
+        # inspection or analysis has no test by design, and reporting those
+        # would bury the ones that mean something. Read from this
+        # requirement — this loop rebinds `req` and `status`, and reusing
+        # the first loop's `verification` would judge all of them by the
+        # last one's method.
+        if status in ("implemented", "partial") \
+                and req.meta.get("verification") == "T" \
+                and not req.meta.get("tests"):
+            rule_finding(warnings, reports, "test-missing",
+                         "%s — %s says verification T and lists no test"
+                         % (req.where, req.id), req)
+
         replacement = req.meta.get("superseded_by", "")
         if replacement:
             if replacement not in by_id:
@@ -575,6 +589,25 @@ def validate(requirements):
                               % (req.where, replacement))
             elif replacement == req.id:
                 errors.append("%s — requirement links to itself" % req.where)
+
+    # Total isolation is the one case where a missing link shows: the
+    # checker can prove that what is written resolves, never that something
+    # was left out.
+    touched = set()
+    for req in requirements:
+        for field in LINK_FIELDS:
+            for target in req.meta.get(field, []):
+                touched.add(req.id)
+                touched.add(target)
+        replacement = req.meta.get("superseded_by", "")
+        if replacement:
+            touched.add(req.id)
+            touched.add(replacement)
+    for req in requirements:
+        if req.id not in touched:
+            rule_finding(warnings, reports, "unlinked",
+                         "%s — %s is linked to nothing, and nothing links "
+                         "to it" % (req.where, req.id), req)
 
     for field in ("derives_from", "refines"):
         for cycle in find_cycles(requirements, field):

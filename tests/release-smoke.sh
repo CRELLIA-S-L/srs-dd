@@ -17,9 +17,12 @@ git config user.name CI
 # one and the tree it starts from is a known state.
 cp "$FRAMEWORK/tools/srs_release.py" "$FRAMEWORK/tools/srs_view.py" \
    "$FRAMEWORK/tools/srs_check.py" tools/
-# The baseline log too: the command runs the checker under --strict, and a
-# clone taken mid-change inherits whatever that log is missing.
-cp "$FRAMEWORK/specs/92-baselines.md" specs/
+# The specification too, and not only the baseline log: the command runs
+# the checker under --strict, and a working-tree checker judging a
+# committed specification is a pair that never existed. A commit that adds
+# a rule and the links it asks for would otherwise fail here on its own
+# way in.
+cp "$FRAMEWORK"/specs/*.md "$FRAMEWORK"/specs/*.json specs/
 # And regenerate the matrix: the copied files are new to this clone's
 # specification, and the command refuses on a matrix that is not fresh.
 python3 tools/srs_check.py >/dev/null

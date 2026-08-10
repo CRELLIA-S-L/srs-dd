@@ -68,7 +68,7 @@ looks complete.
 status: implemented
 verification: A
 derives_from: []
-depends_on: []
+depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]

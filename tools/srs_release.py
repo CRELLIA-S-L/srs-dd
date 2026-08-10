@@ -49,6 +49,25 @@ def fail(message):
     return 2
 
 
+def run_checker(*flags):
+    """Runs the checker; returns None when it passes and its own output
+    when it does not.
+
+    Captured rather than inherited so a refusal carries the reasons with
+    it: the verdict goes to stderr and the checker's findings to stdout,
+    and whoever redirects one of the two is otherwise told that something
+    is wrong without being told what.
+    """
+    probe = subprocess.Popen([sys.executable, CHECKER] + list(flags),
+                             cwd=ROOT, stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+    output = probe.communicate()[0].decode("utf-8", "replace")
+    if probe.returncode == 0:
+        sys.stdout.write(output)
+        return None
+    return output.rstrip()
+
+
 def read(path):
     with open(path, "r", encoding="utf-8") as handle:
         return handle.read()
@@ -88,9 +107,10 @@ def main():
 
     # The checker regenerates the matrix, so it runs before the edits:
     # everything then goes into one commit.
-    if subprocess.call([sys.executable, CHECKER, "--strict"],
-                       cwd=ROOT) != 0:
-        return fail("the checker does not pass; nothing was written")
+    checked = run_checker("--strict")
+    if checked is not None:
+        return fail("the checker does not pass; nothing was written\n%s"
+                    % checked)
 
     checker_source = read(CHECKER)
     bumped = re.sub(r'^__version__ = "[^"]+"',
@@ -107,10 +127,12 @@ def main():
 
     write(CHANGELOG, dated)
     write(CHECKER, bumped)
-    if subprocess.call([sys.executable, CHECKER], cwd=ROOT) != 0:
+    checked = run_checker()
+    if checked is not None:
         return fail("the checker failed after the edits; they are still in "
-                    "the working tree — undo them with\n  git checkout -- %s"
-                    % " ".join(relative(path) for path in TOUCHED))
+                    "the working tree — undo them with\n  git checkout -- "
+                    "%s\n%s"
+                    % (" ".join(relative(path) for path in TOUCHED), checked))
 
     sys.stdout.write(
         "\nPrepared. Commit %s — that commit is the release.\n"

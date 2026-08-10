@@ -135,6 +135,7 @@ refines: []
 conflicts_with: []
 code: []
 tests: []
+exempt: [unlinked]
 ```
 
 When the application is launched for the first time, the system
@@ -143,6 +144,12 @@ When the application is launched for the first time, the system
 **%(marker)s.** A placeholder showing the shape of a requirement: metadata
 above, one bolded modal verb, rationale below. Delete it once you have
 real requirements.
+
+The `exempt` line excuses this one requirement from the `unlinked` rule,
+which reports a requirement no link touches — true of the first one in any
+project, and of almost none after that. Delete the line along with the
+placeholder; the rules a project can tune this way are listed in the
+Configuration section of `specs/README.md`.
 """
 
 

@@ -8,9 +8,9 @@ Total requirements: 85.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 9 |
+| `deferred` | 7 |
 | `partial` | 2 |
-| `implemented` | 74 |
+| `implemented` | 76 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification
@@ -33,8 +33,8 @@ Total requirements: 85.
 | **FR-CHK-110** Code blocks are opaque | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-120** Strict mode | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
 | **FR-CHK-130** A baseline tag without a log entry is reported | `implemented` | T | `tools/srs_check.py` | `tests/installer-smoke.sh` |
-| **FR-CHK-140** A realized requirement with no test is reported | `deferred` | T | — | — |
-| **FR-CHK-150** A requirement no link touches is reported | `deferred` | T | — | — |
+| **FR-CHK-140** A requirement verified by test and carrying none is reported | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-150** A requirement no link touches is reported | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-160** What a rule costs is the project's to set | `implemented` | T | `tools/srs_check.py`<br>`tools/srs_view.py` | `tests/checker-rules.sh` |
 | **FR-CHK-170** A missing required key is named as missing | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-180** A retired key is reported with what replaced it | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -109,18 +109,19 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 
 | Requirement | Referenced by |
 |---|---|
+| **CON-SPEC-010** | FR-VIEW-080 (depends_on) |
 | **FR-CHK-010** | INV-SPEC-010 (depends_on) |
 | **FR-CHK-030** | FR-CHK-040 (depends_on), FR-CHK-150 (depends_on), INV-SPEC-020 (depends_on) |
 | **FR-CHK-050** | CON-SPEC-010 (depends_on), FR-CHK-080 (depends_on) |
 | **FR-CHK-060** | FR-CHK-140 (depends_on) |
-| **FR-CHK-070** | FR-CHK-120 (depends_on), FR-CHK-130 (depends_on) |
+| **FR-CHK-070** | FR-CHK-120 (depends_on), FR-CHK-130 (depends_on), FR-SKILL-030 (depends_on) |
 | **FR-CHK-090** | FR-CHK-020 (depends_on), FR-CHK-100 (depends_on), FR-INIT-090 (depends_on) |
 | **FR-CHK-120** | FR-CHK-160 (depends_on), IF-CI-020 (depends_on) |
 | **FR-CHK-170** | FR-CHK-180 (depends_on) |
 | **FR-CI-010** | CON-SPEC-010 (depends_on), FR-CI-020 (derives_from), FR-CI-060 (derives_from) |
-| **FR-CI-020** | FR-CI-030 (derives_from) |
+| **FR-CI-020** | FR-CI-030 (derives_from), FR-INIT-080 (depends_on), NFR-CHK-010 (depends_on) |
 | **FR-CI-070** | FR-SKILL-070 (depends_on) |
-| **FR-INIT-010** | FR-INIT-020 (derives_from), FR-INIT-030 (derives_from), FR-INIT-050 (derives_from), FR-INIT-060 (derives_from), FR-INIT-070 (depends_on), IF-CI-010 (depends_on) |
+| **FR-INIT-010** | FR-INIT-020 (derives_from), FR-INIT-030 (derives_from), FR-INIT-050 (derives_from), FR-INIT-060 (derives_from), FR-INIT-070 (depends_on), FR-INIT-100 (depends_on), IF-CI-010 (depends_on) |
 | **FR-INIT-020** | CON-SPEC-020 (depends_on), FR-CI-050 (depends_on), FR-INIT-140 (depends_on), FR-INIT-150 (derives_from) |
 | **FR-INIT-030** | FR-INIT-040 (derives_from) |
 | **FR-INIT-060** | FR-INIT-110 (derives_from), FR-INIT-120 (derives_from) |
@@ -134,11 +135,12 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-SKILL-090** | FR-SKILL-120 (depends_on) |
 | **FR-SPEC-010** | FR-SKILL-080 (depends_on) |
 | **FR-VIEW-010** | FR-VIEW-030 (depends_on) |
+| **FR-VIEW-040** | FR-SKILL-050 (depends_on) |
 | **FR-VIEW-050** | FR-VIEW-100 (derives_from), FR-VIEW-120 (derives_from) |
 | **FR-VIEW-060** | FR-CI-040 (depends_on), FR-SKILL-110 (depends_on), FR-VIEW-070 (depends_on), FR-VIEW-090 (depends_on), FR-VIEW-100 (depends_on), FR-VIEW-110 (depends_on), FR-VIEW-130 (depends_on), FR-VIEW-140 (depends_on), FR-VIEW-150 (depends_on), FR-VIEW-160 (depends_on), NFR-VIEW-010 (depends_on) |
 | **FR-VIEW-120** | FR-SPEC-010 (depends_on) |
 | **FR-VIEW-140** | FR-SKILL-110 (depends_on) |
-| **IF-SPEC-010** | FR-CHK-170 (derives_from), FR-CHK-180 (derives_from) |
+| **IF-SPEC-010** | FR-CHK-110 (depends_on), FR-CHK-170 (derives_from), FR-CHK-180 (derives_from), FR-VIEW-020 (depends_on) |
 | **INV-SPEC-030** | FR-CI-070 (derives_from), FR-SPEC-010 (derives_from), INV-SPEC-040 (derives_from) |
 | **INV-SPEC-040** | CON-SPEC-030 (derives_from) |
 | **NFR-SPEC-010** | NFR-SPEC-020 (derives_from) |

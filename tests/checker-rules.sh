@@ -255,17 +255,74 @@ grep -qF "key 'depends' was withdrawn in 9.9.9" /tmp/srs-rules.log \
          cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
 
+# --- FR-CHK-140: only a requirement that says it is verified by test and
+# --- lists none. Two requirements in one specification, because judging
+# --- them all by one method is exactly how this went wrong once: the check
+# --- sat in a loop that rebinds the requirement but not the method, so a
+# --- single stale value was applied to all eighty-five.
+PARTIAL='status: partial
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []'
+
+spec < <(block FR-CORE-010 "Inspected, and lists no test" "$PARTIAL" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Tested, and lists none" \
+               "${PARTIAL/verification: I/verification: T}" \
+               'The system **shall** respond.')
+rule "FR-CHK-140 names the tested one" 0 \
+     "FR-CORE-020 says verification T and lists no test"
+silent "FR-CHK-140 leaves the inspected one alone" 0 \
+     "FR-CORE-010 says verification T"
+
+# A test listed is a rule satisfied.
+spec < <(block FR-CORE-010 "Tested and says so" \
+               "$(printf '%s' "${PARTIAL/verification: I/verification: T}" \
+                  | sed 's|^tests: \[\]$|tests: [t/probe.sh]|')" \
+               'The system **shall** act.')
+printf 'true\n' > "$LAB/t/probe.sh"
+silent "FR-CHK-140 silent when a test is listed" 0 "lists no test"
+rm -f "$LAB/t/probe.sh"
+
+# --- FR-CHK-150: only total isolation. A requirement at either end of a
+# --- link is not isolated, which is what keeps the rule from firing on
+# --- most of a healthy specification.
+spec < <(block FR-CORE-010 "Points at the other" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Pointed at" "$META" \
+               'The system **shall** respond.'
+         block FR-CORE-030 "Touched by nothing" "$META" \
+               'The system **shall** stand alone.')
+rule "FR-CHK-150 names the isolated one" 0 \
+     "FR-CORE-030 is linked to nothing"
+silent "FR-CHK-150 spares the source of a link" 0 "FR-CORE-010 is linked to"
+silent "FR-CHK-150 spares the target of a link" 0 "FR-CORE-020 is linked to"
+
 # --- FR-CHK-160: what a rule costs is the project's to set. The rule used
 # --- throughout is `unknown-key`, because it needs nothing but a key.
 UNKNOWN='status: deferred
 verification: I
+depends_on: [FR-CORE-020]
 bogus: [x]'
+
+# The partner exists only so that neither requirement is isolated: the
+# `unlinked` rule would otherwise add a warning of its own and the strict
+# runs below would be judging the wrong thing.
+PARTNER='status: deferred
+verification: I'
 
 config() { printf '%s\n' "$1" > "$LAB/specs/srs-config.json"; }
 BASE='"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"]'
 
 spec < <(block FR-CORE-010 "Carries a key nobody knows" "$UNKNOWN" \
-               'The system **shall** act.')
+               'The system **shall** act.'
+         block FR-CORE-020 "The partner" "$PARTNER" \
+               'The system **shall** respond.')
 config "{$BASE}"
 rule "FR-CHK-160 warns by default" 0 "warning: "
 rule "FR-CHK-160 and fails a strict gate" 1 "treated as errors" --strict
@@ -282,7 +339,9 @@ silent "FR-CHK-160 silenced says nothing" 0 "unknown field"
 config "{$BASE}"
 spec < <(block FR-CORE-010 "Excuses itself by name" \
                "$UNKNOWN
-exempt: [unknown-key]" 'The system **shall** act.')
+exempt: [unknown-key]" 'The system **shall** act.'
+         block FR-CORE-020 "The partner" "$PARTNER" \
+               'The system **shall** respond.')
 silent "FR-CHK-160 exempt in the block" 0 "unknown field"
 
 # The shape is a list, and the advice names a rule rather than a
@@ -290,14 +349,18 @@ silent "FR-CHK-160 exempt in the block" 0 "unknown field"
 # wrong vocabulary sends the reader to the wrong page of the standard.
 spec < <(block FR-CORE-010 "Exempt is not a list" \
                "$UNKNOWN
-exempt: unknown-key" 'The system **shall** act.')
+exempt: unknown-key" 'The system **shall** act.'
+         block FR-CORE-020 "The partner" "$PARTNER" \
+               'The system **shall** respond.')
 rule "FR-CHK-160 exempt must be a list" 1 \
      "exempt must be a bracketed list, e.g. [unknown-key]"
 
 # A name nobody knows is refused rather than ignored — in the block…
 spec < <(block FR-CORE-010 "Excuses itself from nothing" \
                "$UNKNOWN
-exempt: [no-such-rule]" 'The system **shall** act.')
+exempt: [no-such-rule]" 'The system **shall** act.'
+         block FR-CORE-020 "The partner" "$PARTNER" \
+               'The system **shall** respond.')
 rule "FR-CHK-160 unknown name in exempt" 1 "exempt names an unknown rule"
 
 # …and in the configuration, where it is a refusal to start at all.
@@ -310,8 +373,38 @@ config "{$BASE, \"rules\": []}"
 rule "FR-CHK-160 rules is not an object" 2 "rules must be an object"
 config "{$BASE}"
 
-# The backdrop itself has to pass, or every fixture above proved nothing.
-spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
-rule "the valid specification passes" 0 "Requirements: 1"
+# --- The refusal carries the reasons. The verdict goes to stderr and the
+# --- checker's findings to stdout, so a caller redirecting one of the two
+# --- used to be told that something was wrong and never what.
+LAB2=/tmp/srs-refusal
+rm -rf "$LAB2"; mkdir -p "$LAB2/tools" "$LAB2/specs"
+cp tools/srs_baseline.py tools/srs_view.py tools/srs_check.py "$LAB2/tools/"
+cp "$LAB/specs/srs-config.json" "$LAB2/specs/"
+printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
+    > "$LAB2/specs/92-baselines.md"
+printf '### FR-CORE-010 — No metadata at all\n' > "$LAB2/specs/10-fr-core.md"
+rc=0
+( cd "$LAB2" && python3 tools/srs_baseline.py 1.0.0 ) \
+    > /dev/null 2> /tmp/srs-refusal.log || rc=$?
+test "$rc" -eq 2 || { echo "FAIL refusal — exit $rc, expected 2"
+                      cat /tmp/srs-refusal.log; exit 1; }
+grep -qF "the checker does not pass" /tmp/srs-refusal.log \
+    || { echo "FAIL refusal — no verdict"; cat /tmp/srs-refusal.log; exit 1; }
+grep -qF "no metadata block" /tmp/srs-refusal.log \
+    || { echo "FAIL refusal — verdict without the reason"
+         cat /tmp/srs-refusal.log; exit 1; }
+rm -rf "$LAB2"
+passes=$((passes + 3))
+
+# The backdrop itself has to pass — and pass a strict gate, or "valid"
+# would mean "valid apart from what we stopped looking at". Two
+# requirements, linked, because one on its own is isolated by definition.
+spec < <(block FR-CORE-010 "Valid, and points at the other" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Valid, and pointed at" "$META" \
+               'The system **shall** respond.')
+rule "the valid specification passes" 0 "Requirements: 2"
+rule "and passes a strict gate" 0 "Requirements: 2" --strict
 
 echo "checker-rules: $passes fixtures pass"

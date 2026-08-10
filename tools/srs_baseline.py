@@ -83,9 +83,19 @@ def main():
                     % (version, relative(BASELINES)))
 
     # The checker also regenerates the matrix, which is why it runs before
-    # the row is written: both files then go into the same commit.
-    if subprocess.call([sys.executable, CHECKER], cwd=ROOT) != 0:
-        return fail("the checker does not pass; nothing was written")
+    # the row is written: both files then go into the same commit. Its
+    # output is captured so the refusal carries the reasons: the verdict
+    # goes to stderr and the findings to stdout, and whoever redirects one
+    # of the two is otherwise told that something is wrong without being
+    # told what.
+    probe = subprocess.Popen([sys.executable, CHECKER], cwd=ROOT,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+    output = probe.communicate()[0].decode("utf-8", "replace")
+    if probe.returncode != 0:
+        return fail("the checker does not pass; nothing was written\n%s"
+                    % output.rstrip())
+    sys.stdout.write(output)
 
     try:
         row = srs_view.baseline_row(version, args.date)

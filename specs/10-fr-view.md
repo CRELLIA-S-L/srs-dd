@@ -29,7 +29,7 @@ computed, so they exist nowhere in the source files.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -154,7 +154,7 @@ the page could never be committed or compared.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]

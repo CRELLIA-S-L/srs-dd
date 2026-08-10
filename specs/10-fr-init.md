@@ -159,7 +159,7 @@ tests.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
@@ -200,7 +200,7 @@ and the skill exists to have that conversation.
 status: implemented
 verification: I
 derives_from: []
-depends_on: []
+depends_on: [FR-INIT-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
