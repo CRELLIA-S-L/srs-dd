@@ -8,9 +8,9 @@ Total requirements: 85.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 7 |
-| `partial` | 2 |
-| `implemented` | 76 |
+| `deferred` | 4 |
+| `partial` | 1 |
+| `implemented` | 80 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification
@@ -79,7 +79,7 @@ Total requirements: 85.
 | **FR-VIEW-030** The derivation tree | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-040** Coverage gaps | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-050** Difference against a baseline | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-060** A page that opens from the filesystem | `partial` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-060** A page that opens from the filesystem | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-070** Deterministic output | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-080** Reading never writes | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-090** The page says what it is showing | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
@@ -87,9 +87,9 @@ Total requirements: 85.
 | **FR-VIEW-110** The graph can be explored | `implemented` | I | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-120** The baseline row is written by the tooling | `implemented` | T | `tools/srs_view.py` | `tests/baseline-smoke.sh` |
 | **FR-VIEW-130** A requirement is reachable from every view | `implemented` | I | `tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-140** The rendered page can be opened where it is made | `deferred` | T | — | — |
-| **FR-VIEW-150** The graph can be narrowed to one requirement's surroundings | `deferred` | I | — | — |
-| **FR-VIEW-160** Every kind of link is drawn, and the reader chooses which | `deferred` | T | — | — |
+| **FR-VIEW-140** The rendered page can be opened where it is made | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-150** The graph can be narrowed to one requirement's surroundings | `implemented` | I | `tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-160** Every kind of link is drawn, and the reader chooses which | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **IF-CI-010** Exit codes of the installer | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
 | **IF-CI-020** Exit codes of the checker | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh` |
 | **IF-SKILL-010** The published entry point for an agent | `implemented` | I | `.claude/skills/srs-init/SKILL.md`<br>`README.md` | — |

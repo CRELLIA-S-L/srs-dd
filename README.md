@@ -56,8 +56,9 @@ written. Softer drift — an annotated file missing from the requirement's
 own field — is a warning, and `--strict` turns warnings into failures too.
 
 `python3 tools/srs_view.py --html` writes one self-contained page: search,
-filters, a status dashboard, a derivation graph you can pan, zoom and pull
-apart, and a comparison of any two baselines. No CDN, no network, opens
+filters, a status dashboard, a graph of every kind of link that you can
+narrow to one requirement's surroundings, pan, zoom and pull apart, and a
+comparison of any two baselines. No CDN, no network, opens
 straight from `file://`.
 
 ## Why this and not another spec-driven tool

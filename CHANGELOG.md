@@ -20,6 +20,16 @@ embedded in `tools/srs_check.py` as `__version__`.
   does not know stays a warning — which is what lets a later version add
   one without breaking a specification written against an earlier one
   (IF-SPEC-010, FR-CHK-170).
+- The graph draws every kind of link, told apart by its own form. Layers
+  still come from `derives_from` and `refines` alone — a layer claims a
+  level of abstraction, and a requirement must not sink because something
+  it needs sits above it (FR-VIEW-160, ADR-0010).
+- The graph can be narrowed to one requirement's surroundings. Pick a root
+  and a distance, and the rest is hidden; a drawing of everything is the
+  one view a specification of any size cannot use (FR-VIEW-150).
+- `srs_view.py --open` renders the page and opens it. It implies `--html`
+  when no path is given, so reading the specification is one word
+  (FR-VIEW-140).
 - A requirement that says it is verified by test and lists none is
   reported. Only where the method is `T` — one verified by inspection or
   analysis has no test by design, and reporting those would bury the ones
@@ -64,6 +74,13 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Fixed
 
+- A wide layer is no longer folded into rows. Wrapping put the eleventh
+  node under the first, nowhere near its parent, discarding the only thing
+  the ordering pass computes; the canvas pans and zooms, so the drawing is
+  free to be wide instead.
+- The graph's node order is settled by sweeping in both directions and
+  swapping adjacent pairs, as `dot` does. One downward sweep left every
+  lower layer at the mercy of whatever the upper one happened to be.
 - Omitting a required key is answered by naming it. `verification` left out
   used to be reported as `method '' is not one of T/D/I/A`, which describes
   the symptom and hides the cause (FR-CHK-170).

@@ -110,7 +110,7 @@ the tag back in the middle of the process.
 ### FR-VIEW-060 — A page that opens from the filesystem
 
 ```yaml
-status: partial
+status: implemented
 verification: T
 derives_from: []
 depends_on: []
@@ -298,14 +298,14 @@ unnoticed when a later change stopped its clicks from firing at all.
 ### FR-VIEW-140 — The rendered page can be opened where it is made
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 ```
 
 Where opening is asked for, the viewer **shall** open the page it has just
@@ -320,14 +320,14 @@ so the tool can carry it once instead of every reader carrying it forever.
 ### FR-VIEW-150 — The graph can be narrowed to one requirement's surroundings
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 ```
 
 When a requirement is chosen as the root, the graph **shall** draw only that
@@ -345,14 +345,14 @@ thrown away instead of becoming the drawing.
 ### FR-VIEW-160 — Every kind of link is drawn, and the reader chooses which
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 ```
 
 The graph **shall** draw each kind of link between requirements in a form

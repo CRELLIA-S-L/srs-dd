@@ -40,6 +40,7 @@ import json                                                # noqa: E402
 import os                                                  # noqa: E402
 import re                                                  # noqa: E402
 import subprocess                                          # noqa: E402
+import webbrowser                                          # noqa: E402
 
 from urllib.parse import quote                              # noqa: E402
 
@@ -914,7 +915,10 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
 .graph .node.dim { opacity: .2; }
 .stage { position: relative; }
 #graph-svg { display: block; width: 100%; height: 70vh; min-height: 320px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
-#graph-reset { position: absolute; right: 8px; top: 8px; font: inherit; font-size: 12px; padding: 2px 8px; cursor: pointer; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; }
+#graph-controls { position: absolute; right: 8px; top: 8px; display: flex; gap: 8px; align-items: center; font-size: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
+#graph-controls select { font: inherit; font-size: 12px; }
+.graph .node.out, .graph .edge.out { display: none; }
+#graph-reset { font: inherit; font: inherit; font-size: 12px; padding: 2px 8px; cursor: pointer; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; }
 #graph-svg:active { cursor: grabbing; }
 #graph-svg.focused .node, #graph-svg.focused .edge { opacity: .25; }
 #graph-svg.focused .node.sel, #graph-svg.focused .node.lit,
@@ -922,8 +926,10 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
 .graph .node.sel rect { stroke-width: 2.5; }
 .graph .edge.lit { stroke: var(--fg); stroke-width: 2; }
 .graph .edge { stroke: var(--muted); fill: none; }
-.graph .edge.refines { stroke-dasharray: 5 3; }
-.graph .edge.back { stroke-dasharray: 1 3; }
+.graph .edge.refines { stroke-dasharray: 6 3; }
+.graph .edge.depends_on { stroke-dasharray: 2 3; }
+.graph .edge.conflicts_with { stroke-dasharray: 8 3 2 3; }
+.graph .edge.back { opacity: .55; }
 footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 12px 20px;
   color: var(--muted); font-size: 12px; }
 [hidden] { display: none !important; }
@@ -1044,6 +1050,52 @@ JS = """
     gsvg.addEventListener('pointerup', release);
     gsvg.addEventListener('pointercancel', release);
 
+    // Narrowing to a root and a radius. A drawing of everything is the one
+    // view a specification of any size cannot use; the tools that solve
+    // this converge on the same answer, a root and a distance from it
+    // (FR-VIEW-150).
+    var rootSel = document.getElementById('graph-root');
+    var depthSel = document.getElementById('graph-depth');
+    var neighbours = {};
+    edges.forEach(function (p) {
+      var a = p.dataset.from, b = p.dataset.to;
+      (neighbours[a] = neighbours[a] || []).push(b);
+      (neighbours[b] = neighbours[b] || []).push(a);
+    });
+
+    function narrow() {
+      var root = rootSel ? rootSel.value : '';
+      if (!root) {
+        Object.keys(nodes).forEach(function (id) {
+          nodes[id].classList.remove('out');
+        });
+        edges.forEach(function (p) { p.classList.remove('out'); });
+        return;
+      }
+      var limit = depthSel ? +depthSel.value : 2;
+      var seen = {}, frontier = [root], step = 0;
+      seen[root] = true;
+      while (step < limit) {
+        var next = [];
+        frontier.forEach(function (id) {
+          (neighbours[id] || []).forEach(function (other) {
+            if (!seen[other]) { seen[other] = true; next.push(other); }
+          });
+        });
+        frontier = next;
+        step += 1;
+      }
+      Object.keys(nodes).forEach(function (id) {
+        nodes[id].classList.toggle('out', !seen[id]);
+      });
+      edges.forEach(function (p) {
+        p.classList.toggle('out',
+          !(seen[p.dataset.from] && seen[p.dataset.to]));
+      });
+    }
+    if (rootSel) { rootSel.addEventListener('change', narrow); }
+    if (depthSel) { depthSel.addEventListener('change', narrow); }
+
     var reset = document.getElementById('graph-reset');
     if (reset) {
       reset.addEventListener('click', function () {
@@ -1118,7 +1170,14 @@ JS = """
         if (a[id][f] !== b[id][f]) fields.push(f);
       });
       LIST_FIELDS.forEach(function (f) {
-        if (a[id][f].join('\u0000') !== b[id][f].join('\u0000')) fields.push(f);
+        // JSON rather than a joined separator. The separator used to
+        // be a unicode escape for NUL, written for JavaScript and
+        // eaten by the Python string that carries this script, so the
+        // page shipped with real NUL bytes in it — enough for grep,
+        // diff and every editor to call it binary.
+        if (JSON.stringify(a[id][f]) !== JSON.stringify(b[id][f])) {
+          fields.push(f);
+        }
       });
       if (fields.length) changed.push([id, b[id].title, fields]);
     });
@@ -1490,7 +1549,6 @@ def render_diff_section(diff):
 # --------------------------------------------------------------------
 
 NODE_W, NODE_H, GAP_X, GAP_Y = 118, 28, 18, 46
-ROW_LIMIT = 10          # boxes per row before a layer wraps
 
 
 def svg_escape(text):
@@ -1500,38 +1558,99 @@ def svg_escape(text):
                 .replace(">", "&gt;").replace('"', "&quot;"))
 
 
-def order_layers(layers, parents):
+def _median_key(node, neighbours, rank):
+    """Where a node wants to sit: the median position of what it is
+    attached to in the neighbouring layer. Nodes with nothing to hang from
+    keep their place, and the name breaks every tie — the drawing has to be
+    identical on every run (FR-VIEW-070)."""
+    spots = sorted(rank[n] for n in neighbours.get(node, []) if n in rank)
+    if not spots:
+        return (1, 0.0, node)              # no anchor: keep it last
+    middle = len(spots) // 2
+    median = (spots[middle] if len(spots) % 2
+              else (spots[middle - 1] + spots[middle]) / 2.0)
+    return (0, median, node)
+
+
+def _crossings(upper, lower, attached):
+    """Edge crossings between two adjacent layers, counted as inversions
+    among the pairs of endpoint positions."""
+    rank_u = dict((n, i) for i, n in enumerate(upper))
+    pairs = []
+    for index, node in enumerate(lower):
+        for other in attached.get(node, []):
+            if other in rank_u:
+                pairs.append((rank_u[other], index))
+    pairs.sort()
+    total = 0
+    for i in range(len(pairs)):
+        for j in range(i + 1, len(pairs)):
+            if pairs[i][1] > pairs[j][1]:
+                total += 1
+    return total
+
+
+def _total_crossings(order, levels, parents):
+    return sum(_crossings(order[levels[i]], order[levels[i + 1]], parents)
+               for i in range(len(levels) - 1))
+
+
+def order_layers(layers, parents, children, passes=8):
     """Nodes within each layer, ordered to pull edges straight.
 
-    The classic layered-drawing heuristic: a node sits at the average
-    position of what it derives from, so lines run down the page instead
-    of across it. Alphabetical order breaks ties and orders whatever has
-    no parent in the layer above — the drawing has to be the same on
-    every run (FR-VIEW-070), so nothing may depend on dictionary order.
+    The layered-drawing heuristic dot uses: sweep the median rule down and
+    then up, swap adjacent pairs wherever that removes a crossing, and keep
+    whichever pass came out best. One downward sweep — what this did
+    before — leaves the lower layers ordered by whatever the upper ones
+    happened to be, and a node with no parent above it stranded at the end.
     """
-    ordered = {}
-    previous = []
-    for level in sorted(layers):
-        members = sorted(layers[level])
-        if previous:
-            rank = dict((node, index) for index, node in enumerate(previous))
-            def barycentre(node):
-                spots = [rank[p] for p in parents.get(node, []) if p in rank]
-                if not spots:
-                    return (1, 0.0, node)      # no anchor: keep it last
-                spots.sort()
-                middle = len(spots) // 2
-                median = (spots[middle] if len(spots) % 2
-                          else (spots[middle - 1] + spots[middle]) / 2.0)
-                return (0, median, node)
-            members.sort(key=barycentre)
-        ordered[level] = members
-        previous = members
-    return ordered
+    levels = sorted(layers)
+    order = dict((level, sorted(layers[level])) for level in levels)
+    best = dict(order)
+    best_score = _total_crossings(order, levels, parents)
+
+    for sweep in range(passes):
+        if sweep % 2 == 0:
+            for level in levels[1:]:
+                rank = dict((n, i) for i, n in enumerate(order[level - 1]))
+                order[level] = sorted(
+                    order[level], key=lambda n: _median_key(n, parents, rank))
+        else:
+            for level in reversed(levels[:-1]):
+                rank = dict((n, i) for i, n in enumerate(order[level + 1]))
+                order[level] = sorted(
+                    order[level], key=lambda n: _median_key(n, children, rank))
+        # Transposition: the median rule is blind to a pair that is simply
+        # the wrong way round.
+        improved = True
+        while improved:
+            improved = False
+            for index in range(len(levels) - 1):
+                upper, lower = levels[index], levels[index + 1]
+                row = order[lower]
+                for i in range(len(row) - 1):
+                    before = _crossings(order[upper], row, parents)
+                    row[i], row[i + 1] = row[i + 1], row[i]
+                    if _crossings(order[upper], row, parents) < before:
+                        improved = True
+                    else:
+                        row[i], row[i + 1] = row[i + 1], row[i]
+        score = _total_crossings(order, levels, parents)
+        if score < best_score:
+            best_score = score
+            best = dict((level, list(order[level])) for level in levels)
+    return best
+
+
+# Which relations claim a level of abstraction, and which merely connect.
+# Layers come from the first group alone: a layer says "higher level", and
+# a requirement must not sink because something it needs sits above it
+# (ADR-0010).
+HIERARCHY_FIELDS = ("derives_from", "refines")
 
 
 def build_graph(model):
-    """Layered layout over derives_from/refines.
+    """Every link drawn; layers from the hierarchy fields alone.
 
     The checker looks for cycles in each field separately, so the union
     of the two can still contain one (A derives_from B, B refines A).
@@ -1542,7 +1661,7 @@ def build_graph(model):
     known = by_id(model)
     edges = []
     for entry in model["requirements"]:
-        for field in ("derives_from", "refines"):
+        for field in LINK_FIELDS:
             for target in entry[field]:
                 if target in known:
                     edges.append((entry["id"], target, field))
@@ -1554,9 +1673,13 @@ def build_graph(model):
         keep = set(nodes)
         edges = [e for e in edges if e[0] in keep and e[1] in keep]
 
+    # Only the hierarchy feeds the layout; the rest is drawn across it.
     parents = {}
-    for child, parent, _field in edges:
-        parents.setdefault(child, []).append(parent)
+    children = {}
+    for child, parent, field in edges:
+        if field in HIERARCHY_FIELDS:
+            parents.setdefault(child, []).append(parent)
+            children.setdefault(parent, []).append(child)
     depth = {}
 
     def resolve(node, stack):
@@ -1583,16 +1706,15 @@ def build_graph(model):
     # scrolls horizontally is a page nobody reads.
     position = {}
     top = 1
-    ordered = order_layers(layers, parents)
+    ordered = order_layers(layers, parents, children)
     for level in sorted(layers):
-        members = ordered[level]
-        rows = 0
-        for index, node in enumerate(members):
-            row, column = divmod(index, ROW_LIMIT)
-            rows = max(rows, row + 1)
-            position[node] = (1 + column * (NODE_W + GAP_X),
-                              top + row * (NODE_H + 10))
-        top += rows * (NODE_H + 10) + GAP_Y
+        # One row per layer. Wrapping a wide layer folded the ordering
+        # into two rows and threw away the only thing it computes — the
+        # eleventh node landed under the first, nowhere near its parent.
+        # The canvas pans and zooms, so the drawing is free to be wide.
+        for index, node in enumerate(ordered[level]):
+            position[node] = (1 + index * (NODE_W + GAP_X), top)
+        top += NODE_H + GAP_Y
     if not position:
         return "", 0
     width = max(x for x, _y in position.values()) + NODE_W + 2
@@ -1613,8 +1735,14 @@ def build_graph(model):
             continue
         cx, cy = position[child]
         px, py = position[parent]
-        back = depth.get(parent, 0) >= depth.get(child, 0)
-        klass = "edge back" if back else "edge %s" % field
+        # The kind is always on the edge: a form that tells one relation
+        # from another is the requirement (FR-VIEW-160), and `back` used to
+        # overwrite it. Only a hierarchy edge can run backwards — it means
+        # a cycle the layout had to break; a `depends_on` pointing upward
+        # is ordinary and says nothing.
+        back = (field in HIERARCHY_FIELDS
+                and depth.get(parent, 0) >= depth.get(child, 0))
+        klass = "edge %s%s" % (field, " back" if back else "")
         parts.append('<path class="%s" data-from="%s" data-to="%s" '
                      'd="M %d %d L %d %d" marker-end="url(#a)"/>'
                      % (klass, svg_escape(child), svg_escape(parent),
@@ -1633,8 +1761,18 @@ def build_graph(model):
                         svg_escape("%s — %s" % (node, entry.get("title", ""))),
                         x, y, NODE_W, NODE_H,
                         x + NODE_W / 2, y + NODE_H / 2 + 4, svg_escape(node)))
-    parts.append('</g></svg><button id="graph-reset" type="button">'
-                 'reset view</button></div>')
+    options = "".join('<option value="%s">%s</option>'
+                      % (svg_escape(node), svg_escape(node)) for node in nodes)
+    parts.append(
+        '</g></svg><div id="graph-controls">'
+        '<label>around <select id="graph-root">'
+        '<option value="">everything</option>%s</select></label> '
+        '<label>within <select id="graph-depth">'
+        '<option value="1">1 link</option>'
+        '<option value="2" selected>2 links</option>'
+        '<option value="3">3 links</option></select></label> '
+        '<button id="graph-reset" type="button">reset view</button>'
+        '</div></div>' % options)
     return "".join(parts), dropped
 
 
@@ -1844,11 +1982,14 @@ def render_page(model, links, diff=None, baselines=None):
             note = ("<p>%d node(s) beyond the first %d are not drawn — the "
                     "layout stops being readable past that.</p>"
                     % (dropped, GRAPH_NODE_LIMIT))
-        graph = ("<p>Solid: <code>derives_from</code>. Dashed: "
-                 "<code>refines</code>. Dotted: a link that closes a cycle "
-                 "across the two, excluded from the layout. Filters dim the "
-                 "nodes; the layout itself is fixed.</p>%s%s" % (note,
-                                                                 graph_svg))
+        graph = ("<p>Solid: <code>derives_from</code>. Long dashes: "
+                 "<code>refines</code>. Short dashes: <code>depends_on</code>."
+                 " Dash-dot: <code>conflicts_with</code>. Layers come from "
+                 "the first two — a layer says \u201chigher level\u201d, and "
+                 "the others are drawn across it; a faded hierarchy edge is "
+                 "one that closes a cycle and takes no part in the layout. "
+                 "Filters dim the nodes; the layout itself is fixed.</p>"
+                 "%s%s" % (note, graph_svg))
 
     documents = "".join('<li><a href="%s">%s</a></li>'
                         % (esc(links.href(path)),
@@ -1972,6 +2113,9 @@ def parse_args(argv):
     parser.add_argument("--html", nargs="?", const=os.path.join(
         DEFAULT_SITE, "index.html"), metavar="PATH",
         help="write a self-contained page (default .srs-site/index.html)")
+    parser.add_argument("--open", action="store_true",
+                        help="open the rendered page in a browser; implies "
+                             "--html when no path is given")
     parser.add_argument("--baseline", metavar="X.Y.Z",
                         help="print the row for specs/92-baselines.md, "
                              "computed against the previous baseline")
@@ -1994,6 +2138,8 @@ def main(argv=None):
         # must not turn reading it into a UnicodeEncodeError.
         sys.stdout.reconfigure(errors="replace")
     args = parse_args(argv)
+    if args.open and args.html is None:
+        args.html = os.path.join(DEFAULT_SITE, "index.html")
     style = Style(sys.stdout)
 
     if not os.path.isdir(SPECS):
@@ -2045,7 +2191,14 @@ def main(argv=None):
                 out("JSON written: %s" % os.path.abspath(args.json))
 
         if args.html is not None:
-            out("Page written: %s" % write_site(model, args.html, diff))
+            written = write_site(model, args.html, diff)
+            out("Page written: %s" % written)
+            if args.open:
+                # Rendering and opening are one act for a reader, and the
+                # command that opens differs by platform; the standard
+                # library knows which, so the tool carries it once instead
+                # of every reader carrying it forever.
+                webbrowser.open("file://" + written)
 
         if args.json is not None or args.html is not None:
             return 0
