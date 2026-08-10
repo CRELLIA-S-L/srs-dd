@@ -64,29 +64,29 @@ steps of 10" and never mentions the ceiling.
 or widen the grammar to four digits — which changes what a released checker
 accepts and therefore needs a version and upgrade notes.
 
-## The checker's rules have no rule-level tests
+## The width of the installer's output belongs to no requirement
 
-**Found:** while harvesting this specification from the code (2026-08-06).
+**Found:** while reviewing the checker-rules suite (2026-08-10).
 
-**What diverged:** every `FR-CHK-*` requirement except FR-CHK-090 and
-FR-CHK-120 carries `verification: T` with an empty `tests` field. The
-existing suites are end-to-end: they prove the checker accepts a valid
-specification, and that the installer and the viewer behave. No test asserts
-that a duplicate identifier, a dangling link, a cycle, a second modal verb or
-a nonexistent path is actually *rejected* — each of those rules could be
-deleted and the pipeline would stay green.
+**What diverged:** `tests/installer-smoke.sh` asserts that everything a
+fresh install prints fits inside a fixed number of columns, and nothing in
+`specs/` says so. The closest requirement, FR-INIT-150, describes *what* the
+installer prints — the procedures, where the first requirement goes, the
+commands, the upgrade — and is silent about how wide. The assertion arrived
+in 0.8.0 with the first-steps block, which had reached 121 columns; the
+comment beside it is the only record of why.
 
-**Why it is recorded rather than fixed:** ART-050 flips a `T` requirement to
-`implemented` in the same edit that adds its test. Writing that suite — a
-fixture per rule, asserting the exit code and the message — is a change of
-its own, not part of harvesting.
+The number itself was never argued: 79 was taken as the classic terminal
+width and has now been raised to 120 by the maintainer, which is exactly the
+kind of change a requirement is supposed to make visible and a test comment
+cannot.
 
-**Status:** the batch was approved on 2026-08-06 and the requirements are
-`implemented`, so the gap is now live: ten `FR-CHK-*` requirements claim
-`verification: T` with nothing in `tests`, which ART-050 does not allow to
-stand.
+**Why it is recorded rather than fixed:** extending FR-INIT-150 to name the
+width is an authoring act, and authoring does not ride along with an
+implementation phase (FR-SKILL-090). The suite keeps the assertion at 120
+meanwhile, so the behaviour is guarded even while the rule is homeless.
 
-**Decision needed:** write `tests/checker-rules.sh` — a fixture per rule
-asserting the exit code and the message — or downgrade the affected
-requirements to `verification: I` if inspection is genuinely the method the
-project intends.
+**Decision needed:** extend FR-INIT-150 to state that the output fits a
+terminal of a stated width, record the width somewhere it can be argued
+with, or drop the assertion if the wrapping does not in fact matter. To be
+taken up when the requirements frozen in baseline 0.12.0 are implemented.

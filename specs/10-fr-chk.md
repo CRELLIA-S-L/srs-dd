@@ -13,7 +13,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If a requirement identifier is repeated or does not match
@@ -33,7 +33,7 @@ depends_on: [FR-CHK-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If the statement of a requirement carries no bolded modal verb from the
@@ -54,7 +54,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If a link field names a requirement that does not exist, or names the
@@ -73,7 +73,7 @@ depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If `derives_from` or `refines` links form a cycle, the checker **shall**
@@ -92,7 +92,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** report as an error a requirement with status
@@ -113,7 +113,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** report as an error a `superseded` requirement without
@@ -133,7 +133,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 When a requirement has status `draft` and a non-empty `code` field, the
@@ -155,7 +155,7 @@ depends_on: [FR-CHK-050]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** cross-check the `implements:` and `verifies:`
@@ -198,7 +198,7 @@ depends_on: [FR-CHK-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If `specs/srs-config.json` is unreadable, is not a JSON object, or holds a
@@ -218,7 +218,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 While parsing a fenced code block, the checker **shall** ignore headings,
@@ -238,7 +238,7 @@ depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: [tests/spec-check.sh]
+tests: [tests/spec-check.sh, tests/checker-rules.sh]
 ```
 
 Where `--strict` is given, the checker **shall** exit non-zero when warnings

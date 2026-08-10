@@ -20,18 +20,18 @@ Total requirements: 85.
 | **CON-SPEC-010** The traceability matrix is generated | `implemented` | T | `tools/srs_check.py`<br>`specs/90-traceability.md` | `tests/spec-check.sh` |
 | **CON-SPEC-020** Nothing of the framework travels into a target | `implemented` | T | `tools/srs_init.py`<br>`skeleton` | `tests/installer-smoke.sh` |
 | **CON-SPEC-030** The tooling does not write git history | `implemented` | T | `tools/srs_baseline.py`<br>`tools/srs_release.py` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
-| **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-030** Links resolve | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-040** No cycles in the derivation graph | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-050** Realized requirements point at real code | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-060** Lifecycle consistency | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-070** Implementation ahead of approval is a warning | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-080** Annotations are cross-checked, never required | `implemented` | T | `tools/srs_check.py` | — |
+| **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-030** Links resolve | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-040** No cycles in the derivation graph | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-050** Realized requirements point at real code | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-060** Lifecycle consistency | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-070** Implementation ahead of approval is a warning | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-080** Annotations are cross-checked, never required | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-090** The lexicon, not a language | `implemented` | T | `tools/srs_check.py` | `tests/adopt-smoke.sh` |
-| **FR-CHK-100** A readable failure for a broken configuration | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-110** Code blocks are opaque | `implemented` | T | `tools/srs_check.py` | — |
-| **FR-CHK-120** Strict mode | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh` |
+| **FR-CHK-100** A readable failure for a broken configuration | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-110** Code blocks are opaque | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-120** Strict mode | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
 | **FR-CHK-130** A baseline tag without a log entry is reported | `implemented` | T | `tools/srs_check.py` | `tests/installer-smoke.sh` |
 | **FR-CHK-140** A realized requirement with no test is reported | `deferred` | T | — | — |
 | **FR-CHK-150** A requirement no link touches is reported | `deferred` | T | — | — |
@@ -147,16 +147,6 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 
 Verified by means other than testing — or the check has not been set up yet.
 
-- **FR-CHK-010** (`implemented`, method `T`) — Well-formed and unique identifiers
-- **FR-CHK-020** (`implemented`, method `T`) — Exactly one bolded modal verb
-- **FR-CHK-030** (`implemented`, method `T`) — Links resolve
-- **FR-CHK-040** (`implemented`, method `T`) — No cycles in the derivation graph
-- **FR-CHK-050** (`implemented`, method `T`) — Realized requirements point at real code
-- **FR-CHK-060** (`implemented`, method `T`) — Lifecycle consistency
-- **FR-CHK-070** (`implemented`, method `T`) — Implementation ahead of approval is a warning
-- **FR-CHK-080** (`implemented`, method `T`) — Annotations are cross-checked, never required
-- **FR-CHK-100** (`implemented`, method `T`) — A readable failure for a broken configuration
-- **FR-CHK-110** (`implemented`, method `T`) — Code blocks are opaque
 - **FR-CI-020** (`implemented`, method `I`) — The same gate runs before a commit
 - **FR-CI-030** (`implemented`, method `I`) — The local self-test runs the real pipeline
 - **FR-CI-040** (`implemented`, method `I`) — The rendered specification is published from the default branch

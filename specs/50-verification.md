@@ -18,9 +18,13 @@ repository.
 | `tests/installer-smoke.sh` | Fresh install, upgrade, dry-run honesty, precious files, hook coexistence, payload isolation |
 | `tests/adopt-smoke.sh` | Adoption of a non-English specification, transactional rollback, dry-run/real parity, refusal on markdown without requirements |
 | `tests/view-smoke.sh` | Every viewer query mode, and the page: content, escaping, no CDN, determinism, no bytecode left behind |
+| `tests/checker-rules.sh` | One fixture per checker rule: the exit code and the message for a broken specification |
+| `tests/upgrade-smoke.sh` | Upgrading a project from an older framework, the version transition and the notes it prints |
+| `tests/baseline-smoke.sh` | Freezing a baseline in a target and in a clone, including a hand-written row and a history too shallow to hold one |
+| `tests/release-smoke.sh` | Preparing a release: refusals, the dry run, and that nothing is committed or tagged |
 
-All four run in CI and locally through `tools/ci_selftest.sh`, which executes
-the pipeline's own job scripts rather than a copy of them.
+All eight run in CI and locally through `tools/ci_selftest.sh`, which
+executes every suite in `tests/` rather than a copy of them.
 
 ## Recorded measurements
 
