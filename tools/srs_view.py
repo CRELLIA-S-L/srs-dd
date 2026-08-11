@@ -957,7 +957,13 @@ JS = """
       nodes[g.dataset.id] = g;
     });
 
-    function apply() {
+    // applyView, not apply: the filters declare an `apply` of their own
+    // at the top level of this script, and a function declared inside a
+    // block is also assigned to the enclosing function's binding of the
+    // same name (Annex B). Two functions named `apply` meant every filter
+    // click moved the graph instead of filtering, silently, for as long
+    // as both existed.
+    function applyView() {
       stage.setAttribute('transform', 'translate(' + view.x + ',' + view.y
         + ') scale(' + view.k + ')');
     }
@@ -1010,7 +1016,7 @@ JS = """
       view.x = at.x - (at.x - view.x) * (k / view.k);
       view.y = at.y - (at.y - view.y) * (k / view.k);
       view.k = k;
-      apply();
+      applyView();
     }, { passive: false });
 
     // Pointer events, not mouse ones: the same code then works for a
@@ -1036,7 +1042,7 @@ JS = """
       last = { x: e.clientX, y: e.clientY };
       var px = unit();
       if (held === 'stage') {
-        view.x += dx / px; view.y += dy / px; apply();
+        view.x += dx / px; view.y += dy / px; applyView();
       } else {
         moveNode(held, dx / (px * view.k), dy / (px * view.k));
       }
@@ -1101,7 +1107,7 @@ JS = """
     if (reset) {
       reset.addEventListener('click', function () {
         view = { x: 0, y: 0, k: 1 };
-        apply();
+        applyView();
       });
     }
 

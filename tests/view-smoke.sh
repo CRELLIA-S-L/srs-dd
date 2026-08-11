@@ -347,6 +347,22 @@ grep -q '^| 0.0.3 | 2026-01-02 | `spec/v0.0.3` |' /tmp/v-row.log
 grep -q '0.0.2' /tmp/v-row.log
 grep -q 'requirements' /tmp/v-row.log
 
+# No two functions in the page's script share a name. One declared inside
+# a block is also assigned to the enclosing function's binding of the same
+# name, so a duplicate silently replaces the other: the graph's transform
+# and the filters were both called `apply`, and every filter click moved
+# the graph instead. Nothing in a browser reports this, and no suite that
+# only reads markup can see it — but the script is text, and text can be
+# counted.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+js = re.search(r'<script>\n(.*?)</script>', page, re.S).group(1)
+names = re.findall(r'\bfunction\s+(\w+)\s*\(', js)
+dupes = sorted({n for n in names if names.count(n) > 1})
+assert not dupes, 'two functions share a name: %s' % dupes
+PY2
+
 # The page is text. A NUL byte makes grep, diff and every editor treat it
 # as binary — and it got there because an escape written for JavaScript was
 # eaten by the Python string carrying the script.

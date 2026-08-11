@@ -79,6 +79,11 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Fixed
 
+- The filters work again. The graph's transform function and the filters'
+  were both called `apply`, and a function declared inside a block is also
+  assigned to the enclosing function's binding of the same name — so every
+  click on a status, type or area chip moved the graph a little and
+  filtered nothing. Silently, in every page this framework has rendered.
 - A wide layer is no longer folded into rows. Wrapping put the eleventh
   node under the first, nowhere near its parent, discarding the only thing
   the ordering pass computes; the canvas pans and zooms, so the drawing is
