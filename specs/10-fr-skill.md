@@ -296,10 +296,10 @@ self-contained and can simply be sent to somebody, `--repo-url` is what makes
 its links to the code work, and CI publishes the same page from the default
 branch so a link may already exist.
 
-### FR-SKILL-120 — The authoring procedure judges what no checker reaches
+### FR-SKILL-120 — Whoever writes a statement judges what no checker reaches
 
 ```yaml
-status: implemented
+status: partial
 verification: I
 derives_from: []
 depends_on: [FR-SKILL-090]
@@ -309,16 +309,47 @@ code: [.claude/skills/srs-new/SKILL.md]
 tests: []
 ```
 
-When a statement is written, the authoring procedure **shall** judge it
-against the qualities no checker reaches — one capability, verifiable, and
-free of vague wording — and say what it found before the requirement is
-recorded.
+When a statement is written or reworded, the procedure doing so **shall**
+judge it against the qualities no checker reaches — one capability,
+verifiable, unambiguous, and about behavior rather than implementation — and
+say what it found before the text is recorded.
 
 **Rationale.** A specification may be written in any language, so a word
 list is the wrong instrument: what reads as vague depends on the sentence,
 not on the vocabulary, and a script strict enough to catch "as needed" would
 reject half of a language it does not know. An agent reads the sentence and
 can judge it, and that judgement is the only thing standing between a
-requirement and a statement nobody can test. It belongs to authoring rather
-than to audit because the cost of fixing a statement is lowest before
-anything derives from it.
+requirement and a statement nobody can test. It stays out of audit because
+the cost of fixing a statement is lowest before anything derives from it —
+but a statement enters through more doors than the authoring dialog. One is
+mined from code in a batch, another is reworded while the loop is closed
+around changed behavior, and both land in the same file at the same cost.
+Guarding one door and leaving two open protects the requirements least
+likely to be wrong.
+
+### FR-SKILL-140 — The declared method is checked against the statement
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: []
+refines: [FR-SKILL-120]
+conflicts_with: []
+code: []
+tests: []
+```
+
+When a verification method is chosen, the authoring procedure **shall**
+report a statement that the chosen method has no way to confirm, before the
+requirement is recorded.
+
+**Rationale.** The method is asked for after the sentence is settled, and the
+dialog never comes back to it, so `T` gets declared over a statement no test
+could assert. Nothing catches that: the checker only sees that the `tests`
+field is empty, and it says so long afterwards, when the requirement is
+already built and somebody has to write a test that cannot be written. The
+two are on the table together in exactly one step, which is where the
+question costs nothing. It is narrower than the judgement it refines:
+FR-SKILL-120 asks whether anyone could confirm the statement, this asks
+whether the declared method can.
