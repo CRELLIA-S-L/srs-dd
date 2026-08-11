@@ -11,9 +11,11 @@ LEXICON=(--modal-verbs "должен,должна,должно,должны,сл
 
 rm -rf /tmp/srs-adopt /tmp/srs-docs
 
-# Fabricate a minimal existing Russian SRS.
+# Fabricate a minimal existing Russian SRS. Two requirements, linked: one
+# on its own is isolated by definition, and the `unlinked` rule would then
+# be reporting the fixture rather than anything about adoption.
 mkdir -p /tmp/srs-adopt/specs
-printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** сохранять файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
+printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-APP-020]\n```\n\nСистема **должна** сохранять файл.\n\n### FR-APP-020 — Второе требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** открывать файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
 find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
 
 # Adopt under --dry-run lists the install and leaves the tree alone.

@@ -21,7 +21,11 @@ guides:
 | `srs-new` | Authoring one requirement through a dialog |
 | `srs-audit` | Spec ↔ code drift and test adequacy |
 | `srs-harvest` | Mining a specification out of existing code |
-| `srs-init` | Guided setup — stays in the framework repository, never installed |
+| `srs-check` | Naming and running the checks a finished change calls for |
+| `srs-page` | Rendering the specification as a page, and opening it |
+| `srs-baseline` | Freezing the specification at a milestone |
+| `srs-upgrade` | Picking up a new framework version |
+| `srs-init`, `srs-release` | Setup and releases — stay in the framework repository, never installed |
 
 ## If your tool wants its own rules file
 

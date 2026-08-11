@@ -15,6 +15,57 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Added
 
+- The metadata block declares which keys are required. `status` and
+  `verification` are; everything else is optional, and a key the checker
+  does not know stays a warning — which is what lets a later version add
+  one without breaking a specification written against an earlier one
+  (IF-SPEC-010, FR-CHK-170).
+- The `srs-check` skill names and runs the checks a change calls for. It
+  reads the `verification` method and the `tests` field of every
+  requirement the change touched, offers exactly those, and says in words
+  what a person still has to look at (FR-SKILL-100).
+- The `srs-page` skill renders the specification and opens it. It also
+  says what the commands do not: the file is self-contained and can be
+  sent to somebody, `--repo-url` is what makes its links to the code work,
+  and CI may already publish the same page (FR-SKILL-110).
+- Authoring a requirement and building it are two acts now. `srs-new` ends
+  at the written requirement and the decision the discussion settled, and
+  `srs` gained a second way in — from an approved requirement nobody has
+  built yet, not only from a file about to change (FR-SKILL-090,
+  ADR-0006).
+- The authoring dialog judges what no checker reaches. One capability,
+  verifiable, free of vague wording — no word list can do it, because what
+  reads as vague depends on the sentence and a specification may be
+  written in any language (FR-SKILL-120).
+- The baseline procedure offers an audit before it freezes. Scoped to the
+  requirements the diff names, because auditing everything at every
+  baseline is the step people stop taking (FR-SKILL-130).
+- The graph draws every kind of link, told apart by its own form. Layers
+  still come from `derives_from` and `refines` alone — a layer claims a
+  level of abstraction, and a requirement must not sink because something
+  it needs sits above it (FR-VIEW-160, ADR-0010).
+- The graph can be narrowed to one requirement's surroundings. Pick a root
+  and a distance, and the rest is hidden; a drawing of everything is the
+  one view a specification of any size cannot use (FR-VIEW-150).
+- `srs_view.py --open` renders the page and opens it. It implies `--html`
+  when no path is given, so reading the specification is one word
+  (FR-VIEW-140).
+- A requirement that says it is verified by test and lists none is
+  reported. Only where the method is `T` — one verified by inspection or
+  analysis has no test by design, and reporting those would bury the ones
+  that mean something (FR-CHK-140).
+- A requirement no link touches is reported. Total isolation is the one
+  case where a forgotten link shows: the checker can prove that what is
+  written resolves, never that something was left out (FR-CHK-150).
+- What a rule costs is the project's to set. Every rule short of an error
+  now carries a name, and `rules` in `specs/srs-config.json` lowers one to
+  a note that never fails `--strict`, or silences it; a single requirement
+  excuses itself with `exempt: [rule-name]` in its own block, where the
+  excuse is diffed in review and shows on the page (FR-CHK-160, ADR-0008).
+- A retired key is reported by name. Where a later version of the format
+  renames or withdraws one, the checker says which version did it and what
+  replaced it; the framework never rewrites your specification, it tells
+  you what to change (FR-CHK-180, ADR-0009).
 - A requirement is reachable from every view of the page. Links in the
   dashboard and in a baseline comparison, and nodes in the graph, now open
   the requirement they name — switching to the view that renders it and
@@ -28,10 +79,43 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Fixed
 
+- The filters work again. The graph's transform function and the filters'
+  were both called `apply`, and a function declared inside a block is also
+  assigned to the enclosing function's binding of the same name — so every
+  click on a status, type or area chip moved the graph a little and
+  filtered nothing. Silently, in every page this framework has rendered.
+- A wide layer is no longer folded into rows. Wrapping put the eleventh
+  node under the first, nowhere near its parent, discarding the only thing
+  the ordering pass computes; the canvas pans and zooms, so the drawing is
+  free to be wide instead.
+- The graph's node order is settled by sweeping in both directions and
+  swapping adjacent pairs, as `dot` does. One downward sweep left every
+  lower layer at the mercy of whatever the upper one happened to be.
+- The rendered page is a text file again. Its comparison script joined
+  values on a unicode escape for NUL, written for JavaScript and eaten by
+  the Python string that carries the script, so every page shipped with
+  real NUL bytes in it — enough for grep, diff and an editor to call it
+  binary.
+- Omitting a required key is answered by naming it. `verification` left out
+  used to be reported as `method '' is not one of T/D/I/A`, which describes
+  the symptom and hides the cause (FR-CHK-170).
 - Clicking a graph node does something again. Cancelling `pointerdown`
   suppressed the compatibility mouse events, and with them every click the
   graph relied on, so neither the highlight nor the jump to a requirement
   had been firing (FR-VIEW-110).
+
+### Upgrade notes
+
+- Two skills arrive with this upgrade, `srs-check` and `srs-page`. Ask an
+  agent to check a finished change or to show you the specification, and
+  they are what answers.
+- Two new rules may report on your specification the first time you upgrade:
+  a requirement claiming `verification: T` with an empty `tests` field, and
+  one no link touches. Both are warnings, so only a `--strict` gate fails on
+  them. Fill the field or the link where the report is right, and where it
+  is not, lower the rule in `specs/srs-config.json` or excuse the one
+  requirement with `exempt: [test-missing]` or `exempt: [unlinked]` in its
+  own block.
 
 ## [0.11.1] — 2026-08-09
 

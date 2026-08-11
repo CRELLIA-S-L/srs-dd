@@ -56,8 +56,9 @@ written. Softer drift — an annotated file missing from the requirement's
 own field — is a warning, and `--strict` turns warnings into failures too.
 
 `python3 tools/srs_view.py --html` writes one self-contained page: search,
-filters, a status dashboard, a derivation graph you can pan, zoom and pull
-apart, and a comparison of any two baselines. No CDN, no network, opens
+filters, a status dashboard, a graph of every kind of link that you can
+narrow to one requirement's surroundings, pan, zoom and pull apart, and a
+comparison of any two baselines. No CDN, no network, opens
 straight from `file://`.
 
 ## Why this and not another spec-driven tool
@@ -191,7 +192,7 @@ The viewer never writes to `specs/` and never gates anything.
 | `specs/` | This framework's own specification — it uses itself |
 | `skeleton/` | What the installer copies into your project |
 | `tools/` | `srs_check.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py` (yours after install); `srs_init.py`, `srs_release.py` (stay here) |
-| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, and `srs-init`, `srs-release` (framework-only) |
+| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any language](docs/multilingual.md) |

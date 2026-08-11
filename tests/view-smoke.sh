@@ -8,8 +8,9 @@ cd "$(dirname "$0")/.."
 rm -rf /tmp/srs-view
 python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
 
-# Two linked requirements, one of them the target of a refinement: enough
-# to exercise the tree, the graph and the incoming links.
+# Two linked requirements, one of them the target of a refinement, and one
+# dependency across them: enough to exercise the tree, the incoming links,
+# and a graph that draws every kind of link (FR-VIEW-160).
 cat >> /tmp/srs-view/specs/10-fr-core.md <<'MD'
 
 ### FR-CORE-020 — Second requirement & an ampersand
@@ -18,6 +19,7 @@ cat >> /tmp/srs-view/specs/10-fr-core.md <<'MD'
 status: implemented
 verification: T
 derives_from: [FR-CORE-010]
+depends_on: [FR-CORE-030]
 code: [src/app.py]
 tests: []
 ```
@@ -32,6 +34,7 @@ The system **shall** carry a link.
 status: draft
 verification: T
 refines: [FR-CORE-020]
+depends_on: [FR-CORE-010]
 ```
 
 The system **shall** refine the second one.
@@ -228,6 +231,7 @@ spec.loader.exec_module(v)
 # A→Z, B→Y, C→X.
 layers = {0: ['X', 'Y', 'Z'], 1: ['A', 'B', 'C']}
 parents = {'A': ['Z'], 'B': ['Y'], 'C': ['X']}
+children = {'Z': ['A'], 'Y': ['B'], 'X': ['C']}
 edges = [('A', 'Z'), ('B', 'Y'), ('C', 'X')]
 
 def crossings(order):
@@ -238,11 +242,25 @@ def crossings(order):
                if pairs[i][1] > pairs[j][1])
 
 alpha = dict((level, sorted(nodes)) for level, nodes in layers.items())
-ordered = v.order_layers(layers, parents)
+ordered = v.order_layers(layers, parents, children)
 assert crossings(alpha) == 3, crossings(alpha)
 assert crossings(ordered) == 0, (ordered, crossings(ordered))
 # And it is the same order every run: the page must stay byte-identical.
-assert v.order_layers(layers, parents) == ordered
+assert v.order_layers(layers, parents, children) == ordered
+
+# A case one downward sweep cannot fix: the upper layer is what needs
+# moving, and only a pass that also works upward reaches it.
+up_layers = {0: ['P', 'Q'], 1: ['M', 'N']}
+up_parents = {'M': ['Q'], 'N': ['P']}
+up_children = {'Q': ['M'], 'P': ['N']}
+up_edges = [('M', 'Q'), ('N', 'P')]
+def up_crossings(order):
+    up = dict((n, i) for i, n in enumerate(order[0]))
+    down = dict((n, i) for i, n in enumerate(order[1]))
+    pairs = sorted((down[c], up[p]) for c, p in up_edges)
+    return sum(1 for i in range(len(pairs)) for j in range(i + 1, len(pairs))
+               if pairs[i][1] > pairs[j][1])
+assert up_crossings(v.order_layers(up_layers, up_parents, up_children)) == 0
 PY2
 
 # The views that name a requirement in the rendered file name it in a way
@@ -259,6 +277,39 @@ for name in ('view-dash', 'view-graph'):
     assert re.search(r'(href="#|data-id=")FR-CORE-0', section), \
         '%s names no requirement to reach' % name
 PY2
+
+# Every kind of link is drawn, and told apart by its own class
+# (FR-VIEW-160). Layers still come from the hierarchy alone (ADR-0010),
+# which is why a depends_on edge may run sideways without being marked as
+# anything but itself.
+grep -q 'class="edge derives_from"' .srs-site/index.html
+grep -q 'class="edge depends_on"' .srs-site/index.html
+# One of those dependencies points at a requirement below it, so it runs
+# upward. Marking such an edge as a cycle-breaker used to overwrite its
+# kind, which left two thirds of a real graph as identical dotted lines.
+python3 - <<'PY3'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+assert 'class="edge back"' not in page, 'an edge lost its kind to `back`'
+PY3
+# And the reader can narrow the drawing to one requirement's surroundings
+# (FR-VIEW-150): the controls and the walk that hides the rest are there.
+grep -q 'id="graph-root"' .srs-site/index.html
+grep -q 'id="graph-depth"' .srs-site/index.html
+grep -q 'function narrow(' .srs-site/index.html
+
+# --open renders and opens in one act (FR-VIEW-140). What a suite can hold
+# is that the flag is wired and the page is written; that a browser really
+# appeared is not something a machine without one can assert, so BROWSER
+# points at a no-op and the assertion is about the page.
+rm -f /tmp/v-open.html
+BROWSER=/usr/bin/true python3 tools/srs_view.py --html /tmp/v-open.html \
+    --open > /tmp/v-open.log
+grep -q 'Page written' /tmp/v-open.log
+test -s /tmp/v-open.html
+# Without a path it renders the default one, so the whole act is one word.
+rm -rf .srs-site
+BROWSER=/usr/bin/true python3 tools/srs_view.py --open > /tmp/v-open2.log
+test -s .srs-site/index.html
 
 # A checkout without history — what CI gives by default — must not invent
 # baselines out of the one commit it has. The log still names them, so the
@@ -295,6 +346,30 @@ grep -q '^| 0.0.3 | 2026-01-02 | `spec/v0.0.3` |' /tmp/v-row.log
 # changed since it or not.
 grep -q '0.0.2' /tmp/v-row.log
 grep -q 'requirements' /tmp/v-row.log
+
+# No two functions in the page's script share a name. One declared inside
+# a block is also assigned to the enclosing function's binding of the same
+# name, so a duplicate silently replaces the other: the graph's transform
+# and the filters were both called `apply`, and every filter click moved
+# the graph instead. Nothing in a browser reports this, and no suite that
+# only reads markup can see it — but the script is text, and text can be
+# counted.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+js = re.search(r'<script>\n(.*?)</script>', page, re.S).group(1)
+names = re.findall(r'\bfunction\s+(\w+)\s*\(', js)
+dupes = sorted({n for n in names if names.count(n) > 1})
+assert not dupes, 'two functions share a name: %s' % dupes
+PY2
+
+# The page is text. A NUL byte makes grep, diff and every editor treat it
+# as binary — and it got there because an escape written for JavaScript was
+# eaten by the Python string carrying the script.
+python3 - <<'PY2'
+data = open('.srs-site/index.html', 'rb').read()
+assert b'\x00' not in data, 'the page carries NUL bytes'
+PY2
 
 # A viewer run must not litter the target with bytecode.
 test -z "$(find . -name __pycache__)"

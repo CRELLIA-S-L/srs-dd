@@ -103,17 +103,26 @@ undo history noisy.
 
 ### Fields
 
-| Field | Values | Meaning |
-|---|---|---|
-| `status` | `draft` `deferred` `partial` `implemented` `superseded` | Lifecycle stage — see *Lifecycle* |
-| `verification` | `T` `D` `I` `A` | Test · demonstration · inspection · analysis |
-| `derives_from` | list of identifiers | Which higher-level requirement it is derived from |
-| `refines` | list of identifiers | Which requirement it narrows with a special case |
-| `depends_on` | list of identifiers | What it is meaningless without |
-| `conflicts_with` | list of identifiers | What it deliberately diverges from (a trade-off) |
-| `superseded_by` | one identifier | Only with `status: superseded` |
-| `code` | list of paths | Where it is implemented. Mandatory for `implemented` |
-| `tests` | list of paths | What verifies it |
+| Field | Required | Values | Meaning |
+|---|---|---|---|
+| `status` | **yes** | `draft` `deferred` `partial` `implemented` `superseded` | Lifecycle stage — see *Lifecycle* |
+| `verification` | **yes** | `T` `D` `I` `A` | Test · demonstration · inspection · analysis |
+| `derives_from` | no | list of identifiers | Which higher-level requirement it is derived from |
+| `refines` | no | list of identifiers | Which requirement it narrows with a special case |
+| `depends_on` | no | list of identifiers | What it is meaningless without |
+| `conflicts_with` | no | list of identifiers | What it deliberately diverges from (a trade-off) |
+| `superseded_by` | no | one identifier | Only with `status: superseded` |
+| `code` | no | list of paths | Where it is implemented. Mandatory for `implemented` |
+| `tests` | no | list of paths | What verifies it |
+| `exempt` | no | list of rule names | Rules this requirement is excused from — see *Configuration* |
+
+A required key that is absent is an error naming the key. An optional one
+may be left out entirely; the checker reads it as empty. **A key that is
+neither is not an error** — it is reported as unknown, and only a project
+running `--strict` fails on it. That is deliberate: it is what lets a later
+version of the format add a key without breaking a specification written
+against an earlier one. Removing or renaming a key is the change that is
+not compatible, and the checker names the version that did it.
 
 Paths are relative to the repository root, no leading slash:
 `src/core/autosave.ts`.
@@ -278,6 +287,7 @@ the file falls back to the checker's default.
 | Key | Default | Meaning |
 |---|---|---|
 | `areas` | `["CORE", "UI", "API", "DATA", "SEC"]` | Requirement areas — the middle segment of every ID. Uppercase: `[A-Z][A-Z0-9]*` |
+| `rules` | `{}` | What a rule costs: `warn` (the default, and what `--strict` fails on), `report` (said but never fatal), `off` (not said at all). Keys are rule names; `srs_check.py` lists them when you name one it does not know |
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
 | `test_roots` | `["tests"]` | Additional roots scanned for annotations |
 | `code_extensions` | `[".py", ".ts", …]` | File extensions treated as source files |

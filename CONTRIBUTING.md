@@ -66,8 +66,8 @@ requirement's `code` field instead. `tools/srs_init.py`, `tools/ci_selftest.sh`,
 
 ## Published entry points
 
-Two things outside this repository point back into it, and both break
-silently:
+Three things outside this repository depend on what is inside it, and all
+three break silently:
 
 - `.claude/skills/srs-init/SKILL.md` — the raw URL of this file is the
   documented way to hand the framework to a coding agent. Do not rename or
@@ -76,6 +76,14 @@ silently:
   HTML comment: `grep -n canonical-url README.md`. They belong on the
   landing page, not in `docs/` — an agent given the repository URL reads the
   README. Changing hosts is a three-line edit; make it in one commit.
+- The keys of the requirement metadata block (IF-SPEC-010). Adding one is
+  compatible; **renaming or withdrawing one is not**, and the projects that
+  break are not yours to fix (ADR-0009). When you do it, add the old name to
+  `RETIRED_FIELDS` in `tools/srs_check.py` — `{old: (replacement or None,
+  version)}` — so the checker says what to change instead of "unknown
+  field", and put the instruction in that release's upgrade notes. A merge
+  or a split of keys cannot be expressed as a replacement name, so there the
+  note is all the reader gets.
 
 ## Ground rules
 

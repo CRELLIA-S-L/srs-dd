@@ -101,7 +101,7 @@ TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
 
 # Skills shipped to targets. srs-init itself stays framework-only.
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
-          "srs-baseline")
+          "srs-baseline", "srs-check", "srs-page")
 
 # Service spec files adopt lays down when (and only when) absent.
 ADOPT_SERVICE_FILES = ("README.md", "constitution.md", "00-glossary.md",
@@ -135,6 +135,7 @@ refines: []
 conflicts_with: []
 code: []
 tests: []
+exempt: [unlinked]
 ```
 
 When the application is launched for the first time, the system
@@ -143,6 +144,12 @@ When the application is launched for the first time, the system
 **%(marker)s.** A placeholder showing the shape of a requirement: metadata
 above, one bolded modal verb, rationale below. Delete it once you have
 real requirements.
+
+The `exempt` line excuses this one requirement from the `unlinked` rule,
+which reports a requirement no link touches — true of the first one in any
+project, and of almost none after that. Delete the line along with the
+placeholder; the rules a project can tune this way are listed in the
+Configuration section of `specs/README.md`.
 """
 
 
@@ -824,6 +831,9 @@ def run_fresh(args, target, batch):
             "       srs-upgrade  pick up a new framework version\n"
             "       srs-baseline freeze the specification at a "
             "milestone\n"
+            "       srs-check    name and run the checks a change calls "
+            "for\n"
+            "       srs-page     read the specification as a page\n"
             "  2. Replace the placeholder requirement in "
             "specs/10-fr-%s.md; the\n"
             "     rules are in specs/README.md.\n"

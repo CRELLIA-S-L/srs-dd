@@ -70,7 +70,7 @@ documentation, so renaming or moving it breaks installs already in the wild.
 ### IF-SPEC-010 — The requirement block is a stable format
 
 ```yaml
-status: partial
+status: implemented
 verification: I
 derives_from: []
 depends_on: []

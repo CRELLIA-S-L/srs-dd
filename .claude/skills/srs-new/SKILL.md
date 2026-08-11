@@ -22,8 +22,18 @@ lexicon.
    `specs/README.md`; use a modal verb from the project lexicon
    (`modal_verbs`) and write in the lexicon's language — the lexicon in
    `specs/srs-config.json` defines the specification language, whatever
-   language this skill is written in. No vague words — the statement must
-   be verifiable.
+   language this skill is written in.
+
+   Then judge what no checker reaches, and say what you found
+   (FR-SKILL-120). The checker proves the form: one bolded verb, a
+   resolvable link, a status that fits. It cannot tell whether the
+   sentence describes **one** capability, whether a reader could
+   **confirm** it holds, or whether a word like "quickly", "as needed" or
+   "where possible" has left it unfalsifiable. No word list can: what
+   reads as vague depends on the sentence, and a specification may be
+   written in any language. So read it and say so — "this names two
+   capabilities, I would split it", or "nothing here says how anyone would
+   check it". Where it is sound, say that too, in a clause.
 5. **Verification method.** Ask how conformance will be checked
    (`T`/`D`/`I`/`A`). No answer means it is not a requirement yet.
 6. **Links.** `derives_from` / `depends_on` / `refines` /
@@ -37,3 +47,17 @@ Then write the requirement into the file and run
 
 Do not batch-create requirements silently — each one goes through the
 dialog.
+
+## Where this ends
+
+At the written requirement, and at the architecture decision if the
+discussion settled one — a choice with consequences goes to `specs/adr/`,
+and a discussion that settled nothing goes nowhere (FR-SKILL-090).
+
+**Not at the code.** Building it is a separate act, started deliberately;
+the `srs` skill is the procedure for that. Authoring that slides into
+implementing is why a requirement is born `implemented` in the same commit
+as its code, `deferred` never happens, and a baseline can only ever record
+what already shipped.
+
+Say what was written, say that it is not built, and stop.

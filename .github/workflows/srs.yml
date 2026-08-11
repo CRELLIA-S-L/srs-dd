@@ -39,6 +39,9 @@ jobs:
 
       # Separate steps rather than one loop: the failing suite is then
       # the name in the summary, not a line in a log.
+      - name: Checker rules
+        run: tests/checker-rules.sh
+
       - name: Specification gate
         run: tests/spec-check.sh
 

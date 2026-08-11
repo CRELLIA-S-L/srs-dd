@@ -68,7 +68,7 @@ looks complete.
 status: implemented
 verification: A
 derives_from: []
-depends_on: []
+depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
@@ -79,6 +79,7 @@ The checker **shall** validate a specification of 500 requirements in under
 one second, interpreter startup included.
 
 **Rationale.** The gate is only respected while it is instant; the moment it
-is worth waiting for, it gets skipped. Measured at 45 ms for 500 requirements
-(2026-08-06), so the bound leaves an order of magnitude of headroom for
-growth and slower machines.
+is worth waiting for, it gets skipped. The measurements are logged in
+`50-verification.md` — the latest leaves better than an order of magnitude
+of headroom for growth and slower machines. The number lives there and not
+here, because a figure copied into a rationale is a figure nobody retakes.

@@ -13,7 +13,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If a requirement identifier is repeated or does not match
@@ -33,7 +33,7 @@ depends_on: [FR-CHK-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If the statement of a requirement carries no bolded modal verb from the
@@ -54,7 +54,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If a link field names a requirement that does not exist, or names the
@@ -73,7 +73,7 @@ depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If `derives_from` or `refines` links form a cycle, the checker **shall**
@@ -92,7 +92,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** report as an error a requirement with status
@@ -113,7 +113,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** report as an error a `superseded` requirement without
@@ -133,7 +133,7 @@ depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 When a requirement has status `draft` and a non-empty `code` field, the
@@ -155,7 +155,7 @@ depends_on: [FR-CHK-050]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** cross-check the `implements:` and `verifies:`
@@ -198,7 +198,7 @@ depends_on: [FR-CHK-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 If `specs/srs-config.json` is unreadable, is not a JSON object, or holds a
@@ -214,11 +214,11 @@ compilation traceback, which tells the user nothing about what to fix.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: []
+tests: [tests/checker-rules.sh]
 ```
 
 While parsing a fenced code block, the checker **shall** ignore headings,
@@ -238,7 +238,7 @@ depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: [tests/spec-check.sh]
+tests: [tests/spec-check.sh, tests/checker-rules.sh]
 ```
 
 Where `--strict` is given, the checker **shall** exit non-zero when warnings
@@ -272,41 +272,47 @@ halfway written does not block the work; `--strict`, which the gate runs,
 closes it. Nothing is reported where git or the tags are absent: a project
 that never tags is keeping a perfectly good log.
 
-### FR-CHK-140 — A realized requirement with no test is reported
+### FR-CHK-140 — A requirement verified by test and carrying none is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
-Where a requirement is `implemented` or `partial` and lists no test, the
-checker **shall** report it as a warning naming the requirement.
+Where a requirement is `implemented` or `partial`, says it is verified by
+test, and lists none, the checker **shall** report it as a warning naming
+the requirement.
 
 **Rationale.** The data has been collected all along and shown only to
 whoever asked for `--coverage` — a report nobody runs on the way to a
-commit. This project's own specification has twenty-nine such requirements
-and a green gate, which is the argument: a fact worth reporting is worth
-reporting where it is read. A warning rather than an error because a
-verification method other than `T` is legitimate and common, and because a
-project mid-harvest would otherwise be unable to commit at all.
+commit. A fact worth reporting is worth reporting where it is read.
+
+Only where the method is `T`, and that is the whole difference between a
+rule with a bottom and noise. Of the twenty-nine requirements in this
+project's own specification that listed no test, ten said `T` — those were
+violations of ART-050, and the harness that verifies the checker's rules
+cleared them. The other nineteen say `I` or `A` and will never carry a
+test, by design; reported, they would be nineteen permanent warnings
+burying the ten that meant something. A warning rather than an error
+because a project mid-harvest would otherwise be unable to commit at all.
 
 ### FR-CHK-150 — A requirement no link touches is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 Where a requirement neither links to another nor is linked to by one, the
@@ -323,14 +329,14 @@ with no order, so the cheapest place to notice it is here.
 ### FR-CHK-160 — What a rule costs is the project's to set
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py, tools/srs_view.py]
+tests: [tests/checker-rules.sh]
 ```
 
 The checker **shall** let a project lower a rule to a report or silence it
@@ -355,14 +361,14 @@ heavier of the two admissions.
 ### FR-CHK-170 — A missing required key is named as missing
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 Where a requirement omits a key the format requires, the checker **shall**
@@ -378,14 +384,14 @@ values.
 ### FR-CHK-180 — A retired key is reported with what replaced it
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [IF-SPEC-010]
 depends_on: [FR-CHK-170]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 Where a requirement uses a key a later version of the format renamed or

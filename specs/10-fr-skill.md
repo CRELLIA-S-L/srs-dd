@@ -59,7 +59,7 @@ to prevent.
 status: implemented
 verification: I
 derives_from: []
-depends_on: []
+depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-harvest/SKILL.md]
@@ -101,7 +101,7 @@ happens to be driving the agent.
 status: implemented
 verification: I
 derives_from: []
-depends_on: []
+depends_on: [FR-VIEW-040]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-audit/SKILL.md]
@@ -168,7 +168,7 @@ ours.
 ### FR-SKILL-080 — The baseline procedure travels with the project
 
 ```yaml
-status: partial
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-SPEC-010]
@@ -179,35 +179,55 @@ tests: [tests/installer-smoke.sh]
 ```
 
 The skills installed into a project **shall** include the baseline
-procedure, which shows what changed since the previous baseline, offers an
-audit of the requirements that change touches, and proposes the version for
-the maintainer to confirm before the row is written.
+procedure, so that freezing a specification is asked for by name in the
+project that owns it.
 
-**Rationale.** The command is one line, and neither of the two things around
-it is the agent's to settle: the number is a claim about the specification,
-and the commit that makes the baseline real happens in whatever git client
-the project uses (CON-SPEC-030). A procedure is where that sequence lives —
-without one, the command leaves an agent guessing at the number and stopping
-in the wrong place. It travels because every project baselines its own
-specification, unlike `srs-release`, which stays here.
+**Rationale.** `srs-release` stays in the framework repository because a
+target releases nothing of ours; a baseline is the opposite — every project
+freezes its own specification, and the procedure has to be where that
+happens. What the procedure contains is FR-SKILL-130: this one is about it
+being there, which is the half a suite can hold.
 
-The audit is offered here because a baseline is the last cheap moment: after
-it, the frozen state is what a reader will compare against, and a statement
-nobody can test freezes just as well as a good one. The offer is scoped to
-what the diff names — requirements added, reworded, and those linked to them
-— because auditing the whole specification at every baseline is the kind of
-step people stop taking.
+### FR-SKILL-130 — The baseline procedure settles the number and offers an audit
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-080]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-baseline/SKILL.md]
+tests: []
+```
+
+Before a baseline row is written, the procedure **shall** show what changed
+since the previous baseline, offer an audit of the requirements that change
+touches, and propose the version for the maintainer to settle.
+
+**Rationale.** The command is one line, and none of the three things around
+it is the agent's to decide. The number is a claim about the specification.
+The audit is offered because a baseline is the last cheap moment: after it,
+the frozen state is what every reader compares against, and a statement
+nobody can test freezes exactly as well as a good one — scoped to what the
+diff names, because auditing everything at every baseline is the step people
+stop taking. And the commit that makes the baseline real happens in whatever
+git client the project uses (CON-SPEC-030).
+
+Verified by inspection, like every other requirement about what a procedure
+says: `tests/installer-smoke.sh` can prove the file arrives and nothing
+more, which is why that half is FR-SKILL-080 and this half is read.
 
 ### FR-SKILL-090 — Authoring a requirement is not implementing it
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs/SKILL.md]
 tests: []
 ```
 
@@ -229,14 +249,14 @@ no place in it.
 ### FR-SKILL-100 — The checks a change calls for are named, not guessed
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [.claude/skills/srs-check/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 ```
 
 When a change is finished, the check procedure **shall** name the checks the
@@ -255,14 +275,14 @@ but ART-030: builds and test runs need the user's word each time.
 ### FR-SKILL-110 — The specification can be read as a page on request
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-VIEW-060, FR-VIEW-140]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [.claude/skills/srs-page/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 ```
 
 When the specification is to be read rather than grepped, the page procedure
@@ -279,13 +299,13 @@ branch so a link may already exist.
 ### FR-SKILL-120 — The authoring procedure judges what no checker reaches
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-SKILL-090]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-new/SKILL.md]
 tests: []
 ```
 
