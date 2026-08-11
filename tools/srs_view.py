@@ -38,6 +38,7 @@ import hashlib                                             # noqa: E402
 import html                                                # noqa: E402
 import json                                                # noqa: E402
 import os                                                  # noqa: E402
+import pathlib                                             # noqa: E402
 import re                                                  # noqa: E402
 import subprocess                                          # noqa: E402
 import webbrowser                                          # noqa: E402
@@ -2198,7 +2199,10 @@ def main(argv=None):
                 # command that opens differs by platform; the standard
                 # library knows which, so the tool carries it once instead
                 # of every reader carrying it forever.
-                webbrowser.open("file://" + written)
+                # as_uri rather than "file://" + path: a Windows path
+                # concatenated onto the scheme is not a URL, and the
+                # standard library already knows the difference.
+                webbrowser.open(pathlib.Path(written).as_uri())
 
         if args.json is not None or args.html is not None:
             return 0

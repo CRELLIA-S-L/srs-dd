@@ -79,21 +79,6 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Fixed
 
-- Clicking a graph node does something again. Cancelling `pointerdown`
-  suppressed the compatibility mouse events, and with them every click the
-  graph relied on, so neither the highlight nor the jump to a requirement
-  had been firing (FR-VIEW-110).
-
-## [0.11.1] — 2026-08-09
-
-### Changed
-
-- The CI templates check out the whole history. The page compares
-  baselines by reading the commits they name, and both templates asked for
-  the shallow clone their platform gives by default.
-
-### Fixed
-
 - A wide layer is no longer folded into rows. Wrapping put the eleventh
   node under the first, nowhere near its parent, discarding the only thing
   the ordering pass computes; the canvas pans and zooms, so the drawing is
@@ -101,18 +86,18 @@ embedded in `tools/srs_check.py` as `__version__`.
 - The graph's node order is settled by sweeping in both directions and
   swapping adjacent pairs, as `dot` does. One downward sweep left every
   lower layer at the mercy of whatever the upper one happened to be.
+- The rendered page is a text file again. Its comparison script joined
+  values on a unicode escape for NUL, written for JavaScript and eaten by
+  the Python string that carries the script, so every page shipped with
+  real NUL bytes in it — enough for grep, diff and an editor to call it
+  binary.
 - Omitting a required key is answered by naming it. `verification` left out
   used to be reported as `method '' is not one of T/D/I/A`, which describes
   the symptom and hides the cause (FR-CHK-170).
-- A baseline is no longer reported from a checkout that cannot hold it.
-  Given a shallow clone — or a history that was squashed or imported —
-  `srs_view.py` answered every baseline with the one commit it had, so the
-  page showed six baselines agreeing that nothing had ever changed between
-  any two of them; it now names only the states its repository actually
-  holds, and says how many it could not reach (FR-VIEW-090, INV-SPEC-040).
-- The page reads the current baseline from the log rather than from the
-  snapshots it managed to load, so it names one even where the history to
-  compare against is absent (FR-VIEW-090).
+- Clicking a graph node does something again. Cancelling `pointerdown`
+  suppressed the compatibility mouse events, and with them every click the
+  graph relied on, so neither the highlight nor the jump to a requirement
+  had been firing (FR-VIEW-110).
 
 ### Upgrade notes
 
@@ -126,6 +111,29 @@ embedded in `tools/srs_check.py` as `__version__`.
   is not, lower the rule in `specs/srs-config.json` or excuse the one
   requirement with `exempt: [test-missing]` or `exempt: [unlinked]` in its
   own block.
+
+## [0.11.1] — 2026-08-09
+
+### Changed
+
+- The CI templates check out the whole history. The page compares
+  baselines by reading the commits they name, and both templates asked for
+  the shallow clone their platform gives by default.
+
+### Fixed
+
+- A baseline is no longer reported from a checkout that cannot hold it.
+  Given a shallow clone — or a history that was squashed or imported —
+  `srs_view.py` answered every baseline with the one commit it had, so the
+  page showed six baselines agreeing that nothing had ever changed between
+  any two of them; it now names only the states its repository actually
+  holds, and says how many it could not reach (FR-VIEW-090, INV-SPEC-040).
+- The page reads the current baseline from the log rather than from the
+  snapshots it managed to load, so it names one even where the history to
+  compare against is absent (FR-VIEW-090).
+
+### Upgrade notes
+
 - Your rendered page shows baselines only where CI checks out the whole
   history. Refresh the shipped CI template with `python3
   tools/srs_upgrade.py --force`, or add it by hand: `fetch-depth: 0` under
