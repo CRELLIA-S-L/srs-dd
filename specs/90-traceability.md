@@ -8,9 +8,9 @@ Total requirements: 88.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 1 |
-| `partial` | 1 |
-| `implemented` | 86 |
+| `deferred` | 0 |
+| `partial` | 0 |
+| `implemented` | 88 |
 | `superseded` | 0 |
 
 ## Requirement → code → verification
@@ -72,9 +72,9 @@ Total requirements: 88.
 | **FR-SKILL-090** Authoring a requirement is not implementing it | `implemented` | I | `.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-100** The checks a change calls for are named, not guessed | `implemented` | I | `.claude/skills/srs-check/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-110** The specification can be read as a page on request | `implemented` | I | `.claude/skills/srs-page/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-SKILL-120** Whoever writes a statement judges what no checker reaches | `partial` | I | `.claude/skills/srs-new/SKILL.md` | — |
+| **FR-SKILL-120** Whoever writes a statement judges what no checker reaches | `implemented` | I | `.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-130** The baseline procedure settles the number and offers an audit | `implemented` | I | `.claude/skills/srs-baseline/SKILL.md` | — |
-| **FR-SKILL-140** The declared method is checked against the statement | `deferred` | I | — | — |
+| **FR-SKILL-140** The declared method is checked against the statement | `implemented` | I | `.claude/skills/srs-new/SKILL.md` | — |
 | **FR-SPEC-010** Freezing a baseline is one command | `implemented` | T | `tools/srs_baseline.py` | `tests/baseline-smoke.sh` |
 | **FR-VIEW-010** One requirement with its links resolved | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-020** Which requirements describe a file | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
@@ -166,8 +166,9 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-SKILL-040** (`implemented`, method `I`) — Setup brings two decisions back to the maintainer
 - **FR-SKILL-050** (`implemented`, method `I`) — An audit reports, it does not repair
 - **FR-SKILL-090** (`implemented`, method `I`) — Authoring a requirement is not implementing it
-- **FR-SKILL-120** (`partial`, method `I`) — Whoever writes a statement judges what no checker reaches
+- **FR-SKILL-120** (`implemented`, method `I`) — Whoever writes a statement judges what no checker reaches
 - **FR-SKILL-130** (`implemented`, method `I`) — The baseline procedure settles the number and offers an audit
+- **FR-SKILL-140** (`implemented`, method `I`) — The declared method is checked against the statement
 - **IF-SKILL-010** (`implemented`, method `I`) — The published entry point for an agent
 - **IF-SPEC-010** (`implemented`, method `I`) — The requirement block is a stable format
 - **INV-SPEC-010** (`implemented`, method `I`) — Identifiers are immutable and never reused

@@ -122,3 +122,28 @@ first opened.
 **Decision needed:** draw every requirement and let the unlinked ones stand
 in their lane as islands, or keep the drawing to what has links and say so
 on the page next to the count of what was left out.
+
+## A procedure spells out a rule that belongs to specs/README.md
+
+**Found:** while building FR-SKILL-120 into the remaining procedures
+(2026-08-11).
+
+**What diverged:** FR-SKILL-020 has the skills point at `specs/README.md`
+for the rules instead of restating them, and step 4 of `srs-new` restates
+one — the qualities a statement is obliged to have, which
+`specs/README.md` owns under *How to phrase*. When the judgement was
+extended to `srs` and `srs-harvest` both were written to point rather than
+repeat; `srs-new` was left as it stood, so the framework now names those
+qualities in three places, one of which is FR-SKILL-120's own statement.
+
+**Why it is recorded rather than fixed:** the passage is not a list. It
+says what the checker proves and what it cannot see, gives an agent the
+sentences to say back — "this names two capabilities, I would split it" —
+and argues why no word list would serve instead. Cutting it to a pointer
+would leave the step that teaches the judgement saying nothing about it.
+And the third naming is a requirement rather than a document, which is the
+one place a rule is supposed to live.
+
+**Decision needed:** accept the passage as teaching text and narrow
+FR-SKILL-020, which today reads as absolute, or cut it to a pointer and
+accept a step 4 that only refers.

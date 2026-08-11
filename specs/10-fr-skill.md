@@ -299,13 +299,13 @@ branch so a link may already exist.
 ### FR-SKILL-120 — Whoever writes a statement judges what no checker reaches
 
 ```yaml
-status: partial
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-SKILL-090]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs-new/SKILL.md]
+code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]
 tests: []
 ```
 
@@ -330,13 +330,13 @@ likely to be wrong.
 ### FR-SKILL-140 — The declared method is checked against the statement
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: []
 refines: [FR-SKILL-120]
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-new/SKILL.md]
 tests: []
 ```
 

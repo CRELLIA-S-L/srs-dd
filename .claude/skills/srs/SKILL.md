@@ -83,9 +83,15 @@ Then:
 4. **Close the loop.** Re-read the statement of every requirement this
    change names: does it describe what you actually built? Whatever it
    does not describe is written down or taken out — not left as a
-   surprise for the next reader. Then status per Lifecycle, `code` and
-   `tests` filled with real paths, and optionally the files themselves
-   annotated (`implements:` / `verifies:` — see Annotations in
+   surprise for the next reader. A statement you reword here goes through
+   the same judgement `srs-new` gives a new one, against the qualities
+   `specs/README.md` requires of a statement, and what you find is said
+   before the edit is recorded (FR-SKILL-120). This is the easiest place
+   to skip it: the requirement already exists, so nothing feels like
+   authoring, and a sentence quietly grows a second capability while
+   somebody is repairing the first. Then status per Lifecycle,
+   `code` and `tests` filled with real paths, and optionally the files
+   themselves annotated (`implements:` / `verifies:` — see Annotations in
    `specs/README.md`).
 5. **Check:** `python3 tools/srs_check.py`.
 

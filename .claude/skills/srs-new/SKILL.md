@@ -28,14 +28,22 @@ lexicon.
    (FR-SKILL-120). The checker proves the form: one bolded verb, a
    resolvable link, a status that fits. It cannot tell whether the
    sentence describes **one** capability, whether a reader could
-   **confirm** it holds, or whether a word like "quickly", "as needed" or
-   "where possible" has left it unfalsifiable. No word list can: what
+   **confirm** it holds, whether a word like "quickly", "as needed" or
+   "where possible" has left it unfalsifiable, or whether it has slipped
+   into describing **how** instead of what. No word list can: what
    reads as vague depends on the sentence, and a specification may be
    written in any language. So read it and say so — "this names two
    capabilities, I would split it", or "nothing here says how anyone would
    check it". Where it is sound, say that too, in a clause.
 5. **Verification method.** Ask how conformance will be checked
    (`T`/`D`/`I`/`A`). No answer means it is not a requirement yet.
+
+   Then read the statement back against the answer, and say where the
+   method has nothing to confirm (FR-SKILL-140). `T` over a sentence no
+   test could assert is the usual one, and left alone it surfaces much
+   later — when the requirement is built and somebody has to write a test
+   that cannot be written. Here the sentence and the method are on the
+   table together, which is the one moment the question costs nothing.
 6. **Links.** `derives_from` / `depends_on` / `refines` /
    `conflicts_with` — propose candidates from neighboring requirements.
 7. **Initial status.** Per the Lifecycle section of `specs/README.md`.
