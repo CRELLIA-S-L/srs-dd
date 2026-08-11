@@ -122,7 +122,7 @@ tests: [tests/view-smoke.sh]
 
 The viewer **shall** render the specification into a single self-contained
 HTML file — search, filters, a status dashboard, a graph of the links
-between requirements layered by derivation, and links in both directions —
+between requirements grouped by area, and links in both directions —
 that requests nothing over the network.
 
 **Rationale.** A reviewer who does not grep still has to read the
@@ -228,21 +228,30 @@ code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 ```
 
-The graph on the page **shall** fill the area it is drawn in and
-let a reader move and scale it, pull a node aside, return the view to where
-it started, and see what a node links to and what links to it.
+The graph on the page **shall** fill the panel it is drawn in and
+let a reader move and scale it, collapse an area into a single block, return
+the view to where it started, and see what a node links to and what links to
+it.
 
 **Rationale.** A specification of any size draws a graph larger than the
 viewport, and a picture that can only be scrolled is a picture nobody
-studies. The area is the panel rather than the drawing: sized from the
-drawing, a small specification gets a postage stamp to work in and loses a
-node past its edge at the first tug — which is also why the view can be
-returned, since a node dragged out of sight is otherwise hunted for. Done in
-the page's own script rather than with a graph library: the layout is a
-layered one this project computes itself — the right shape for a derivation
-DAG, and not what a force layout would give — so a library would be paid for
-in every reader's download and every installed project, in exchange for
-panning and dragging.
+studies. What is filled is the panel rather than the drawing: sized from the
+drawing, a small specification gets a postage stamp to work in — and a
+reader who has zoomed into one corner needs the way back, which is what
+returning the view is for.
+
+Collapsing an area is what pulling a node aside used to be. The gesture was
+never about the node: it was about clearing what stood in front of the thing
+being read, and in a drawing grouped by area (ADR-0012) the thing in the way
+is a whole column. Moving one box out of a column of nineteen achieves
+nothing, and it also has nowhere to go — a position now means membership of
+an area and a place in its ordering, so a dragged node is a node lying about
+where it belongs.
+
+Done in the page's own script rather than with a graph library: the layout
+is arithmetic — a lane per area, a row per requirement — so a library would
+be paid for in every reader's download and every installed project, in
+exchange for panning.
 
 ### FR-VIEW-120 — The baseline row is written by the tooling
 
@@ -368,3 +377,34 @@ invisible, while one that is drawn and unwanted is one click away. Layers
 stay derived from `derives_from` alone: it is the relation that means
 "higher level", and a layer computed from the union would silently change
 the vertical axis from abstraction to order of work.
+
+### FR-VIEW-180 — A node shows the status of its requirement
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The graph **shall** draw a requirement's node in a form that tells its
+status from the other statuses.
+
+**Rationale.** The dashboard counts the statuses and the chips filter by
+them; the graph was the one view that stayed silent, so a reader looking at
+the drawing could not tell an approved requirement from a built one without
+opening its card. The page has carried the answer all along — every node is
+emitted with its status in a class — and painted over it, because the rule
+colouring a box neutral wins against the attribute that would have used the
+class. A requirement rather than a repair: nothing ever said the drawing
+should show this, so nothing was broken.
+
+A form rather than a colour, and the difference is deliberate. Colour is
+what implements it here and reuses the palette the badges already use, but a
+page read in grey, or by somebody who separates two of those hues poorly,
+still has to work — which is why the status is also in the node's tooltip
+and why the legend names all five.

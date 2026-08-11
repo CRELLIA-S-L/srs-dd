@@ -1,8 +1,16 @@
 # ADR-0010 — The graph layers by derivation and draws the rest across it
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0012
 - **Date:** 2026-08-10
 - **Related requirements:** FR-VIEW-160, FR-VIEW-150, FR-VIEW-060
+
+> **Superseded on 2026-08-11.** The last consequence below is the one that
+> came true: `depends_on` is how this project mostly expresses structure,
+> `derives_from` is left empty by three requirements in four, and the
+> vertical axis carried almost nothing. ADR-0012 replaces the layers with
+> lanes by area. What survives is the part this decision got right — the
+> kinds of link are told apart by their form, and toggling one does not
+> move anything (FR-VIEW-160).
 
 ## Context and problem statement
 

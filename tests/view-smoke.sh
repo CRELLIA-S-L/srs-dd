@@ -200,7 +200,7 @@ for token in ('id="graph-stage"', 'data-nw=', "getElementById('graph-svg')",
     assert token in page, 'the graph lost %s' % token
 # The canvas is the panel, not the drawing: sized in CSS, with no width or
 # height baked in from the content, or a small specification gets a postage
-# stamp to drag things around in.
+# stamp to work in.
 import re as _re
 svg = _re.search(r'<svg id="graph-svg"[^>]*>', page).group(0)
 assert ' width=' not in svg and ' height=' not in svg, svg
@@ -217,50 +217,97 @@ assert "addEventListener('mousedown'" not in page, 'mouse-only dragging is back'
 assert 'touch-action' in page
 PY2
 
-# Layer ordering pulls edges straight. Checked on a shape built for it:
-# alphabetical order crosses, the barycentre order does not.
+# A lane is an area and a row is a number: position is arithmetic, so the
+# drawing needs no heuristic kept stable for it (ADR-0012). Checked on the
+# rendered page rather than on a fixture, because the arithmetic is not
+# where this can go wrong — the grouping is.
 python3 - <<'PY2'
-import sys, importlib.util
-sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
-spec = importlib.util.spec_from_file_location('v', 'tools/srs_view.py')
-v = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(v)
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+nodes = re.findall(r'<g class="node[^"]*"[^>]*data-id="([^"]+)"[^>]*'
+                   r'data-area="([^"]+)" data-x="(\d+)" data-y="(\d+)" '
+                   r'data-x0="(\d+)" data-y0="(\d+)"', page)
+assert nodes, 'no nodes carry an area'
+lanes = {}
+for rid, area, x, y, x0, y0 in nodes:
+    assert rid.split('-')[1] == area, (rid, area)
+    assert (x, y) == (x0, y0), 'a node is not drawn where it belongs'
+    lanes.setdefault(area, set()).add(x)
+for area, xs in lanes.items():
+    assert len(xs) == 1, 'area %s is spread over %d columns' % (area, len(xs))
+assert len(set().union(*lanes.values())) == len(lanes), 'two areas share a column'
 
-# Two layers, wired so that reading the lower one alphabetically crosses:
-# A→Z, B→Y, C→X.
-layers = {0: ['X', 'Y', 'Z'], 1: ['A', 'B', 'C']}
-parents = {'A': ['Z'], 'B': ['Y'], 'C': ['X']}
-children = {'Z': ['A'], 'Y': ['B'], 'X': ['C']}
-edges = [('A', 'Z'), ('B', 'Y'), ('C', 'X')]
+# Every lane declared in the configuration and holding a linked requirement
+# has a header, and the header is what folds the column away (FR-VIEW-110).
+headers = re.findall(r'<g class="lane" data-area="([^"]+)" data-x="\d+" '
+                     r'data-y="\d+" data-h="(\d+)"', page)
+assert set(a for a, _h in headers) == set(lanes), (headers, sorted(lanes))
+assert len(headers) == len(set(headers)), 'a lane is drawn twice'
+for token in ("querySelectorAll('g.lane')", "classList.toggle('collapsed'",
+              "dataset.x0", 'edgePath(', 'LANE_FOLD_H'):
+    assert token in page, 'collapsing an area lost %s' % token
+# The header is the control and the backdrop is decoration. Catching the
+# click on the backdrop folded an area away when the reader clicked in the
+# gap between two boxes; and a drag is a movement past a threshold, because
+# counting a one-pixel nudge as one swallowed the click it belonged to and
+# left the control working on every second attempt.
+assert re.search(r'<rect class="lane-head"', page), 'the lane header is gone'
+assert re.search(r'\.lane-band \{[^}]*pointer-events: none', page), \
+    'the backdrop takes clicks again'
+assert 'DRAG_SLOP' in page and re.search(r'>\s*DRAG_SLOP', page), \
+    'any movement counts as a drag again'
+# The capture is taken when a drag starts, never on pointerdown. While an
+# element holds the pointer capture the browser dispatches the click to it
+# instead of to the descendant under the cursor, so capturing up front sent
+# every click to the canvas and no node or lane header ever saw one. The
+# handlers were all present the whole time, which is exactly why this is
+# asserted on where the call sits rather than on whether it exists.
+down = page.split("addEventListener('pointerdown'")[1]
+down = down[:down.index("addEventListener('pointermove'")]
+assert 'setPointerCapture' not in down, \
+    'the canvas captures the pointer before a drag, which steals every click'
+move = page.split("addEventListener('pointermove'")[1][:700]
+assert 'setPointerCapture' in move, 'a drag no longer keeps the pointer'
+# The band shrinks with the column, and its full height is on the lane so
+# unfolding can put it back — without that a collapsed area leaves an empty
+# stripe exactly where the reader asked for the space.
+assert "band.setAttribute('height'" in page and 'lane.dataset.h' in page, \
+    'a collapsed lane no longer shrinks to a block'
+# Returning the view returns the folded columns too (FR-VIEW-110): the
+# reset handler has to go through the same function the header uses.
+after_reset = page.split("getElementById('graph-reset')")[1][:600]
+assert 'setLane(' in after_reset, 'reset view leaves the folded areas folded'
 
-def crossings(order):
-    up = dict((n, i) for i, n in enumerate(order[0]))
-    down = dict((n, i) for i, n in enumerate(order[1]))
-    pairs = sorted((down[c], up[p]) for c, p in edges)
-    return sum(1 for i in range(len(pairs)) for j in range(i + 1, len(pairs))
-               if pairs[i][1] > pairs[j][1])
-
-alpha = dict((level, sorted(nodes)) for level, nodes in layers.items())
-ordered = v.order_layers(layers, parents, children)
-assert crossings(alpha) == 3, crossings(alpha)
-assert crossings(ordered) == 0, (ordered, crossings(ordered))
-# And it is the same order every run: the page must stay byte-identical.
-assert v.order_layers(layers, parents, children) == ordered
-
-# A case one downward sweep cannot fix: the upper layer is what needs
-# moving, and only a pass that also works upward reaches it.
-up_layers = {0: ['P', 'Q'], 1: ['M', 'N']}
-up_parents = {'M': ['Q'], 'N': ['P']}
-up_children = {'Q': ['M'], 'P': ['N']}
-up_edges = [('M', 'Q'), ('N', 'P')]
-def up_crossings(order):
-    up = dict((n, i) for i, n in enumerate(order[0]))
-    down = dict((n, i) for i, n in enumerate(order[1]))
-    pairs = sorted((down[c], up[p]) for c, p in up_edges)
-    return sum(1 for i in range(len(pairs)) for j in range(i + 1, len(pairs))
-               if pairs[i][1] > pairs[j][1])
-assert up_crossings(v.order_layers(up_layers, up_parents, up_children)) == 0
+# The status is the node's colour (FR-VIEW-180). The class alone proves
+# nothing — it sat on every node for two releases while a stroke named in
+# the rule painted over it, so what is asserted is the mechanism: the box
+# takes its colour from the node, and the node's class supplies one.
+assert 'stroke: currentColor' in page and 'fill: currentColor' in page, \
+    'the node box no longer takes its colour from its status class'
+assert not re.search(r'\.graph \.node rect \{[^}]*stroke: var\(--line\)', page), \
+    'a neutral stroke is painting over the status colour again'
+for status in ('draft', 'deferred', 'partial', 'implemented', 'superseded'):
+    assert re.search(r'\.st-%s \{ color: var\(--%s\)' % (status, status), page), \
+        'no colour for status %s' % status
+    assert re.search(r'<span class="key st-%s">.{0,40}%s</span>'
+                     % (status, status), page), \
+        'the legend does not name %s' % status
+# Both legends are lists and read down the rail; neither floats over the
+# drawing, where they covered the first column and the reader panned the
+# graph out from under them.
+assert 'id="graph-rail"' in page, 'the legends are back on top of the graph'
+assert not re.search(r'#graph-(legend|controls) \{[^}]*position: absolute', page)
+assert re.search(r'#graph-legend \{[^}]*flex-direction: column', page), \
+    'the status legend runs across instead of down'
+assert re.search(r'#graph-controls \{[^}]*flex-direction: column', page), \
+    'the controls run across instead of down'
+for field in ('derives_from', 'refines', 'depends_on', 'conflicts_with'):
+    assert '<line class="edge %s"' % field in page, \
+        'the legend has no swatch for %s' % field
+# Colour is not the only channel: the tooltip says the status in words.
+assert re.search(r'<title>[^<]+\((draft|deferred|partial|implemented|'
+                 r'superseded)\)</title>', page), \
+    'a node no longer carries its status as a word'
 PY2
 
 # The views that name a requirement in the rendered file name it in a way
@@ -279,17 +326,22 @@ for name in ('view-dash', 'view-graph'):
 PY2
 
 # Every kind of link is drawn, and told apart by its own class
-# (FR-VIEW-160). Layers still come from the hierarchy alone (ADR-0010),
-# which is why a depends_on edge may run sideways without being marked as
-# anything but itself.
+# (FR-VIEW-160). The class is the only thing on an edge: nothing marks a
+# direction any more, because with a lane for an area and a row for a
+# number no direction claims to be the forward one (ADR-0012).
 grep -q 'class="edge derives_from"' .srs-site/index.html
 grep -q 'class="edge depends_on"' .srs-site/index.html
-# One of those dependencies points at a requirement below it, so it runs
-# upward. Marking such an edge as a cycle-breaker used to overwrite its
-# kind, which left two thirds of a real graph as identical dotted lines.
 python3 - <<'PY3'
+import re
 page = open('.srs-site/index.html', encoding='utf-8').read()
 assert 'class="edge back"' not in page, 'an edge lost its kind to `back`'
+# An edge inside one lane bows out; a straight line would run underneath
+# every box between its ends. The rule is written twice — here and in the
+# script that redraws an edge when an area is collapsed — so both copies
+# have to be present, or an edge changes shape as the reader watches.
+bowed = re.findall(r'<path class="edge [^"]*"[^>]*d="M [^"]*Q', page)
+assert bowed, 'no intra-lane edge bows past what is between its ends'
+assert 'Math.min(BOW_MAX' in page, 'the script lost its copy of the bow'
 PY3
 # And the reader can narrow the drawing to one requirement's surroundings
 # (FR-VIEW-150): the controls and the walk that hides the rest are there.

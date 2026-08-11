@@ -34,9 +34,12 @@ embedded in `tools/srs_check.py` as `__version__`.
   built yet, not only from a file about to change (FR-SKILL-090,
   ADR-0006).
 - The authoring dialog judges what no checker reaches. One capability,
-  verifiable, free of vague wording — no word list can do it, because what
-  reads as vague depends on the sentence and a specification may be
-  written in any language (FR-SKILL-120).
+  verifiable, unambiguous, about behavior rather than implementation — no
+  word list can do it, because what reads as vague depends on the sentence
+  and a specification may be written in any language. The requirement asks
+  the same of every procedure that writes or rewords a statement, and the
+  dialog is the only one that does it so far, which is what leaves
+  FR-SKILL-120 at `partial` (FR-SKILL-120).
 - The baseline procedure offers an audit before it freezes. Scoped to the
   requirements the diff names, because auditing everything at every
   baseline is the step people stop taking (FR-SKILL-130).
@@ -73,6 +76,22 @@ embedded in `tools/srs_check.py` as `__version__`.
 
 ### Changed
 
+- The graph is grouped by area instead of layered by derivation. A column
+  is an area and a row is a requirement's number, so a line crossing
+  columns is a link that leaves its area; this specification's drawing
+  goes from 8825 by 179 — a ribbon in which a node fitted to a screen is
+  thirteen pixels wide — to about 1005 by 956. Sixty-five of its
+  eighty-seven requirements have no derivation parent, so the axis the
+  layers claimed was never there (FR-VIEW-060, ADR-0012, superseding
+  ADR-0010).
+- A node in the graph shows its status in colour, with a legend. The class
+  had been on every node since the graph was drawn and a neutral stroke in
+  the stylesheet painted over it, so the one view that could have shown
+  the statuses was the one that did not (FR-VIEW-180).
+- Dragging a node is now collapsing an area. A position means membership
+  of an area and a place in its ordering, so a dragged node is a node
+  lying about where it belongs; clicking a column's name folds it away,
+  which is what pulling a node aside was for (FR-VIEW-110).
 - The graph lights a node's links on hover, not on click. That leaves the
   click free to open the requirement the node names (FR-VIEW-110,
   FR-VIEW-130).

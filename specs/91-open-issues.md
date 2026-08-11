@@ -9,9 +9,9 @@ which side is right and the fix lands.
 
 **Found:** while building the explorable graph (2026-08-08).
 
-**What diverged:** FR-VIEW-110 promises panning, zooming, dragging and
-highlighting, and carries `verification: I` because no browser and no
-JavaScript engine is a dependency of this project. `tests/view-smoke.sh`
+**What diverged:** FR-VIEW-110 promises panning, zooming, collapsing an
+area and highlighting, and carries `verification: I` because no browser and
+no JavaScript engine is a dependency of this project. `tests/view-smoke.sh`
 asserts that the handlers and the stage are in the page — which catches a
 deletion, and nothing else. The same limit applies to the comparison of
 FR-VIEW-100 — its data is checked against git, its script by having been
@@ -20,33 +20,41 @@ requirement but not that following such a link arrives anywhere. The set
 this covers grows with the page: each addition to it is one more behaviour
 verified by a person who remembers to look.
 
+On 2026-08-11 this stopped being hypothetical. Clicking a node had opened
+nothing since the canvas began capturing the pointer on `pointerdown`: while
+an element holds the capture the browser dispatches the click to it rather
+than to the descendant under the cursor, so every click landed on the canvas
+and the handlers on the nodes — all present, all asserted by this suite —
+were never reached. It surfaced only when a second control was added to the
+drawing and a person tried to use it.
+
 **Why it is recorded rather than fixed:** every way out adds a dependency
 the framework does not have. A headless browser in CI is the honest one and
 the heaviest; a JavaScript engine would run the logic but not the gestures;
 transliterating the script into Python, as the baseline comparison already
-does, tests a copy rather than the thing that ships.
+does, tests a copy rather than the thing that ships. What went in instead is
+narrower: the suite now asserts *where* the capture is taken, because that
+is the part a text can see.
 
 **Decision needed:** accept inspection as the method for anything the page
 does in the browser and say so in `50-verification.md`, or take on a
 headless browser for the graph and the comparison.
 
-## The graph cannot be pinched, and skip-layer edges have no anchor
+## The graph cannot be pinched
 
 **Found:** while reviewing the explorable graph (2026-08-08).
 
-**What diverged:** two limits of FR-VIEW-110 and of the layered layout, both
-deliberate at the time and neither written down. One finger pans and a wheel
-zooms, but two fingers do nothing — a touch device can move the graph and
-not scale it. And `order_layers` places a node by the barycentre of its
-parents *in the layer immediately above*; a requirement deriving from
-something two layers up finds no anchor and falls to the end of its layer.
-Neither shows on this repository's own graph, where crossings are already
-zero.
+**What diverged:** a limit of FR-VIEW-110, deliberate at the time and never
+written down. One finger pans and a wheel zooms, but two fingers do nothing
+— a touch device can move the graph and not scale it.
 
-**Decision needed:** whether either is worth code. Pinch zoom is a pointer
-handler counting two contacts; the layout would have to rank against every
-layer above, not just the previous one — more code in the part of the viewer
-that has to stay deterministic.
+This entry carried a second limit until 2026-08-11: `order_layers` anchored a
+node on the layer immediately above, so a requirement deriving from something
+two layers up fell to the end of its own layer. ADR-0012 removed that layout,
+and the defect went with it.
+
+**Decision needed:** whether pinch zoom is worth code. It is a pointer
+handler counting two contacts.
 
 ## An area holds at most 99 requirements, and the standard does not say so
 
@@ -91,34 +99,26 @@ terminal of a stated width, record the width somewhere it can be argued
 with, or drop the assertion if the wrapping does not in fact matter. To be
 taken up when the requirements frozen in baseline 0.12.0 are implemented.
 
-## The graph is layered over a specification that is not
+## A requirement with no links at all is not in the graph
 
-**Found:** while drawing every kind of link (2026-08-10).
+**Found:** while grouping the graph by area (2026-08-11).
 
-**What diverged:** FR-VIEW-060 promises a graph layered by derivation, and
-the data does not support the axis. This specification holds 21 derivation
-links against 54 dependencies; 64 of its 85 requirements have no derivation
-parent at all and land in one row, and the deepest derivation chain is two.
-The drawing measures 8689 by 179 — a ribbon that says almost nothing
-vertically and cannot be read when fitted to a screen. FR-VIEW-150 narrows
-it in a click, but the default view is the one a newcomer sees.
+**What diverged:** FR-VIEW-060 promises a graph of the links between
+requirements grouped by area, and `build_graph` takes its nodes from the
+edges — so a requirement no link touches is absent from the drawing rather
+than standing in it alone. Under the layered layout that was one box fewer
+in a row of sixty-five and nobody could have seen it. In a lane it is a gap
+in a column, and a gap at exactly the requirement worth noticing: one that
+rests on nothing and that nothing needs.
 
-The structure the specification actually has is the area: six of them,
-between 9 and 19 requirements each, with 48 of the 75 links staying inside
-one. Types do not group — 70 of 85 are `FR`.
+**Why it is recorded rather than fixed:** this specification has no such
+requirement — all 88 carry at least one link — so nothing that ships is
+wrong. What is unresolved is what a project in that position should see,
+and the answer is not obvious: a fresh install spends its first weeks with
+a specification that is mostly unlinked, and a drawing that reserved a row
+for every one of them would be tall and empty at exactly the moment it is
+first opened.
 
-**Why it is recorded rather than fixed:** the candidate is an arc diagram
-grouped by area — a column of requirements ordered by area and identifier,
-links drawn as arcs beside it, roughly 1200 by 1900 instead of the ribbon,
-and less code than the layered layout it would replace. That is a change of
-what the page promises, not a repair: FR-VIEW-060 would be reworded,
-ADR-0010 loses its subject entirely and would have to be superseded rather
-than amended, and FR-VIEW-110's "pull a node aside" stops meaning anything
-where a node's position is its place in an ordering. Authoring does not
-ride along with an implementation phase (FR-SKILL-090).
-
-**Decision needed:** adopt the arc diagram and supersede ADR-0010, deciding
-at the same time what replaces dragging a node — nothing, a collapse of a
-whole area, or dragging kept as decoration. Or keep the layered drawing and
-accept that its vertical axis carries two levels for a fifth of the
-requirements.
+**Decision needed:** draw every requirement and let the unlinked ones stand
+in their lane as islands, or keep the drawing to what has links and say so
+on the page next to the count of what was left out.

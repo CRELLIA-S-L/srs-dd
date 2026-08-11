@@ -912,14 +912,55 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
 .scroll { overflow-x: auto; max-width: 100%; }
 .graph text { font-family: ui-monospace, monospace; font-size: 11px;
   fill: var(--fg); }
-.graph .node rect { fill: var(--panel); stroke: var(--line); }
+/* The status is the node's colour (FR-VIEW-180). `currentColor` picks it
+   up from the st-* class the node already carries; a stroke named here
+   would win against it, which is how the class sat on every node for two
+   releases without colouring anything. */
+.graph .node rect { fill: currentColor; fill-opacity: .13;
+  stroke: currentColor; }
 .graph .node.dim { opacity: .2; }
-.stage { position: relative; }
-#graph-svg { display: block; width: 100%; height: 70vh; min-height: 320px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
-#graph-controls { position: absolute; right: 8px; top: 8px; display: flex; gap: 8px; align-items: center; font-size: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
-#graph-controls select { font: inherit; font-size: 12px; }
+/* The backdrop is decoration and must not take the click: catching it
+   folded a whole area away when the reader clicked between two boxes. */
+.graph .lane-band { fill: var(--fg); fill-opacity: .045;
+  pointer-events: none; }
+.graph .lane-name { fill: var(--muted); font-size: 12px;
+  pointer-events: none; }
+.graph .lane-head { fill: var(--fg); fill-opacity: .08; cursor: pointer; }
+.graph .lane-head:hover { fill-opacity: .16; }
+.graph .lane.collapsed .lane-band { fill-opacity: .13; }
+.graph .node.folded, .graph .edge.folded { display: none; }
+/* The rail is beside the drawing, not on top of it: floated over the
+   canvas both legends covered the first column and the reader panned the
+   graph out from under them to read it. Stacked rather than in a row,
+   because a legend is a list. */
+.stage { display: flex; gap: 10px; align-items: stretch; }
+#graph-svg { display: block; flex: 1 1 auto; min-width: 0; height: 70vh; min-height: 320px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+#graph-rail { flex: 0 0 170px; display: flex; flex-direction: column;
+  gap: 10px; font-size: 12px; max-height: 70vh; overflow-y: auto; }
+#graph-rail > div { background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 6px 8px; }
+#graph-controls { display: flex; flex-direction: column;
+  align-items: stretch; gap: 6px; }
+#graph-controls label { display: flex; flex-direction: column; gap: 2px;
+  color: var(--muted); }
+#graph-controls select { font: inherit; font-size: 12px; width: 100%; }
+#graph-legend { display: flex; flex-direction: column; gap: 3px; }
+#graph-legend .legend-title { margin: 0 0 1px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .05em; font-size: 10px; }
+#graph-legend .key { display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; }
+/* The swatch takes the status colour from the key's own class, the same
+   way a node's box does — one palette, named in one place. */
+#graph-legend .key .dot { width: 10px; height: 10px; border-radius: 2px;
+  flex: none; background: currentColor; opacity: .85; }
+#graph-legend .swatch { flex: none; }
 .graph .node.out, .graph .edge.out { display: none; }
-#graph-reset { font: inherit; font: inherit; font-size: 12px; padding: 2px 8px; cursor: pointer; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; }
+#graph-reset { font: inherit; font-size: 12px; padding: 3px 8px; cursor: pointer; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; }
+@media (max-width: 720px) {
+  .stage { flex-direction: column; }
+  #graph-rail { flex: none; max-height: none; flex-direction: row;
+    flex-wrap: wrap; }
+}
 #graph-svg:active { cursor: grabbing; }
 #graph-svg.focused .node, #graph-svg.focused .edge { opacity: .25; }
 #graph-svg.focused .node.sel, #graph-svg.focused .node.lit,
@@ -930,7 +971,6 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
 .graph .edge.refines { stroke-dasharray: 6 3; }
 .graph .edge.depends_on { stroke-dasharray: 2 3; }
 .graph .edge.conflicts_with { stroke-dasharray: 8 3 2 3; }
-.graph .edge.back { opacity: .55; }
 footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 12px 20px;
   color: var(--muted); font-size: 12px; }
 [hidden] { display: none !important; }
@@ -989,24 +1029,37 @@ JS = """
                y: clientX * i.b + clientY * i.d + i.f };
     }
 
+    // The same three rules as edge_path() in the generator: within a lane
+    // the two boxes share an x, so the edge leaves the right-hand side and
+    // bows out past what sits between them; across lanes it leaves the
+    // side facing the other lane. Both copies have to agree — collapsing
+    // an area recomputes an edge, and one that changed shape while the
+    // reader was watching would read as a different link.
+    var BOW_MAX = 34;
+    function edgePath(a, b) {
+      var ax = +a.dataset.x, ay = +a.dataset.y;
+      var bx = +b.dataset.x, by = +b.dataset.y;
+      var am = ay + NH / 2, bm = by + NH / 2;
+      if (a.dataset.area === b.dataset.area) {
+        var side = ax + NW;
+        var out = side + Math.min(BOW_MAX,
+          14 + Math.floor(Math.abs(ay - by) / 5));
+        return 'M ' + side + ' ' + am + ' Q ' + out + ' ' + ((am + bm) / 2)
+          + ' ' + side + ' ' + bm;
+      }
+      if (bx > ax) {
+        return 'M ' + (ax + NW) + ' ' + am + ' L ' + bx + ' ' + bm;
+      }
+      return 'M ' + ax + ' ' + am + ' L ' + (bx + NW) + ' ' + bm;
+    }
+
     function redraw(id) {
       edges.forEach(function (path) {
         if (path.dataset.from !== id && path.dataset.to !== id) { return; }
         var a = nodes[path.dataset.from], b = nodes[path.dataset.to];
         if (!a || !b) { return; }
-        path.setAttribute('d', 'M ' + (+a.dataset.x + NW / 2) + ' '
-          + a.dataset.y + ' L ' + (+b.dataset.x + NW / 2) + ' '
-          + (+b.dataset.y + NH));
+        path.setAttribute('d', edgePath(a, b));
       });
-    }
-
-    function moveNode(g, dx, dy) {
-      var x = +g.dataset.x + dx, y = +g.dataset.y + dy;
-      g.dataset.x = x; g.dataset.y = y;
-      var rect = g.querySelector('rect'), text = g.querySelector('text');
-      rect.setAttribute('x', x); rect.setAttribute('y', y);
-      text.setAttribute('x', x + NW / 2); text.setAttribute('y', y + NH / 2 + 4);
-      redraw(g.dataset.id);
     }
 
     gsvg.addEventListener('wheel', function (e) {
@@ -1023,13 +1076,29 @@ JS = """
     // finger and a pen, and the CSS turns native scrolling off in
     // exchange — which would leave a touch device with no way to move
     // the graph at all if only mice were handled.
-    var held = null, last = null, moved = false;
+    //
+    // A drag is a movement past a threshold, not any movement at all:
+    // pressing a mouse button nudges the pointer a pixel or two, and
+    // counting that as a drag swallows the click it belongs to.
+    //
+    // The capture is taken when that threshold is crossed and not before,
+    // and this is the whole reason a click ever reaches a node or a lane
+    // header. While an element holds the pointer capture the browser
+    // dispatches the click to *that* element rather than to the descendant
+    // under the cursor — so capturing on pointerdown sent every click to
+    // the canvas, and the handlers on the nodes and the headers, being
+    // below it, were never reached. Nothing reported it: the click still
+    // fired, at the wrong element, and no suite here exercises a gesture
+    // (see specs/91-open-issues.md). The capture is only needed to keep a
+    // drag alive once the pointer leaves the canvas, which cannot happen
+    // before the pointer has moved.
+    var DRAG_SLOP = 4;
+    var held = null, last = null, from = null, moved = false;
     gsvg.addEventListener('pointerdown', function (e) {
-      var node = e.target.closest ? e.target.closest('g.node') : null;
-      held = node || 'stage';
+      held = 'stage';
       last = { x: e.clientX, y: e.clientY };
+      from = { x: e.clientX, y: e.clientY };
       moved = false;
-      gsvg.setPointerCapture(e.pointerId);
       // No preventDefault here: cancelling pointerdown suppresses the
       // compatibility mouse events, and with them the click that opens a
       // requirement. Scrolling is held off by touch-action in the CSS,
@@ -1038,14 +1107,14 @@ JS = """
     gsvg.addEventListener('pointermove', function (e) {
       if (!held) { return; }
       var dx = e.clientX - last.x, dy = e.clientY - last.y;
-      if (dx || dy) { moved = true; }
+      if (!moved && Math.abs(e.clientX - from.x)
+          + Math.abs(e.clientY - from.y) > DRAG_SLOP) {
+        moved = true;
+        if (gsvg.setPointerCapture) { gsvg.setPointerCapture(e.pointerId); }
+      }
       last = { x: e.clientX, y: e.clientY };
       var px = unit();
-      if (held === 'stage') {
-        view.x += dx / px; view.y += dy / px; applyView();
-      } else {
-        moveNode(held, dx / (px * view.k), dy / (px * view.k));
-      }
+      view.x += dx / px; view.y += dy / px; applyView();
     });
     function release(e) {
       held = null;
@@ -1056,6 +1125,54 @@ JS = """
     }
     gsvg.addEventListener('pointerup', release);
     gsvg.addEventListener('pointercancel', release);
+
+    // Collapsing an area is what pulling a node aside used to be: with a
+    // lane for an area, what stands in front of the thing being read is a
+    // whole column, and moving one box out of nineteen achieves nothing
+    // (FR-VIEW-110). The members fold onto the lane's header and their
+    // edges are recomputed from where they now sit, so an area keeps
+    // showing what it is attached to while its contents are out of the
+    // way. An edge with both ends inside a folded lane has nothing left
+    // to say and goes with them.
+    function foldEdges() {
+      edges.forEach(function (path) {
+        var a = nodes[path.dataset.from], b = nodes[path.dataset.to];
+        path.classList.toggle('folded', !!(a && b
+          && a.classList.contains('folded')
+          && b.classList.contains('folded')));
+      });
+    }
+    // The band shrinks with the column: a lane that hid its members but
+    // kept its full height would leave an empty stripe where the reader
+    // asked for the space back, and "a single block" is what the
+    // requirement says (FR-VIEW-110).
+    var LANE_FOLD_H = 44;
+    var laneList = Array.prototype.slice.call(gsvg.querySelectorAll('g.lane'));
+    function setLane(lane, folded) {
+      lane.classList.toggle('collapsed', folded);
+      var band = lane.querySelector('.lane-band');
+      if (band) {
+        band.setAttribute('height', folded ? LANE_FOLD_H : lane.dataset.h);
+      }
+      var name = lane.dataset.area;
+      Object.keys(nodes).forEach(function (id) {
+        var g = nodes[id];
+        if (g.dataset.area !== name) { return; }
+        g.classList.toggle('folded', folded);
+        g.dataset.x = folded ? lane.dataset.x : g.dataset.x0;
+        g.dataset.y = folded ? lane.dataset.y : g.dataset.y0;
+        redraw(id);
+      });
+    }
+    laneList.forEach(function (lane) {
+      lane.addEventListener('click', function () {
+        // Same guard the nodes carry: a pan that happens to end over a
+        // header must not fold the column the reader was dragging past.
+        if (moved) { moved = false; return; }
+        setLane(lane, !lane.classList.contains('collapsed'));
+        foldEdges();
+      });
+    });
 
     // Narrowing to a root and a radius. A drawing of everything is the one
     // view a specification of any size cannot use; the tools that solve
@@ -1108,6 +1225,11 @@ JS = """
       reset.addEventListener('click', function () {
         view = { x: 0, y: 0, k: 1 };
         applyView();
+        // Where it started includes the columns that were folded away: a
+        // reader who has hidden four areas and cannot find the button that
+        // brings them back is worse off than before they folded anything.
+        laneList.forEach(function (lane) { setLane(lane, false); });
+        foldEdges();
       });
     }
 
@@ -1555,7 +1677,24 @@ def render_diff_section(diff):
 # Graph
 # --------------------------------------------------------------------
 
-NODE_W, NODE_H, GAP_X, GAP_Y = 118, 28, 18, 46
+NODE_W, NODE_H, GAP_X, GAP_Y = 118, 28, 18, 22
+# Room above the first row for the lane's name, and how far an intra-lane
+# edge may swing out. The header is also the control that folds its column
+# away, so it is sized as a target a person can hit: at 26 it came to some
+# thirteen screen pixels once the drawing was fitted into a panel. The
+# stride has to hold the widest bow, or an edge would be drawn across the
+# neighbouring column.
+HEADER_H, BOW_MAX = 34, 34
+# What a collapsed lane shrinks to, and where its members' edges land while
+# they are folded away: at the bottom of that block, clear of the lane's
+# name rather than through it. The page's script carries the height too —
+# it is what does the folding — so the two have to agree.
+LANE_FOLD_H = 44
+LANE_FOLD_Y = LANE_FOLD_H - NODE_H
+LANE_STRIDE = NODE_W + GAP_X + BOW_MAX
+# The band is drawn wider than its column, so the first one needs room to
+# its left or the canvas clips its edge.
+LANE_PAD = 8
 
 
 def svg_escape(text):
@@ -1565,105 +1704,60 @@ def svg_escape(text):
                 .replace(">", "&gt;").replace('"', "&quot;"))
 
 
-def _median_key(node, neighbours, rank):
-    """Where a node wants to sit: the median position of what it is
-    attached to in the neighbouring layer. Nodes with nothing to hang from
-    keep their place, and the name breaks every tie — the drawing has to be
-    identical on every run (FR-VIEW-070)."""
-    spots = sorted(rank[n] for n in neighbours.get(node, []) if n in rank)
-    if not spots:
-        return (1, 0.0, node)              # no anchor: keep it last
-    middle = len(spots) // 2
-    median = (spots[middle] if len(spots) % 2
-              else (spots[middle - 1] + spots[middle]) / 2.0)
-    return (0, median, node)
+def _area_of(node):
+    """The middle segment of `<TYPE>-<AREA>-<NNN>`. The checker has already
+    rejected anything shaped otherwise, but the graph is drawn from a model
+    and must not lose a node to a surprise."""
+    parts = node.split("-")
+    return parts[1] if len(parts) > 2 else ""
 
 
-def _crossings(upper, lower, attached):
-    """Edge crossings between two adjacent layers, counted as inversions
-    among the pairs of endpoint positions."""
-    rank_u = dict((n, i) for i, n in enumerate(upper))
-    pairs = []
-    for index, node in enumerate(lower):
-        for other in attached.get(node, []):
-            if other in rank_u:
-                pairs.append((rank_u[other], index))
-    pairs.sort()
-    total = 0
-    for i in range(len(pairs)):
-        for j in range(i + 1, len(pairs)):
-            if pairs[i][1] > pairs[j][1]:
-                total += 1
-    return total
+def _row_key(node):
+    """Within a lane: by number, then by identifier. Sorting by the whole
+    string would sort by type first and interleave the numbering — SPEC
+    would read 010, 030, 040, 020 because two of them are `IF` and one is
+    `CON`."""
+    parts = node.split("-")
+    try:
+        return (int(parts[-1]), node)
+    except ValueError:
+        return (0, node)
 
 
-def _total_crossings(order, levels, parents):
-    return sum(_crossings(order[levels[i]], order[levels[i + 1]], parents)
-               for i in range(len(levels) - 1))
+def _bow(y_from, y_to):
+    """How far an intra-lane edge swings out to clear the boxes between its
+    ends. The page's script carries this expression too — it recomputes an
+    edge when an area is collapsed, and an edge that changed shape at that
+    moment would read as a different link."""
+    return min(BOW_MAX, 14 + int(abs(y_from - y_to) / 5))
 
 
-def order_layers(layers, parents, children, passes=8):
-    """Nodes within each layer, ordered to pull edges straight.
+def edge_path(ax, ay, bx, by, same_lane):
+    """The `d` of one edge, from the child's box to the parent's.
 
-    The layered-drawing heuristic dot uses: sweep the median rule down and
-    then up, swap adjacent pairs wherever that removes a crossing, and keep
-    whichever pass came out best. One downward sweep — what this did
-    before — leaves the lower layers ordered by whatever the upper ones
-    happened to be, and a node with no parent above it stranded at the end.
+    Within a lane the two boxes share an x, so a straight line would run
+    underneath everything between them: the edge leaves the right-hand
+    side and bows out. Across lanes it leaves the side facing the other
+    lane and runs straight. Both rules live in the page's script as well
+    (see `_bow`).
     """
-    levels = sorted(layers)
-    order = dict((level, sorted(layers[level])) for level in levels)
-    best = dict(order)
-    best_score = _total_crossings(order, levels, parents)
-
-    for sweep in range(passes):
-        if sweep % 2 == 0:
-            for level in levels[1:]:
-                rank = dict((n, i) for i, n in enumerate(order[level - 1]))
-                order[level] = sorted(
-                    order[level], key=lambda n: _median_key(n, parents, rank))
-        else:
-            for level in reversed(levels[:-1]):
-                rank = dict((n, i) for i, n in enumerate(order[level + 1]))
-                order[level] = sorted(
-                    order[level], key=lambda n: _median_key(n, children, rank))
-        # Transposition: the median rule is blind to a pair that is simply
-        # the wrong way round.
-        improved = True
-        while improved:
-            improved = False
-            for index in range(len(levels) - 1):
-                upper, lower = levels[index], levels[index + 1]
-                row = order[lower]
-                for i in range(len(row) - 1):
-                    before = _crossings(order[upper], row, parents)
-                    row[i], row[i + 1] = row[i + 1], row[i]
-                    if _crossings(order[upper], row, parents) < before:
-                        improved = True
-                    else:
-                        row[i], row[i + 1] = row[i + 1], row[i]
-        score = _total_crossings(order, levels, parents)
-        if score < best_score:
-            best_score = score
-            best = dict((level, list(order[level])) for level in levels)
-    return best
-
-
-# Which relations claim a level of abstraction, and which merely connect.
-# Layers come from the first group alone: a layer says "higher level", and
-# a requirement must not sink because something it needs sits above it
-# (ADR-0010).
-HIERARCHY_FIELDS = ("derives_from", "refines")
+    a_mid, b_mid = ay + NODE_H / 2, by + NODE_H / 2
+    if same_lane:
+        side = ax + NODE_W
+        out = side + _bow(ay, by)
+        return ("M %d %d Q %d %d %d %d"
+                % (side, a_mid, out, (a_mid + b_mid) / 2, side, b_mid))
+    if bx > ax:
+        return "M %d %d L %d %d" % (ax + NODE_W, a_mid, bx, b_mid)
+    return "M %d %d L %d %d" % (ax, a_mid, bx + NODE_W, b_mid)
 
 
 def build_graph(model):
-    """Every link drawn; layers from the hierarchy fields alone.
+    """Every link drawn; a lane per area, a row per requirement.
 
-    The checker looks for cycles in each field separately, so the union
-    of the two can still contain one (A derives_from B, B refines A).
-    The depth walk therefore carries a stack and treats a re-entry as
-    depth 0 instead of recursing forever; such edges are drawn dashed
-    and take no part in the layout.
+    Position is arithmetic — a lane index from the area, a row index from
+    the number — so the drawing comes out identical on every run without a
+    heuristic having to be kept stable for it (FR-VIEW-070, ADR-0012).
     """
     known = by_id(model)
     edges = []
@@ -1679,52 +1773,25 @@ def build_graph(model):
         nodes = nodes[:GRAPH_NODE_LIMIT]
         keep = set(nodes)
         edges = [e for e in edges if e[0] in keep and e[1] in keep]
-
-    # Only the hierarchy feeds the layout; the rest is drawn across it.
-    parents = {}
-    children = {}
-    for child, parent, field in edges:
-        if field in HIERARCHY_FIELDS:
-            parents.setdefault(child, []).append(parent)
-            children.setdefault(parent, []).append(child)
-    depth = {}
-
-    def resolve(node, stack):
-        if node in depth:
-            return depth[node]
-        if node in stack:
-            return 0                       # back edge: break the walk
-        stack.add(node)
-        value = 0
-        for parent in parents.get(node, []):
-            value = max(value, resolve(parent, stack) + 1)
-        stack.discard(node)
-        depth[node] = value
-        return value
-
-    for node in nodes:
-        resolve(node, set())
-
-    layers = {}
-    for node in nodes:
-        layers.setdefault(depth.get(node, 0), []).append(node)
-    # A wide layer wraps into several rows within its own band: forty
-    # boxes on one line would push the page sideways, and a page that
-    # scrolls horizontally is a page nobody reads.
-    position = {}
-    top = 1
-    ordered = order_layers(layers, parents, children)
-    for level in sorted(layers):
-        # One row per layer. Wrapping a wide layer folded the ordering
-        # into two rows and threw away the only thing it computes — the
-        # eleventh node landed under the first, nowhere near its parent.
-        # The canvas pans and zooms, so the drawing is free to be wide.
-        for index, node in enumerate(ordered[level]):
-            position[node] = (1 + index * (NODE_W + GAP_X), top)
-        top += NODE_H + GAP_Y
-    if not position:
+    if not nodes:
         return "", 0
-    width = max(x for x, _y in position.values()) + NODE_W + 2
+
+    area = dict((node, _area_of(node)) for node in nodes)
+    present = set(area.values())
+    # The configured order first — it is the maintainer's and it is
+    # committed — then whatever the configuration does not name, so a node
+    # can never fall out of the drawing by being in an unexpected area.
+    lanes = ([a for a in model["areas"] if a in present]
+             + sorted(present - set(model["areas"])))
+
+    position, members = {}, {}
+    for index, lane in enumerate(lanes):
+        rows = sorted([n for n in nodes if area[n] == lane], key=_row_key)
+        members[lane] = rows
+        x = LANE_PAD + index * LANE_STRIDE
+        for row, node in enumerate(rows):
+            position[node] = (x, HEADER_H + row * (NODE_H + GAP_Y))
+    width = max(x for x, _y in position.values()) + NODE_W + BOW_MAX + 2
     height = max(y for _x, y in position.values()) + NODE_H + 2
 
     parts = ['<div class="stage"><svg id="graph-svg" class="graph" '
@@ -1737,49 +1804,89 @@ def build_graph(model):
                  'markerWidth="6" markerHeight="6" orient="auto-start-reverse">'
                  '<path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>'
                  '</marker></defs>')
+    # Lanes first so the band sits behind everything; the header is the
+    # control that folds the column away (FR-VIEW-110).
+    for index, lane in enumerate(lanes):
+        x = LANE_PAD + index * LANE_STRIDE
+        # Two rectangles, not one: the band is the column's backdrop and
+        # takes no clicks — catching them meant a click in the gap between
+        # two boxes folded the whole area away. The head is the control,
+        # and it is the size of the block the column folds into.
+        parts.append('<g class="lane" data-area="%s" data-x="%d" data-y="%d" '
+                     'data-h="%d">'
+                     '<rect class="lane-band" x="%d" y="0" width="%d" '
+                     'height="%d" rx="7"/>'
+                     '<rect class="lane-head" x="%d" y="0" width="%d" '
+                     'height="%d" rx="7"><title>%s</title></rect>'
+                     '<text class="lane-name" x="%d" y="%d" '
+                     'text-anchor="middle">%s · %d</text></g>'
+                     % (svg_escape(lane), x, LANE_FOLD_Y, height,
+                        x - 7, NODE_W + 14, height,
+                        x - 7, NODE_W + 14, HEADER_H,
+                        svg_escape("%s — click to fold this column away"
+                                   % lane),
+                        x + NODE_W / 2, HEADER_H / 2 + 4,
+                        svg_escape(lane), len(members[lane])))
     for child, parent, field in edges:
         if child not in position or parent not in position:
             continue
         cx, cy = position[child]
         px, py = position[parent]
         # The kind is always on the edge: a form that tells one relation
-        # from another is the requirement (FR-VIEW-160), and `back` used to
-        # overwrite it. Only a hierarchy edge can run backwards — it means
-        # a cycle the layout had to break; a `depends_on` pointing upward
-        # is ordinary and says nothing.
-        back = (field in HIERARCHY_FIELDS
-                and depth.get(parent, 0) >= depth.get(child, 0))
-        klass = "edge %s%s" % (field, " back" if back else "")
-        parts.append('<path class="%s" data-from="%s" data-to="%s" '
-                     'd="M %d %d L %d %d" marker-end="url(#a)"/>'
-                     % (klass, svg_escape(child), svg_escape(parent),
-                        cx + NODE_W / 2, cy,
-                        px + NODE_W / 2, py + NODE_H))
+        # from another is the requirement (FR-VIEW-160). Nothing marks an
+        # edge as running backwards any more — with a lane for an area and
+        # a row for a number, no direction claims to be forward.
+        parts.append('<path class="edge %s" data-from="%s" data-to="%s" '
+                     'd="%s" marker-end="url(#a)"/>'
+                     % (field, svg_escape(child), svg_escape(parent),
+                        edge_path(cx, cy, px, py,
+                                  area[child] == area[parent])))
     for node in nodes:
         x, y = position[node]
         entry = known.get(node, {})
-        parts.append('<g class="node st-%s" data-id="%s" data-x="%d" '
-                     'data-y="%d"><title>%s</title>'
-                     '<rect x="%d" y="%d" width="%d" height="%d" rx="5" '
-                     'stroke="currentColor"/>'
+        # x0/y0 is where the node belongs: collapsing an area moves it onto
+        # the lane's header and it has to find its way back.
+        parts.append('<g class="node st-%s" data-id="%s" data-area="%s" '
+                     'data-x="%d" data-y="%d" data-x0="%d" data-y0="%d">'
+                     '<title>%s</title>'
+                     '<rect x="%d" y="%d" width="%d" height="%d" rx="5"/>'
                      '<text x="%d" y="%d" text-anchor="middle">%s</text></g>'
                      % (svg_escape(entry.get("status", "")), svg_escape(node),
-                        x, y,
-                        svg_escape("%s — %s" % (node, entry.get("title", ""))),
+                        svg_escape(area[node]), x, y, x, y,
+                        svg_escape("%s — %s (%s)"
+                                   % (node, entry.get("title", ""),
+                                      entry.get("status", ""))),
                         x, y, NODE_W, NODE_H,
                         x + NODE_W / 2, y + NODE_H / 2 + 4, svg_escape(node)))
     options = "".join('<option value="%s">%s</option>'
                       % (svg_escape(node), svg_escape(node)) for node in nodes)
+    # Both legends are lists, so both read down the rail rather than
+    # across. The link swatch is a line carrying the very class the edge
+    # carries, so the dash pattern cannot drift from the drawing; the
+    # status swatch takes its colour from the same st-* class a node does.
+    # Colour is not the only channel (FR-VIEW-180): every key is named, and
+    # a node's tooltip says its status in words.
+    link_keys = "".join(
+        '<span class="key"><svg class="graph swatch" width="26" height="9" '
+        'aria-hidden="true"><line class="edge %s" x1="1" y1="4.5" x2="25" '
+        'y2="4.5"/></svg>%s</span>' % (esc(field), esc(field))
+        for field in LINK_FIELDS)
+    status_keys = "".join(
+        '<span class="key st-%s"><span class="dot"></span>%s</span>'
+        % (esc(status), esc(status)) for status in STATUSES)
     parts.append(
-        '</g></svg><div id="graph-controls">'
+        '</g></svg><div id="graph-rail"><div id="graph-controls">'
         '<label>around <select id="graph-root">'
-        '<option value="">everything</option>%s</select></label> '
+        '<option value="">everything</option>%s</select></label>'
         '<label>within <select id="graph-depth">'
         '<option value="1">1 link</option>'
         '<option value="2" selected>2 links</option>'
-        '<option value="3">3 links</option></select></label> '
+        '<option value="3">3 links</option></select></label>'
         '<button id="graph-reset" type="button">reset view</button>'
-        '</div></div>' % options)
+        '</div><div id="graph-legend">'
+        '<p class="legend-title">link</p>%s'
+        '<p class="legend-title">status</p>%s'
+        '</div></div></div>' % (options, link_keys, status_keys))
     return "".join(parts), dropped
 
 
@@ -1982,20 +2089,20 @@ def render_page(model, links, diff=None, baselines=None):
 
     graph_svg, dropped = build_graph(model)
     if not graph_svg:
-        graph = "<p>No derives_from or refines links yet.</p>"
+        graph = "<p>No links between requirements yet.</p>"
     else:
         note = ""
         if dropped:
             note = ("<p>%d node(s) beyond the first %d are not drawn — the "
                     "layout stops being readable past that.</p>"
                     % (dropped, GRAPH_NODE_LIMIT))
-        graph = ("<p>Solid: <code>derives_from</code>. Long dashes: "
-                 "<code>refines</code>. Short dashes: <code>depends_on</code>."
-                 " Dash-dot: <code>conflicts_with</code>. Layers come from "
-                 "the first two — a layer says \u201chigher level\u201d, and "
-                 "the others are drawn across it; a faded hierarchy edge is "
-                 "one that closes a cycle and takes no part in the layout. "
-                 "Filters dim the nodes; the layout itself is fixed.</p>"
+        graph = ("<p>A column is an area and a row is a requirement’s "
+                 "number, so a line crossing columns is a link that "
+                 "leaves its area. A column folds away when its name "
+                 "is clicked, and the reset button brings them all "
+                 "back. Filters dim the nodes; the layout itself is "
+                 "fixed. The rail names the kinds of link and the "
+                 "statuses.</p>"
                  "%s%s" % (note, graph_svg))
 
     documents = "".join('<li><a href="%s">%s</a></li>'
