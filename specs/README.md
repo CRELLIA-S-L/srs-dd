@@ -105,7 +105,7 @@ undo history noisy.
 
 | Field | Required | Values | Meaning |
 |---|---|---|---|
-| `status` | **yes** | `draft` `deferred` `partial` `implemented` `superseded` | Lifecycle stage — see *Lifecycle* |
+| `status` | **yes** | `draft` `deferred` `partial` `implemented` `superseded` `withdrawn` | Lifecycle stage — see *Lifecycle* |
 | `verification` | **yes** | `T` `D` `I` `A` | Test · demonstration · inspection · analysis |
 | `derives_from` | no | list of identifiers | Which higher-level requirement it is derived from |
 | `refines` | no | list of identifiers | Which requirement it narrows with a special case |
@@ -147,12 +147,19 @@ branch”).
 
 `draft → deferred → partial / implemented → superseded`
 
+Any of those states may instead end at `withdrawn`.
+
 - `draft` — recorded but not yet approved. Only the maintainer flips it to
   `deferred`.
 - `deferred` — approved, awaiting implementation.
 - `partial` / `implemented` — being realized; `implemented` requires a
   filled `code` field.
 - `superseded` — cancelled with a successor (see *Identifier*).
+- `withdrawn` — cancelled with nothing to replace it, and therefore
+  carrying no `superseded_by`. The requirement stays where it is and its
+  number stays dead (see *Identifier*), the same as for `superseded`; what
+  differs is that nothing took its place, and the rationale is where that
+  is explained.
 
 Initial status: `deferred` when the maintainer asked for the change
 themselves — approval is implicit in the request; `draft` when the

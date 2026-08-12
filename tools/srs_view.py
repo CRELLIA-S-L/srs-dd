@@ -822,14 +822,14 @@ CSS = """
   --bg: #ffffff; --fg: #1a1d21; --muted: #6b7280; --line: #e2e5e9;
   --panel: #f7f8fa; --accent: #2c5fd0; --mark: #fff3b0;
   --draft: #b45309; --deferred: #6d28d9; --partial: #0e7490;
-  --implemented: #15803d; --superseded: #6b7280;
+  --implemented: #15803d; --superseded: #6b7280; --withdrawn: #9f1239;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #14171a; --fg: #e6e8ea; --muted: #9aa3ad; --line: #2a2f36;
     --panel: #1b1f24; --accent: #7aa2f7; --mark: #4a3f14;
     --draft: #f59e0b; --deferred: #a78bfa; --partial: #22d3ee;
-    --implemented: #4ade80; --superseded: #9aa3ad;
+    --implemented: #4ade80; --superseded: #9aa3ad; --withdrawn: #fb7185;
   }
 }
 * { box-sizing: border-box; }
@@ -897,6 +897,7 @@ article h3 .id { font-family: ui-monospace, monospace; }
 .st-partial { color: var(--partial); }
 .st-implemented { color: var(--implemented); }
 .st-superseded { color: var(--superseded); }
+.st-withdrawn { color: var(--withdrawn); }
 .badge.new { background: var(--implemented); color: #fff; border-color: transparent; }
 .badge.changed { background: var(--draft); color: #fff; border-color: transparent; }
 .where { color: var(--muted); font-size: 12px; }
@@ -986,7 +987,17 @@ footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 12px 20px
   article { break-inside: avoid; border-color: #ccc; background: none; }
   #view-dash, #view-graph { display: block !important; }
 }
+.key.kind { cursor: pointer; user-select: none; border-radius: 4px; }
+.key.kind[aria-pressed="false"] { opacity: .35; }
 """
+
+# Leaving a kind out is a class on the drawing rather than a style on each
+# edge: the script rebuilds an edge when an area folds, and a style set on
+# the element would not survive that. Generated from LINK_FIELDS so a kind
+# added later cannot arrive unhideable (FR-VIEW-160).
+EDGE_HIDE_CSS = "".join(
+    "#graph-svg.hide-%s .edge.%s { display: none; }\n" % (field, field)
+    for field in LINK_FIELDS)
 
 JS = """
 (function () {
@@ -1235,6 +1246,13 @@ JS = """
         // reader who has hidden four areas and cannot find the button that
         // brings them back is worse off than before they folded anything.
         laneList.forEach(function (lane) { setLane(lane, false); });
+        // And the kinds of link left out, for the same reason and with the
+        // same trap: a dimmed swatch is easy to miss (FR-VIEW-160).
+        Array.prototype.forEach.call(
+          document.querySelectorAll('.key.kind'), function (key) {
+            key.setAttribute('aria-pressed', 'true');
+            gsvg.classList.remove('hide-' + key.dataset.kind);
+          });
         foldEdges();
       });
     }
@@ -1405,6 +1423,25 @@ JS = """
       }
     });
   });
+
+  // Leaving a kind of link out of the drawing (FR-VIEW-160). The class goes
+  // on the svg, not on the edges: folding an area rebuilds them.
+  Array.prototype.forEach.call(
+    document.querySelectorAll('.key.kind'), function (key) {
+      var kind = key.dataset.kind;
+      key.addEventListener('click', function () {
+        var drawn = key.getAttribute('aria-pressed') === 'true';
+        key.setAttribute('aria-pressed', drawn ? 'false' : 'true');
+        if (gsvg) gsvg.classList.toggle('hide-' + kind, drawn);
+      });
+      key.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          key.click();
+        }
+      });
+    });
+
   search.addEventListener('input', apply);
 
   var tabs = Array.prototype.slice.call(document.querySelectorAll('nav button'));
@@ -1872,10 +1909,15 @@ def build_graph(model):
     # status swatch takes its colour from the same st-* class a node does.
     # Colour is not the only channel (FR-VIEW-180): every key is named, and
     # a node's tooltip says its status in words.
+    # Pressed means drawn: every kind starts on, and a click subtracts it.
+    # That is the direction FR-VIEW-160 argues for — a link that is drawn
+    # and unwanted is one click away, a link never drawn is invisible.
     link_keys = "".join(
-        '<span class="key"><svg class="graph swatch" width="26" height="9" '
+        '<span class="key kind" role="button" tabindex="0" '
+        'aria-pressed="true" data-kind="%s">'
+        '<svg class="graph swatch" width="26" height="9" '
         'aria-hidden="true"><line class="edge %s" x1="1" y1="4.5" x2="25" '
-        'y2="4.5"/></svg>%s</span>' % (esc(field), esc(field))
+        'y2="4.5"/></svg>%s</span>' % (esc(field), esc(field), esc(field))
         for field in LINK_FIELDS)
     status_keys = "".join(
         '<span class="key st-%s"><span class="dot"></span>%s</span>'
@@ -2122,7 +2164,7 @@ def render_page(model, links, diff=None, baselines=None):
     # cards are already in place.
     filled = dict((
             ("__TITLE__", esc(project_title())),
-            ("__CSS__", CSS),
+            ("__CSS__", CSS + EDGE_HIDE_CSS),
             ("__JS__", JS),
             ("__COUNT__", str(len(entries))),
             ("__FILTERS__", "".join(filters)),

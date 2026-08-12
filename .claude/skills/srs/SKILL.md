@@ -105,6 +105,64 @@ statement silent about something you built, the statement is what is wrong.
 And a change that names no requirement at all is its own signal — either
 nothing about the system's behavior moved, or the requirement is missing.
 
+## Withdrawing a requirement
+
+`withdrawn` is for one cancelled with nothing to replace it. Where
+something does replace it, that is `superseded` and the successor is named
+— this section is not about that case.
+
+Withdrawal is the one edit that breaks requirements it never touches, so
+before the status changes:
+
+1. **Read what points at it.** `python3 tools/srs_view.py <ID>` resolves
+   incoming links in both directions; the matrix answers the same by hand.
+   Show them grouped by field, because the four break differently:
+
+   | Field | What the dependant loses |
+   |---|---|
+   | `depends_on` | its meaning — it was declared meaningless without this |
+   | `derives_from` | its reason for existing |
+   | `refines` | the general rule it was sharpening |
+   | `conflicts_with` | nothing; the divergence is merely beside the point |
+
+2. **Show one level, count the rest.** The requirements pointing straight
+   at this one, in full; whatever lies beyond them as a number. Every
+   resolution below acts on the direct dependants, and any of them may
+   itself become a withdrawal with its own tree — so the closure is settled
+   one level per decision, not all at once (ADR-0013).
+
+3. **Settle each dependant with the maintainer.** None of these is a
+   default, and `conflicts_with` needs no decision at all:
+
+   - **Do not withdraw** — the honest answer when the tree is large and
+     nobody has time to dismantle it.
+   - **Narrow instead** — reword the requirement to cover only what is
+     still wanted. Nothing is cancelled and the dependants keep their
+     ground.
+   - **Supersede instead** — the need survives and the shape changed.
+     Dependants re-point at the successor.
+   - **Cascade** — withdraw the dependants too, where the branch died with
+     its root. Each one comes back through this section.
+   - **Re-parent** — point the dependants at another requirement carrying
+     the same ground. Cheapest where the withdrawn one was a middleman.
+   - **Promote** — drop the link and let the dependant stand alone,
+     rewording it where it leaned on its parent's words. Usually the
+     `refines` answer.
+   - **Orphan deliberately** — the dependant outlives its target because
+     the link recorded provenance, not necessity. Allowed, and to be said
+     rather than left silent.
+   - **Stage it** — for a large tree the withdrawal is a migration: record
+     the intent, resolve the dependants, withdraw last. A cascade abandoned
+     halfway is worse than one never started.
+
+4. **Then set the status**, and say why in the rationale — a withdrawal
+   names no successor, so the rationale is the only place the reason can
+   live. The number stays dead forever either way (INV-SPEC-010).
+
+Anything still standing on it afterwards is reported by the checker
+(FR-CHK-190), which is the guard on a specification edited without this
+procedure — not a substitute for it.
+
 ## Planning multi-requirement work
 
 For a task that spans several requirements, build the plan from the
@@ -121,8 +179,11 @@ specification, not from the code:
    articles that constrain it (“per ART-040”) — and notes the
    requirement's verification method.
 4. A `draft` in scope is a blocker, marked so in the plan — code against
-   it waits for approval (ART-020). A `superseded` requirement in scope
-   is an error; surface it instead of planning around it.
+   it waits for approval (ART-020). A `superseded` or `withdrawn`
+   requirement in scope is an error; surface it instead of planning
+   around it. For a `superseded` one the successor is where the plan
+   goes instead; a `withdrawn` one has none, and a step that still needs
+   it is a step whose ground was cancelled.
 5. Every plan ends with the same two steps: close the loop (status,
    `code`, `tests` in the same edit set) and run the checker. Steps that
    run builds or tests are marked “requires the user's explicit

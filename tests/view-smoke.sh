@@ -81,10 +81,23 @@ python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
 python3 tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log
 grep -q "FR-CORE-030" /tmp/v-tree.log
+# And the opposite direction under the upward flag (FR-VIEW-030). Only the
+# downward walk was asserted, so `--up` could have printed the same tree, or
+# nothing, without this suite noticing.
+python3 tools/srs_view.py --tree FR-CORE-020 --up > /tmp/v-up.log
+grep -q "FR-CORE-010" /tmp/v-up.log
+! grep -q "FR-CORE-030" /tmp/v-up.log
 python3 tools/srs_view.py --code src/app.py --list > /tmp/v-code.log
 grep -q "FR-CORE-020" /tmp/v-code.log
+# A directory as well as a file (FR-VIEW-020): the statement offers both and
+# only the file was ever passed.
+python3 tools/srs_view.py --code src --list > /tmp/v-dir.log
+grep -q "FR-CORE-020" /tmp/v-dir.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
+# The fourth gap is a proportion, not a count (FR-VIEW-040): one
+# unreferenced file means nothing without how many there are.
+grep -qE "Code files no requirement references: [0-9]+ of [0-9]+" /tmp/v-cov.log
 python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
 # The same baseline named by version rather than by tag (FR-VIEW-050): a
 # baseline need not have been tagged to be compared against.
@@ -120,14 +133,30 @@ import re
 page = open('.srs-site/index.html', encoding='utf-8').read()
 section = page[page.index('<section id="view-dash"'):]
 section = section[:section.index('</section>')]
-for status, count in (('draft', 0), ('deferred', 2), ('partial', 0),
-                      ('implemented', 1), ('superseded', 0)):
+# Expected counts come from the model rather than from constants: the
+# fixture leans on whatever status the installer gives its placeholder, and
+# a hard-coded number would fail here naming the dashboard when what moved
+# was srs_init.py. The two sides are still independent — the page's census
+# is rendered by render_dashboard, this reads what load_model parsed.
+import json
+model = json.load(open('/tmp/model.json'))
+expected = {}
+for entry in model['requirements']:
+    expected[entry['status']] = expected.get(entry['status'], 0) + 1
+for status in ('draft', 'deferred', 'partial', 'implemented', 'superseded',
+               'withdrawn'):
     found = re.search(r'st-%s">%s</span></td><td>(\d+)</td>'
                       % (status, status), section)
     assert found, 'the dashboard gives no count for %s' % status
-    assert int(found.group(1)) == count, \
-        'the dashboard counts %s as %s, not %d' % (status, found.group(1),
-                                                   count)
+    assert int(found.group(1)) == expected.get(status, 0), \
+        'the dashboard counts %s as %s, the model says %d' \
+        % (status, found.group(1), expected.get(status, 0))
+# Three of the six are carried by nobody here, which is the half of the
+# rule a census of whatever happens to be present would pass by accident.
+assert len([s for s in ('draft', 'deferred', 'partial', 'implemented',
+                        'superseded', 'withdrawn')
+            if not expected.get(s)]) >= 3, \
+    'the fixture no longer exercises statuses that nothing carries'
 PY2
 
 # The coverage gaps are on the page, not only in the terminal
@@ -330,7 +359,8 @@ assert 'stroke: currentColor' in page and 'fill: currentColor' in page, \
     'the node box no longer takes its colour from its status class'
 assert not re.search(r'\.graph \.node rect \{[^}]*stroke: var\(--line\)', page), \
     'a neutral stroke is painting over the status colour again'
-for status in ('draft', 'deferred', 'partial', 'implemented', 'superseded'):
+for status in ('draft', 'deferred', 'partial', 'implemented', 'superseded',
+               'withdrawn'):
     assert re.search(r'\.st-%s \{ color: var\(--%s\)' % (status, status), page), \
         'no colour for status %s' % status
     assert re.search(r'<span class="key st-%s">.{0,40}%s</span>'
@@ -348,6 +378,25 @@ assert re.search(r'#graph-controls \{[^}]*flex-direction: column', page), \
 for field in ('derives_from', 'refines', 'depends_on', 'conflicts_with'):
     assert '<line class="edge %s"' % field in page, \
         'the legend has no swatch for %s' % field
+    # And the reader can leave that kind out (FR-VIEW-160). The suite runs
+    # no browser, so what is asserted is the mechanism end to end: a swatch
+    # that is a control, a rule that hides the kind when the drawing carries
+    # its class, and a handler that puts the class there. The drawing half
+    # of this requirement was built and marked implemented while this half
+    # was never written — a control belonging to FR-VIEW-150 stood in for it.
+    assert re.search(r'class="key kind"[^>]*aria-pressed="true"[^>]*'
+                     r'data-kind="%s"' % field, page), \
+        'the swatch for %s is not a control' % field
+    assert '#graph-svg.hide-%s .edge.%s { display: none; }' % (field, field) \
+        in page, 'nothing hides %s when the drawing is told to' % field
+assert "classList.toggle('hide-' + kind" in page, \
+    'the swatches are controls that control nothing'
+# Reset restores the kinds too. The button already argued the principle for
+# folded columns — a reader who cannot find the way back is worse off than
+# before — and a dimmed swatch is easier to overlook than a missing column.
+after_reset_kinds = page.split("getElementById('graph-reset')")[1][:900]
+assert "remove('hide-' + key.dataset.kind)" in after_reset_kinds, \
+    'reset view leaves the hidden link kinds hidden'
 # Colour is not the only channel: the tooltip says the status in words.
 assert re.search(r'<title>[^<]+\((draft|deferred|partial|implemented|'
                  r'superseded)\)</title>', page), \
@@ -469,18 +518,38 @@ The system **shall** stand in for an unapproved parent.
 ```yaml
 status: draft
 verification: I
+code: [src/ahead.py]
 ```
 
 The system **shall** stand in for an unapproved dependency.
 MD
 (
   cd /tmp/srs-view-resting
-  mkdir -p src && printf 'x\n' > src/app.py
+  mkdir -p src && printf 'x\n' > src/app.py && printf 'y\n' > src/ahead.py
   python3 tools/srs_view.py --coverage > /tmp/v-resting.log
   # One requirement, both of its links. Counting the lines said two.
   grep -q "^Realized but resting on a draft: 1$" /tmp/v-resting.log
   grep -q "FR-CORE-040 *derives_from FR-CORE-050" /tmp/v-resting.log
   grep -q "FR-CORE-040 *depends_on FR-CORE-060" /tmp/v-resting.log
+  # This target is also the only one where the second and third gaps have
+  # anything in them: the main fixture turns every draft into a deferred
+  # before the page is rendered, so there the two are checked by their
+  # headings alone and could be emitted empty without failing (FR-VIEW-200).
+  python3 tools/srs_view.py --html >/dev/null
+  python3 - <<'PY3'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+sec = page[page.index('<section id="view-dash"'):]
+sec = sec[:sec.index('</section>')]
+def gap(heading):
+    part = sec[sec.index(heading):]
+    return part[:part.index('<h2>', 1)]
+ahead = gap('Draft with code')
+assert 'FR-CORE-060' in ahead, 'the draft carrying code is not listed'
+resting = gap('Realized but resting on a draft')
+assert 'FR-CORE-040' in resting, 'the requirement resting on a draft is not listed'
+assert 'FR-CORE-050' not in resting and 'FR-CORE-060' not in resting, \
+    'the page lists the drafts rested on instead of the requirement resting'
+PY3
 )
 
 # The baseline row is printed ready to paste, and names the previous
@@ -518,3 +587,23 @@ PY2
 
 # A viewer run must not litter the target with bytecode.
 test -z "$(find . -name __pycache__)"
+
+# Nor may it write into specs/ (FR-VIEW-080). That half of the prohibition
+# went unasserted while the bytecode half above stood in for it: the viewer
+# could have started regenerating the matrix, as the checker does, and every
+# suite here would have stayed green. Every mode, because only some of them
+# have any reason to touch a file at all.
+find specs -type f | sort | xargs cksum > /tmp/v-specs-before
+for mode in "--list" "FR-CORE-010" "--tree FR-CORE-010" "--up FR-CORE-020" \
+            "--code src/app.py" "--coverage" "--diff spec/v0.0.1" \
+            "--baseline 9.9.9 --date 2026-01-01" "--json /tmp/v-nowrite.json" \
+            "--html /tmp/v-nowrite.html"; do
+    # Word splitting is the point — each entry is a whole invocation. Errors
+    # are not swallowed: a mode that fails writes nothing, so tolerating it
+    # would leave this comparison passing for exactly the mode that broke.
+    # shellcheck disable=SC2086
+    python3 tools/srs_view.py $mode >/dev/null 2>&1
+done
+find specs -type f | sort | xargs cksum > /tmp/v-specs-after
+diff /tmp/v-specs-before /tmp/v-specs-after \
+    || { echo "the viewer modified specs/"; exit 1; }

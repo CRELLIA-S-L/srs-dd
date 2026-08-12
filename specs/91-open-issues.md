@@ -56,21 +56,34 @@ and the defect went with it.
 **Decision needed:** whether pinch zoom is worth code. It is a pointer
 handler counting two contacts.
 
-## An area holds at most 99 requirements, and the standard does not say so
+## The standard never says how many numbers an area has
 
 **Found:** while measuring NFR-CHK-010 against a generated specification of
 500 requirements (2026-08-06). 401 of them were rejected.
 
 **What diverged:** `RE_ID` (`tools/srs_check.py`) requires exactly three
-digits, so with the mandated steps of 10 an area runs from `010` to `990` —
-99 requirements. The 100th is a hard error a project cannot work around
-without splitting the area, and identifiers are immutable, so splitting late
-is expensive. The Identifier section of `specs/README.md` says numbers "go in
-steps of 10" and never mentions the ceiling.
+digits, so an area holds 999 numbers, of which the mandated steps of 10 use
+99. The Identifier section of `specs/README.md` says numbers "go in steps of
+10" and never mentions either figure.
 
-**Decision needed:** document the limit and the advice to split an area early,
-or widen the grammar to four digits — which changes what a released checker
-accepts and therefore needs a version and upgrade notes.
+This entry claimed until 2026-08-12 that the hundredth requirement is a hard
+error a project cannot work around without splitting the area. That was
+wrong on both counts. No rule requires a multiple of ten — the checker has
+no such rule at all — so an intermediate number passes, which is what the
+step of 10 leaves room for and what FR-CHK-075 used when FR-CHK-070 was
+split. And the binding ceiling on a project this framework can serve is not
+here: the graph draws 150 linked requirements and states what it left out
+(`GRAPH_NODE_LIMIT`, NFR-VIEW-010), measured the same day at 150, 300 and
+800.
+
+Widening the grammar to four digits was considered and rejected on
+2026-08-12. Both shapes break: mixed widths sort wrongly everywhere the
+tools order by identifier string, and fixed four digits with a leading zero
+renames every published identifier, which INV-SPEC-010 forbids.
+
+**Decision needed:** say in the Identifier section how many numbers an area
+has, and that the step of 10 is a convention the checker does not enforce —
+or decide the standard need not say it, and close this.
 
 ## The width of the installer's output belongs to no requirement
 
@@ -112,12 +125,19 @@ in a column, and a gap at exactly the requirement worth noticing: one that
 rests on nothing and that nothing needs.
 
 **Why it is recorded rather than fixed:** this specification has no such
-requirement — all 88 carry at least one link — so nothing that ships is
+requirement — all 95 carry at least one link — so nothing that ships is
 wrong. What is unresolved is what a project in that position should see,
 and the answer is not obvious: a fresh install spends its first weeks with
 a specification that is mostly unlinked, and a drawing that reserved a row
 for every one of them would be tall and empty at exactly the moment it is
 first opened.
+
+Since 2026-08-12 the question has a second half. A `withdrawn` requirement
+is deliberately outside the `unlinked` report (FR-CHK-150) because it has no
+link left to forget, and one that nothing ever pointed at is invisible in
+the drawing for the same reason as any other isolated requirement. Whatever
+is decided here, the two should agree: a requirement the checker has stopped
+asking about is a poor candidate for a lane of its own.
 
 **Decision needed:** draw every requirement and let the unlinked ones stand
 in their lane as islands, or keep the drawing to what has links and say so
@@ -147,41 +167,3 @@ one place a rule is supposed to live.
 **Decision needed:** accept the passage as teaching text and narrow
 FR-SKILL-020, which today reads as absolute, or cut it to a pointer and
 accept a step 4 that only refers.
-
-## A requirement can be replaced but not abandoned
-
-**Found:** while asking what the framework does with a requirement nobody
-intends to build (2026-08-12).
-
-**What diverged:** the lifecycle in `specs/README.md` ends at `superseded`,
-defined there as cancelled *with a successor*, and the checker holds it to
-the letter: `status: superseded` with no `superseded_by` is an error, and
-`superseded_by` under any other status is an error too
-(`tools/srs_check.py:548`, `:551`). A requirement dropped because the
-behaviour itself was abandoned — nothing replaces it and nothing is meant
-to — has nowhere to go. The three ways out are all false: invent a
-placeholder successor so the field has something to name, leave it in
-`deferred` where it reads as approved and merely late, or delete it, which
-the standard forbids and INV-SPEC-010 contradicts.
-
-Nothing else notices either. A requirement carries no date and no rule
-counts how long one has stood, so a `deferred` from a year ago and one from
-yesterday are the same to every tool here. A baseline row counts the
-statuses without naming which requirements hold them, and `--diff` reports
-what was added, removed or changed — which is exactly what an abandoned
-requirement is not. It sits unchanged, and unchanged is invisible.
-
-**Why it is recorded rather than fixed:** a sixth status is not a local
-edit. An unknown status is a hard error (`tools/srs_check.py:505`), so a
-checker already installed in another project would reject a specification
-written against the newer standard — the one-way compatibility that governs
-metadata keys (ADR-0009), and the same cost carried by the four-digit
-identifier asked about above. Nor is the shape obvious: a new status, or
-`superseded_by` made optional with the reason left to the rationale, or a
-convention that what supersedes an abandoned requirement is the decision
-that abandoned it.
-
-**Decision needed:** give a cancelled requirement a state that does not
-demand a replacement, or rule that a specification does not record
-abandonment at all and say so in the standard, so that the absence stops
-reading as an oversight.

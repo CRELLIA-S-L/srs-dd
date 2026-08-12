@@ -11,7 +11,7 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
-## [0.12.0]
+## [0.13.0] — 2026-08-12
 
 ### Added
 
@@ -82,9 +82,50 @@ embedded in `tools/srs_check.py` as `__version__`.
   dashboard and in a baseline comparison, and nodes in the graph, now open
   the requirement they name — switching to the view that renders it and
   clearing a filter that would hide it (FR-VIEW-130).
+- A requirement can be withdrawn as well as replaced. `withdrawn` is the
+  status for one cancelled with nothing to take its place: the record and
+  its number stay dead as they do for `superseded`, and no successor is
+  named or expected (INV-SPEC-050). Until now the only way out of the
+  lifecycle demanded a replacement, so a dropped requirement stayed
+  `deferred`, where it reads as approved and merely late.
+- A requirement left standing on a withdrawn one is reported. Withdrawing
+  is the one edit that breaks requirements it never touches, so the checker
+  names both ends and what the dependant would have to become
+  (FR-CHK-190). `conflicts_with` is not counted — a divergence from a
+  withdrawn requirement has lost nothing it stood on.
+- A kind of link can be left out of the graph. Every swatch in the link
+  legend is a control now: press it and that relation goes from the drawing,
+  wherever it runs. Drawing all four and subtracting is what FR-VIEW-160
+  argued for, and the subtracting half had never been built — a root and a
+  radius, which cuts by distance rather than by kind, had been taken to
+  satisfy it (FR-VIEW-150).
+- The audit counts a test as proof only if it could fail. For each case it
+  would call covered it names the change to the code that would turn that
+  test red, because reading a test says what it mentions and not what it
+  would catch. A statement carrying two obligations with a suite that
+  exercises one, or a rule firing on several fields with a fixture for one,
+  both read as covered and both stay green when the behaviour is deleted
+  (FR-SKILL-160). Named, not run — the audit executes nothing.
+- The `srs` skill gained a withdrawal procedure. It shows what points at
+  the requirement, grouped by which field breaks, and offers eight ways to
+  settle each dependant before the status changes (FR-SKILL-150,
+  ADR-0013).
 
 ### Changed
 
+- Both approval warnings now name the requirement they are about. A draft
+  carrying code (FR-CHK-070) and a realized requirement resting on a draft
+  (FR-CHK-075) were identified by file and line only — enough to open the
+  file, not enough to grep a pipeline log or to cite in a plan that
+  references numbers, and a line number moves with the next edit above it.
+  FR-CHK-075 named the draft being rested on but not the requirement
+  resting on it, so the one that had to change was the one the reader could
+  not name.
+- The two approval warnings are two requirements. FR-CHK-070 keeps the
+  draft carrying code; a realized requirement resting on a draft is now
+  FR-CHK-075. One statement covering both is why the second had no fixture
+  while the first had two — the requirement read as verified because half
+  of it was.
 - The graph is grouped by area instead of layered by derivation. A column
   is an area and a row is a requirement's number, so a line crossing
   columns is a link that leaves its area; this specification's drawing
@@ -144,6 +185,26 @@ embedded in `tools/srs_check.py` as `__version__`.
   is not, lower the rule in `specs/srs-config.json` or excuse the one
   requirement with `exempt: [test-missing]` or `exempt: [unlinked]` in its
   own block.
+- A cancelled requirement is no longer reported as touching no link. The
+  `unlinked` rule spared `superseded` only by accident — its
+  `superseded_by` counts as a link, and one is mandatory — and would have
+  fired on every `withdrawn` requirement, turning a `--strict` gate red for
+  having cancelled something nothing pointed at. Both are outside the rule
+  now, on purpose (FR-CHK-150). Nothing changes for a specification you
+  already have: the only case the rule could newly reach arrives with this
+  release.
+- One new rule may report on your specification: a requirement that derives
+  from, depends on or refines a `withdrawn` one (`rests-on-withdrawn`). It
+  is a warning, so only a `--strict` gate fails on it, and like every other
+  it can be lowered in `specs/srs-config.json` or excused per requirement
+  with `exempt: [rests-on-withdrawn]`.
+- The `withdrawn` status arrives with this upgrade, and upgrading is what
+  has to come first. A status the checker does not know is a hard error,
+  not a warning, so a specification that uses `withdrawn` is rejected
+  outright by any older copy of `srs_check.py` — including one still
+  running in a pipeline that was not upgraded with your working copy.
+  Nothing you already have changes meaning: `superseded` keeps demanding
+  its `superseded_by`, and every existing requirement is untouched.
 
 ## [0.11.1] — 2026-08-09
 

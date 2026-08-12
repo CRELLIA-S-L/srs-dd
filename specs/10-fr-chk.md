@@ -120,8 +120,15 @@ The checker **shall** report as an error a `superseded` requirement without
 `superseded_by`, and a requirement carrying `superseded_by` under any other
 status.
 
-**Rationale.** A cancelled requirement without a successor is a dead end for
-whoever follows the reference; the reverse pairing is a copy-paste slip.
+**Rationale.** A requirement claiming supersession without naming what
+superseded it is a dead end for whoever follows the reference; the reverse
+pairing is a copy-paste slip.
+
+Cancelling with nothing to replace it is a different act with a status of
+its own (INV-SPEC-050), and this rule does not stand in its way: the second
+half already covers it, because a `withdrawn` requirement carrying
+`superseded_by` is one that does have a successor and should say
+`superseded` instead.
 
 ### FR-CHK-070 — Implementation ahead of approval is a warning
 
@@ -137,13 +144,48 @@ tests: [tests/checker-rules.sh]
 ```
 
 When a requirement has status `draft` and a non-empty `code` field, the
-checker **shall** warn that implementation ran ahead of approval, and warn
-again when an `implemented` or `partial` requirement derives from, depends on
-or refines a `draft`.
+checker **shall** warn that implementation ran ahead of approval, naming the
+requirement.
 
 **Rationale.** This is the approval queue of a harvested specification: the
 warning list is exactly what the maintainer has to rule on, which is why it
 is a warning and not an error.
+
+A queue is read as a list, so every line has to stand on its own — hence
+the identifier. A file and a line locate the requirement and name nothing:
+the number moves with the next edit above it, cannot be grepped for in a
+pipeline log, and cannot go into a plan that references numbers.
+
+### FR-CHK-075 — A realized requirement resting on a draft is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-030]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+```
+
+When an `implemented` or `partial` requirement derives from, depends on or
+refines a `draft`, the checker **shall** report it as a warning naming both.
+
+**Rationale.** Built work standing on something nobody has approved is the
+other half of the approval queue, and it is the half that costs: the draft
+may still be reworded or refused, and what was built to it is already in the
+tree. A warning rather than an error for the same reason as FR-CHK-070 — a
+harvested specification is full of these on the first run, and a gate that
+refuses the commit stops the harvest instead of guiding it.
+
+Both ends are named because both are what the reader acts on: one of them
+gets approved, or the other gets revisited, and a message that identified
+the dependant by file and line left the choice half-stated.
+
+`conflicts_with` is not counted here, as it is not in FR-CHK-190: diverging
+from a draft is a position, not a dependency, and nothing about it is
+waiting on approval.
 
 ### FR-CHK-080 — Annotations are cross-checked, never required
 
@@ -315,8 +357,9 @@ code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 ```
 
-Where a requirement neither links to another nor is linked to by one, the
-checker **shall** report it as a warning naming the requirement.
+Where a requirement that has not been cancelled neither links to another nor
+is linked to by one, the checker **shall** report it as a warning naming the
+requirement.
 
 **Rationale.** A missing link is invisible: the checker proves that what is
 written resolves, never that something was left out, and an empty
@@ -325,6 +368,14 @@ the one case where the omission shows — a requirement connected to nothing
 is either genuinely standalone or, far more often, one whose links nobody
 wrote. It is also what makes a derived work plan degenerate into a flat list
 with no order, so the cheapest place to notice it is here.
+
+A cancelled requirement is outside this, because it has no link left to
+forget. `superseded` escaped the report by accident — its `superseded_by`
+counts as a link, so the requirement was never isolated — while `withdrawn`
+names no successor by definition and so tripped a warning that no reader
+could act on: withdrawing something nothing pointed at turned a `--strict`
+gate red for having done exactly what was intended. What was accidental for
+one is now deliberate for both.
 
 ### FR-CHK-160 — What a rule costs is the project's to set
 
@@ -406,3 +457,46 @@ rather than a warning because, unlike an unrecognised key, this one is known
 to be wrong and known to be fixable. The framework rewrites nothing itself:
 the specification belongs to the project, and a mechanical rename is what
 agents and `sed` are for.
+
+### FR-CHK-190 — A requirement resting on a withdrawn one is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [INV-SPEC-050]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+```
+
+When a requirement that has not been cancelled derives from, depends on or
+refines a `withdrawn` one, the checker **shall** report it as a warning
+naming both.
+
+**Rationale.** Withdrawing something is the one edit that can quietly break
+requirements it never touched. A draft resolves — approve it and everything
+resting on it is well again, which is why FR-CHK-075 treats that as a queue.
+A withdrawal does not resolve: the ground is gone for good, and the
+requirement standing on it now derives from, or is meaningless without, a
+decision to do nothing.
+
+Every live status rather than `implemented` and `partial` alone. What is
+wrong here is structural, not a matter of how far the work got: a `deferred`
+requirement whose parent was withdrawn is approved work with nothing under
+it, and it will be built by somebody who never reads the parent.
+
+A warning, not an error, and the reason is the same one that decided
+ADR-0013 against refusing a withdrawal outright. An error would mean the
+build breaks the moment the status changes and stays broken until every
+dependant is resolved in the same commit — which forbids staging the work,
+the answer that decision names for anything with a large tree. A warning
+says the same thing and lets the maintainer choose the order; `--strict`
+still fails on it wherever a project wants that (FR-CHK-120), and the rule
+carries a name so a project can decide what it costs (FR-CHK-160).
+
+`conflicts_with` is not counted. A requirement diverging from a withdrawn
+one has lost nothing it was standing on — the divergence is simply beside
+the point now, and reporting it would leave every deliberate trade-off in a
+specification outliving its subject as noise.
