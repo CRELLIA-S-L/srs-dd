@@ -25,9 +25,16 @@ say where to look, and the lexicon defines the modal verbs and the
    `verification` chosen honestly, `code` listing the real paths
    (`tests` only when matching tests actually exist — never invent
    them), numbers in steps of 10.
-3. **Show the batch to the user BEFORE writing it.** Batching is the
-   sanctioned exception to the one-at-a-time rule of `srs-new` — the
-   approval-before-write step is what makes it safe.
+3. **Judge the batch, then show it — BEFORE writing it.** Every drafted
+   statement goes through the same judgement `srs-new` gives a new one,
+   against the qualities `specs/README.md` requires of a statement, and
+   what you found is said alongside the batch (FR-SKILL-120). Mined
+   statements are where this bites hardest — a sentence read off an `if`
+   arrives sounding precise and describing how rather than what, and a
+   batch is where a bad one is least likely to be noticed. Batching is
+   the sanctioned exception to the one-at-a-time rule of `srs-new`; the
+   judgement and the approval-before-write step are together what make
+   it safe.
 4. After writing an approved batch, run `python3 tools/srs_check.py` and
    show the result.
 5. Repeat per area. Track what remains uncovered; finish with a summary

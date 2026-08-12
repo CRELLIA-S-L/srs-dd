@@ -17,7 +17,7 @@ repository.
 | `tests/spec-check.sh` | This repository's own specification passes strictly, and the committed matrix matches what the checker generates now |
 | `tests/installer-smoke.sh` | Fresh install, upgrade, dry-run honesty, precious files, hook coexistence, payload isolation |
 | `tests/adopt-smoke.sh` | Adoption of a non-English specification, transactional rollback, dry-run/real parity, refusal on markdown without requirements |
-| `tests/view-smoke.sh` | Every viewer query mode, and the page: content, escaping, no CDN, determinism, no bytecode left behind |
+| `tests/view-smoke.sh` | Every viewer query mode, and the page: content, the dashboard's census and gap lists, escaping, no CDN, determinism, no bytecode left behind |
 | `tests/checker-rules.sh` | One fixture per checker rule: the exit code and the message for a broken specification |
 | `tests/upgrade-smoke.sh` | Upgrading a project from an older framework, the version transition and the notes it prints |
 | `tests/baseline-smoke.sh` | Freezing a baseline in a target and in a clone, including a hand-written row and a history too shallow to hold one |
