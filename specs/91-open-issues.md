@@ -147,3 +147,41 @@ one place a rule is supposed to live.
 **Decision needed:** accept the passage as teaching text and narrow
 FR-SKILL-020, which today reads as absolute, or cut it to a pointer and
 accept a step 4 that only refers.
+
+## A requirement can be replaced but not abandoned
+
+**Found:** while asking what the framework does with a requirement nobody
+intends to build (2026-08-12).
+
+**What diverged:** the lifecycle in `specs/README.md` ends at `superseded`,
+defined there as cancelled *with a successor*, and the checker holds it to
+the letter: `status: superseded` with no `superseded_by` is an error, and
+`superseded_by` under any other status is an error too
+(`tools/srs_check.py:548`, `:551`). A requirement dropped because the
+behaviour itself was abandoned — nothing replaces it and nothing is meant
+to — has nowhere to go. The three ways out are all false: invent a
+placeholder successor so the field has something to name, leave it in
+`deferred` where it reads as approved and merely late, or delete it, which
+the standard forbids and INV-SPEC-010 contradicts.
+
+Nothing else notices either. A requirement carries no date and no rule
+counts how long one has stood, so a `deferred` from a year ago and one from
+yesterday are the same to every tool here. A baseline row counts the
+statuses without naming which requirements hold them, and `--diff` reports
+what was added, removed or changed — which is exactly what an abandoned
+requirement is not. It sits unchanged, and unchanged is invisible.
+
+**Why it is recorded rather than fixed:** a sixth status is not a local
+edit. An unknown status is a hard error (`tools/srs_check.py:505`), so a
+checker already installed in another project would reject a specification
+written against the newer standard — the one-way compatibility that governs
+metadata keys (ADR-0009), and the same cost carried by the four-digit
+identifier asked about above. Nor is the shape obvious: a new status, or
+`superseded_by` made optional with the reason left to the rationale, or a
+convention that what supersedes an abandoned requirement is the decision
+that abandoned it.
+
+**Decision needed:** give a cancelled requirement a state that does not
+demand a replacement, or rule that a specification does not record
+abandonment at all and say so in the standard, so that the absence stops
+reading as an oversight.
