@@ -90,6 +90,50 @@ written a release late for this project's whole history, so their own commit
 is not what those tags froze — and where none exists, the commit that added
 the row is the baseline.
 
+### INV-SPEC-050 — A requirement can be withdrawn as well as replaced
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [INV-SPEC-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+A requirement cancelled with no successor **shall** be retained with the
+status `withdrawn`.
+
+**Rationale.** The lifecycle ended at `superseded`, which the standard
+defines as cancelled *with a successor* and the checker enforces to the
+letter, so a requirement dropped because the behaviour itself was abandoned
+had nowhere to go. What happened instead was worse than a dead end: it
+stayed `deferred`, where it reads as approved and merely late — and nothing
+here measures lateness, because a requirement carries no date and no rule
+counts how long one has stood.
+
+FR-CHK-060 argues the opposite case, that a cancelled requirement without a
+successor is a dead end for whoever follows the reference. A reference that
+arrives at *withdrawn, and here is why* is not a dead end; it is the answer.
+The dead end is the one that arrives at a promise nobody intends to keep.
+
+A sixth status rather than `superseded_by` made optional, because the two
+facts are different and both are worth counting: replaced by that one, and
+dropped with nothing in its place. Collapsed into a single status, the
+dashboard's census, the baseline row and the graph all lose the ability to
+tell them apart.
+
+The cost is a change to a released format, and not of the cheap kind. The
+metadata block was built to gain a key without breaking anyone: one the
+format declares neither required nor optional is no error (IF-SPEC-010).
+The status field has no such cushion — a value it does not know is a hard
+error — so a checker already installed in another project rejects a
+specification written against this standard until it is upgraded. What it
+buys is a state the framework has never had; the alternative was to keep
+writing as though requirements are never abandoned.
+
 ### CON-SPEC-030 — The tooling does not write git history
 
 ```yaml
