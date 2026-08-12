@@ -4,7 +4,10 @@
 set -eo pipefail
 cd "$(dirname "$0")/.."
 
-# Its own directory: the whole suite runs in one session.
+# Its own directory: the whole suite runs in one session. The root is kept
+# because the suite spends most of its length inside the target, where the
+# installer does not exist — it never travels.
+FRAMEWORK=$(pwd)
 rm -rf /tmp/srs-view
 python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
 
@@ -429,6 +432,55 @@ assert all(srs_view.baseline_revision(v) is None
            for v in srs_view.logged_baselines()), \
     'a shallow checkout cannot locate a baseline, and must not claim to'
 PY0
+)
+
+# The third coverage gap is counted by requirement, not by link
+# (FR-VIEW-040 names requirements). Its own target: the fixture above has
+# turned every draft into a deferred by the time --coverage runs, so there
+# is nothing left there to rest on.
+rm -rf /tmp/srs-view-resting
+python3 "$FRAMEWORK/tools/srs_init.py" /tmp/srs-view-resting \
+    --defaults --ci none >/dev/null
+cat >> /tmp/srs-view-resting/specs/10-fr-core.md <<'MD'
+
+### FR-CORE-040 — Rests on two drafts at once
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-CORE-050]
+depends_on: [FR-CORE-060]
+code: [src/app.py]
+```
+
+The system **shall** rest on two drafts at once.
+
+### FR-CORE-050 — A draft it derives from
+
+```yaml
+status: draft
+verification: I
+```
+
+The system **shall** stand in for an unapproved parent.
+
+### FR-CORE-060 — A draft it depends on
+
+```yaml
+status: draft
+verification: I
+```
+
+The system **shall** stand in for an unapproved dependency.
+MD
+(
+  cd /tmp/srs-view-resting
+  mkdir -p src && printf 'x\n' > src/app.py
+  python3 tools/srs_view.py --coverage > /tmp/v-resting.log
+  # One requirement, both of its links. Counting the lines said two.
+  grep -q "^Realized but resting on a draft: 1$" /tmp/v-resting.log
+  grep -q "FR-CORE-040 *derives_from FR-CORE-050" /tmp/v-resting.log
+  grep -q "FR-CORE-040 *depends_on FR-CORE-060" /tmp/v-resting.log
 )
 
 # The baseline row is printed ready to paste, and names the previous

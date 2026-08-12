@@ -485,7 +485,13 @@ def print_coverage(model, style):
                 if other and other["status"] == "draft":
                     resting.append((entry["id"], field, target))
     out()
-    out(style.b("Realized but resting on a draft: %d" % len(resting)))
+    # Counted by requirement, which is what FR-VIEW-040 names and what the
+    # page already reported; listed by link, because which field reaches
+    # which draft is what a reader acts on. One requirement resting on two
+    # drafts is one in the count and two lines under it — counting the
+    # lines instead inflated the number an audit starts from.
+    out(style.b("Realized but resting on a draft: %d"
+                % len({rid for rid, _, _ in resting})))
     for rid, field, target in resting:
         out("  %-14s %s %s" % (rid, field, target))
 
