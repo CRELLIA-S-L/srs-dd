@@ -408,3 +408,61 @@ what implements it here and reuses the palette the badges already use, but a
 page read in grey, or by somebody who separates two of those hues poorly,
 still has to work — which is why the status is also in the node's tooltip
 and why the legend names all five.
+
+### FR-VIEW-190 — The dashboard counts every status
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The dashboard **shall** state, for every status the standard defines, how
+many requirements carry it, including a status no requirement carries.
+
+**Rationale.** A count per status is the first number a reader wants and the
+last one anybody wrote down: how much of this specification is built, how
+much is still paper. The page has produced it from the start, the
+specification never asked for it, and FR-VIEW-180 already argues from it as
+settled fact — it faults the graph for staying silent where the dashboard
+counts the statuses and the chips filter by them. A requirement reasoning
+from behaviour that nothing states is a requirement resting on nothing.
+
+Every status rather than every status in use, and the zeros are the point. A
+status missing from the table and a status carried by nobody look the same
+and answer different questions: the first says the page is showing less than
+it knows, the second says the project has nothing waiting to be built.
+
+### FR-VIEW-200 — The coverage gaps are on the page, not only in the terminal
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: [FR-VIEW-040]
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The rendered page **shall** report the coverage gaps FR-VIEW-040 names.
+
+**Rationale.** FR-VIEW-040 asks the viewer for the four gaps and stops
+there, and the terminal alone satisfied it: its test ran `--coverage`, read
+what came back on standard output, and went no further. Until this was
+written the page could have dropped its dashboard entirely and every
+requirement would still have held, save for the word "dashboard" in a list
+inside FR-VIEW-060. Yet the reader the page was made for is the reviewer who
+does not grep, and that reader will never reach for a flag.
+
+A refinement rather than a requirement of its own: the four gaps are
+enumerated once, in the parent, and this narrows them to the branch that
+renders. The cost is worth naming — reword the parent and this one is
+reworded silently, because the checker resolves the link but never compares
+what it lists.

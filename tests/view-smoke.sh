@@ -107,6 +107,47 @@ cp .srs-site/index.html /tmp/first.html
 python3 tools/srs_view.py --html >/dev/null
 cmp /tmp/first.html .srs-site/index.html
 
+# The dashboard counts every status (FR-VIEW-190). The fixture stands at
+# two deferred and one implemented, which leaves three statuses carried by
+# nobody — and those are the half of the rule that matters, because a
+# census of whatever happens to be present passes the other half without
+# meaning to.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+section = page[page.index('<section id="view-dash"'):]
+section = section[:section.index('</section>')]
+for status, count in (('draft', 0), ('deferred', 2), ('partial', 0),
+                      ('implemented', 1), ('superseded', 0)):
+    found = re.search(r'st-%s">%s</span></td><td>(\d+)</td>'
+                      % (status, status), section)
+    assert found, 'the dashboard gives no count for %s' % status
+    assert int(found.group(1)) == count, \
+        'the dashboard counts %s as %s, not %d' % (status, found.group(1),
+                                                   count)
+PY2
+
+# The coverage gaps are on the page, not only in the terminal
+# (FR-VIEW-200). The --coverage assertion above reads standard output and
+# says nothing about what the page carries; the lists are checked by their
+# headings and by an entry underneath one of them, or a dashboard emitting
+# four empty sections would pass.
+python3 - <<'PY2'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+section = page[page.index('<section id="view-dash"'):]
+section = section[:section.index('</section>')]
+for heading in ('Realized without listed tests',
+                'Draft with code',
+                'Realized but resting on a draft',
+                'Code files no requirement references'):
+    assert heading in section, 'the dashboard dropped: %s' % heading
+# FR-CORE-020 is implemented and lists no test, so the first gap has it.
+untested = section[section.index('Realized without listed tests'):]
+untested = untested[:untested.index('<h2>', 1)]
+assert 'FR-CORE-020' in untested, \
+    'the gap lists are on the page but empty of what belongs in them'
+PY2
+
 # Baselines: a second one, so there is a pair to compare.
 python3 - <<'PY2'
 path = 'specs/10-fr-core.md'
