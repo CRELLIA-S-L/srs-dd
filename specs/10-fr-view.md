@@ -78,11 +78,18 @@ tests: [tests/view-smoke.sh]
 
 The viewer **shall** report, on request, realized requirements with no listed
 tests, drafts that already carry code, realized requirements resting on a
-draft, and source files no requirement references.
+draft, and source files no requirement references against the total number
+of source files.
 
 **Rationale.** These four lists are what an audit starts from; the checker
 reports them as warnings at most — and under a lenient configuration not at
 all — so something has to surface them on demand.
+
+The fourth is a proportion where the others are lists, because a count of
+unreferenced files means nothing on its own: eleven is most of a young
+project and a rounding error in an old one. The other three are already
+proportions of a sort — the specification is their denominator, and it is
+on the same screen.
 
 ### FR-VIEW-050 — Difference against a baseline
 
@@ -377,6 +384,13 @@ invisible, while one that is drawn and unwanted is one click away. Layers
 stay derived from `derives_from` alone: it is the relation that means
 "higher level", and a layer computed from the union would silently change
 the vertical axis from abstraction to order of work.
+
+The drawing reduces along two axes and they are not the same one. This is
+by kind: leave out `depends_on` and every edge of that relation goes,
+wherever it is. Narrowing to a root and a radius is FR-VIEW-150, and it cuts
+by distance instead. The distinction is worth stating because it was once
+lost: a root-and-radius control was taken to satisfy both, and this
+requirement stood at `implemented` with half of it unwritten.
 
 ### FR-VIEW-180 — A node shows the status of its requirement
 

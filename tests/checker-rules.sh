@@ -158,6 +158,46 @@ spec < <(block FR-CORE-010 "Draft with code" \
                'The system **shall** act.')
 rule "FR-CHK-070 warns" 0 "implementation ahead of approval"
 rule "FR-CHK-070 strict fails" 1 "treated as errors" --strict
+# Each warning names what it is about. File and line locate a requirement
+# and identify nothing: the number moves with the next edit above it, and a
+# plan that references numbers cannot cite it.
+rule "FR-CHK-070 names the requirement built early" 0 \
+     "FR-CORE-010 is draft but the code field is not empty"
+
+# --- FR-CHK-075: a realized requirement resting on a draft. It had no
+# --- fixture while it was the second half of FR-CHK-070's statement — the
+# --- requirement read as verified because the other half was.
+spec < <(block FR-CORE-010 "The unapproved parent" \
+               "${META/status: deferred/status: draft}" \
+               'The system **shall** be a draft.'
+         block FR-CORE-020 "Built on it anyway" \
+               "$(printf '%s' "$META" \
+                  | sed 's|^status: deferred$|status: implemented|' \
+                  | sed 's|^code: \[\]$|code: [src/app.py]|' \
+                  | sed 's|^depends_on: \[\]$|depends_on: [FR-CORE-010]|')" \
+               'The system **shall** act.'
+         block FR-CORE-030 "Derives from it, and partly built" \
+               "$(printf '%s' "$META" \
+                  | sed 's|^status: deferred$|status: partial|' \
+                  | sed 's|^derives_from: \[\]$|derives_from: [FR-CORE-010]|')" \
+               'The system **shall** derive.'
+         block FR-CORE-040 "Refines it" \
+               "$(printf '%s' "$META" \
+                  | sed 's|^status: deferred$|status: implemented|' \
+                  | sed 's|^code: \[\]$|code: [src/app.py]|' \
+                  | sed 's|^refines: \[\]$|refines: [FR-CORE-010]|')" \
+               'The system **shall** narrow.')
+printf 'x\n' > "$LAB/src/app.py"
+# All three fields the statement names, and `partial` as well as
+# `implemented`: with only one of them exercised, dropping the others from
+# the condition would leave this suite green.
+rule "FR-CHK-075 names both the dependant and the draft" 0 \
+     "FR-CORE-020 is implemented and rests on draft FR-CORE-010 (depends_on)"
+rule "FR-CHK-075 covers derives_from, at partial" 0 \
+     "FR-CORE-030 is partial and rests on draft FR-CORE-010 (derives_from)"
+rule "FR-CHK-075 covers refines" 0 \
+     "FR-CORE-040 is implemented and rests on draft FR-CORE-010 (refines)"
+rule "FR-CHK-075 strict fails" 1 "treated as errors" --strict
 
 # --- FR-CHK-080: annotations are cross-checked against the specification.
 printf '# implements: FR-CORE-990\n' > "$LAB/src/app.py"  # srs-ignore: a fixture, not our claim
@@ -302,6 +342,45 @@ rule "FR-CHK-150 names the isolated one" 0 \
      "FR-CORE-030 is linked to nothing"
 silent "FR-CHK-150 spares the source of a link" 0 "FR-CORE-010 is linked to"
 silent "FR-CHK-150 spares the target of a link" 0 "FR-CORE-020 is linked to"
+
+# --- FR-CHK-150: a cancelled requirement is outside the rule, both ways of
+# --- being cancelled. `superseded` used to escape only because its
+# --- `superseded_by` counts as a link; `withdrawn` names no successor and
+# --- so tripped a warning for having done what was intended.
+spec < <(block FR-CORE-010 "Withdrawn and isolated" \
+               "${META/status: deferred/status: withdrawn}" \
+               'The system **shall** have done something dropped.')
+silent "FR-CHK-150 spares a withdrawn requirement" 0 \
+       "FR-CORE-010 is linked to nothing"
+
+# --- FR-CHK-190: a live requirement resting on a withdrawn one, at every
+# --- live status rather than the built ones alone, and not through
+# --- `conflicts_with`.
+spec < <(block FR-CORE-010 "Withdrawn ground" \
+               "${META/status: deferred/status: withdrawn}" \
+               'The system **shall** have done something dropped.'
+         block FR-CORE-020 "Deferred, and standing on it" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** act.'
+         block FR-CORE-030 "Diverging from it on purpose" \
+               "${META/conflicts_with: \[\]/conflicts_with: [FR-CORE-010]}" \
+               'The system **shall** differ.'
+         block FR-CORE-040 "Derives from it" \
+               "${META/derives_from: \[\]/derives_from: [FR-CORE-010]}" \
+               'The system **shall** derive.'
+         block FR-CORE-050 "Refines it" \
+               "${META/refines: \[\]/refines: [FR-CORE-010]}" \
+               'The system **shall** narrow.')
+# All three fields the statement names. One of them alone would let the
+# other two be dropped from the condition without this suite noticing.
+rule "FR-CHK-190 names the dependant and the withdrawn one" 0 \
+     "FR-CORE-020 is deferred and rests on withdrawn FR-CORE-010 (depends_on)"
+rule "FR-CHK-190 covers derives_from" 0 \
+     "FR-CORE-040 is deferred and rests on withdrawn FR-CORE-010 (derives_from)"
+rule "FR-CHK-190 covers refines" 0 \
+     "FR-CORE-050 is deferred and rests on withdrawn FR-CORE-010 (refines)"
+rule "FR-CHK-190 strict fails" 1 "treated as errors" --strict
+silent "FR-CHK-190 ignores conflicts_with" 0 "FR-CORE-030 is deferred"
 
 # --- FR-CHK-160: what a rule costs is the project's to set. The rule used
 # --- throughout is `unknown-key`, because it needs nothing but a key.

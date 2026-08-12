@@ -1,7 +1,7 @@
 # Invariants and constraints
 
-`INV-*` — properties that hold at all times · `CON-*` — constraints imposed
-on the project rather than chosen by it.
+`INV-*` — properties that hold at all times · `CON-*` — constraints
+imposed on the project rather than chosen by it.
 
 ### INV-SPEC-010 — Identifiers are immutable and never reused
 
@@ -17,12 +17,18 @@ tests: []
 ```
 
 A published requirement identifier **shall** keep its meaning forever: a
-cancelled requirement is retained with status `superseded` and a pointer to
-its successor, and its number is never given to anything else.
+cancelled requirement is retained in a status that says it was cancelled,
+and its number is never given to anything else.
 
 **Rationale.** References to requirements outlive the requirements — in
 commit messages, review threads, and other projects' documents. A reused
 number turns every one of them into a lie that reads as truth.
+
+Which status that is belongs to the lifecycle rather than here. This
+sentence named `superseded` and its pointer while that was the only way a
+requirement could be cancelled; there are two now (INV-SPEC-050), and
+listing them in both places is the second source of truth the standard
+warns against.
 
 ### INV-SPEC-020 — Links are stored in one direction only
 
@@ -93,14 +99,14 @@ the row is the baseline.
 ### INV-SPEC-050 — A requirement can be withdrawn as well as replaced
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [INV-SPEC-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [specs/README.md, tools/srs_check.py, tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 ```
 
 A requirement cancelled with no successor **shall** be retained with the
@@ -133,6 +139,10 @@ error — so a checker already installed in another project rejects a
 specification written against this standard until it is upgraded. What it
 buys is a state the framework has never had; the alternative was to keep
 writing as though requirements are never abandoned.
+
+What the status leaves open — what happens to requirements standing on the
+one being withdrawn — is settled in ADR-0013 and carried by FR-CHK-190 and
+FR-SKILL-150.
 
 ### CON-SPEC-030 — The tooling does not write git history
 

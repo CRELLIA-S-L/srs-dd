@@ -353,3 +353,75 @@ two are on the table together in exactly one step, which is where the
 question costs nothing. It is narrower than the judgement it refines:
 FR-SKILL-120 asks whether anyone could confirm the statement, this asks
 whether the declared method can.
+
+### FR-SKILL-150 — Withdrawing a requirement resolves what stands on it
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [INV-SPEC-050]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md]
+tests: []
+```
+
+Before a requirement's status becomes `withdrawn`, the procedure doing so
+**shall** show what links to it and settle each dependant with the
+maintainer.
+
+**Rationale.** A withdrawal is the one edit that breaks requirements it
+never touches, and the four link fields break differently: `depends_on`
+leaves a requirement meaningless, `derives_from` leaves it with no reason,
+`refines` leaves it a special case of nothing, and `conflicts_with` leaves
+nothing wrong at all. FR-CHK-190 reports the wreckage afterwards; this is
+what stops it being made.
+
+Directly is what the procedure shows — grouped by field, with the
+transitive remainder as a number. Not to spare the screen: every resolution
+acts on the requirements that point at this one, and any of those
+resolutions may itself be a withdrawal with a tree of its own. The closure
+is settled one level per decision, and a display that showed it whole would
+invite the opposite (ADR-0013).
+
+Inspection rather than test, because what is verified is that a procedure
+written for a person says these things. No suite here runs a dialog, and one
+that asserted the wording would be a copy of the file rather than a check on
+it.
+
+### FR-SKILL-160 — A test counts as proof only if it could fail
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-050]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-audit/SKILL.md]
+tests: []
+```
+
+When judging whether a listed test proves a statement, the `srs-audit`
+procedure **shall** count it proven only where it can name the change to the
+code that would make that test fail.
+
+**Rationale.** Reading a test says what it mentions, not what it would
+catch, and the two come apart exactly where it matters. A requirement whose
+statement carries two obligations can have a suite that exercises one of
+them and a `tests` field that looks filled; a rule that fires on three link
+fields can have a fixture for one. Both shapes read as covered — the file
+is named, the fixtures are there, the subject matches — and both leave a
+behaviour that could be deleted with the suite still green. Naming the edit
+that would redden the test is the question that separates them, and it is
+the same question a reader asks anyway, only made explicit.
+
+Named rather than run, because the audit does not execute anything: it is
+read-only by FR-SKILL-050, and ART-030 puts a test run behind the
+maintainer's confirmation. The reasoning form costs nothing and is
+available while reading, which is where the judgement is being made.
+
+This is a criterion, not a method of deriving what to judge. How cases come
+out of a statement is the procedure's own business and no requirement
+governs it — a gap this one does not close.

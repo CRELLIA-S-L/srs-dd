@@ -23,7 +23,7 @@ import re
 import subprocess
 import sys
 
-__version__ = "0.11.1"
+__version__ = "0.13.0"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPECS = os.path.join(ROOT, "specs")
@@ -58,7 +58,7 @@ RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
 # same one-way property as a metadata key: adding one is compatible,
 # renaming one is not (ADR-0009).
 RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
-         "test-missing", "unlinked",
+         "rests-on-withdrawn", "test-missing", "unlinked",
          "annotation-unknown-area", "annotation-superseded",
          "annotation-unlisted", "baseline-without-row")
 
@@ -141,7 +141,12 @@ def rule_finding(warnings, reports, rule, text, req=None):
 TYPES = ("FR", "NFR", "IF", "INV", "CON")
 
 # Lifecycle order; also the row order of the status table in the matrix.
-STATUSES = ("draft", "deferred", "partial", "implemented", "superseded")
+STATUSES = ("draft", "deferred", "partial", "implemented", "superseded",
+            "withdrawn")
+# The two terminal states, told apart from the rest wherever a rule has
+# nothing to say about a requirement that is over: it has no link left to
+# forget and no ground left to rest on.
+CANCELLED = ("superseded", "withdrawn")
 VERIFICATIONS = ("T", "D", "I", "A")
 
 LINK_FIELDS = ("derives_from", "refines", "depends_on", "conflicts_with")
@@ -533,9 +538,9 @@ def validate(requirements):
         # Implementation ahead of approval.
         if status == "draft" and code:
             rule_finding(warnings, reports, "draft-with-code",
-                         "%s — status draft but the code field is not "
+                         "%s — %s is draft but the code field is not "
                          "empty: implementation ahead of approval"
-                         % req.where, req)
+                         % (req.where, req.id), req)
 
         for field in ("code", "tests"):
             for rel in req.meta.get(field, []):
@@ -566,9 +571,23 @@ def validate(requirements):
                         and field in ("derives_from", "depends_on", "refines")
                         and by_id[target].meta.get("status") == "draft"):
                     rule_finding(warnings, reports, "rests-on-draft",
-                                 "%s — %s requirement rests on draft %s "
+                                 "%s — %s is %s and rests on draft %s "
                                  "(%s): approve or revisit it"
-                                 % (req.where, status, target, field), req)
+                                 % (req.where, req.id, status, target,
+                                    field), req)
+                elif (status not in CANCELLED
+                        and field in ("derives_from", "depends_on", "refines")
+                        and by_id[target].meta.get("status") == "withdrawn"):
+                    rule_finding(warnings, reports, "rests-on-withdrawn",
+                                 "%s — %s is %s and rests on withdrawn %s "
+                                 "(%s): re-point it, promote it, or withdraw "
+                                 "it too" % (req.where, req.id, status,
+                                             target, field), req)
+                # Every live status, not just the built ones: a deferred
+                # requirement whose ground was withdrawn is approved work
+                # with nothing under it, and whoever builds it will not read
+                # the parent. `conflicts_with` is out — a divergence from a
+                # withdrawn requirement has lost nothing it stood on.
         # Only where the method is `T`: a requirement verified by
         # inspection or analysis has no test by design, and reporting those
         # would bury the ones that mean something. Read from this
@@ -604,6 +623,8 @@ def validate(requirements):
             touched.add(req.id)
             touched.add(replacement)
     for req in requirements:
+        if req.meta.get("status") in CANCELLED:
+            continue
         if req.id not in touched:
             rule_finding(warnings, reports, "unlinked",
                          "%s — %s is linked to nothing, and nothing links "

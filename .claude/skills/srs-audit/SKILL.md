@@ -51,6 +51,20 @@ expects is recorded, and report (ART-050).
    assert. Classify each: covered, partial, uncovered — or asserted by a
    test yet not derivable from the statement, which means the statement
    is under-specified: report it, do not edit it.
+
+   **Covered means the test could fail.** For each case you would call
+   covered, name the change to the code that would make that test red. If
+   you cannot name one, the case is uncovered however much the test
+   mentions its subject. Reading tells you what a test refers to; only
+   this tells you what it would catch, and the two part company in the
+   two shapes that look most convincing: a statement carrying two
+   obligations with a suite that exercises one of them, and a rule that
+   fires on several fields with a fixture for one. Both have a filled
+   `tests` field and a suite that stays green when the behaviour is
+   deleted.
+
+   Name the edit; do not make it. The audit runs nothing (ART-030), and
+   the question is answerable while reading.
 4. On the user's explicit request — and only then — author the missing
    tests; the new test path goes into `tests` in the same set of edits
    (ART-050). Running them still needs its own confirmation (ART-030).
