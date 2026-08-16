@@ -302,7 +302,7 @@ branch so a link may already exist.
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-SKILL-090]
+depends_on: [FR-SKILL-090, INV-SPEC-060]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]

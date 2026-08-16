@@ -762,11 +762,18 @@ def framework_url():
     return url or DEFAULT_FRAMEWORK_URL
 
 
-def config_json(settings):
+def config_json(settings, adopting=False):
     config = dict((key, settings[key]) for key in
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
     config["framework_url"] = settings.get("framework_url") or framework_url()
+    if adopting:
+        # A project that arrives with code already written has files under
+        # its roots that no requirement names yet, and every one of them
+        # would be reported on the first run. That is a wall rather than a
+        # queue, so adoption starts with the rule silenced; switching it on
+        # is what finishing the adoption means (ADR-0014).
+        config["rules"] = {"annotation-absent": "off"}
     return json.dumps(config, ensure_ascii=False, indent=2) + "\n"
 
 
@@ -939,7 +946,7 @@ def run_adopt(args, target, batch, found_areas):
         if created_tools:
             os.makedirs(tools_dir)
         with open(config_path, "w", encoding="utf-8") as handle:
-            handle.write(config_json(settings))
+            handle.write(config_json(settings, adopting=True))
         wrote_config = True
 
         with open(os.path.join(ROOT, "tools", "srs_check.py"), "rb") as src:

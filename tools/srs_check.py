@@ -60,7 +60,8 @@ RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
 RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "rests-on-withdrawn", "test-missing", "unlinked",
          "annotation-unknown-area", "annotation-superseded",
-         "annotation-unlisted", "baseline-without-row")
+         "annotation-unlisted", "annotation-unpaired", "annotation-absent",
+         "baseline-without-row")
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off`
 # is not printed at all.
@@ -529,11 +530,13 @@ def validate(requirements):
                               "this is two requirements, split them"
                               % (req.where, found))
 
-        # Status implemented obliges the code field.
+        # Both statuses the standard defines as being realized oblige the
+        # code field: they differ by how much is built, not by whether
+        # anything is — `deferred` is the state for approved and not begun.
         code = req.meta.get("code", [])
-        if status == "implemented" and not code:
-            errors.append("%s — status implemented but the code field is empty"
-                          % req.where)
+        if status in ("implemented", "partial") and not code:
+            errors.append("%s — status %s but the code field is empty"
+                          % (req.where, status))
 
         # Implementation ahead of approval.
         if status == "draft" and code:
@@ -663,11 +666,21 @@ def iter_source_files():
 def scan_annotations(by_id, errors, warnings, reports):
     """Cross-checks implements:/verifies: annotations against the spec.
 
-    The code/tests fields remain the source of truth; annotations are an
-    optional cross-check, so absence of annotations is never reported.
+    The code/tests fields remain the source of truth and the annotation is
+    the mirror (ADR-0014); a mismatch is reported against the mirror.
+    Returns what each scanned file claims, as {field: {path: {id, …}}},
+    which is what the two pairing rules are computed from. An annotation
+    naming a cancelled requirement is dead and claims nothing, so it never
+    reaches `claims`. "annotated" holds every file that carried an
+    annotation at all, resolving or not: that is how the unclaimed rule
+    knows the file has already been spoken about, and by a report that
+    names the line and the requirement rather than only the file.
     """
+    claims = {"code": {}, "tests": {}, "annotated": set()}
     field_by_keyword = {"implements": "code", "verifies": "tests"}
     for rel in iter_source_files():
+        claims["code"].setdefault(rel, set())
+        claims["tests"].setdefault(rel, set())
         full = os.path.join(ROOT, rel)
         with open(full, "r", encoding="utf-8", errors="replace") as handle:
             for lineno, line in enumerate(handle, 1):
@@ -678,6 +691,7 @@ def scan_annotations(by_id, errors, warnings, reports):
                     ids = [t.strip() for t in match.group(2).split(",")]
                     for rid in ids:
                         where = "%s:%d" % (rel, lineno)
+                        claims["annotated"].add(rel)
                         req = by_id.get(rid)
                         if req is None:
                             parts = rid.split("-")
@@ -697,19 +711,79 @@ def scan_annotations(by_id, errors, warnings, reports):
                                     "srs-ignore to the line if intended)"
                                     % (where, rid))
                             continue
-                        if req.meta.get("status") == "superseded":
+                        if req.meta.get("status") in CANCELLED:
                             rule_finding(
                                 warnings, reports, "annotation-superseded",
-                                "%s — annotation points at superseded "
-                                "requirement %s" % (where, rid), req)
+                                "%s — annotation points at %s requirement "
+                                "%s" % (where, req.meta["status"], rid), req)
                             continue
                         field = field_by_keyword[keyword]
+                        claims[field][rel].add(rid)
                         if rel not in req.meta.get(field, []):
                             rule_finding(
                                 warnings, reports, "annotation-unlisted",
                                 "%s — file carries `%s: %s` but is not "
                                 "listed in that requirement's %s field"
                                 % (where, keyword, rid, field), req)
+    return claims
+
+
+def check_pairing(requirements, claims, warnings, reports):
+    """Every file a requirement names says so.
+
+    The forward half of the link has always been checked; this is the half
+    that decays, because only somebody at the file notices when it stops
+    deserving the entry still pointing at it (ADR-0014). Silent for a file
+    the checker does not read: a `code` field names the standard, the
+    skills and the CI templates too, and none of those is annotated.
+    """
+    for req in requirements:
+        if req.meta.get("status") not in ("implemented", "partial"):
+            continue
+        for keyword, field in (("implements", "code"), ("verifies", "tests")):
+            for rel in req.meta.get(field, []):
+                if rel not in claims[field]:
+                    continue
+                if req.id in claims[field][rel]:
+                    continue
+                rule_finding(
+                    warnings, reports, "annotation-unpaired",
+                    "%s — %s names %s in %s and the file does not carry "
+                    "`%s: %s`" % (req.where, req.id, rel, field, keyword,
+                                  req.id), req)
+
+
+def check_unclaimed(requirements, claims, warnings, reports):
+    """A file neither live end claims: no requirement still standing names
+    it and it names none itself. Either behaviour with no requirement
+    behind it, or a helper that will never have one — and the project says
+    which by tuning the rule.
+
+    A cancelled requirement counts for neither side. Its `code` field is
+    the record of what it once pointed at and not a claim on the file now,
+    and an annotation naming it is reported as dead by scan_annotations,
+    which is why that side never reaches `claims` at all. Left in, a
+    withdrawal would quietly take its files out of sight along with itself.
+    """
+    named = set()
+    for req in requirements:
+        if req.meta.get("status") in CANCELLED:
+            continue
+        for field in ("code", "tests"):
+            named.update(req.meta.get(field, []))
+    for rel in sorted(claims["code"]):
+        if rel in named:
+            continue
+        if rel in claims["annotated"]:
+            # The file said something about itself. If what it said does
+            # not resolve — an unknown requirement, a cancelled one —
+            # FR-CHK-080 has already reported it with the line and the
+            # identifier. Adding "and it claims none" would contradict
+            # that report on the same file in the same run.
+            continue
+        rule_finding(warnings, reports, "annotation-absent",
+                     "%s — no requirement names this file and it claims "
+                     "none" % rel)
 
 
 def check_baselines(warnings, reports):
@@ -881,7 +955,9 @@ def main():
             parse_errors.append("%s — cannot read the file: %s" % (rel, exc))
 
     by_id, errors, warnings, reports = validate(requirements)
-    scan_annotations(by_id, errors, warnings, reports)
+    claims = scan_annotations(by_id, errors, warnings, reports)
+    check_pairing(requirements, claims, warnings, reports)
+    check_unclaimed(requirements, claims, warnings, reports)
     check_baselines(warnings, reports)
     errors = parse_errors + errors
 

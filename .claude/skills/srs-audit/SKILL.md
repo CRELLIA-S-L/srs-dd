@@ -44,6 +44,25 @@ expects is recorded, and report (ART-050).
    state (“While…”), condition, the obligation itself, and any
    constraint. Each part is a test dimension — the trigger fires or does
    not, the state holds or does not, the boundary of the constraint.
+
+   **Where conditions combine, stop decomposing and build a decision
+   table.** List the causes — each condition that can be true or false —
+   and the effects, then write the rows: one per combination that can
+   actually occur, with the constraints between causes used to strike out
+   the ones that cannot. The rows are the cases. This is the step that
+   turns “did I think of everything” into arithmetic, and it is where
+   judgement misses hardest: a rule firing on `--force` **and** a marker
+   has four rows, and a suite that has one fixture reads as covered from
+   every angle except this one.
+
+   The table is a working instrument, not a finding. Build it, take the
+   rows, compare them against the tests — and put only the gaps in the
+   report. An audit that prints twenty-five tables is an audit nobody
+   reads to the end, which costs more than the tables are worth.
+
+   Build one only where conditions genuinely combine. Most statements are
+   unconditional — “the viewer **shall** render…” — and a table for one of
+   those is a row of ceremony.
 2. A quantified constraint implies property-style cases: “within
    2 seconds” — at the boundary and beyond; “all unsaved changes” —
    none, one, many.

@@ -140,6 +140,71 @@ PY2
     python3 tools/srs_check.py --no-write --strict >/dev/null
 )
 
+# The other end of the same decision (FR-CHK-210): a fresh project has no
+# code yet, so it has nothing to silence and starts strict. A default
+# written for both modes would be that decision quietly reversed.
+python3 - <<'PY2'
+import json
+fresh = json.load(open('/tmp/srs-target/specs/srs-config.json',
+                       encoding='utf-8'))
+assert 'annotation-absent' not in fresh.get('rules', {}), \
+    'a fresh install silenced a rule it has no reason to: %r' % fresh.get('rules')
+PY2
+
+# A precious file is refreshed only with --force, and only when it is one of
+# ours (FR-INIT-060). Neither half had a fixture: the assertion above holds
+# that a CI file still exists, which stays true whether or not the installer
+# rewrote it, and --force appeared in no suite at all. .gitattributes rather
+# than the CI config, because an upgrade visits the CI templates only when
+# --ci is passed and this one it always writes.
+rm -rf /tmp/srs-precious
+python3 tools/srs_init.py /tmp/srs-precious --defaults --ci none >/dev/null
+printf 'theirs\n' >> /tmp/srs-precious/.gitattributes
+cksum < /tmp/srs-precious/.gitattributes > /tmp/precious.before
+
+# No flag: kept as it stands, and the summary says what would refresh it.
+python3 tools/srs_init.py /tmp/srs-precious --defaults > /tmp/precious-keep.log
+grep -qF ".gitattributes (use --force to refresh)" /tmp/precious-keep.log
+cksum < /tmp/srs-precious/.gitattributes > /tmp/precious.after
+diff /tmp/precious.before /tmp/precious.after
+
+# With the flag: refreshed, because the file still carries our marker.
+python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
+    > /tmp/precious-force.log
+# Refreshed, not removed: grep on a file that is gone answers "no match"
+# just as loudly as grep on a file that was rewritten, so what the file
+# holds afterwards is asserted rather than only what it lost.
+grep -q "SRS-DD" /tmp/srs-precious/.gitattributes
+if grep -q "theirs" /tmp/srs-precious/.gitattributes; then
+    echo "--force did not refresh a precious file of ours"
+    exit 1
+fi
+
+# A file of theirs sitting at the same path is never clobbered, flag or no
+# flag: the marker is how the installer tells its own file from a stranger's,
+# and getting this wrong is how a tool eats somebody's configuration.
+printf 'not ours at all\n' > /tmp/srs-precious/.gitattributes
+python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
+    > /tmp/precious-mine.log
+grep -qF "no SRS-DD marker" /tmp/precious-mine.log
+grep -q "not ours at all" /tmp/srs-precious/.gitattributes
+
+# The installer's exit codes are a contract (IF-CI-010). The adopt suite
+# covers 0, 2 and 3; 1 — the checker found errors in the target — was
+# covered by nothing. An upgrade ends by running the target's own checker
+# and hands back its verdict, so a target whose specification is broken is
+# the honest way to reach it.
+python3 - <<'PY2'
+path = '/tmp/srs-precious/specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+open(path, 'w', encoding='utf-8').write(
+    text.replace('status: deferred', 'status: implemented', 1))
+PY2
+rc=0; python3 tools/srs_init.py /tmp/srs-precious --defaults \
+    > /tmp/precious-broken.log 2>&1 || rc=$?
+test "$rc" -eq 1
+grep -q "status implemented but the code field is empty" /tmp/precious-broken.log
+
 # specs/ here is the framework's own specification, not payload (ART-070).
 # A fresh target must hold exactly one requirement — the generated
 # placeholder — and nothing of ours. Asked through the parser rather than

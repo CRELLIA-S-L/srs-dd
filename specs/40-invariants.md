@@ -43,11 +43,24 @@ code: [specs/README.md, tools/srs_check.py]
 tests: []
 ```
 
-The specification **shall** record only forward links, leaving every reverse
-relation to be computed.
+The specification **shall** record a link between two requirements in one
+direction only, leaving the reverse relation to be computed.
 
 **Rationale.** A link written at both ends is a link that will one day
 disagree with itself, and nothing would say which end was right.
+
+Between two requirements, and not between a requirement and a file. This
+said "only forward links" while annotations were optional and could be read
+as a second opinion rather than a record; making them obligatory
+(ADR-0014) would have put the sentence in the way of its own tooling. The
+two cases are not alike. The reverse of `derives_from` is computed, carries
+no information the forward link lacks, and storing it creates a second copy
+of one fact. The reverse of `code` is not computed and is not a copy: the
+field is the specification's claim that a requirement is realized in a
+file, the annotation is that file's own claim about why it exists, and they
+are made by different people at different times. Their disagreement is
+something to report, not corruption to prevent — and it is reported on
+every run, which is the condition this rationale is really about.
 
 ### INV-SPEC-030 — A baseline and a release are separate acts
 
@@ -143,6 +156,49 @@ writing as though requirements are never abandoned.
 What the status leaves open — what happens to requirements standing on the
 one being withdrawn — is settled in ADR-0013 and carried by FR-CHK-190 and
 FR-SKILL-150.
+
+### INV-SPEC-060 — A requirement states one obligation
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md]
+tests: []
+```
+
+A requirement **shall** state exactly one obligation.
+
+**Rationale.** A compound requirement leaves "it passes" undefined. FR-VIEW-060
+named six things under a single verb — search, filters, a dashboard, a graph,
+links in both directions, nothing over the network — and three of the six went
+unverified across several releases while the requirement stood `implemented`
+and its `tests` field stood filled. Nothing was wrong on paper, because there
+was no paper to be wrong: one slot cannot record the state of six obligations.
+The same reading is INCOSE's rule R20, which treats a combinator as the signal
+to split and names this exact consequence at verification time.
+
+The mechanical half is FR-CHK-020: two bolded verbs are two requirements, and
+the checker says so. The other half is out of its reach and always will be. A
+single verb carrying a list of objects is as compound as two verbs, and what
+reads as a list depends on the sentence and on the language it is written in —
+the argument FR-SKILL-120 makes against word lists applies here word for word.
+So this is held by the procedures that write statements and by whoever reviews
+them, exactly as INV-SPEC-010 is: nothing can prove a number was never reused
+either.
+
+The price is more requirements. FR-VIEW-060 is six of them, each with a number
+that can never be reused, its own links and its own `tests` field. That is the
+point rather than the cost: a `tests` field is worth reading only when what it
+answers for is one thing.
+
+Written after the passage in `specs/README.md` that carries it, which is the
+shape FR-SKILL-090 warns about — the rule was sharpened first and only then
+noticed to have no number to be cited by. Recorded that way rather than
+backdated.
 
 ### CON-SPEC-030 — The tooling does not write git history
 

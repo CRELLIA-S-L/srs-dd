@@ -41,6 +41,16 @@ depends_on: [FR-CORE-010]
 ```
 
 The system **shall** refine the second one.
+
+### FR-CORE-070 — Exists in the first baseline only
+
+```yaml
+status: deferred
+verification: I
+depends_on: [FR-CORE-010]
+```
+
+The system **shall** stand here until the next baseline drops it.
 MD
 
 mkdir -p /tmp/srs-view/src
@@ -65,20 +75,52 @@ git init -q . && git add -A
 git -c user.email=ci@example.com -c user.name=CI commit -qm baseline
 git tag spec/v0.0.1
 
-# Change the specification after the baseline so the diff has content.
+# Change the specification after the baseline so the diff has content — all
+# three kinds of it. A field that differs was the only kind exercised, so
+# `--diff` could have stopped reporting what a baseline gained or lost and
+# this suite would not have noticed (FR-VIEW-050).
 # Python rather than sed: `sed -i` wants a backup suffix on BSD and
 # refuses one on GNU, and this suite also runs locally on macOS.
 python3 - <<'PY'
 path = 'specs/10-fr-core.md'
 text = open(path, encoding='utf-8').read()
-open(path, 'w', encoding='utf-8').write(
-    text.replace('status: draft', 'status: deferred'))
+text = text.replace('status: draft', 'status: deferred')
+# FR-CORE-070 is last in the file and exists to be dropped here; FR-CORE-080
+# arrives in its place. A path in `tests` comes with it, because the code
+# field alone answered every --code query the suite ever made.
+text = text[:text.index('### FR-CORE-070')] + '''### FR-CORE-080 — Arrived after the first baseline
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-CORE-010]
+tests: [tests/probe.sh]
+```
+
+The system **shall** appear only in the second baseline.
+'''
+open(path, 'w', encoding='utf-8').write(text)
 PY
+mkdir -p tests && printf 'true\n' > tests/probe.sh
+# A file that carries an annotation and is named by no requirement's `code`
+# field: the only way the annotation half of FR-VIEW-020 gets its own
+# answer, since src/app.py is listed and annotated at once.
+# srs-ignore: written into the target, not a claim about this repository.
+printf '# implements: FR-CORE-030\n' > src/extra.py  # srs-ignore
 
 python3 tools/srs_view.py --list > /tmp/v-list.log
 grep -q "FR-CORE-030" /tmp/v-list.log
 python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
+# The whole card, not the incoming half alone (FR-VIEW-010): the metadata,
+# the statement, and the links resolved downwards as well as up. With only
+# "refined by" asserted, print_card could have stopped printing the
+# statement and every check here stayed green. A fragment rather than the
+# sentence, because the statement is wrapped on its way out.
+grep -qE "status implemented +verification T" /tmp/v-card.log
+grep -q "carry a link" /tmp/v-card.log
+grep -qE "derives_from +-> +FR-CORE-010" /tmp/v-card.log
+grep -qE "depends_on +-> +FR-CORE-030" /tmp/v-card.log
 python3 tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log
 grep -q "FR-CORE-030" /tmp/v-tree.log
 # And the opposite direction under the upward flag (FR-VIEW-030). Only the
@@ -93,20 +135,73 @@ grep -q "FR-CORE-020" /tmp/v-code.log
 # only the file was ever passed.
 python3 tools/srs_view.py --code src --list > /tmp/v-dir.log
 grep -q "FR-CORE-020" /tmp/v-dir.log
+# The other two ways the statement offers to find a requirement from a path,
+# each with its own file so that neither can be answered by the other. Both
+# could have been deleted from requirements_for_path while src/app.py — which
+# is listed in `code` *and* annotated — kept answering for all three.
+python3 tools/srs_view.py --code src/extra.py --list > /tmp/v-annot.log
+grep -q "FR-CORE-030" /tmp/v-annot.log
+python3 tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
+grep -q "FR-CORE-080" /tmp/v-tests.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
 # The fourth gap is a proportion, not a count (FR-VIEW-040): one
 # unreferenced file means nothing without how many there are.
 grep -qE "Code files no requirement references: [0-9]+ of [0-9]+" /tmp/v-cov.log
+# And a cancelled requirement does not count as referencing its files: the
+# checker calls such a file unclaimed (FR-CHK-210), and the two tools
+# describing one file differently in one tree is worse than either answer.
+python3 - <<'PY2'
+import re
+before = open('/tmp/v-cov.log', encoding='utf-8').read()
+n = int(re.search(r'Code files no requirement references: (\d+) of', before).group(1))
+open('/tmp/v-cov-before', 'w').write(str(n))
+PY2
+cat >> specs/10-fr-core.md <<'MD'
+
+### FR-CORE-090 — Withdrawn, and its file stayed
+
+```yaml
+status: withdrawn
+verification: I
+depends_on: [FR-CORE-010]
+code: [src/dropped.py]
+```
+
+The system **shall** have done something dropped.
+MD
+printf 'print("left behind")\n' > src/dropped.py
+python3 tools/srs_view.py --coverage > /tmp/v-cov2.log
+python3 - <<'PY2'
+import re
+n_before = int(open('/tmp/v-cov-before').read())
+after = open('/tmp/v-cov2.log', encoding='utf-8').read()
+found = re.search(r'Code files no requirement references: (\d+) of (\d+)', after)
+n_after, total = int(found.group(1)), int(found.group(2))
+assert n_after == n_before + 1, (
+    'a file only a withdrawn requirement names must still count as '
+    'unreferenced: %d -> %d of %d' % (n_before, n_after, total))
+PY2
+# Put the fixture back: everything below reads a specification of four.
+python3 - <<'PY2'
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+open(path, 'w', encoding='utf-8').write(
+    text[:text.index('### FR-CORE-090')].rstrip('\n') + '\n')
+PY2
+rm -f src/dropped.py
 python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
 # The same baseline named by version rather than by tag (FR-VIEW-050): a
 # baseline need not have been tagged to be compared against.
 python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-version.log
 cmp <(tail -n +2 /tmp/v-diff.log) <(tail -n +2 /tmp/v-diff-version.log)
 grep -q "status .*draft -> deferred" /tmp/v-diff.log
+# All three lists the statement names, not the changed one alone.
+grep -q "^  + FR-CORE-080" /tmp/v-diff.log
+grep -q "^  - FR-CORE-070" /tmp/v-diff.log
 
 python3 tools/srs_view.py --json /tmp/model.json >/dev/null
-python3 -c "import json; d=json.load(open('/tmp/model.json')); assert len(d['requirements'])==3, d"
+python3 -c "import json; d=json.load(open('/tmp/model.json')); assert len(d['requirements'])==4, d"
 
 python3 tools/srs_view.py --html
 grep -q "FR-CORE-030" .srs-site/index.html
@@ -117,6 +212,25 @@ if grep -q "https://cdn" .srs-site/index.html; then
     exit 1
 fi
 test -f .srs-site/.gitignore
+
+# Search and filters are two of the five things FR-VIEW-060 names, and
+# neither was asserted: the aside could have lost either one with every
+# check here still green. The limit is the graph's limit — what is proved is
+# the markup and the wiring, not the filtering, which happens in a browser
+# this project does not depend on.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+assert '<input id="search"' in page, 'the search box is gone'
+assert "getElementById('search')" in page and \
+    "search.addEventListener('input'" in page, 'the search box controls nothing'
+assert '__FILTERS__' not in page, 'the filter placeholder was never substituted'
+for key in ('status', 'type', 'area', 'file'):
+    assert re.search(r'<span class="chip"[^>]*data-key="%s"' % key, page), \
+        'no filter chips for %s' % key
+assert "querySelectorAll('.chip')" in page and \
+    "chip.addEventListener('click'" in page, 'the chips are not controls'
+PY2
 
 # Deterministic output: no timestamps, so two runs must be identical.
 cp .srs-site/index.html /tmp/first.html
@@ -257,7 +371,11 @@ from_git = (sorted(e['id'] for e in ref['added']),
             sorted(e['id'] for e in ref['removed']),
             sorted(c['entry']['id'] for c in ref['changed']))
 assert from_page == from_git, (from_page, from_git)
-assert from_page[2], 'the fixture changed a requirement; the pair must show it'
+# Every list non-empty, or the comparison is two empty lists agreeing with
+# each other: the pair adds, drops and rewrites a requirement, and the page
+# has to show all three the way `--diff` does.
+assert all(from_page), \
+    'the fixture added, removed and changed; the pair must show all three'
 PY2
 
 # The graph can be explored: the page carries the stage to pan, the box
@@ -442,19 +560,34 @@ grep -q 'id="graph-root"' .srs-site/index.html
 grep -q 'id="graph-depth"' .srs-site/index.html
 grep -q 'function narrow(' .srs-site/index.html
 
-# --open renders and opens in one act (FR-VIEW-140). What a suite can hold
-# is that the flag is wired and the page is written; that a browser really
-# appeared is not something a machine without one can assert, so BROWSER
-# points at a no-op and the assertion is about the page.
-rm -f /tmp/v-open.html
-BROWSER=/usr/bin/true python3 tools/srs_view.py --html /tmp/v-open.html \
-    --open > /tmp/v-open.log
+# --open renders and opens in one act (FR-VIEW-140). No browser is a
+# dependency of this project, but the opening itself need not go unwatched:
+# $BROWSER names the command the standard library runs, and it runs it with
+# the URL as an argument and waits for it, so a recorder script leaves the
+# answer on disk. BROWSER pointed at a no-op before, and the assertions were
+# that a page was written — which is FR-VIEW-060 and says nothing about
+# opening it. The recorder's name must not be a browser the standard library
+# knows, or it would substitute its own handler for the script.
+cat > /tmp/srs-open-recorder <<'SH'
+#!/bin/sh
+printf '%s' "$1" > /tmp/v-opened
+SH
+chmod +x /tmp/srs-open-recorder
+rm -f /tmp/v-open.html /tmp/v-opened
+BROWSER=/tmp/srs-open-recorder python3 tools/srs_view.py \
+    --html /tmp/v-open.html --open > /tmp/v-open.log
 grep -q 'Page written' /tmp/v-open.log
 test -s /tmp/v-open.html
-# Without a path it renders the default one, so the whole act is one word.
-rm -rf .srs-site
-BROWSER=/usr/bin/true python3 tools/srs_view.py --open > /tmp/v-open2.log
+test "$(cat /tmp/v-opened)" = "file:///tmp/v-open.html"
+# Without a path it renders the default one, and opens that one, so the
+# whole act is one word. The path is matched rather than compared: the
+# working directory here is reached through a symlink on macOS, and the
+# tool resolves it while the shell does not.
+rm -rf .srs-site; rm -f /tmp/v-opened
+BROWSER=/tmp/srs-open-recorder python3 tools/srs_view.py --open > /tmp/v-open2.log
 test -s .srs-site/index.html
+grep -qE '^file:///.*/\.srs-site/index\.html$' /tmp/v-opened
+rm -f /tmp/srs-open-recorder
 
 # A checkout without history — what CI gives by default — must not invent
 # baselines out of the one commit it has. The log still names them, so the

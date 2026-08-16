@@ -35,6 +35,23 @@ lexicon.
    written in any language. So read it and say so — "this names two
    capabilities, I would split it", or "nothing here says how anyone would
    check it". Where it is sound, say that too, in a clause.
+
+   Two instruments make that judgement cheaper than reading alone.
+
+   **Count the obligations, not the verbs.** One bolded verb passes the
+   checker and says nothing about singularity: a verb carrying a list of
+   objects is as compound as two verbs, and `specs/README.md` says what to
+   do about it under *How to phrase*. Read the sentence and say how many
+   things it obliges. More than one, and you are writing more than one
+   requirement — say so before the number is chosen, because splitting
+   afterwards spends identifiers that can never be reused.
+
+   **Where conditions combine, draw the decision table.** Causes down the
+   side, effects across, one row per combination that can occur. It
+   answers two questions at once: whether the statement is singular — four
+   rows usually mean more than one requirement — and what the tests will
+   have to cover, which is the question step 5 is about to ask. Skip it
+   for an unconditional statement; there is nothing to combine.
 5. **Verification method.** Ask how conformance will be checked
    (`T`/`D`/`I`/`A`). No answer means it is not a requirement yet.
 

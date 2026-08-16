@@ -157,8 +157,15 @@ def build_model(requirements, problems, with_code_scan=True):
     for refs in incoming.values():
         refs.sort(key=lambda pair: (pair[1], pair[0]))
 
+    # A cancelled requirement's `code` field records what it once pointed
+    # at, not a claim on the file now — the same reading the checker uses
+    # (FR-CHK-210). Counted here, a withdrawal would quietly move its files
+    # out of the gap list, and the two tools would describe one file
+    # differently in the same run.
     covered = set()
     for entry in entries:
+        if entry["status"] in srs_check.CANCELLED:
+            continue
         covered.update(entry["code"])
     all_code = srs_check.collect_code_files() if with_code_scan else set()
 
