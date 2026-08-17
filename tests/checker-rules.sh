@@ -13,6 +13,14 @@
 # code: a rule that fires with the wrong explanation sends the reader
 # looking in the wrong place.
 set -eo pipefail
+
+# implements: FR-CI-090
+# A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
+# prepared, and everything this suite starts inherits them — the fixture
+# below makes a git target of its own, so without this the `git init` in it
+# would land in this repository instead.
+unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
+unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-rules
@@ -763,6 +771,52 @@ rc=0
 test "$rc" -eq 1 || { echo "FAIL FR-CI-080 — a dash-leading pattern was read as a flag"
                       cat /tmp/srs-rules.log; exit 1; }
 rm -f "$LAB/haystack.txt"
+passes=$((passes + 3))
+
+# --- verifies: FR-CI-090 — a suite working on a target leaves this
+# --- repository alone. What the six target-making suites do about it is a
+# --- line clearing the git environment they inherited; this proves that
+# --- line is what stands between a target's `git add` and the index the
+# --- hook handed down. The suites themselves are compared against that
+# --- index where they already run, in tools/ci_selftest.sh — running them
+# --- again here would triple the gate to assert what it already asserts.
+LAB4=/tmp/srs-gitenv
+rm -rf "$LAB4"; mkdir -p "$LAB4/target"
+( cd "$LAB4/target" && git init -q . && printf 'x\n' > only-here.txt )
+git rev-parse --git-dir >/dev/null 2>&1 \
+    || { echo "FAIL FR-CI-090 — not a git repository"; exit 1; }
+cp "$(git rev-parse --git-dir)/index" "$LAB4/index"
+cksum < "$LAB4/index" > "$LAB4/before"
+
+# Inherited, as a hook leaves it: the target's file lands in the index it
+# was handed. This is the defect, reproduced.
+( cd "$LAB4/target" && GIT_INDEX_FILE="$LAB4/index" git add -A ) >/dev/null 2>&1
+cksum < "$LAB4/index" > "$LAB4/after"
+cmp -s "$LAB4/before" "$LAB4/after" \
+    && { echo "FAIL FR-CI-090 — the fixture no longer reproduces the leak"
+         exit 1; }
+
+# Cleared, as every target-making suite does before it starts: the same
+# command cannot reach it.
+cp "$(git rev-parse --git-dir)/index" "$LAB4/index"
+cksum < "$LAB4/index" > "$LAB4/before"
+( cd "$LAB4/target" \
+  && unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY \
+  && git add -A ) >/dev/null 2>&1
+cksum < "$LAB4/index" > "$LAB4/after"
+cmp -s "$LAB4/before" "$LAB4/after" \
+    || { echo "FAIL FR-CI-090 — clearing the environment did not protect the index"
+         exit 1; }
+
+# And every suite that makes a target carries that line, or the protection
+# above is a property of this fixture rather than of the suites.
+for suite in view-smoke baseline-smoke release-smoke installer-smoke \
+             adopt-smoke upgrade-smoke checker-rules; do
+    grep -q "^unset GIT_INDEX_FILE" "tests/$suite.sh" \
+        || { echo "FAIL FR-CI-090 — tests/$suite.sh does not clear the environment"
+             exit 1; }
+done
+rm -rf "$LAB4"
 passes=$((passes + 3))
 
 # The backdrop itself has to pass — and pass a strict gate, or "valid"

@@ -2,6 +2,14 @@
 # tools/srs_init.py: fresh install, upgrade, --dry-run honesty, coexistence
 # with a project's own pre-commit hook, and isolation of the payload.
 set -eo pipefail
+
+# implements: FR-CI-090
+# A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
+# prepared, and everything this suite starts inherits them — so a `git add`
+# meant for the throwaway target below would write that target's paths into
+# the commit in progress (FR-CI-090). Cleared here, once, before anything.
+unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
+unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 # Clean slate: on shell runners a leftover dir would silently flip the

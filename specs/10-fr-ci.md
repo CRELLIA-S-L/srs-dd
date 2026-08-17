@@ -127,6 +127,57 @@ specification which was valid shows up here rather than in a stranger's
 repository. Advisory on purpose — an external repository, reachable only over
 the network, must not be able to block a release.
 
+### FR-CI-090 — A suite working on a target leaves this repository alone
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tools/ci_selftest.sh]
+tests: [tests/checker-rules.sh]
+```
+
+While a suite operates on a target it created, it **shall not** alter the
+git state of the repository it was started from.
+
+**Rationale.** The gate runs the suites from a pre-commit hook, and a hook
+runs with `GIT_INDEX_FILE` and `GIT_DIR` set to the commit being prepared.
+Those are inherited by everything the suites start, so a `git add -A` meant
+for a throwaway target under `/tmp` writes that target's paths into the
+index of the commit in progress. What comes out is a tree naming files this
+repository does not have, pointing at blobs it never wrote: `git commit`
+answers "invalid object … Error building trees" and the maintainer is left
+with an operation that cannot complete and no hint why.
+
+Measured rather than reasoned: with `GIT_INDEX_FILE` set, one run of
+`tests/view-smoke.sh` adds `specs/10-fr-core.md` and `tests/probe.sh` — the
+target's placeholder requirement and its fixture — to the index it was
+handed.
+
+The suites already own their targets: each creates one under `/tmp`, runs
+`git init` in it, and works there. The defect is not what they intend but
+what the environment hands them, which is why nothing in the suites reads
+wrong and every one of them was affected.
+
+`tests/spec-check.sh` is the exception the statement allows for by naming
+targets: it has no target and deliberately works on this repository, staging
+the matrix to compare it against what the checker generates. Running under
+the hook's index is what makes that check ask about the commit being
+prepared rather than the one before it.
+
+Held in two halves, and the split is about cost. Each suite clears the
+environment it inherited; `tools/ci_selftest.sh` compares the index after
+every suite it runs, which is free because that is where they already run
+and is the path a hook actually takes. A fixture that ran the six suites
+again to check the same thing was written first and measured: it took the
+local gate from twelve seconds to thirty-eight, to assert what the gate now
+asserts on its own. What remains in `checker-rules.sh` is the mechanism —
+the leak reproduced with the environment inherited, and stopped with it
+cleared — which costs no suite runs at all.
+
 ### FR-CI-080 — An assertion that something is absent can fail
 
 ```yaml
