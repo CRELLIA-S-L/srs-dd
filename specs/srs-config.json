@@ -18,9 +18,6 @@
     ".sh"
   ],
   "repo_url": "https://github.com/CRELLIA-S-L/srs-dd/blob/main",
-  "rules": {
-    "annotation-unpaired": "off"
-  },
   "modal_verbs": [
     "shall",
     "must",

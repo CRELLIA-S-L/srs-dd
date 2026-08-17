@@ -487,17 +487,52 @@ renders. The cost is worth naming — reword the parent and this one is
 reworded silently, because the checker resolves the link but never compares
 what it lists.
 
+### FR-VIEW-220 — The list can be narrowed to what is being looked for
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+When listing requirements, the viewer **shall** narrow the list to those
+matching every filter given, over the metadata a requirement carries and
+over the text it is written in.
+
+**Rationale.** The whole list is the wrong answer to almost every question
+asked of a specification of any size: what is still `draft`, what belongs to
+one area, what mentions a word somebody remembers. The viewer has done this
+since it was written and nothing said so, which is how it came to be the
+only behaviour here that could have been deleted without a requirement
+noticing.
+
+Every filter rather than any, because narrowing is what the reader is
+after — `--status draft --area CHK` asks for the intersection, and a union
+would return more than either flag alone. Over metadata and over text
+together, because the two questions arrive in the same breath: a status is
+what a reader filters by, a half-remembered phrase is what they search for,
+and a tool that answered only the first would send them back to grep.
+
+Which flags spell it is not stated, here or anywhere: a requirement says
+what the system does, and the spelling of an invocation is the interface's
+business, which for a terminal query is its `--help`.
+
 ### FR-VIEW-210 — What outlived a cancelled requirement is on the page
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-VIEW-060, INV-SPEC-050]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 ```
 
 The rendered page **shall** list what still points at a cancelled

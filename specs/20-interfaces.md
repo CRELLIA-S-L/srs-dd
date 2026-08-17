@@ -77,6 +77,50 @@ carries together with the clone command.
 framework's own distribution channel; the file is cited in released
 documentation, so renaming or moving it breaks installs already in the wild.
 
+### IF-VIEW-010 — The model is published, not merely dumped
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-010, INV-SPEC-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+Where the model is asked for as JSON, the viewer **shall** emit every
+requirement with the fields of its block, its location, and the reverse
+links computed for it.
+
+**Rationale.** This is the one machine-readable thing the framework offers,
+and it was an implementation detail: something to pipe into `python -c`
+while debugging. It stopped being that when things started binding to it.
+Two suites parse it today, and one of them is the check that proves no
+requirement of this framework leaked into a target — the guard on
+CON-SPEC-020. A shape a gate depends on and no rule describes is a shape
+that can be changed by somebody who thinks they are tidying.
+
+What is promised is the requirement and what surrounds it: the block's own
+fields, where it was read from, and the incoming links, which exist nowhere
+in the source files and are the reason to ask a tool rather than parse the
+markdown. What is deliberately not promised is the rest of the object — the
+unreferenced files and their count, what outlived a cancellation, the list
+of documents. Those are gathered for the page and change as it does, and a
+caller that pinned them would be pinning a rendering.
+
+An `IF-*` in a new area rather than a `FR-VIEW-*`, because the type is the
+question: this is a surface somebody else's tooling binds to, and what
+binds to it does not care which command produced it.
+
+It rests on the block format and on the rule that reverse links are
+computed, which is what it has to offer: the fields come from
+IF-SPEC-010, and the incoming links exist only because INV-SPEC-020 keeps
+them out of the files. Not on the page — the page is one reader of the
+model among several, and a caller piping JSON into a script has nothing to
+do with rendering.
+
 ### IF-SPEC-010 — The requirement block is a stable format
 
 ```yaml
@@ -104,14 +148,14 @@ worth having.
 ### IF-SPEC-020 — A published rule name keeps its meaning
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CHK-160]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
 ```
 
 A rule name the checker has published **shall** keep its meaning: it is

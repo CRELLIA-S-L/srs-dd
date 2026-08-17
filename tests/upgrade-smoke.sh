@@ -2,6 +2,9 @@
 # tools/srs_upgrade.py: the one command an installed project runs to pick up
 # a new framework version. Exercised against this working tree through
 # --from, so the suite never reaches the network.
+#
+# verifies: FR-INIT-120, FR-INIT-130, FR-INIT-140, FR-INIT-160
+# verifies: FR-SKILL-060
 set -eo pipefail
 cd "$(dirname "$0")/.."
 FRAMEWORK=$(pwd)

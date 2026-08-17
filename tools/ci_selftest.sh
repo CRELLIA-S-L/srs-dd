@@ -1,4 +1,5 @@
 #!/bin/sh
+# implements: FR-CI-020, FR-CI-030
 # Local gate. Run manually or via the pre-commit hook
 # (git config core.hooksPath .githooks).
 #

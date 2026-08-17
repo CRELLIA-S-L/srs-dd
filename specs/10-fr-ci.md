@@ -127,6 +127,46 @@ specification which was valid shows up here rather than in a stranger's
 repository. Advisory on purpose — an external repository, reachable only over
 the network, must not be able to block a release.
 
+### FR-CI-080 — An assertion that something is absent can fail
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CI-030]
+refines: []
+conflicts_with: []
+code: [tools/test_lib.sh]
+tests: [tests/checker-rules.sh]
+```
+
+A suite asserting that something is absent **shall** fail when that thing is
+present.
+
+**Rationale.** Ten such assertions in this repository could not. They were
+written `! grep -q PATTERN file`, and POSIX exempts a command negated with
+`!` from `set -e`, so the suite walked past whether the pattern was there or
+not — including the checks that `--up` prints no downward subtree, that a
+shallow clone offers no baseline picker, and that a refused baseline left no
+row behind. Every one of them read as a guard and was a comment.
+
+The same family has bitten twice before. `grep -qv` inverts per line and
+succeeds whenever any line differs, which `tests/installer-smoke.sh` carries
+a note about; and a check that a file merely still exists says nothing about
+whether an operation rewrote it. What they share is a shape that looks like
+an assertion and cannot report.
+
+This is FR-SKILL-160 turned on the harness. That one binds the audit — count
+a test as proof only where the edit that would redden it can be named — and
+says nothing about the suites themselves, where the same question is
+answered by whether the assertion is capable of failing at all. A rule about
+proof that exempts the machinery of proving is a rule with a hole in it.
+
+Stated as behaviour of a suite rather than as "use this helper", because the
+helper is one way to hold it. What matters is that the assertion reports;
+where the shared function lives, and whether there is one, is the
+implementation this leaves open.
+
 ### FR-CI-070 — Cutting a release is one command
 
 ```yaml

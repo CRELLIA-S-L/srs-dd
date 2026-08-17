@@ -17,6 +17,8 @@ no natural language: the modal verbs, negation words, and rationale
 markers it matches all come from the lexicon in the config.
 """
 
+# implements: NFR-SPEC-010, NFR-CHK-010
+
 import json
 import os
 import re
@@ -57,6 +59,7 @@ RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
 # requirement's `exempt` field. The names are a published contract with the
 # same one-way property as a metadata key: adding one is compatible,
 # renaming one is not (ADR-0009).
+# implements: IF-SPEC-020
 RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "rests-on-withdrawn", "test-missing", "unlinked",
          "annotation-unknown-area", "annotation-superseded",
@@ -74,6 +77,7 @@ def _config_fail(message):
 
 
 def load_config():
+    # implements: FR-CHK-090, FR-CHK-100
     """Loads and validates the config; fails with a friendly message
     rather than letting a bad value crash regex compilation later."""
     data = {}
@@ -126,6 +130,7 @@ RULE_SEVERITY = CFG["rules"]
 
 
 def rule_finding(warnings, reports, rule, text, req=None):
+    # implements: FR-CHK-160
     """Route one rule's finding by what the project decided it costs.
 
     A requirement may excuse itself from a rule in its own block; the
@@ -144,6 +149,9 @@ TYPES = ("FR", "NFR", "IF", "INV", "CON")
 # Lifecycle order; also the row order of the status table in the matrix.
 STATUSES = ("draft", "deferred", "partial", "implemented", "superseded",
             "withdrawn")
+# implements: INV-SPEC-010
+# A cancelled requirement is retained under one of these rather than
+# deleted, which is what keeps its number from ever being free again.
 # The two terminal states, told apart from the rest wherever a rule has
 # nothing to say about a requirement that is over: it has no link left to
 # forget and no ground left to rest on.
@@ -291,6 +299,7 @@ def _skip_fence(lines, index):
 
 
 def parse_text(text, rel, errors):
+    # implements: IF-SPEC-010, FR-CHK-110
     """Parses one specification file already held in memory.
 
     Split out of parse_file so a caller that has the text but not the
@@ -411,6 +420,7 @@ def collect_spec_files():
 
 
 def find_cycles(requirements, field):
+    # implements: FR-CHK-040
     """Finds loops over a single link kind. Returns a list of cycle paths."""
     graph = dict((r.id, [t for t in r.links(field)]) for r in requirements)
     cycles = []
@@ -470,6 +480,7 @@ def validate(requirements):
     for req in requirements:
         normalize_meta(req, errors)
 
+        # implements: FR-CHK-010
         if req.id in by_id:
             errors.append("%s — identifier %s is already used at %s"
                           % (req.where, req.id, by_id[req.id].where))
@@ -483,6 +494,7 @@ def validate(requirements):
             errors.append("%s — requirement has no title" % req.where)
 
         for key in req.meta:
+            # implements: FR-CHK-180
             if key in RETIRED_FIELDS:
                 replacement, version = RETIRED_FIELDS[key]
                 errors.append(
@@ -490,6 +502,9 @@ def validate(requirements):
                     % (req.where, key,
                        "renamed to %r" % replacement if replacement
                        else "withdrawn", version))
+            # implements: IF-SPEC-010
+            # A key the format declares neither required nor optional is
+            # tolerated, which is what lets a later version add one.
             elif key not in KNOWN_FIELDS:
                 rule_finding(warnings, reports, "unknown-key",
                              "%s — unknown field %r" % (req.where, key), req)
@@ -503,6 +518,7 @@ def validate(requirements):
         # A key that is absent is named as absent. Reporting it through the
         # value check instead — "status '' is not one of" — describes the
         # symptom and hides the cause.
+        # implements: FR-CHK-170
         missing = set(key for key in REQUIRED_FIELDS if key not in req.meta)
         for key in sorted(missing):
             errors.append("%s — required key %r is missing" % (req.where, key))
@@ -521,6 +537,12 @@ def validate(requirements):
         if not req.statement:
             errors.append("%s — no statement" % req.where)
         else:
+            # implements: FR-CHK-020
+            # The mechanical half of INV-SPEC-060, which FR-CHK-020 derives
+            # from: two verbs are two requirements and a script can say so.
+            # One verb carrying a list of objects is as compound and is out
+            # of reach here, which is why the invariant is inspected rather
+            # than tested and does not name this file.
             found = len(RE_MODAL.findall(req.statement))
             if found == 0:
                 errors.append("%s — no bolded modal verb from the lexicon (%s)"
@@ -533,18 +555,21 @@ def validate(requirements):
         # Both statuses the standard defines as being realized oblige the
         # code field: they differ by how much is built, not by whether
         # anything is — `deferred` is the state for approved and not begun.
+        # implements: FR-CHK-050
         code = req.meta.get("code", [])
         if status in ("implemented", "partial") and not code:
             errors.append("%s — status %s but the code field is empty"
                           % (req.where, status))
 
         # Implementation ahead of approval.
+        # implements: FR-CHK-070
         if status == "draft" and code:
             rule_finding(warnings, reports, "draft-with-code",
                          "%s — %s is draft but the code field is not "
                          "empty: implementation ahead of approval"
                          % (req.where, req.id), req)
 
+        # implements: FR-CHK-055
         for field in ("code", "tests"):
             for rel in req.meta.get(field, []):
                 if not os.path.exists(os.path.join(ROOT, rel)):
@@ -552,6 +577,7 @@ def validate(requirements):
                                   % (req.where, field, rel))
 
         # Replacement for superseded requirements.
+        # implements: FR-CHK-060, INV-SPEC-050
         replacement = req.meta.get("superseded_by", "")
         if status == "superseded" and not replacement:
             errors.append("%s — status superseded without superseded_by"
@@ -560,6 +586,7 @@ def validate(requirements):
             errors.append("%s — superseded_by present but status is %r"
                           % (req.where, status))
 
+    # implements: FR-CHK-030, FR-CHK-075, FR-CHK-190
     # Dangling links; approved-or-better requirements resting on drafts.
     for req in requirements:
         status = req.meta.get("status", "")
@@ -597,6 +624,7 @@ def validate(requirements):
         # requirement — this loop rebinds `req` and `status`, and reusing
         # the first loop's `verification` would judge all of them by the
         # last one's method.
+        # implements: FR-CHK-140
         if status in ("implemented", "partial") \
                 and req.meta.get("verification") == "T" \
                 and not req.meta.get("tests"):
@@ -615,6 +643,7 @@ def validate(requirements):
     # Total isolation is the one case where a missing link shows: the
     # checker can prove that what is written resolves, never that something
     # was left out.
+    # implements: FR-CHK-150
     touched = set()
     for req in requirements:
         for field in LINK_FIELDS:
@@ -663,6 +692,34 @@ def iter_source_files():
                 yield rel
 
 
+def read_annotations(path):
+    # implements: FR-CHK-080
+    """Every annotation one file carries, as (line number, keyword, id).
+
+    The whole of the annotation grammar lives here — which lines are
+    exempt, what an annotation looks like, how several identifiers share
+    one. Both readers of it are downstream: this module's rules, and the
+    viewer answering which requirements describe a path. Written twice it
+    would one day be two grammars, and the copy a reader happened to reach
+    would win.
+
+    Triples rather than a set of identifiers, because a finding has to say
+    where: the rules below quote `path:line`, and an identifier alone
+    cannot be pointed at.
+    """
+    result = []
+    with open(path, "r", encoding="utf-8", errors="replace") as handle:
+        for lineno, line in enumerate(handle, 1):
+            # A line that says so is exempt, which is what lets a file
+            # document the grammar without claiming a requirement.
+            if "srs-ignore" in line:
+                continue
+            for match in RE_ANNOTATION.finditer(line):
+                for rid in match.group(2).split(","):
+                    result.append((lineno, match.group(1), rid.strip()))
+    return result
+
+
 def scan_annotations(by_id, errors, warnings, reports):
     """Cross-checks implements:/verifies: annotations against the spec.
 
@@ -681,54 +738,44 @@ def scan_annotations(by_id, errors, warnings, reports):
     for rel in iter_source_files():
         claims["code"].setdefault(rel, set())
         claims["tests"].setdefault(rel, set())
-        full = os.path.join(ROOT, rel)
-        with open(full, "r", encoding="utf-8", errors="replace") as handle:
-            for lineno, line in enumerate(handle, 1):
-                if "srs-ignore" in line:
-                    continue
-                for match in RE_ANNOTATION.finditer(line):
-                    keyword = match.group(1)
-                    ids = [t.strip() for t in match.group(2).split(",")]
-                    for rid in ids:
-                        where = "%s:%d" % (rel, lineno)
-                        claims["annotated"].add(rel)
-                        req = by_id.get(rid)
-                        if req is None:
-                            parts = rid.split("-")
-                            known_shape = (len(parts) == 3
-                                           and parts[0] in TYPES
-                                           and parts[1] in AREAS)
-                            if known_shape:
-                                errors.append(
-                                    "%s — annotation references unknown "
-                                    "requirement %s" % (where, rid))
-                            else:
-                                rule_finding(
-                                    warnings, reports,
-                                    "annotation-unknown-area",
-                                    "%s — annotation references %s with an "
-                                    "unknown type or area (an example? add "
-                                    "srs-ignore to the line if intended)"
-                                    % (where, rid))
-                            continue
-                        if req.meta.get("status") in CANCELLED:
-                            rule_finding(
-                                warnings, reports, "annotation-superseded",
-                                "%s — annotation points at %s requirement "
-                                "%s" % (where, req.meta["status"], rid), req)
-                            continue
-                        field = field_by_keyword[keyword]
-                        claims[field][rel].add(rid)
-                        if rel not in req.meta.get(field, []):
-                            rule_finding(
-                                warnings, reports, "annotation-unlisted",
-                                "%s — file carries `%s: %s` but is not "
-                                "listed in that requirement's %s field"
-                                % (where, keyword, rid, field), req)
+        for lineno, keyword, rid in read_annotations(os.path.join(ROOT, rel)):
+            where = "%s:%d" % (rel, lineno)
+            claims["annotated"].add(rel)
+            req = by_id.get(rid)
+            if req is None:
+                parts = rid.split("-")
+                known_shape = (len(parts) == 3
+                               and parts[0] in TYPES
+                               and parts[1] in AREAS)
+                if known_shape:
+                    errors.append("%s — annotation references unknown "
+                                  "requirement %s" % (where, rid))
+                else:
+                    rule_finding(
+                        warnings, reports, "annotation-unknown-area",
+                        "%s — annotation references %s with an unknown type "
+                        "or area (an example? add srs-ignore to the line if "
+                        "intended)" % (where, rid))
+                continue
+            if req.meta.get("status") in CANCELLED:
+                rule_finding(
+                    warnings, reports, "annotation-superseded",
+                    "%s — annotation points at %s requirement %s"
+                    % (where, req.meta["status"], rid), req)
+                continue
+            field = field_by_keyword[keyword]
+            claims[field][rel].add(rid)
+            if rel not in req.meta.get(field, []):
+                rule_finding(
+                    warnings, reports, "annotation-unlisted",
+                    "%s — file carries `%s: %s` but is not listed in that "
+                    "requirement's %s field" % (where, keyword, rid, field),
+                    req)
     return claims
 
 
 def check_pairing(requirements, claims, warnings, reports):
+    # implements: FR-CHK-200
     """Every file a requirement names says so.
 
     The forward half of the link has always been checked; this is the half
@@ -754,6 +801,7 @@ def check_pairing(requirements, claims, warnings, reports):
 
 
 def check_unclaimed(requirements, claims, warnings, reports):
+    # implements: FR-CHK-210
     """A file neither live end claims: no requirement still standing names
     it and it names none itself. Either behaviour with no requirement
     behind it, or a helper that will never have one — and the project says
@@ -787,6 +835,7 @@ def check_unclaimed(requirements, claims, warnings, reports):
 
 
 def check_baselines(warnings, reports):
+    # implements: FR-CHK-130
     """A `spec/v*` tag the baseline log has no row for.
 
     The row is what makes a baseline; a tag is a bookmark on it. One
@@ -835,11 +884,15 @@ def _cell(text):
 
 
 def build_traceability(requirements):
+    # implements: CON-SPEC-010
     # The matrix is compared byte-for-byte by the CI freshness gate.
     # Everything here must stay deterministic: files and IDs are sorted,
     # link fields iterate in the fixed LINK_FIELDS order.
     by_id = dict((r.id, r) for r in requirements)
 
+    # implements: INV-SPEC-020
+    # The reverse of every link is computed here and stored nowhere:
+    # a specification records one direction, and this is the other.
     incoming = {}
     for req in requirements:
         for field in LINK_FIELDS:
@@ -930,6 +983,7 @@ def build_traceability(requirements):
 
 
 def main():
+    # implements: IF-CI-020, FR-CHK-120
     args = sys.argv[1:]
     unknown = [a for a in args if a not in ("--no-write", "--strict")]
     if unknown:

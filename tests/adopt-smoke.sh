@@ -2,6 +2,15 @@
 # Adopt mode: a project that already has an SRS-shaped specification, in a
 # language the tooling has never seen. The invariant under test is that a
 # failed adoption leaves the target byte-identical.
+#
+# verifies: FR-INIT-010, FR-INIT-030, FR-INIT-040, FR-INIT-050
+# verifies: FR-INIT-070, FR-INIT-090, FR-CHK-090, FR-CHK-210, IF-CI-010
+#
+# One scenario answers for all of them, which is what an end-to-end suite
+# is: the mode is detected, the lexicon comes from the flags, a wrong one
+# rolls back with its own exit code, the dry run matches the real one, and
+# the target that arrives with code already written starts with the
+# unclaimed-file rule silenced.
 set -eo pipefail
 cd "$(dirname "$0")/.."
 

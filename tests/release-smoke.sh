@@ -2,10 +2,16 @@
 # tools/srs_release.py, exercised in a throwaway clone of this repository:
 # it edits files that are committed here, and a test that did that to the
 # working copy would be a test nobody dares run twice.
+#
+# verifies: FR-CI-070, INV-SPEC-030, CON-SPEC-030
 set -eo pipefail
 cd "$(dirname "$0")/.."
 
 FRAMEWORK=$(pwd)
+
+# The shared assertions (FR-CI-080). Sourced from tools/ because a
+# file under tests/ would be run as a suite by the self-test.
+. tools/test_lib.sh
 rm -rf /tmp/srs-rel
 git clone --quiet . /tmp/srs-rel
 cd /tmp/srs-rel
@@ -118,5 +124,5 @@ PY2
 rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-bad.log 2>&1 || rc=$?
 test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/rel-bad.log
-! grep -q '## \[9.9.10\] —' CHANGELOG.md
+absent '## \[9.9.10\] —' CHANGELOG.md
 grep -q '__version__ = "9.9.9"' tools/srs_check.py

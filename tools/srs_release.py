@@ -22,6 +22,8 @@ Framework-only — a target project releases nothing of ours.
 Exit codes: 0 prepared · 2 refused, having changed nothing.
 """
 
+# implements: FR-CI-070, INV-SPEC-030, CON-SPEC-030, NFR-SPEC-010
+
 import argparse
 import datetime
 import os

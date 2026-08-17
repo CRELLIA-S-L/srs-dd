@@ -89,10 +89,14 @@ Then:
    before the edit is recorded. This is the easiest place
    to skip it: the requirement already exists, so nothing feels like
    authoring, and a sentence quietly grows a second capability while
-   somebody is repairing the first. Then status per Lifecycle,
-   `code` and `tests` filled with real paths, and optionally the files
-   themselves annotated (`implements:` / `verifies:` — see Annotations in
-   `specs/README.md`).
+   somebody is repairing the first. Then status per Lifecycle, and
+   `code` and `tests` filled with real paths — **and every file you named
+   there says so back**, with `implements:` or `verifies:` (see Annotations
+   in `specs/README.md`). The checker reports a file a requirement names
+   that does not name it back, so this is not bookkeeping you can put off:
+   the field is the specification's claim, the annotation is the file's
+   own, and only the second notices when a file is gutted or repurposed
+   and stops deserving the entry still pointing at it.
 5. **Check:** `python3 tools/srs_check.py`.
 
 Changing behavior — change the requirement in the same set of edits as the
@@ -243,3 +247,20 @@ Found a mismatch between code and a requirement — do not silently fix either
 side. Record it in `specs/91-open-issues.md` and tell the user: it is unknown
 whether the bug is in the code or in the description, and that is theirs to
 decide.
+
+**First establish that it is one.** Before anything is reported, finish the
+sentence *therefore*: therefore this must be fixed; therefore it is
+deliberate, and here is why; therefore nobody can tell without a decision
+that is the maintainer's. Any of the three is a finding and is reported with
+that half included. An observation with no *therefore* is not a finding —
+work it out or drop it, but do not hand it over.
+
+The reason is not tidiness. Reported raw, an observation arrives as
+homework: read this, decide whether it means anything. A report mixing those
+with real findings teaches the reader to skim both, and the next real one
+goes past unread. Whoever noticed has the context to settle it; the reader
+does not.
+
+"Nobody can tell" is the third answer and stays available — it means you
+looked and the question is a decision, not that you did not look. Report it
+with the options, not as a shrug.

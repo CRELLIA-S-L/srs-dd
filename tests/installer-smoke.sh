@@ -8,16 +8,23 @@ cd "$(dirname "$0")/.."
 # fresh-install step into upgrade mode.
 rm -rf /tmp/srs-target
 
+# verifies: FR-INIT-070
 # --dry-run must list the whole install and create nothing at all.
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both --dry-run | tee /tmp/dry.log
 grep -q "tools/srs_view.py" /tmp/dry.log
 grep -q "nothing was written" /tmp/dry.log
 test ! -e /tmp/srs-target
 
+# verifies: FR-INIT-010, FR-INIT-020, FR-CI-050
 # Fresh install into a temp dir must pass its own checker, strictly.
+# The mode was chosen by looking at the target, and nothing told it to.
+# `--ci both` lays down the templates for either forge, and what lands is
+# theirs rather than this repository's own pipeline — the `.gitlab-ci.yml`
+# checked further down is one of the two.
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both | tee /tmp/fresh.log
 python3 /tmp/srs-target/tools/srs_check.py --strict
 
+# verifies: FR-INIT-150
 # It also has to leave the maintainer knowing what to do next: where the
 # first requirement goes, what reads and checks the specification, and how
 # the framework is upgraded later.
@@ -27,7 +34,9 @@ grep -q "tools/srs_check.py" /tmp/fresh.log
 grep -q "tools/srs_view.py --html" /tmp/fresh.log
 grep -q "tools/srs_upgrade.py" /tmp/fresh.log
 grep -q "AGENTS.md" /tmp/fresh.log
-# Every skill that ships is named, and none that does not.
+# verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
+# Every skill that ships is named, and none that does not. The last of
+# those is named by its absence: srs-release stays here.
 for skill in srs srs-new srs-audit srs-harvest srs-upgrade srs-baseline \
              srs-check srs-page; do
     grep -qE "^       $skill +" /tmp/fresh.log
@@ -58,6 +67,7 @@ agents=$(grep -n "AGENTS.md" /tmp/fresh.log | head -1 | cut -d: -f1)
 first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh.log | head -1 | cut -d: -f1)
 test "$agents" -lt "$first"
 
+# verifies: FR-INIT-060
 # Re-running on an initialized target = upgrade mode; the checker and
 # skills must refresh WITHOUT --force, precious files must be skipped.
 # The stub proves upgrades deliver skill content (the fresh install above
@@ -80,6 +90,7 @@ grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKI
 grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
 test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
 
+# verifies: FR-INIT-080
 # A project's own pre-commit hook is never displaced: the gate lands
 # beside it, and the advice must not tell the user to point
 # core.hooksPath at .githooks, which would disable what they have.
@@ -116,6 +127,7 @@ rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html
 
+# verifies: FR-CHK-130
 # A baseline tag with no row in the log is reported, and --strict makes
 # it a failure: cutting a baseline is a tag and a row in separate
 # commits, and the gap between them is where it gets forgotten.
@@ -140,7 +152,8 @@ PY2
     python3 tools/srs_check.py --no-write --strict >/dev/null
 )
 
-# The other end of the same decision (FR-CHK-210): a fresh project has no
+# verifies: FR-CHK-210
+# The other end of the same decision: a fresh project has no
 # code yet, so it has nothing to silence and starts strict. A default
 # written for both modes would be that decision quietly reversed.
 python3 - <<'PY2'
@@ -189,7 +202,8 @@ python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
 grep -qF "no SRS-DD marker" /tmp/precious-mine.log
 grep -q "not ours at all" /tmp/srs-precious/.gitattributes
 
-# The installer's exit codes are a contract (IF-CI-010). The adopt suite
+# verifies: IF-CI-010
+# The installer's exit codes are a contract. The adopt suite
 # covers 0, 2 and 3; 1 — the checker found errors in the target — was
 # covered by nothing. An upgrade ends by running the target's own checker
 # and hands back its verdict, so a target whose specification is broken is
@@ -205,6 +219,7 @@ rc=0; python3 tools/srs_init.py /tmp/srs-precious --defaults \
 test "$rc" -eq 1
 grep -q "status implemented but the code field is empty" /tmp/precious-broken.log
 
+# verifies: CON-SPEC-020
 # specs/ here is the framework's own specification, not payload (ART-070).
 # A fresh target must hold exactly one requirement — the generated
 # placeholder — and nothing of ours. Asked through the parser rather than

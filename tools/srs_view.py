@@ -23,6 +23,8 @@ duplicate identifiers are reported as a banner rather than a failure;
 judging the specification remains the checker's job.
 """
 
+# implements: NFR-SPEC-010
+
 import sys
 
 # An import writes __pycache__ next to the imported module — inside the
@@ -114,6 +116,7 @@ def _as_scalar(value):
 
 
 def _requirement_dict(req):
+    # implements: IF-VIEW-010
     parts = req.id.split("-")
     entry = {
         "id": req.id,
@@ -157,6 +160,7 @@ def build_model(requirements, problems, with_code_scan=True):
     for refs in incoming.values():
         refs.sort(key=lambda pair: (pair[1], pair[0]))
 
+    # implements: FR-VIEW-040
     # A cancelled requirement's `code` field records what it once pointed
     # at, not a claim on the file now — the same reading the checker uses
     # (FR-CHK-210). Counted here, a withdrawal would quietly move its files
@@ -170,6 +174,7 @@ def build_model(requirements, problems, with_code_scan=True):
     all_code = srs_check.collect_code_files() if with_code_scan else set()
 
     return {
+        "outlived": outlived(entries, with_code_scan),
         "checker_version": srs_check.__version__,
         "repo_url": read_repo_url(),
         "areas": list(srs_check.AREAS),
@@ -182,6 +187,59 @@ def build_model(requirements, problems, with_code_scan=True):
         "documents": collect_documents(),
         "problems": problems,
     }
+
+
+def outlived(entries, with_code_scan):
+    # implements: FR-VIEW-210
+    """What still points at a cancelled requirement.
+
+    Cancelling is the one edit whose consequences outlive it, and they lie
+    in three places the checker reports one line at a time. Gathered here so
+    the reader deciding a withdrawal sees the whole of it at once.
+
+    The first kind needs no tree at all — it is fields and statuses — so it
+    is computed even for a past revision, where `with_code_scan` is off
+    because the working tree is not what that revision had.
+    """
+    dead = dict((e["id"], e) for e in entries
+                if e["status"] in srs_check.CANCELLED)
+    if not dead:
+        # Nothing was cancelled, so nothing can have outlived it — and the
+        # walk below would read every source file to prove it. Most
+        # specifications are in this state most of the time, and this is on
+        # the way to every terminal query.
+        return {"links": [], "files": [], "annotations": []}
+    live = [e for e in entries if e["status"] not in srs_check.CANCELLED]
+
+    links = []
+    for entry in live:
+        for field in LINK_FIELDS:
+            for target in entry[field]:
+                if target in dead:
+                    links.append({"id": entry["id"], "title": entry["title"],
+                                  "field": field, "target": target})
+    links.sort(key=lambda item: (item["id"], item["field"], item["target"]))
+
+    files, annotations = [], []
+    if with_code_scan:
+        claimed = set()
+        for entry in live:
+            claimed.update(entry["code"])
+            claimed.update(entry["tests"])
+        left = set()
+        for entry in dead.values():
+            left.update(entry["code"])
+            left.update(entry["tests"])
+        for rel in sorted(left - claimed):
+            if os.path.exists(os.path.join(ROOT, rel)):
+                files.append(rel)
+        for rel in sorted(srs_check.iter_source_files()):
+            for _line, _kw, rid in srs_check.read_annotations(
+                    os.path.join(ROOT, rel)):
+                if rid in dead:
+                    annotations.append({"path": rel, "target": rid})
+
+    return {"links": links, "files": files, "annotations": annotations}
 
 
 def collect_documents():
@@ -226,6 +284,7 @@ def _matches_path(candidate, wanted):
 
 
 def requirements_for_path(model, path):
+    # implements: FR-VIEW-020
     """Which requirements describe a file — the `code`/`tests` fields
     plus any implements:/verifies: annotation carried by the file
     itself. A directory prefix matches everything under it."""
@@ -244,17 +303,18 @@ def requirements_for_path(model, path):
                 found.add(entry["id"])
     full = os.path.join(ROOT, wanted)
     if os.path.isfile(full):
-        with open(full, "r", encoding="utf-8", errors="replace") as handle:
-            for line in handle:
-                if "srs-ignore" in line:
-                    continue
-                for match in srs_check.RE_ANNOTATION.finditer(line):
-                    for rid in match.group(2).split(","):
-                        found.add(rid.strip())
+        # The grammar is the checker's, read through its function rather
+        # than reimplemented here: which lines are exempt and what counts
+        # as an annotation must be one answer, not two that agree today.
+        # Which keyword it was does not matter to this question — a file
+        # named by a requirement is a file the requirement describes.
+        found.update(rid for _line, _kw, rid
+                     in srs_check.read_annotations(full))
     return found
 
 
 def select(model, args):
+    # implements: FR-VIEW-220
     entries = model["requirements"]
     if args.status:
         entries = [e for e in entries if e["status"] == args.status]
@@ -373,6 +433,7 @@ def emphasize(text, style):
 
 
 def print_card(entry, model, style):
+    # implements: FR-VIEW-010
     known = by_id(model)
     out("%s — %s" % (style.b(entry["id"]), entry["title"]))
     out("  status %s   verification %s   %s"
@@ -428,6 +489,7 @@ def parents_of(entry):
 
 
 def print_tree(model, rid, upwards, style):
+    # implements: FR-VIEW-030
     known = by_id(model)
 
     def walk(node, prefix, seen):
@@ -462,6 +524,7 @@ def print_tree(model, rid, upwards, style):
 
 
 def print_coverage(model, style):
+    # implements: FR-VIEW-040
     known = by_id(model)
     print_counts(model, style)
     out()
@@ -523,6 +586,7 @@ def git(args, cwd=ROOT):
 
 
 def load_revision(rev):
+    # implements: FR-VIEW-050
     """Parses the specification as of `rev`. Paths come from git, i.e.
     relative to the git root, which is not necessarily this script's
     ROOT — nested repositories exist."""
@@ -588,6 +652,7 @@ def versions_in(text):
 
 
 def logged_baselines():
+    # implements: INV-SPEC-040
     """The versions the baseline log records, oldest first.
 
     The log is what defines a baseline: a `spec/v*` tag is a bookmark
@@ -697,6 +762,7 @@ def fingerprint(text):
 
 
 def baseline_snapshots():
+    # implements: FR-VIEW-100
     """[{tag, version, requirements: {id: {fields…}}}], oldest first.
 
     A snapshot per baseline is what lets the page compare an arbitrary
@@ -1563,6 +1629,7 @@ class Links(object):
 
 
 def render_card(entry, model, known, links, diff_state):
+    # implements: FR-VIEW-130, INV-SPEC-050
     classes = ["superseded"] if entry["status"] == "superseded" else []
     badge = ""
     state = diff_state.get(entry["id"])
@@ -1591,6 +1658,7 @@ def render_card(entry, model, known, links, diff_state):
                 '<span class="rel">%s</span><span></span>'
                 '<span><a href="%s"><code>%s</code></a></span>'
                 % (field, esc(links.href(path)), esc(path)))
+    # implements: FR-CHK-160
     # An exemption is a claim about this requirement, so it is shown beside
     # it: an excuse nobody can see is an excuse nobody revisits (ADR-0008).
     for name in entry.get("exempt", []):
@@ -1640,6 +1708,7 @@ def render_chips(key, values, counts):
 
 
 def render_dashboard(model, links):
+    # implements: FR-VIEW-190, FR-VIEW-200
     known = by_id(model)
     counts = {}
     for entry in model["requirements"]:
@@ -1675,17 +1744,47 @@ def render_dashboard(model, links):
     orphans = "".join('<li><a href="%s"><code>%s</code></a></li>'
                       % (esc(links.href(path)), esc(path))
                       for path in model["orphan_code"])
+
+    # implements: FR-VIEW-210
+    # Requirement identifiers go out as `href="#<id>"` so that following one
+    # from here reaches its card like every other view (FR-VIEW-130).
+    # `left` rather than `outlived`: the name belongs to the function that
+    # computes this, and a local shadowing it here is how somebody later
+    # calls the dict.
+    left = model["outlived"]
+    parts = []
+    for item in left["links"]:
+        parts.append('<li><a href="#%s">%s</a> %s — <code>%s</code> '
+                     '<a href="#%s">%s</a></li>'
+                     % (esc(item["id"]), esc(item["id"]), esc(item["title"]),
+                        esc(item["field"]), esc(item["target"]),
+                        esc(item["target"])))
+    for path in left["files"]:
+        parts.append('<li><a href="%s"><code>%s</code></a> — left by a '
+                     'cancelled requirement, claimed by nothing live</li>'
+                     % (esc(links.href(path)), esc(path)))
+    for item in left["annotations"]:
+        parts.append('<li><a href="%s"><code>%s</code></a> — annotated '
+                     '<a href="#%s">%s</a></li>'
+                     % (esc(links.href(item["path"])), esc(item["path"]),
+                        esc(item["target"]), esc(item["target"])))
+    outlived_html = ("<p>Cancelling is the one edit whose consequences "
+                     "outlive it.</p><ul>%s</ul>" % "".join(parts)
+                     if parts else "<p>None.</p>")
+
     return ("<h2>Status</h2><table><tr><th>Status</th><th>Requirements</th>"
             "</tr>%s</table>"
             "<h2>Realized without listed tests</h2>%s"
             "<h2>Draft with code — implementation ahead of approval</h2>%s"
             "<h2>Realized but resting on a draft</h2>%s"
+            "<h2>Still pointing at a cancelled requirement</h2>%s"
             "<h2>Code files no requirement references (%d of %d)</h2>"
             "<ul>%s</ul>"
             % (rows,
                listing(untested, "Verified by other means, or not yet set up."),
                listing(ahead, "Code exists before approval (ART-020)."),
                listing(resting, "Approve the parent or revisit the child."),
+               outlived_html,
                len(model["orphan_code"]), model["code_total"],
                orphans or "<li>None.</li>"))
 
@@ -1803,6 +1902,8 @@ def edge_path(ax, ay, bx, by, same_lane):
 
 
 def build_graph(model):
+    # implements: FR-VIEW-110, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180
+    # implements: NFR-VIEW-010
     """Every link drawn; a lane per area, a row per requirement.
 
     Position is arithmetic — a lane index from the area, a row index from
@@ -1993,6 +2094,7 @@ requirements · __VERSIONS__</div>
 
 
 def baseline_row(version, date=None):
+    # implements: FR-VIEW-120
     """The row for `92-baselines.md`, ready to paste.
 
     Normally computed from the working tree against the newest existing
@@ -2101,6 +2203,7 @@ def render_baselines(snapshots, logged=()):
 
 
 def render_page(model, links, diff=None, baselines=None):
+    # implements: FR-VIEW-060, FR-VIEW-090
     # From the log, not from the snapshots: which baselines exist is a
     # question the log answers on its own, and it answers it in a checkout
     # too shallow to hold the states they name.
@@ -2231,6 +2334,7 @@ def ensure_parent(target):
 
 
 def write_site(model, target, diff=None):
+    # implements: FR-VIEW-070, FR-VIEW-080
     out_dir = ensure_parent(target)
     links = Links(model, out_dir)
     # Only here: build_model runs inside load_revision too, and a model
@@ -2363,6 +2467,7 @@ def main(argv=None):
             written = write_site(model, args.html, diff)
             out("Page written: %s" % written)
             if args.open:
+                # implements: FR-VIEW-140
                 # Rendering and opening are one act for a reader, and the
                 # command that opens differs by platform; the standard
                 # library knows which, so the tool carries it once instead

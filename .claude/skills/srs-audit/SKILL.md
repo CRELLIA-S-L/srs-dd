@@ -45,6 +45,18 @@ re-report what the checker reports.
    (`file:line`). Distinguish “code is wrong”, “spec is outdated”, and
    “cannot tell” — do not guess which.
 
+   **Each of those three is a consequence, and one of them has to fit.** An
+   audit surfaces far more than it finds: a count that reads as stale, a
+   file in an odd place, a flag no statement names. Before any of it is
+   written down, finish the sentence *therefore* — and where nothing
+   follows, the answer is that nothing follows, so drop it rather than
+   passing it on. “Cannot tell” is not that answer: it means the question
+   is a decision the maintainer owns, and it is reported with the options.
+
+   The cost of an unresolved observation is paid by the reader, who has
+   less context than you did. A report that mixes them with findings gets
+   skimmed, and the finding that mattered goes past unread.
+
 ## Test adequacy
 
 Beyond drift, judge whether the listed tests would prove the statements.

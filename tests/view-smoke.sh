@@ -8,9 +8,14 @@ cd "$(dirname "$0")/.."
 # because the suite spends most of its length inside the target, where the
 # installer does not exist — it never travels.
 FRAMEWORK=$(pwd)
+
+# The shared assertions (FR-CI-080). Sourced from tools/ because a
+# file under tests/ would be run as a suite by the self-test.
+. tools/test_lib.sh
 rm -rf /tmp/srs-view
 python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
 
+# verifies: FR-VIEW-160
 # Two linked requirements, one of them the target of a refinement, and one
 # dependency across them: enough to exercise the tree, the incoming links,
 # and a graph that draws every kind of link (FR-VIEW-160).
@@ -75,6 +80,7 @@ git init -q . && git add -A
 git -c user.email=ci@example.com -c user.name=CI commit -qm baseline
 git tag spec/v0.0.1
 
+# verifies: FR-VIEW-050
 # Change the specification after the baseline so the diff has content — all
 # three kinds of it. A field that differs was the only kind exercised, so
 # `--diff` could have stopped reporting what a baseline gained or lost and
@@ -102,6 +108,7 @@ The system **shall** appear only in the second baseline.
 open(path, 'w', encoding='utf-8').write(text)
 PY
 mkdir -p tests && printf 'true\n' > tests/probe.sh
+# verifies: FR-VIEW-020
 # A file that carries an annotation and is named by no requirement's `code`
 # field: the only way the annotation half of FR-VIEW-020 gets its own
 # answer, since src/app.py is listed and annotated at once.
@@ -112,6 +119,7 @@ python3 tools/srs_view.py --list > /tmp/v-list.log
 grep -q "FR-CORE-030" /tmp/v-list.log
 python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
+# verifies: FR-VIEW-010
 # The whole card, not the incoming half alone (FR-VIEW-010): the metadata,
 # the statement, and the links resolved downwards as well as up. With only
 # "refined by" asserted, print_card could have stopped printing the
@@ -123,12 +131,13 @@ grep -qE "derives_from +-> +FR-CORE-010" /tmp/v-card.log
 grep -qE "depends_on +-> +FR-CORE-030" /tmp/v-card.log
 python3 tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log
 grep -q "FR-CORE-030" /tmp/v-tree.log
+# verifies: FR-VIEW-030
 # And the opposite direction under the upward flag (FR-VIEW-030). Only the
 # downward walk was asserted, so `--up` could have printed the same tree, or
 # nothing, without this suite noticing.
 python3 tools/srs_view.py --tree FR-CORE-020 --up > /tmp/v-up.log
 grep -q "FR-CORE-010" /tmp/v-up.log
-! grep -q "FR-CORE-030" /tmp/v-up.log
+absent "FR-CORE-030" /tmp/v-up.log
 python3 tools/srs_view.py --code src/app.py --list > /tmp/v-code.log
 grep -q "FR-CORE-020" /tmp/v-code.log
 # A directory as well as a file (FR-VIEW-020): the statement offers both and
@@ -145,6 +154,7 @@ python3 tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
 grep -q "FR-CORE-080" /tmp/v-tests.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
+# verifies: FR-VIEW-040
 # The fourth gap is a proportion, not a count (FR-VIEW-040): one
 # unreferenced file means nothing without how many there are.
 grep -qE "Code files no requirement references: [0-9]+ of [0-9]+" /tmp/v-cov.log
@@ -200,9 +210,68 @@ grep -q "status .*draft -> deferred" /tmp/v-diff.log
 grep -q "^  + FR-CORE-080" /tmp/v-diff.log
 grep -q "^  - FR-CORE-070" /tmp/v-diff.log
 
+# verifies: IF-VIEW-010
+# The model is what two suites parse — this one, and the payload-isolation
+# check that guards CON-SPEC-020 — so what it promises is asserted rather
+# than assumed: the block's own fields, where the requirement was read
+# from, and the incoming links, which exist in no source file.
 python3 tools/srs_view.py --json /tmp/model.json >/dev/null
-python3 -c "import json; d=json.load(open('/tmp/model.json')); assert len(d['requirements'])==4, d"
+python3 - <<'PY2'
+import json
+model = json.load(open('/tmp/model.json'))
+assert len(model['requirements']) == 4, model
+entry = next(e for e in model['requirements'] if e['id'] == 'FR-CORE-020')
+for field in ('status', 'verification', 'derives_from', 'depends_on',
+              'refines', 'conflicts_with', 'code', 'tests', 'statement',
+              'title'):
+    assert field in entry, 'the model dropped %s' % field
+assert entry['status'] == 'implemented' and entry['code'] == ['src/app.py'], entry
+# Where it was read from, so a caller can point at it.
+assert entry['path'].endswith('10-fr-core.md') and entry['line'] > 0, entry
+# And the half no source file holds: FR-CORE-030 refines FR-CORE-020, so
+# the reverse of that link is the model's own work.
+assert ['refines', 'FR-CORE-030'] in model['incoming']['FR-CORE-020'], \
+    'the computed reverse links are gone from the model'
+PY2
 
+# verifies: FR-VIEW-220
+# Narrowing, which is the answer to almost every question asked of a
+# specification of any size. Every filter, not any: two of them together
+# ask for the intersection, and a union would return more than either
+# alone. Over the metadata and over the text, because both questions
+# arrive in the same breath.
+python3 tools/srs_view.py --list --status implemented > /tmp/v-f1.log
+grep -q "FR-CORE-020" /tmp/v-f1.log
+absent "FR-CORE-030" /tmp/v-f1.log
+python3 tools/srs_view.py --list --verification D > /tmp/v-f2.log
+grep -q "FR-CORE-010" /tmp/v-f2.log
+absent "FR-CORE-020" /tmp/v-f2.log
+# Every field a requirement carries, not the two that were easiest to
+# write: the statement says metadata, and a fixture for half of it leaves
+# the other half deletable. Area and type match everything in this fixture,
+# so what proves them is that a wrong value matches nothing.
+python3 tools/srs_view.py --list --area CORE > /tmp/v-f2a.log
+grep -q "FR-CORE-020" /tmp/v-f2a.log
+python3 tools/srs_view.py --list --area NOPE > /tmp/v-f2b.log
+absent "FR-CORE-" /tmp/v-f2b.log
+python3 tools/srs_view.py --list --type FR > /tmp/v-f2c.log
+grep -q "FR-CORE-020" /tmp/v-f2c.log
+python3 tools/srs_view.py --list --type INV > /tmp/v-f2d.log
+absent "FR-CORE-" /tmp/v-f2d.log
+# A word out of the statement, not out of the title.
+python3 tools/srs_view.py --list --grep "carry a link" > /tmp/v-f3.log
+grep -q "FR-CORE-020" /tmp/v-f3.log
+absent "FR-CORE-010" /tmp/v-f3.log
+# Two at once, and the intersection is smaller than either. Each filter on
+# its own matches something; together they match nothing, which a union
+# could not produce.
+python3 tools/srs_view.py --list --status implemented --verification D > /tmp/v-f4.log
+absent "FR-CORE-" /tmp/v-f4.log
+
+# verifies: FR-VIEW-060
+# One self-contained file: content, a graph, escaping, and nothing fetched
+# over the network. The other four things the statement names are asserted
+# further down, each where its own machinery lives.
 python3 tools/srs_view.py --html
 grep -q "FR-CORE-030" .srs-site/index.html
 grep -q "<svg" .srs-site/index.html
@@ -232,12 +301,17 @@ assert "querySelectorAll('.chip')" in page and \
     "chip.addEventListener('click'" in page, 'the chips are not controls'
 PY2
 
+# verifies: FR-VIEW-070
 # Deterministic output: no timestamps, so two runs must be identical.
 cp .srs-site/index.html /tmp/first.html
 python3 tools/srs_view.py --html >/dev/null
 cmp /tmp/first.html .srs-site/index.html
 
-# The dashboard counts every status (FR-VIEW-190). The fixture stands at
+# verifies: FR-VIEW-190, INV-SPEC-050
+# The dashboard counts every status (FR-VIEW-190). `withdrawn` is one of
+# them, and a lifecycle that lost it would show up here as a census the
+# page cannot render — which is the half of INV-SPEC-050 a suite can hold.
+# The fixture stands at
 # two deferred and one implemented, which leaves three statuses carried by
 # nobody — and those are the half of the rule that matters, because a
 # census of whatever happens to be present passes the other half without
@@ -273,6 +347,7 @@ assert len([s for s in ('draft', 'deferred', 'partial', 'implemented',
     'the fixture no longer exercises statuses that nothing carries'
 PY2
 
+# verifies: FR-VIEW-200
 # The coverage gaps are on the page, not only in the terminal
 # (FR-VIEW-200). The --coverage assertion above reads standard output and
 # says nothing about what the page carries; the lists are checked by their
@@ -316,10 +391,12 @@ git -c user.email=ci@example.com -c user.name=CI commit -qm second
 git tag spec/v0.0.2
 python3 tools/srs_view.py --html
 
+# verifies: FR-VIEW-090
 # The page says what it is showing (FR-VIEW-090).
 grep -q "baseline 0.0.2" .srs-site/index.html
 grep -q "srs_check " .srs-site/index.html
 
+# verifies: FR-VIEW-100
 # And carries a snapshot per baseline, with a picker over them
 # (FR-VIEW-100). The comparison itself runs in the browser; what the
 # suite can check is that the data it runs on is there and correct —
@@ -428,6 +505,7 @@ for area, xs in lanes.items():
     assert len(xs) == 1, 'area %s is spread over %d columns' % (area, len(xs))
 assert len(set().union(*lanes.values())) == len(lanes), 'two areas share a column'
 
+# verifies: FR-VIEW-110
 # Every lane declared in the configuration and holding a linked requirement
 # has a header, and the header is what folds the column away (FR-VIEW-110).
 headers = re.findall(r'<g class="lane" data-area="([^"]+)" data-x="\d+" '
@@ -469,6 +547,7 @@ assert "band.setAttribute('height'" in page and 'lane.dataset.h' in page, \
 after_reset = page.split("getElementById('graph-reset')")[1][:600]
 assert 'setLane(' in after_reset, 'reset view leaves the folded areas folded'
 
+# verifies: FR-VIEW-180
 # The status is the node's colour (FR-VIEW-180). The class alone proves
 # nothing — it sat on every node for two releases while a stroke named in
 # the rule painted over it, so what is asserted is the mechanism: the box
@@ -496,6 +575,7 @@ assert re.search(r'#graph-controls \{[^}]*flex-direction: column', page), \
 for field in ('derives_from', 'refines', 'depends_on', 'conflicts_with'):
     assert '<line class="edge %s"' % field in page, \
         'the legend has no swatch for %s' % field
+    # verifies: FR-VIEW-150
     # And the reader can leave that kind out (FR-VIEW-160). The suite runs
     # no browser, so what is asserted is the mechanism end to end: a swatch
     # that is a control, a rule that hides the kind when the drawing carries
@@ -521,6 +601,7 @@ assert re.search(r'<title>[^<]+\((draft|deferred|partial|implemented|'
     'a node no longer carries its status as a word'
 PY2
 
+# verifies: FR-VIEW-130
 # The views that name a requirement in the rendered file name it in a way
 # the page can follow (FR-VIEW-130). Baselines are not among them: that
 # list is built in the page from the embedded snapshots, so there is
@@ -560,6 +641,7 @@ grep -q 'id="graph-root"' .srs-site/index.html
 grep -q 'id="graph-depth"' .srs-site/index.html
 grep -q 'function narrow(' .srs-site/index.html
 
+# verifies: FR-VIEW-140
 # --open renders and opens in one act (FR-VIEW-140). No browser is a
 # dependency of this project, but the opening itself need not go unwatched:
 # $BROWSER names the command the standard library runs, and it runs it with
@@ -601,7 +683,7 @@ git clone --quiet --depth 1 --no-tags "file:///tmp/srs-view" /tmp/srs-view-shall
   grep -q 'baselines are recorded' shallow/index.html
   grep -q 'fetch-depth: 0' shallow/index.html
   # No picker, and no snapshot data to compare with.
-  ! grep -q 'id="base-from"' shallow/index.html
+  absent 'id="base-from"' shallow/index.html
   grep -q '<script id="baselines-data" type="application/json">\[\]' \
       shallow/index.html
   # The current baseline is read from the log, which needs no history.
@@ -685,6 +767,66 @@ assert 'FR-CORE-050' not in resting and 'FR-CORE-060' not in resting, \
 PY3
 )
 
+# verifies: FR-VIEW-210
+# What outlived a cancelled requirement is on the page (FR-VIEW-210). Its
+# own target: the fixture above never cancels anything, and this project's
+# own specification has no cancelled requirement either, so the section
+# would render empty wherever else it were asked for. Three kinds in one
+# go, because a section built from one of them reads as done.
+rm -rf /tmp/srs-view-outlived
+python3 "$FRAMEWORK/tools/srs_init.py" /tmp/srs-view-outlived \
+    --defaults --ci none >/dev/null
+cat >> /tmp/srs-view-outlived/specs/10-fr-core.md <<'MD'
+
+### FR-CORE-070 — Withdrawn, and its file stayed
+
+```yaml
+status: withdrawn
+verification: I
+depends_on: [FR-CORE-010]
+code: [src/dropped.py]
+```
+
+The system **shall** have done something dropped.
+
+### FR-CORE-080 — Live, and still standing on it
+
+```yaml
+status: implemented
+verification: I
+depends_on: [FR-CORE-070]
+code: [src/live.py]
+```
+
+The system **shall** stand on what was withdrawn.
+MD
+(
+  cd /tmp/srs-view-outlived
+  mkdir -p src && printf 'x\n' > src/dropped.py
+  # srs-ignore: fixtures written into the target, not claims about this repo
+  printf '# implements: FR-CORE-080\n# implements: FR-CORE-070\n' > src/live.py  # srs-ignore
+  python3 tools/srs_view.py --html >/dev/null
+  python3 - <<'PY3'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+sec = page[page.index('<section id="view-dash"'):]
+sec = sec[:sec.index('</section>')]
+heading = 'Still pointing at a cancelled requirement'
+assert heading in sec, 'the dashboard has no section for what outlived a cancellation'
+part = sec[sec.index(heading):]
+part = part[:part.index('<h2>', 1)]
+# One entry per kind: a live requirement whose link survived its target, a
+# file the withdrawal left behind, an annotation still naming the dead one.
+assert 'FR-CORE-080' in part and 'depends_on' in part, \
+    'a live requirement standing on a cancelled one is not listed'
+assert 'src/dropped.py' in part, 'the file left by the withdrawal is not listed'
+assert 'src/live.py' in part and 'annotated' in part, \
+    'the annotation still naming the cancelled requirement is not listed'
+# Reachable like every other view (FR-VIEW-130): the identifiers are links.
+assert 'href="#FR-CORE-070"' in part, \
+    'the cancelled requirement is named but cannot be followed'
+PY3
+)
+
 # The baseline row is printed ready to paste, and names the previous
 # baseline it was computed against.
 python3 tools/srs_view.py --baseline 0.0.3 --date 2026-01-02 > /tmp/v-row.log
@@ -721,6 +863,7 @@ PY2
 # A viewer run must not litter the target with bytecode.
 test -z "$(find . -name __pycache__)"
 
+# verifies: FR-VIEW-080
 # Nor may it write into specs/ (FR-VIEW-080). That half of the prohibition
 # went unasserted while the bytecode half above stood in for it: the viewer
 # could have started regenerating the matrix, as the checker does, and every

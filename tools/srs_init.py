@@ -45,6 +45,8 @@ after adopt's point of no return (partial completion, see output);
 stale temp file from a previously crashed adopt run).
 """
 
+# implements: NFR-SPEC-010
+
 import sys
 
 # Importing srs_check writes tools/__pycache__ in this clone, and a
@@ -80,6 +82,7 @@ TEMP_CHECKER = ".srs_check_adopt.py"
 # specification. It is deliberately not specs/ — this repository keeps a
 # real specification of the framework there, and requirements about the
 # framework's own tooling must never travel into somebody's project.
+# implements: CON-SPEC-020
 SKELETON = "skeleton"
 
 # Where a target upgrades from when this clone has no remote of its own.
@@ -100,6 +103,7 @@ TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
          "srs_baseline.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
+# implements: FR-SKILL-060, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
           "srs-baseline", "srs-check", "srs-page")
 
@@ -107,6 +111,7 @@ SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
 ADOPT_SERVICE_FILES = ("README.md", "constitution.md", "00-glossary.md",
                       "91-open-issues.md", "92-baselines.md")
 
+# implements: FR-CI-050
 CI_TEMPLATES = {
     "github": (os.path.join("ci", "github-workflow.yml"),
                os.path.join(".github", "workflows", "srs.yml")),
@@ -219,6 +224,7 @@ def ask(prompt, default, batch):
 
 
 def is_inside(path, ancestor):
+    # implements: FR-INIT-100
     """True when path is the ancestor or lies anywhere below it.
 
     Compares inodes (samefile) while walking up, so neither symlinks nor
@@ -343,6 +349,7 @@ class Installer(object):
 
 
 def scan_target_spec(target):
+    # implements: FR-INIT-010
     """Scans the target's specs/ directory.
 
     Returns (raw_md_count, strict_requirement_count, areas):
@@ -468,6 +475,7 @@ def describe_hooks(target):
 
 
 def install_hook(installer):
+    # implements: FR-INIT-080
     """The gate never displaces an existing hook: .githooks/pre-commit is
     precious, so a copy that is not ours is kept. When that happens the
     gate is laid down beside it under a name git does not run, for the
@@ -481,6 +489,7 @@ def install_hook(installer):
 
 
 def hook_activation_hint(installer, hooks):
+    # implements: FR-INIT-080
     """Says how to switch the gate on — or, when the repository already
     has a pre-commit hook, how not to break it."""
     ours = HOOK_DST in installer.created or installer.carries_marker(HOOK_DST)
@@ -529,6 +538,7 @@ def install_agent_docs(installer, substitute):
 
 
 def dry_run_notice(extra=""):
+    # implements: FR-INIT-070
     sys.stdout.write("\nDry run: nothing was written.%s Re-run without "
                      "--dry-run to apply.\n" % (" " + extra if extra else ""))
 
@@ -557,6 +567,7 @@ def version_tuple(text):
 
 
 def print_version_transition(old):
+    # implements: FR-INIT-110
     """Returns True when upgrade notes for all versions should print."""
     if old is None:
         sys.stdout.write("checker (unversioned) → %s\n" % __version__)
@@ -654,6 +665,7 @@ def bullets(lines):
 
 
 def print_whats_new(old_version, show_all):
+    # implements: FR-INIT-160
     """What the crossed versions added and changed, one line per entry."""
     collected = changelog_sections(("Added", "Changed"))
     if not collected:
@@ -674,6 +686,7 @@ def print_whats_new(old_version, show_all):
 
 
 def print_upgrade_notes(old_version, show_all):
+    # implements: FR-INIT-110
     """Prints CHANGELOG 'Upgrade notes' blocks newer than old_version."""
     collected = changelog_sections(("Upgrade notes",))
     if not collected:
@@ -690,6 +703,7 @@ def print_upgrade_notes(old_version, show_all):
 
 
 def collect_settings(args, batch, area_default):
+    # implements: FR-INIT-090
     """Prompts/flags for everything except the project name."""
     areas = split_list(args.areas) if args.areas else split_list(
         ask("Requirement areas (comma-separated)",
@@ -736,6 +750,7 @@ def collect_settings(args, batch, area_default):
 
 
 def framework_url():
+    # implements: FR-INIT-140
     """The address a target upgrades from: this clone's own remote.
 
     A fork or a mirror must send its targets back to itself, not to the
@@ -763,6 +778,7 @@ def framework_url():
 
 
 def config_json(settings, adopting=False):
+    # implements: FR-INIT-140, FR-CHK-210
     config = dict((key, settings[key]) for key in
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
@@ -778,6 +794,7 @@ def config_json(settings, adopting=False):
 
 
 def run_fresh(args, target, batch):
+    # implements: FR-INIT-020, FR-INIT-150
     installer = Installer(target, args.force, refresh_tooling=False,
                           dry_run=args.dry_run)
     name = args.name or ask("Project name", os.path.basename(target) or
@@ -857,6 +874,7 @@ def run_fresh(args, target, batch):
 
 
 def install_adopt_files(installer, settings, substitute, target,
+                        # implements: FR-INIT-040
                         had_own_readme, tools_skip=()):
     """Everything adopt lays down beside the config and the checker.
 
@@ -891,6 +909,7 @@ def install_adopt_files(installer, settings, substitute, target,
 
 
 def run_adopt(args, target, batch, found_areas):
+    # implements: FR-INIT-030, FR-INIT-050
     installer = Installer(target, args.force, refresh_tooling=True,
                           dry_run=args.dry_run)
     settings = collect_settings(args, batch, found_areas or DEFAULTS["areas"])
@@ -1024,6 +1043,7 @@ def run_adopt(args, target, batch, found_areas):
 
 
 def run_upgrade(args, target):
+    # implements: FR-INIT-060
     installer = Installer(target, args.force, refresh_tooling=True,
                           dry_run=args.dry_run)
     sys.stdout.write("Initialized target detected — upgrade mode: "
@@ -1072,6 +1092,7 @@ def run_upgrade(args, target):
 
 
 def main():
+    # implements: IF-CI-010
     args = parse_args()
     target = os.path.abspath(args.target)
 

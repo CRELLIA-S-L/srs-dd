@@ -20,6 +20,9 @@ places means nothing.
 Exit codes: 0 written · 2 refused, having changed nothing.
 """
 
+# implements: FR-SPEC-010, INV-SPEC-030, INV-SPEC-040, CON-SPEC-030
+# implements: NFR-SPEC-010
+
 import argparse
 import os
 import re

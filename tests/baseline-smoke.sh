@@ -3,10 +3,17 @@
 # writes a row and nothing else: the history belongs to whatever git client
 # the project is driven by (CON-SPEC-030). It ships, so the first thing
 # checked is that it works in a project that adopted the framework.
+#
+# verifies: FR-SPEC-010, FR-VIEW-120, INV-SPEC-030, INV-SPEC-040
+# verifies: CON-SPEC-030
 set -eo pipefail
 cd "$(dirname "$0")/.."
 
 FRAMEWORK=$(pwd)
+
+# The shared assertions (FR-CI-080). Sourced from tools/ because a
+# file under tests/ would be run as a suite by the self-test.
+. tools/test_lib.sh
 
 # --- In a fresh target, because this tool travels there.
 rm -rf /tmp/srs-base-target
@@ -24,7 +31,7 @@ python3 tools/srs_baseline.py 1.0.0 --date 2026-01-02 > /tmp/base-first.log
 grep -q '`spec/v1.0.0`' specs/92-baselines.md
 grep -q 'The first baseline' specs/92-baselines.md
 # The placeholder the skeleton carries until there is a row to replace it.
-! grep -q 'No baselines yet' specs/92-baselines.md
+absent 'No baselines yet' specs/92-baselines.md
 # Nothing of git was touched: no commit, no tag, and it says what to commit.
 test "$(git rev-parse HEAD)" = "$head"
 test -z "$(git tag -l)"
@@ -150,7 +157,7 @@ python3 tools/srs_baseline.py 9.9.10 > /tmp/base-hand.log
 grep -q '`spec/v9.9.10`' specs/92-baselines.md
 test "$(git rev-list -1 spec/v9.9.10)" = "$handmade"
 # The row read the tag: what the tree gained afterwards is not in it.
-! grep -q 'FR-CHK-990' specs/92-baselines.md
+absent 'FR-CHK-990' specs/92-baselines.md
 git checkout -- specs/92-baselines.md specs/10-fr-chk.md \
     specs/90-traceability.md
 
@@ -159,5 +166,5 @@ printf '### FR-BOGUS-999 — no metadata block\n' >> specs/10-fr-chk.md
 rc=0; python3 tools/srs_baseline.py 9.9.11 > /tmp/base-bad.log 2>&1 || rc=$?
 test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/base-bad.log
-! grep -q '`spec/v9.9.11`' specs/92-baselines.md
+absent '`spec/v9.9.11`' specs/92-baselines.md
 git checkout -- specs/10-fr-chk.md specs/90-traceability.md

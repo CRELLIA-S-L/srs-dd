@@ -55,7 +55,10 @@ batches are approved — approve before pushing, or expect a red pipeline.
 - Describe only behavior that is actually in the code — do not invent,
   extrapolate, or "improve" while harvesting.
 - Behavior you cannot make sense of goes to `specs/91-open-issues.md`
-  (with the user's confirmation), not into a guessed requirement.
+  (with the user's confirmation), not into a guessed requirement. Say what
+  you tried and what the open question is: an entry that only records that
+  something was confusing hands the reading back to somebody with less
+  context than you had.
 - Do not flip statuses yourself — approval is the maintainer's act.
 - Do not run builds or tests (ART-030 of the constitution); harvesting
   is reading.
