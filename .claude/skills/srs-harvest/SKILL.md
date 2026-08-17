@@ -28,7 +28,7 @@ say where to look, and the lexicon defines the modal verbs and the
 3. **Judge the batch, then show it — BEFORE writing it.** Every drafted
    statement goes through the same judgement `srs-new` gives a new one,
    against the qualities `specs/README.md` requires of a statement, and
-   what you found is said alongside the batch (FR-SKILL-120). Mined
+   what you found is said alongside the batch. Mined
    statements are where this bites hardest — a sentence read off an `if`
    arrives sounding precise and describing how rather than what, and a
    batch is where a bad one is least likely to be noticed. Batching is

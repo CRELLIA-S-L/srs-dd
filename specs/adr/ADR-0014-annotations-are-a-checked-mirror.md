@@ -76,12 +76,21 @@ of the same fact.
 
 **Option 2 is right and premature.** Every file under the roots carrying its
 own account of why it exists is the state worth reaching, and a project that
-starts there should start there. But a project adopting the framework has
-code in the thousands of files and requirements in the dozens, and a rule
-that fires on all of it on day one is not a queue, it is a wall. The
-distinction that makes option 3 gentler is exactly the one that matters
-during adoption: a file a requirement names is a file somebody has already
+starts there should start there. But a project arriving with code already
+written has files under its roots that no requirement will name for months,
+and a rule that fires on all of them on day one is not a queue, it is a
+wall. The distinction that makes option 3 gentler is exactly the one that
+matters then: a file a requirement names is a file somebody has already
 described, and asking it to say so costs one line.
+
+The gentleness is worth stating precisely, because the two halves land
+differently and only one of them is soft. The strict half is silenced on
+adoption and is the wall this avoids. The paired half is not silenced and
+is not meant to be: a project adopting an existing specification has
+requirements with filled `code` fields, so it meets a finding for every one
+of those files on its first run — this repository's own count was 171. That
+is the queue, in the sense FR-CHK-070 means it, and a project that wants it
+later says so in its configuration for as long as it takes.
 
 Option 1 was the original proposal here and is rejected as too weak to be
 worth a rule. A file no requirement names is invisible only until anyone

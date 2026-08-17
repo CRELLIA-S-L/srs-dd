@@ -11,16 +11,32 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_view.py, tools/srs_init.py]
+code: [tools/srs_check.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py]
 tests: []
 ```
 
-Every tool in this repository **shall** run on Python 3.9 or newer using only
-the standard library.
+Every Python tool in this repository **shall** run on Python 3.9 or newer
+using only the standard library.
 
 **Rationale.** The framework is adopted by projects written in every
 language; a dependency would drag a package manager, a lockfile and a
 supply-chain question into repositories that have no Python of their own.
+
+"Python tool" rather than "tool", because `tools/ci_selftest.sh` is one of
+the tools and runs on no Python at all — the sentence bound it to a version
+of an interpreter it never starts. The scope is what it always meant, and
+saying so settles the question it left open: whether the next tool may be
+written in shell. It may, and what binds it then is ART-040, which forbids
+a new dependency without an ADR whatever the language. The one dependency
+the shell script has is optional and argued where it lives (FR-CI-030): a
+missing YAML parser costs that check and nothing else.
+
+Every tool listed, not the three that existed when this was written. The
+statement quantifies over all of them and the field named half, so an agent
+asking what governs `tools/srs_baseline.py` — the first step of the everyday
+loop — was told about baselines and git history and never about this. A
+field that answers "where is it realized" with half the answer is worse than
+one that answers nothing: the reader stops looking.
 
 ### NFR-SPEC-020 — Plain text all the way down
 

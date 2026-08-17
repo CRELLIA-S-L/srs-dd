@@ -190,6 +190,24 @@ So this is held by the procedures that write statements and by whoever reviews
 them, exactly as INV-SPEC-010 is: nothing can prove a number was never reused
 either.
 
+**A list is not by itself a second obligation**, and reading it as one would
+condemn three quarters of this specification. FR-CHK-030 reports a link that
+does not resolve or that points at its own requirement; FR-CHK-090 takes three
+word lists from the configuration; IF-CI-020 gives three exit codes. Each is
+one act stated over the cases it covers, and splitting them would produce
+requirements that cannot be read apart — worse, for an exit code table, it
+would destroy the only thing a caller binds to, which is that the codes are
+these and no others.
+
+What makes a list compound is that its items are separable: each could be
+built, shipped and called done while the others were missing, and a reader
+told "that one is implemented" would have no way to notice. That is the state
+FR-VIEW-060 was in — search, filters, a dashboard, a graph and links in one
+sentence, three of them verified, the requirement standing green for three
+releases while the rest were discovered one at a time. The question to ask of
+a list is therefore not how long it is but whether the sentence could be half
+true without anybody being able to say so.
+
 The price is more requirements. FR-VIEW-060 is six of them, each with a number
 that can never be reused, its own links and its own `tests` field. That is the
 point rather than the cost: a `tests` field is worth reading only when what it
@@ -259,6 +277,21 @@ What the installer copies **shall not** contain requirement identifiers of
 this framework, annotations naming them, or paths that exist only in this
 repository.
 
-**Rationale.** ART-070 of the constitution in one sentence: a stranger's
-first install has to pass their own checker, and a leaked identifier fails it
-in a way they cannot diagnose.
+**Rationale.** ART-070 of the constitution in one sentence: what we ship has
+to be about their project, not ours.
+
+The harm is not the one first written here. A leaked identifier was said to
+fail a stranger's checker undiagnosably; it does not, because a checker
+reads requirement blocks and annotations and neither is what leaks. What
+leaks is a citation in the prose of a procedure — and the areas are the
+project's to declare, so a target may have an `FR-SKILL-090` of its own.
+Then the citation resolves: an agent told "writing a requirement and
+building it are separate acts (FR-SKILL-090)" looks the number up and reads
+a requirement of theirs about caching. Not a dangling reference, a
+confidently wrong one, in the file whose whole job is to instruct.
+
+So a shipped procedure explains itself instead of citing. The reason a rule
+exists belongs in the sentence a stranger reads, not behind a number only
+this repository can resolve. What may be cited is what travels with them:
+the articles of the constitution they receive, and the sections of
+`specs/README.md`, which is the same document in every project.

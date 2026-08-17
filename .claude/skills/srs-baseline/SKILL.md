@@ -56,10 +56,10 @@ commit.
 
 5. **Hand the commit back.** The command writes `specs/92-baselines.md`,
    the checker it ran may have refreshed `specs/90-traceability.md` beside
-   it, and there it stops — nothing is committed, tagged or pushed
-   (CON-SPEC-030). Say which files are waiting and that **the commit
-   carrying them is the baseline**; the maintainer makes it with whatever
-   git client this project is driven by.
+   it, and there it stops — nothing is committed, tagged or pushed. Say
+   which files are waiting and that **the commit carrying them is the
+   baseline**; the maintainer makes it with whatever git client this
+   project is driven by.
 
 6. **Offer the tag once.** `spec/vX.Y.Z` on that commit makes the baseline
    easy to name in git later. Nothing depends on it — where there is none,

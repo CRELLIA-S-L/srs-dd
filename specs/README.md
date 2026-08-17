@@ -202,9 +202,16 @@ the specification into a page — search, filters, a dashboard and a graph —
 that requests nothing over the network” is one verb and five obligations,
 and there is no answer to what “it passes” would mean for it: three of the
 five can be built and verified while the statement stands satisfied on
-paper. The tell is a conjunction or a list standing where the obligation
-is. Where you find one, split — a requirement per obligation, each with
+paper. Where you find one, split — a requirement per obligation, each with
 its own number, its own links and its own `tests`.
+
+A list on its own is not the tell, and treating it as one would split most
+of a healthy specification. “Report a link that does not resolve or that
+names its own requirement” is one act over two cases; so is a list of exit
+codes, where splitting would destroy the only claim a caller relies on —
+that these are all of them. Ask instead whether the items are separable:
+could each be built and called done while the others were missing, with a
+reader unable to tell? That is the compound one.
 
 A rationale is written whenever the decision is not obvious. It answers “why
 this way”, and six months later it is the only thing that saves you from

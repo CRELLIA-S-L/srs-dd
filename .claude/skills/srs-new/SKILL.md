@@ -24,8 +24,8 @@ lexicon.
    `specs/srs-config.json` defines the specification language, whatever
    language this skill is written in.
 
-   Then judge what no checker reaches, and say what you found
-   (FR-SKILL-120). The checker proves the form: one bolded verb, a
+   Then judge what no checker reaches, and say what you found.
+   The checker proves the form: one bolded verb, a
    resolvable link, a status that fits. It cannot tell whether the
    sentence describes **one** capability, whether a reader could
    **confirm** it holds, whether a word like "quickly", "as needed" or
@@ -56,7 +56,7 @@ lexicon.
    (`T`/`D`/`I`/`A`). No answer means it is not a requirement yet.
 
    Then read the statement back against the answer, and say where the
-   method has nothing to confirm (FR-SKILL-140). `T` over a sentence no
+   method has nothing to confirm. `T` over a sentence no
    test could assert is the usual one, and left alone it surfaces much
    later — when the requirement is built and somebody has to write a test
    that cannot be written. Here the sentence and the method are on the
@@ -77,7 +77,7 @@ dialog.
 
 At the written requirement, and at the architecture decision if the
 discussion settled one — a choice with consequences goes to `specs/adr/`,
-and a discussion that settled nothing goes nowhere (FR-SKILL-090).
+and a discussion that settled nothing goes nowhere.
 
 **Not at the code.** Building it is a separate act, started deliberately;
 the `srs` skill is the procedure for that. Authoring that slides into

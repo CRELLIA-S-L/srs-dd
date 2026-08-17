@@ -8,7 +8,7 @@ description: Name and run the checks a finished change calls for — the specifi
 The specification already knows which checks a change calls for. Every
 requirement carries a `verification` method and the paths that verify it,
 and nobody reads them for this purpose — so the answer is derived, not
-remembered (FR-SKILL-100).
+remembered.
 
 ## Procedure
 
@@ -27,9 +27,9 @@ remembered (FR-SKILL-100).
    - **the suites** those requirements name in `tests`, and nothing else:
      a change to the viewer does not call for the installer's suite;
    - **what a person has to look at**, where the method is `I` or `D`.
-     Say it in words: "FR-VIEW-130 is verified by inspection — open the
-     page, follow a link from the dashboard, and see that it lands on the
-     card".
+     Say it in words, naming the requirement and what to do: "this one is
+     verified by inspection — open the page, follow a link from the
+     dashboard, and see that it lands on the card".
 
    A requirement whose method is `T` with an empty `tests` field is a gap,
    not a check: say so rather than inventing something to run.

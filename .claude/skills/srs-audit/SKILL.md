@@ -26,9 +26,21 @@ re-report what the checker reports.
 3. Go through “Code files outside the specification” in
    `specs/90-traceability.md`: for each orphan file, determine whether it
    carries behavior that deserves a requirement.
-4. Compare `tests` entries against what the tests actually assert: a test
+4. Then ask the same question from the other end, which nothing reports:
+   **does the statement reach further than the `code` field names?** A
+   statement saying “every tool”, “the skills”, “each command” claims a set;
+   list what is actually in that set and compare. The checker cannot: it
+   proves the paths exist, never that they are all of them.
+
+   This is the half that stays invisible, because an incomplete field is
+   green forever — the matrix records what is written, so nothing is stale
+   and nothing fails. What it costs shows up in the everyday loop: a rule
+   binding every tool, listed against half of them, is a rule that
+   `--code <the other half>` never mentions — and the first thing anyone
+   does before changing a file is ask what governs it.
+5. Compare `tests` entries against what the tests actually assert: a test
    that exists but checks something else is drift too.
-5. Report findings grouped by requirement, each with three parts: what the
+6. Report findings grouped by requirement, each with three parts: what the
    spec says, what the code does, where exactly they diverge
    (`file:line`). Distinguish “code is wrong”, “spec is outdated”, and
    “cannot tell” — do not guess which.

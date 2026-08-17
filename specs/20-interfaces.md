@@ -101,6 +101,51 @@ and multi-line values would make the files unreadable by the very
 line-oriented tools — grep, diff, review — that make a specification in git
 worth having.
 
+### IF-SPEC-020 — A published rule name keeps its meaning
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-CHK-160]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+A rule name the checker has published **shall** keep its meaning: it is
+never renamed, and never given to a different rule.
+
+**Rationale.** FR-CHK-160 lets a project say what a rule costs by writing
+its name — in `specs/srs-config.json` for the whole project, in a
+requirement's `exempt` field for one requirement. That makes the names a
+vocabulary somebody else's files are written in, and nothing said so. A
+rename breaks those files in the least helpful way available: the checker
+refuses to start, lists the names it does know, and says nothing about what
+the old one became. A name quietly reused for a different rule is worse —
+everything keeps running and the exemption now excuses something nobody
+meant to excuse.
+
+An interface rather than an invariant, unlike INV-SPEC-010 which makes the
+same promise about requirement identifiers. An identifier is referred to;
+a rule name is *depended on* by a file the framework then reads back, which
+is what the `IF-*` type is for.
+
+Weaker than the same promise about metadata keys, and that is the point of
+writing it down. A retired key has somewhere to go: the checker keeps a
+table of them and reports "`depends` became `depends_on` in 0.14.0"
+(FR-CHK-180). A rule name has no such table, so the compatible move is the
+only move — add names, never move them. Building that table is possible and
+is deliberately not asked for here: no rule has ever been renamed, and
+machinery for a case that has not arisen is what ART-040 forbids.
+
+Verified by test, which is not obvious for a promise about the future. What
+a suite can hold is the past: the names published so far, listed where a
+rename has to walk past them. That catches the only way this is broken in
+practice — a name changed while tidying, with the project that depended on
+it somewhere else entirely.
+
 The three classes of key are what make the format extensible. Which keys are
 obligatory was until now an accident of validation — omit `verification` and
 the complaint was about its value being empty — and a key the checker does

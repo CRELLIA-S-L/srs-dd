@@ -42,7 +42,7 @@ behavior is not described, and a requirement must be created first.
 
 ## Two acts, and they are not the same one
 
-Writing a requirement and building it are separate acts (FR-SKILL-090).
+Writing a requirement and building it are separate acts.
 Authoring ends at the written requirement and at whatever architecture
 decision the discussion settled; building it is a task started
 deliberately, later, and often by somebody else. Sliding from one into the
@@ -86,7 +86,7 @@ Then:
    surprise for the next reader. A statement you reword here goes through
    the same judgement `srs-new` gives a new one, against the qualities
    `specs/README.md` requires of a statement, and what you find is said
-   before the edit is recorded (FR-SKILL-120). This is the easiest place
+   before the edit is recorded. This is the easiest place
    to skip it: the requirement already exists, so nothing feels like
    authoring, and a sentence quietly grows a second capability while
    somebody is repairing the first. Then status per Lifecycle,
@@ -157,11 +157,12 @@ before the status changes:
 
 4. **Then set the status**, and say why in the rationale — a withdrawal
    names no successor, so the rationale is the only place the reason can
-   live. The number stays dead forever either way (INV-SPEC-010).
+   live. The number stays dead forever either way — identifiers are never
+   reused, whatever the status.
 
-Anything still standing on it afterwards is reported by the checker
-(FR-CHK-190), which is the guard on a specification edited without this
-procedure — not a substitute for it.
+Anything still standing on it afterwards is reported by the checker, which
+is the guard on a specification edited without this procedure — not a
+substitute for it.
 
 ## Planning multi-requirement work
 

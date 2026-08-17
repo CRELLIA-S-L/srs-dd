@@ -215,3 +215,31 @@ import json
 ids = [r['id'] for r in json.load(open('/tmp/target.json'))['requirements']]
 assert ids == ['FR-CORE-010'], 'framework requirements leaked: %s' % ids
 PY
+
+# The other way an identifier leaks: named in the prose of a shipped skill.
+# That one is worse than a dangling reference. Areas are the project's to
+# declare, so a target may well have an `FR-SKILL-090` of its own — and an
+# agent following the citation lands on a real requirement of theirs saying
+# something else entirely. Checked against the shipped tree rather than
+# ours, because what matters is what a stranger receives.
+python3 - <<'PY'
+import json, os, re
+# Identifiers in *this framework's* areas, which is what CON-SPEC-020
+# forbids. An example in a template — `FR-CORE-050` under the default area
+# this project does not declare — is a shape to fill in, not a citation:
+# nobody is being asked to look it up.
+areas = json.load(open('specs/srs-config.json', encoding='utf-8'))['areas']
+RE = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3}\b' % '|'.join(areas))
+skills = '/tmp/srs-clean/.claude/skills'
+found = []
+for root, _dirs, files in os.walk(skills):
+    for name in files:
+        path = os.path.join(root, name)
+        for lineno, line in enumerate(open(path, encoding='utf-8'), 1):
+            for rid in RE.findall(line):
+                found.append('%s:%d %s' % (os.path.relpath(path, skills),
+                                           lineno, rid))
+assert not found, ('a shipped skill cites a requirement of this framework, '
+                   'which the target does not have — and may have its own '
+                   'requirement under that number: %s' % found)
+PY
