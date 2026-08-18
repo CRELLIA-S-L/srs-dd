@@ -78,8 +78,8 @@ tests: [tests/view-smoke.sh]
 
 The viewer **shall** report, on request, realized requirements with no listed
 tests, drafts that already carry code, realized requirements resting on a
-draft, and source files no requirement references against the total number
-of source files.
+draft, and source files no requirement that has not been cancelled
+references against the total number of source files.
 
 **Rationale.** These four lists are what an audit starts from; the checker
 reports them as warnings at most — and under a lenient configuration not at
@@ -90,6 +90,12 @@ unreferenced files means nothing on its own: eleven is most of a young
 project and a rounding error in an old one. The other three are already
 proportions of a sort — the specification is their denominator, and it is
 on the same screen.
+
+A cancelled requirement does not count as referencing its files, for the
+reason FR-CHK-210 gives and so that the two tools agree: this one said
+plainly that a file named by a `withdrawn` requirement was covered while
+the checker, in the same tree and the same run, called it unclaimed. A
+reader has no way to tell which of the two is speaking about their code.
 
 ### FR-VIEW-050 — Difference against a baseline
 
@@ -480,3 +486,85 @@ enumerated once, in the parent, and this narrows them to the branch that
 renders. The cost is worth naming — reword the parent and this one is
 reworded silently, because the checker resolves the link but never compares
 what it lists.
+
+### FR-VIEW-220 — The list can be narrowed to what is being looked for
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+When listing requirements, the viewer **shall** narrow the list to those
+matching every filter given, over the metadata a requirement carries and
+over the text it is written in.
+
+**Rationale.** The whole list is the wrong answer to almost every question
+asked of a specification of any size: what is still `draft`, what belongs to
+one area, what mentions a word somebody remembers. The viewer has done this
+since it was written and nothing said so, which is how it came to be the
+only behaviour here that could have been deleted without a requirement
+noticing.
+
+Every filter rather than any, because narrowing is what the reader is
+after — `--status draft --area CHK` asks for the intersection, and a union
+would return more than either flag alone. Over metadata and over text
+together, because the two questions arrive in the same breath: a status is
+what a reader filters by, a half-remembered phrase is what they search for,
+and a tool that answered only the first would send them back to grep.
+
+Which flags spell it is not stated, here or anywhere: a requirement says
+what the system does, and the spelling of an invocation is the interface's
+business, which for a terminal query is its `--help`.
+
+### FR-VIEW-210 — What outlived a cancelled requirement is on the page
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060, INV-SPEC-050]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+```
+
+The rendered page **shall** list what still points at a cancelled
+requirement.
+
+**Rationale.** Cancelling a requirement is the one edit whose consequences
+outlive it, and they are scattered across three places nobody looks at
+together: a live requirement still deriving from it (FR-CHK-190), a file its
+`code` field named and that nothing live claims now (FR-CHK-210), an
+annotation in the tree still naming it (FR-CHK-080). Three rules, three
+messages, one per line of a terminal run — and a withdrawal is precisely the
+moment somebody needs the whole picture, because ADR-0013 has them resolving
+the dependants one level at a time and each decision needs to see what is
+left.
+
+The checker reports these to whoever ran it. The page is read by the
+reviewer who never will, and that reader is the one being asked to approve
+a cancellation. FR-VIEW-200 made this argument for the coverage gaps and it
+holds here more strongly: a gap in coverage is a standing condition, while
+this list is the aftermath of a specific act and is at its most useful in
+the days right after it.
+
+What counts as pointing is left to the reader of this statement rather than
+enumerated in it, and the three kinds above are what it comes to today.
+Enumerating them would put the same list in two places — the rules already
+own it — and would grow this statement by one obligation every time a rule
+is added, which is how FR-VIEW-060 came to name six things and be verified
+for three.
+
+The page computes this itself rather than reading what the checker found.
+A page whose content depends on whether somebody ran another command is a
+page that lies quietly when they did not; and the scan it needs is one the
+viewer already performs for a single file, so what this asks for is that
+the rule live in one place and serve both — not that a second copy be
+written.

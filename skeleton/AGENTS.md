@@ -1,4 +1,5 @@
 # <Your Project Name> — agent guide
+<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
 A summary for coding agents; the project follows the SRS-DD standard. On
 any conflict, `specs/README.md` wins — it is the single normative document

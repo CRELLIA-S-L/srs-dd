@@ -23,8 +23,9 @@ Three modes, detected automatically:
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
 files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
-hook) — and only when the existing file carries the "SRS-DD" marker; a
-file the installer did not install is never overwritten.
+hook, specs/README.md) — and only when the existing file carries the
+"SRS-DD-<version>" marker; a file the installer did not install is never
+overwritten. The project's requirements are never touched under any flag.
 
 `--dry-run` writes nothing in any mode and prints the created /
 refreshed / skipped list the real run would produce, so the change can
@@ -44,6 +45,8 @@ after adopt's point of no return (partial completion, see output);
 3 — adopt rolled back, the target is byte-identical (modulo removal of a
 stale temp file from a previously crashed adopt run).
 """
+
+# implements: NFR-SPEC-010
 
 import sys
 
@@ -80,6 +83,7 @@ TEMP_CHECKER = ".srs_check_adopt.py"
 # specification. It is deliberately not specs/ — this repository keeps a
 # real specification of the framework there, and requirements about the
 # framework's own tooling must never travel into somebody's project.
+# implements: CON-SPEC-020
 SKELETON = "skeleton"
 
 # Where a target upgrades from when this clone has no remote of its own.
@@ -95,11 +99,24 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 # framework-specific can leak through it.
 SPEC_STANDARD = os.path.join("specs", "README.md")
 
+# implements: FR-INIT-060
+# How the installer tells a file it wrote from one the project wrote.
+# Shipped files carry the token; `copy` stamps the running version into
+# it on the way out, and `carries_marker` looks for the stamped shape.
+# The version is what makes the marker a marker: the bare name turns up
+# in ordinary prose — skeleton/AGENTS.md teaches the sentence "the
+# project follows the SRS-DD standard" — and a project that wrote that
+# in a file of its own would have it read as ours and overwritten.
+MARKER_TOKEN = "SRS-DD-VERSION"
+MARKER = "SRS-DD-" + __version__
+RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
+
 # Tooling copied into every target, refreshed by adopt and upgrade.
 TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
          "srs_baseline.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
+# implements: FR-SKILL-060, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
           "srs-baseline", "srs-check", "srs-page")
 
@@ -107,6 +124,7 @@ SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
 ADOPT_SERVICE_FILES = ("README.md", "constitution.md", "00-glossary.md",
                       "91-open-issues.md", "92-baselines.md")
 
+# implements: FR-CI-050
 CI_TEMPLATES = {
     "github": (os.path.join("ci", "github-workflow.yml"),
                os.path.join(".github", "workflows", "srs.yml")),
@@ -178,7 +196,8 @@ def parse_args():
     parser.add_argument("--force", action="store_true",
                         help="also refresh existing SRS-DD-marked precious "
                              "files (CI config, CLAUDE.md/AGENTS.md, "
-                             ".gitattributes, the pre-commit hook); a hook "
+                             ".gitattributes, the pre-commit hook, "
+                             "specs/README.md); a file "
                              "without the marker is still never touched; "
                              "the checker and skills are "
                              "refreshed without it in adopt/upgrade modes; "
@@ -219,6 +238,7 @@ def ask(prompt, default, batch):
 
 
 def is_inside(path, ancestor):
+    # implements: FR-INIT-100
     """True when path is the ancestor or lies anywhere below it.
 
     Compares inodes (samefile) while walking up, so neither symlinks nor
@@ -254,11 +274,12 @@ class Installer(object):
     def carries_marker(self, dst_rel):
         """Whether the target's copy of this file is one of ours. The
         marker is how the installer tells its own files from a
-        project's; a file without it is never overwritten."""
+        project's; a file without it is never overwritten. Any version
+        counts — the question is who wrote the file, not when."""
         try:
             with open(os.path.join(self.target, dst_rel), "r",
                       encoding="utf-8", errors="replace") as handle:
-                return "SRS-DD" in handle.read()
+                return RE_MARKER.search(handle.read()) is not None
         except OSError:
             return False
 
@@ -268,10 +289,11 @@ class Installer(object):
 
         Existing tooling files are refreshed in adopt/upgrade modes (or
         with --force); existing specification content is never
-        overwritten. `precious` marks files a project commonly owns
-        already (CI config, agent docs): those are refreshed only when
-        --force is given AND the existing file carries the "SRS-DD"
-        marker — a file we did not install is never clobbered.
+        overwritten. `precious` marks files that may already be the
+        project's own (CI config, agent docs, and the standard, which
+        adopt leaves them): those are refreshed only when --force is
+        given AND the existing file carries the marker — a file we did
+        not install is never clobbered.
         """
         dst = os.path.join(self.target, dst_rel)
         exists = os.path.exists(dst)
@@ -311,6 +333,14 @@ class Installer(object):
         src = os.path.join(ROOT, src_rel)
         with open(src, "rb") as handle:
             raw = handle.read()
+        # Stamped here rather than at the call sites: every precious file
+        # arrives through this method, and threading the version through
+        # six `substitute` dictionaries would leave the seventh unstamped
+        # and unrecognizable. Byte-level, so a file this does not concern
+        # is never decoded.
+        if MARKER_TOKEN.encode("utf-8") in raw:
+            raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
+                              MARKER.encode("utf-8"))
         if substitute:
             text = raw.decode("utf-8")
             for old, new in substitute.items():
@@ -343,6 +373,7 @@ class Installer(object):
 
 
 def scan_target_spec(target):
+    # implements: FR-INIT-010
     """Scans the target's specs/ directory.
 
     Returns (raw_md_count, strict_requirement_count, areas):
@@ -468,6 +499,7 @@ def describe_hooks(target):
 
 
 def install_hook(installer):
+    # implements: FR-INIT-080
     """The gate never displaces an existing hook: .githooks/pre-commit is
     precious, so a copy that is not ours is kept. When that happens the
     gate is laid down beside it under a name git does not run, for the
@@ -481,6 +513,7 @@ def install_hook(installer):
 
 
 def hook_activation_hint(installer, hooks):
+    # implements: FR-INIT-080
     """Says how to switch the gate on — or, when the repository already
     has a pre-commit hook, how not to break it."""
     ours = HOOK_DST in installer.created or installer.carries_marker(HOOK_DST)
@@ -529,6 +562,7 @@ def install_agent_docs(installer, substitute):
 
 
 def dry_run_notice(extra=""):
+    # implements: FR-INIT-070
     sys.stdout.write("\nDry run: nothing was written.%s Re-run without "
                      "--dry-run to apply.\n" % (" " + extra if extra else ""))
 
@@ -557,6 +591,7 @@ def version_tuple(text):
 
 
 def print_version_transition(old):
+    # implements: FR-INIT-110
     """Returns True when upgrade notes for all versions should print."""
     if old is None:
         sys.stdout.write("checker (unversioned) → %s\n" % __version__)
@@ -654,6 +689,7 @@ def bullets(lines):
 
 
 def print_whats_new(old_version, show_all):
+    # implements: FR-INIT-160
     """What the crossed versions added and changed, one line per entry."""
     collected = changelog_sections(("Added", "Changed"))
     if not collected:
@@ -674,6 +710,7 @@ def print_whats_new(old_version, show_all):
 
 
 def print_upgrade_notes(old_version, show_all):
+    # implements: FR-INIT-110
     """Prints CHANGELOG 'Upgrade notes' blocks newer than old_version."""
     collected = changelog_sections(("Upgrade notes",))
     if not collected:
@@ -690,6 +727,7 @@ def print_upgrade_notes(old_version, show_all):
 
 
 def collect_settings(args, batch, area_default):
+    # implements: FR-INIT-090
     """Prompts/flags for everything except the project name."""
     areas = split_list(args.areas) if args.areas else split_list(
         ask("Requirement areas (comma-separated)",
@@ -736,6 +774,7 @@ def collect_settings(args, batch, area_default):
 
 
 def framework_url():
+    # implements: FR-INIT-140
     """The address a target upgrades from: this clone's own remote.
 
     A fork or a mirror must send its targets back to itself, not to the
@@ -762,15 +801,24 @@ def framework_url():
     return url or DEFAULT_FRAMEWORK_URL
 
 
-def config_json(settings):
+def config_json(settings, adopting=False):
+    # implements: FR-INIT-140, FR-CHK-210
     config = dict((key, settings[key]) for key in
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
     config["framework_url"] = settings.get("framework_url") or framework_url()
+    if adopting:
+        # A project that arrives with code already written has files under
+        # its roots that no requirement names yet, and every one of them
+        # would be reported on the first run. That is a wall rather than a
+        # queue, so adoption starts with the rule silenced; switching it on
+        # is what finishing the adoption means (ADR-0014).
+        config["rules"] = {"annotation-absent": "off"}
     return json.dumps(config, ensure_ascii=False, indent=2) + "\n"
 
 
 def run_fresh(args, target, batch):
+    # implements: FR-INIT-020, FR-INIT-150
     installer = Installer(target, args.force, refresh_tooling=False,
                           dry_run=args.dry_run)
     name = args.name or ask("Project name", os.path.basename(target) or
@@ -850,6 +898,7 @@ def run_fresh(args, target, batch):
 
 
 def install_adopt_files(installer, settings, substitute, target,
+                        # implements: FR-INIT-040
                         had_own_readme, tools_skip=()):
     """Everything adopt lays down beside the config and the checker.
 
@@ -884,6 +933,7 @@ def install_adopt_files(installer, settings, substitute, target,
 
 
 def run_adopt(args, target, batch, found_areas):
+    # implements: FR-INIT-030, FR-INIT-050
     installer = Installer(target, args.force, refresh_tooling=True,
                           dry_run=args.dry_run)
     settings = collect_settings(args, batch, found_areas or DEFAULTS["areas"])
@@ -939,7 +989,7 @@ def run_adopt(args, target, batch, found_areas):
         if created_tools:
             os.makedirs(tools_dir)
         with open(config_path, "w", encoding="utf-8") as handle:
-            handle.write(config_json(settings))
+            handle.write(config_json(settings, adopting=True))
         wrote_config = True
 
         with open(os.path.join(ROOT, "tools", "srs_check.py"), "rb") as src:
@@ -1017,6 +1067,7 @@ def run_adopt(args, target, batch, found_areas):
 
 
 def run_upgrade(args, target):
+    # implements: FR-INIT-060
     installer = Installer(target, args.force, refresh_tooling=True,
                           dry_run=args.dry_run)
     sys.stdout.write("Initialized target detected — upgrade mode: "
@@ -1045,6 +1096,13 @@ def run_upgrade(args, target):
     install_tools(installer)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
+    # implements: FR-INIT-060
+    # The standard moves with the framework like the tooling does, but
+    # under --force: adopt leaves a project its own specs/README.md on
+    # purpose (FR-INIT-040), and refreshing unasked would undo that at
+    # the first upgrade.
+    installer.copy(SPEC_STANDARD, SPEC_STANDARD, tooling=True,
+                   precious=True)
     install_skills(installer, substitute=None)
     if args.ci:
         install_ci(installer, args.ci)
@@ -1065,6 +1123,7 @@ def run_upgrade(args, target):
 
 
 def main():
+    # implements: IF-CI-010
     args = parse_args()
     target = os.path.abspath(args.target)
 

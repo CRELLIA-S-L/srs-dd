@@ -35,12 +35,18 @@ Refreshed without a flag: the checker, the viewer, the upgrader and the
 skills. Tooling has to move with the framework or a project drifts away from
 the standard it says it follows.
 
-Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes` and
-the pre-commit hook — files a project commonly edits. `--force` refreshes
-those too, and only when the existing file carries the `SRS-DD` marker, so a
-file you wrote is never clobbered.
+Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the
+pre-commit hook and `specs/README.md` — files that may be your own. The
+first four are ones a project commonly edits; the standard is there for a
+different reason, that adopting an existing specification leaves you the
+`specs/README.md` you already had. `--force` refreshes all of them, and only
+when the existing file carries the installer's marker — a line reading
+`SRS-DD-<version>` — so a file you wrote is never clobbered.
 
-The specification is never touched. Requirements are the project's own.
+Your requirements are never touched: they are the project's own, whatever
+flag you pass. The standard is the one file under `specs/` that moves, and
+only under `--force` — worth knowing before you pass it, because a standard
+you edited is replaced rather than merged.
 
 Commit the refreshed tooling together with the regenerated
 `specs/90-traceability.md`: a new checker may generate a matrix that differs

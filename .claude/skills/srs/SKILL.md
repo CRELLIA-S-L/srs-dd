@@ -42,7 +42,7 @@ behavior is not described, and a requirement must be created first.
 
 ## Two acts, and they are not the same one
 
-Writing a requirement and building it are separate acts (FR-SKILL-090).
+Writing a requirement and building it are separate acts.
 Authoring ends at the written requirement and at whatever architecture
 decision the discussion settled; building it is a task started
 deliberately, later, and often by somebody else. Sliding from one into the
@@ -86,13 +86,17 @@ Then:
    surprise for the next reader. A statement you reword here goes through
    the same judgement `srs-new` gives a new one, against the qualities
    `specs/README.md` requires of a statement, and what you find is said
-   before the edit is recorded (FR-SKILL-120). This is the easiest place
+   before the edit is recorded. This is the easiest place
    to skip it: the requirement already exists, so nothing feels like
    authoring, and a sentence quietly grows a second capability while
-   somebody is repairing the first. Then status per Lifecycle,
-   `code` and `tests` filled with real paths, and optionally the files
-   themselves annotated (`implements:` / `verifies:` — see Annotations in
-   `specs/README.md`).
+   somebody is repairing the first. Then status per Lifecycle, and
+   `code` and `tests` filled with real paths — **and every file you named
+   there says so back**, with `implements:` or `verifies:` (see Annotations
+   in `specs/README.md`). The checker reports a file a requirement names
+   that does not name it back, so this is not bookkeeping you can put off:
+   the field is the specification's claim, the annotation is the file's
+   own, and only the second notices when a file is gutted or repurposed
+   and stops deserving the entry still pointing at it.
 5. **Check:** `python3 tools/srs_check.py`.
 
 Changing behavior — change the requirement in the same set of edits as the
@@ -157,11 +161,12 @@ before the status changes:
 
 4. **Then set the status**, and say why in the rationale — a withdrawal
    names no successor, so the rationale is the only place the reason can
-   live. The number stays dead forever either way (INV-SPEC-010).
+   live. The number stays dead forever either way — identifiers are never
+   reused, whatever the status.
 
-Anything still standing on it afterwards is reported by the checker
-(FR-CHK-190), which is the guard on a specification edited without this
-procedure — not a substitute for it.
+Anything still standing on it afterwards is reported by the checker, which
+is the guard on a specification edited without this procedure — not a
+substitute for it.
 
 ## Planning multi-requirement work
 
@@ -193,35 +198,6 @@ The plan lives in the conversation. Do not write it into `specs/` or
 anywhere else — the specification records what the system does, not the
 work queue; and a plan is not approval: statuses are (ART-020).
 
-## Template
-
-The file is chosen by area — see the map in `specs/README.md`. The statuses
-and the verbs come from `specs/README.md` and the project lexicon in
-`specs/srs-config.json`; the template below shows the default English
-lexicon.
-
-````markdown
-### FR-CORE-050 — Short one-line title
-
-```yaml
-status: deferred
-verification: T
-derives_from: [FR-CORE-010]
-depends_on: []
-refines: []
-conflicts_with: []
-code: []
-tests: []
-```
-
-When `<event>`, the system **shall** `<action>`.
-
-**Rationale.** Why this way and not the obvious alternative.
-````
-
-The number is the next free one in steps of 10 within the area. Occupied
-numbers are visible in the same file.
-
 ## Prohibitions
 
 The list lives in the What-not-to-do section of `specs/README.md` — it is
@@ -242,3 +218,20 @@ Found a mismatch between code and a requirement — do not silently fix either
 side. Record it in `specs/91-open-issues.md` and tell the user: it is unknown
 whether the bug is in the code or in the description, and that is theirs to
 decide.
+
+**First establish that it is one.** Before anything is reported, finish the
+sentence *therefore*: therefore this must be fixed; therefore it is
+deliberate, and here is why; therefore nobody can tell without a decision
+that is the maintainer's. Any of the three is a finding and is reported with
+that half included. An observation with no *therefore* is not a finding —
+work it out or drop it, but do not hand it over.
+
+The reason is not tidiness. Reported raw, an observation arrives as
+homework: read this, decide whether it means anything. A report mixing those
+with real findings teaches the reader to skim both, and the next real one
+goes past unread. Whoever noticed has the context to settle it; the reader
+does not.
+
+"Nobody can tell" is the third answer and stays available — it means you
+looked and the question is a decision, not that you did not look. Report it
+with the options, not as a shrug.

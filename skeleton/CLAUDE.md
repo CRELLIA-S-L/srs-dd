@@ -1,4 +1,5 @@
 # <Your Project Name>
+<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
 Read `AGENTS.md` first — the shared agent guide for this SRS-DD project.
 

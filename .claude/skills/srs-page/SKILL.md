@@ -5,7 +5,7 @@ description: Render the specification as one self-contained HTML page and open i
 
 # Reading the specification as a page
 
-One command renders it and opens it (FR-SKILL-110):
+One command renders it and opens it:
 
 ```
 python3 tools/srs_view.py --open

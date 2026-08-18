@@ -26,12 +26,36 @@ re-report what the checker reports.
 3. Go through “Code files outside the specification” in
    `specs/90-traceability.md`: for each orphan file, determine whether it
    carries behavior that deserves a requirement.
-4. Compare `tests` entries against what the tests actually assert: a test
+4. Then ask the same question from the other end, which nothing reports:
+   **does the statement reach further than the `code` field names?** A
+   statement saying “every tool”, “the skills”, “each command” claims a set;
+   list what is actually in that set and compare. The checker cannot: it
+   proves the paths exist, never that they are all of them.
+
+   This is the half that stays invisible, because an incomplete field is
+   green forever — the matrix records what is written, so nothing is stale
+   and nothing fails. What it costs shows up in the everyday loop: a rule
+   binding every tool, listed against half of them, is a rule that
+   `--code <the other half>` never mentions — and the first thing anyone
+   does before changing a file is ask what governs it.
+5. Compare `tests` entries against what the tests actually assert: a test
    that exists but checks something else is drift too.
-5. Report findings grouped by requirement, each with three parts: what the
+6. Report findings grouped by requirement, each with three parts: what the
    spec says, what the code does, where exactly they diverge
    (`file:line`). Distinguish “code is wrong”, “spec is outdated”, and
    “cannot tell” — do not guess which.
+
+   **Each of those three is a consequence, and one of them has to fit.** An
+   audit surfaces far more than it finds: a count that reads as stale, a
+   file in an odd place, a flag no statement names. Before any of it is
+   written down, finish the sentence *therefore* — and where nothing
+   follows, the answer is that nothing follows, so drop it rather than
+   passing it on. “Cannot tell” is not that answer: it means the question
+   is a decision the maintainer owns, and it is reported with the options.
+
+   The cost of an unresolved observation is paid by the reader, who has
+   less context than you did. A report that mixes them with findings gets
+   skimmed, and the finding that mattered goes past unread.
 
 ## Test adequacy
 
@@ -44,6 +68,25 @@ expects is recorded, and report (ART-050).
    state (“While…”), condition, the obligation itself, and any
    constraint. Each part is a test dimension — the trigger fires or does
    not, the state holds or does not, the boundary of the constraint.
+
+   **Where conditions combine, stop decomposing and build a decision
+   table.** List the causes — each condition that can be true or false —
+   and the effects, then write the rows: one per combination that can
+   actually occur, with the constraints between causes used to strike out
+   the ones that cannot. The rows are the cases. This is the step that
+   turns “did I think of everything” into arithmetic, and it is where
+   judgement misses hardest: a rule firing on `--force` **and** a marker
+   has four rows, and a suite that has one fixture reads as covered from
+   every angle except this one.
+
+   The table is a working instrument, not a finding. Build it, take the
+   rows, compare them against the tests — and put only the gaps in the
+   report. An audit that prints twenty-five tables is an audit nobody
+   reads to the end, which costs more than the tables are worth.
+
+   Build one only where conditions genuinely combine. Most statements are
+   unconditional — “the viewer **shall** render…” — and a table for one of
+   those is a row of ceremony.
 2. A quantified constraint implies property-style cases: “within
    2 seconds” — at the boundary and beyond; “all unsaved changes” —
    none, one, many.

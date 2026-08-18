@@ -13,6 +13,14 @@
 # code: a rule that fires with the wrong explanation sends the reader
 # looking in the wrong place.
 set -eo pipefail
+
+# implements: FR-CI-090
+# A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
+# prepared, and everything this suite starts inherits them — the fixture
+# below makes a git target of its own, so without this the `git init` in it
+# would land in this repository instead.
+unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
+unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-rules
@@ -87,7 +95,7 @@ silent() {
     passes=$((passes + 1))
 }
 
-# --- FR-CHK-010: identifiers are well-formed and unique.
+# --- verifies: FR-CHK-010 — identifiers are well-formed and unique.
 spec < <(block FR-CORE-010 "First" "$META" 'The system **shall** act.'
          block FR-CORE-010 "Same number again" "$META" \
                'The system **shall** act twice.')
@@ -96,7 +104,7 @@ rule "FR-CHK-010 duplicate" 1 "is already used at"
 spec < <(block FR-CORE-1 "Two digits short" "$META" 'The system **shall** act.')
 rule "FR-CHK-010 malformed" 1 "identifier does not match"
 
-# --- FR-CHK-020: exactly one bolded modal verb.
+# --- verifies: FR-CHK-020 — exactly one bolded modal verb.
 spec < <(block FR-CORE-010 "No verb" "$META" 'The system acts, eventually.')
 rule "FR-CHK-020 none" 1 "no bolded modal verb"
 
@@ -104,13 +112,28 @@ spec < <(block FR-CORE-010 "Two verbs" "$META" \
                'The system **shall** act and **should** also report.')
 rule "FR-CHK-020 two" 1 "modal verbs, expected one"
 
-# --- FR-CHK-030: every link resolves.
+# --- verifies: FR-CHK-030 — every link resolves.
 spec < <(block FR-CORE-010 "Points at nothing" \
                "${META/depends_on: \[\]/depends_on: [FR-CORE-990]}" \
                'The system **shall** act.')
 rule "FR-CHK-030 dangling" 1 "link to nonexistent requirement"
 
-# --- FR-CHK-040: no cycles in the derivation graph.
+# The other half of the same statement: a link that names its own
+# requirement. It resolves, so the dangling fixture above says nothing about
+# it — the branch could have been deleted with this suite still green.
+spec < <(block FR-CORE-010 "Depends on itself" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** act.')
+rule "FR-CHK-030 self-link" 1 "requirement links to itself"
+
+# And through `superseded_by`, which is checked apart from the link fields
+# and so has a branch of its own to lose.
+spec < <(block FR-CORE-010 "Superseded by itself" \
+               "${META/status: deferred/status: superseded}
+superseded_by: FR-CORE-010" 'The system **shall** act.')
+rule "FR-CHK-030 self-supersession" 1 "requirement links to itself"
+
+# --- verifies: FR-CHK-040 — no cycles in the derivation graph.
 spec < <(block FR-CORE-010 "Derives from the other" \
                "${META/derives_from: \[\]/derives_from: [FR-CORE-020]}" \
                'The system **shall** act.'
@@ -119,20 +142,47 @@ spec < <(block FR-CORE-010 "Derives from the other" \
                'The system **shall** respond.')
 rule "FR-CHK-040 cycle" 1 "cycle in"
 
-# --- FR-CHK-050: a realized requirement points at code that exists.
+# --- verifies: FR-CHK-055 — a path a requirement names exists.
 spec < <(block FR-CORE-010 "Names a file that is not there" \
                "$(printf '%s' "${META/status: deferred/status: implemented}" \
                   | sed 's|^code: \[\]$|code: [src/absent.py]|')" \
                'The system **shall** act.')
-rule "FR-CHK-050 missing path" 1 "points to a nonexistent path"
+rule "FR-CHK-055 missing path in code" 1 "points to a nonexistent path"
 
+# Both fields, because a test that moved is as invisible as a source file
+# that did, and one fixture would have let the other clause be deleted.
+spec < <(block FR-CORE-010 "Names a test that is not there" \
+               "$(printf '%s' "${META/status: deferred/status: implemented}" \
+                  | sed 's|^code: \[\]$|code: [src/app.py]|' \
+                  | sed 's|^tests: \[\]$|tests: [t/absent.sh]|')" \
+               'The system **shall** act.')
+printf 'x\n' > "$LAB/src/app.py"
+rule "FR-CHK-055 missing path in tests" 1 "points to a nonexistent path"
+rm -f "$LAB/src/app.py"
+
+# --- verifies: FR-CHK-050 — a requirement being realized names where.
 spec < <(block FR-CORE-010 "Realized without code" \
                "${META/status: deferred/status: implemented}" \
                'The system **shall** act.')
 rule "FR-CHK-050 empty code" 1 "status implemented but the code field is empty"
 
-# --- FR-CHK-060: both halves — a `superseded` without its replacement, and
-# --- a replacement named under any other status.
+# `partial` as well as `implemented`: the standard defines both as being
+# realized, and with only one exercised the other could be dropped from the
+# condition without this suite noticing.
+spec < <(block FR-CORE-010 "Half-realized without code" \
+               "${META/status: deferred/status: partial}" \
+               'The system **shall** act.')
+rule "FR-CHK-050 empty code at partial" 1 \
+     "status partial but the code field is empty"
+
+# And `deferred` is left alone — that is the state for approved and not yet
+# begun, where an empty code field is the whole point.
+spec < <(block FR-CORE-010 "Approved, not begun" "$META" \
+               'The system **shall** act.')
+silent "FR-CHK-050 spares a deferred requirement" 0 "the code field is empty"
+
+# --- verifies: FR-CHK-060 — both halves: a `superseded` without its
+# --- replacement, and a replacement named under any other status.
 spec < <(block FR-CORE-010 "Superseded by nobody" \
                "${META/status: deferred/status: superseded}" \
                'The system **shall** act.')
@@ -148,8 +198,10 @@ superseded_by: FR-CORE-020" \
 rule "FR-CHK-060 replacement under another status" 1 \
      "superseded_by present but status is"
 
-# --- FR-CHK-070: implementation ahead of approval is a warning, and only
-# --- --strict (FR-CHK-120) turns it into a failure.
+# --- verifies: FR-CHK-070, FR-CHK-120 — implementation ahead of approval is
+# --- a warning, and only --strict turns it into a failure. The strict half
+# --- is exercised by every `rule … --strict` below as well; this is where a
+# --- warning and its promotion are asserted on one and the same run.
 printf '# implements: FR-CORE-010\n' > "$LAB/src/app.py"  # srs-ignore: a fixture, not our claim
 spec < <(block FR-CORE-010 "Draft with code" \
                "$(printf '%s' "$META" \
@@ -164,7 +216,7 @@ rule "FR-CHK-070 strict fails" 1 "treated as errors" --strict
 rule "FR-CHK-070 names the requirement built early" 0 \
      "FR-CORE-010 is draft but the code field is not empty"
 
-# --- FR-CHK-075: a realized requirement resting on a draft. It had no
+# --- verifies: FR-CHK-075 — a realized requirement resting on a draft. It had no
 # --- fixture while it was the second half of FR-CHK-070's statement — the
 # --- requirement read as verified because the other half was.
 spec < <(block FR-CORE-010 "The unapproved parent" \
@@ -179,6 +231,7 @@ spec < <(block FR-CORE-010 "The unapproved parent" \
          block FR-CORE-030 "Derives from it, and partly built" \
                "$(printf '%s' "$META" \
                   | sed 's|^status: deferred$|status: partial|' \
+                  | sed 's|^code: \[\]$|code: [src/app.py]|' \
                   | sed 's|^derives_from: \[\]$|derives_from: [FR-CORE-010]|')" \
                'The system **shall** derive.'
          block FR-CORE-040 "Refines it" \
@@ -199,7 +252,7 @@ rule "FR-CHK-075 covers refines" 0 \
      "FR-CORE-040 is implemented and rests on draft FR-CORE-010 (refines)"
 rule "FR-CHK-075 strict fails" 1 "treated as errors" --strict
 
-# --- FR-CHK-080: annotations are cross-checked against the specification.
+# --- verifies: FR-CHK-080 — annotations are cross-checked against the specification.
 printf '# implements: FR-CORE-990\n' > "$LAB/src/app.py"  # srs-ignore: a fixture, not our claim
 spec < <(block FR-CORE-010 "Nothing claims that number" "$META" \
                'The system **shall** act.')
@@ -212,14 +265,66 @@ spec < <(block FR-CORE-010 "Does not list the file back" "$META" \
                'The system **shall** act.')
 rule "FR-CHK-080 unlisted file warns" 0 "but is not listed in that"
 
-# And the clause that is easiest to break by accident: a file carrying no
-# annotation at all is never mentioned.
+# An identifier of the right shape whose type or area nobody declared: also
+# a warning, and a different one — this is far more often an example in a
+# comment than a claim about a requirement, so the message says how to
+# silence it.
+printf '# implements: ZZ-NOPE-010\n' > "$LAB/src/app.py"  # srs-ignore: a fixture
+spec < <(block FR-CORE-010 "Nothing declares that area" "$META" \
+               'The system **shall** act.')
+rule "FR-CHK-080 unknown type or area warns" 0 "unknown type or area"
+
+# An annotation left pointing at a requirement that has been replaced. The
+# reader is told that, and not that the file is missing from a field the
+# requirement is past caring about.
+printf '# implements: FR-CORE-010\n' > "$LAB/src/app.py"  # srs-ignore: a fixture
+spec < <(block FR-CORE-010 "Replaced, and still pointed at" \
+               "${META/status: deferred/status: superseded}
+superseded_by: FR-CORE-020" 'The system **shall** act.'
+         block FR-CORE-020 "The replacement" "$META" \
+               'The system **shall** replace.')
+rule "FR-CHK-080 annotation on a superseded requirement" 0 \
+     "annotation points at superseded"
+silent "FR-CHK-080 and says nothing about the listing" 0 "is not listed in that"
+
+# Both ways of being cancelled, not `superseded` alone: INV-SPEC-050 added a
+# second, and an annotation pointing at a `withdrawn` requirement read as
+# live traceability to a decision to do nothing.
+printf '# implements: FR-CORE-010\n' > "$LAB/src/app.py"  # srs-ignore: a fixture
+spec < <(block FR-CORE-010 "Withdrawn, and still pointed at" \
+               "$(printf '%s' "${META/status: deferred/status: withdrawn}" \
+                  | sed 's|^code: \[\]$|code: [src/app.py]|')" \
+               'The system **shall** have done something dropped.')
+rule "FR-CHK-080 annotation on a withdrawn requirement" 0 \
+     "annotation points at withdrawn requirement FR-CORE-010"
+
+# A line saying `srs-ignore` is exempt from all of it — the standard says so
+# under Annotations, and every file that documents the annotation grammar
+# needs it, this checker included. Nothing exercised it: the exemption could
+# be deleted outright and every suite stayed green.
+printf '# implements: FR-CORE-990  srs-ignore\n' > "$LAB/src/app.py"
+spec < <(block FR-CORE-010 "Nothing claims that number either" "$META" \
+               'The system **shall** act.')
+silent "FR-CHK-080 srs-ignore exempts the line" 0 "FR-CORE-990"
+
+# And without it the same line is an error, or the exemption above would be
+# passing for a checker that reads no annotations at all.
+printf '# implements: FR-CORE-990\n' > "$LAB/src/app.py"  # srs-ignore: a fixture
+rule "FR-CHK-080 and the same line without it is not" 1 \
+     "annotation references unknown requirement FR-CORE-990"
+
+# A file carrying no annotation is not this rule's business. It used to be
+# unmentionable altogether; since ADR-0014 an unclaimed file is FR-CHK-210's
+# to report, so what is asserted here is that FR-CHK-080 stays silent about
+# it — by its message, not by the file name, which the other rule now says.
 rm -f "$LAB/src/app.py"
 printf 'print("no annotation here")\n' > "$LAB/src/quiet.py"
-silent "FR-CHK-080 silence on an unannotated file" 0 "quiet.py"
+spec < <(block FR-CORE-010 "Names no file at all" "$META" \
+               'The system **shall** act.')
+silent "FR-CHK-080 silence on an unannotated file" 0 "is not listed in that"
 rm -f "$LAB/src/quiet.py"
 
-# --- FR-CHK-110: a fenced code block is opaque. The standard itself
+# --- verifies: FR-CHK-110 — a fenced code block is opaque. The standard itself
 # --- documents the format with example requirements inside fences; without
 # --- this rule each of them would become a requirement of its own.
 spec < <(block FR-CORE-010 "Documents the format" "$META" \
@@ -232,7 +337,7 @@ The system **shall** never be counted.
 ````')
 rule "FR-CHK-110 opaque fence" 0 "Requirements: 1"
 
-# --- FR-CHK-100: a broken configuration is refused by name, exit 2.
+# --- verifies: FR-CHK-100 — a broken configuration is refused by name, exit 2.
 spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
 cp "$LAB/specs/srs-config.json" "$LAB/specs/srs-config.json.bak"
 printf '{"areas": "CORE"}\n' > "$LAB/specs/srs-config.json"
@@ -241,9 +346,13 @@ printf '{"areas": ["core"]}\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 bad area" 2 "must match"
 printf 'not json at all\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 unparsable" 2 "invalid JSON"
+# Valid JSON of the wrong shape: every key lookup below would fail on it, so
+# the file is refused as a whole rather than one key at a time.
+printf '["areas", "code_roots"]\n' > "$LAB/specs/srs-config.json"
+rule "FR-CHK-100 not an object" 2 "the top level must be a JSON object"
 mv "$LAB/specs/srs-config.json.bak" "$LAB/specs/srs-config.json"
 
-# --- FR-CHK-170: a key that is absent is named as absent, not reported
+# --- verifies: FR-CHK-170 — a key that is absent is named as absent, not reported
 # --- through the value it does not have.
 spec < <(block FR-CORE-010 "No verification method" \
                "${META/verification: I/}" 'The system **shall** act.')
@@ -251,7 +360,15 @@ rule "FR-CHK-170 names the missing key" 1 \
      "required key 'verification' is missing"
 silent "FR-CHK-170 does not blame the value" 1 "method '' is not one of"
 
-# --- FR-CHK-180: a key a later version of the format retired is an error
+# Both required keys, not whichever one the fixture happened to drop: the
+# rule reads a list, and a list exercised at one entry is a list that can
+# lose the others quietly.
+spec < <(block FR-CORE-010 "No status either" \
+               "${META/status: deferred/}" 'The system **shall** act.')
+rule "FR-CHK-170 names the other required key" 1 \
+     "required key 'status' is missing"
+
+# --- verifies: FR-CHK-180 — a key a later version of the format retired is an error
 # --- naming what replaced it and when. The table is empty until the format
 # --- first moves, so the fixture supplies an entry and runs the real path.
 spec < <(block FR-CORE-010 "Uses a key that was renamed" \
@@ -295,18 +412,21 @@ grep -qF "key 'depends' was withdrawn in 9.9.9" /tmp/srs-rules.log \
          cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
 
-# --- FR-CHK-140: only a requirement that says it is verified by test and
+# --- verifies: FR-CHK-140 — only a requirement that says it is verified by test and
 # --- lists none. Two requirements in one specification, because judging
 # --- them all by one method is exactly how this went wrong once: the check
 # --- sat in a loop that rebinds the requirement but not the method, so a
 # --- single stale value was applied to all eighty-five.
+# `code` is filled because a requirement being realized must name where
+# (FR-CHK-050); what these fixtures are about is the `tests` field.
+printf 'x\n' > "$LAB/src/app.py"
 PARTIAL='status: partial
 verification: I
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
+code: [src/app.py]
 tests: []'
 
 spec < <(block FR-CORE-010 "Inspected, and lists no test" "$PARTIAL" \
@@ -326,9 +446,11 @@ spec < <(block FR-CORE-010 "Tested and says so" \
                'The system **shall** act.')
 printf 'true\n' > "$LAB/t/probe.sh"
 silent "FR-CHK-140 silent when a test is listed" 0 "lists no test"
-rm -f "$LAB/t/probe.sh"
+# Both files go: the fixtures below run on a lab with nothing under the
+# roots, and a file left behind is one FR-CHK-210 would report.
+rm -f "$LAB/t/probe.sh" "$LAB/src/app.py"
 
-# --- FR-CHK-150: only total isolation. A requirement at either end of a
+# --- verifies: FR-CHK-150 — only total isolation. A requirement at either end of a
 # --- link is not isolated, which is what keeps the rule from firing on
 # --- most of a healthy specification.
 spec < <(block FR-CORE-010 "Points at the other" \
@@ -343,7 +465,7 @@ rule "FR-CHK-150 names the isolated one" 0 \
 silent "FR-CHK-150 spares the source of a link" 0 "FR-CORE-010 is linked to"
 silent "FR-CHK-150 spares the target of a link" 0 "FR-CORE-020 is linked to"
 
-# --- FR-CHK-150: a cancelled requirement is outside the rule, both ways of
+# --- verifies: FR-CHK-150 — a cancelled requirement is outside the rule, both ways of
 # --- being cancelled. `superseded` used to escape only because its
 # --- `superseded_by` counts as a link; `withdrawn` names no successor and
 # --- so tripped a warning for having done what was intended.
@@ -353,7 +475,7 @@ spec < <(block FR-CORE-010 "Withdrawn and isolated" \
 silent "FR-CHK-150 spares a withdrawn requirement" 0 \
        "FR-CORE-010 is linked to nothing"
 
-# --- FR-CHK-190: a live requirement resting on a withdrawn one, at every
+# --- verifies: FR-CHK-190 — a live requirement resting on a withdrawn one, at every
 # --- live status rather than the built ones alone, and not through
 # --- `conflicts_with`.
 spec < <(block FR-CORE-010 "Withdrawn ground" \
@@ -382,7 +504,7 @@ rule "FR-CHK-190 covers refines" 0 \
 rule "FR-CHK-190 strict fails" 1 "treated as errors" --strict
 silent "FR-CHK-190 ignores conflicts_with" 0 "FR-CORE-030 is deferred"
 
-# --- FR-CHK-160: what a rule costs is the project's to set. The rule used
+# --- verifies: FR-CHK-160 — what a rule costs is the project's to set. The rule used
 # --- throughout is `unknown-key`, because it needs nothing but a key.
 UNKNOWN='status: deferred
 verification: I
@@ -473,6 +595,257 @@ grep -qF "no metadata block" /tmp/srs-refusal.log \
     || { echo "FAIL refusal — verdict without the reason"
          cat /tmp/srs-refusal.log; exit 1; }
 rm -rf "$LAB2"
+passes=$((passes + 3))
+
+# --- verifies: FR-CHK-200 — a file a requirement names says so. The forward half of
+# --- this link has been checked from the start; nothing checked that the
+# --- file agrees, which is the half that decays.
+REALIZED='status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/app.py]
+tests: []'
+
+printf 'print("no claim here")\n' > "$LAB/src/app.py"
+spec < <(block FR-CORE-010 "Names a file that stays silent about it" \
+               "$REALIZED" 'The system **shall** act.')
+rule "FR-CHK-200 names both ends" 0 \
+     "FR-CORE-010 names src/app.py in code and the file does not carry"
+rule "FR-CHK-200 strict fails" 1 "treated as errors" --strict
+
+# Annotated, and the rule goes quiet. Both keywords, because `implements`
+# pairs with `code` and `verifies` with `tests`, and a rule that checked one
+# of the two would leave the other half of every project unguarded.
+printf '# implements: FR-CORE-010\n' > "$LAB/src/app.py"  # srs-ignore: a fixture
+silent "FR-CHK-200 silent once the file claims it" 0 "does not carry"
+
+printf 'print("no claim here")\n' > "$LAB/t/probe.py"
+spec < <(block FR-CORE-010 "Names a test that stays silent about it" \
+               "$(printf '%s' "$REALIZED" \
+                  | sed 's|^tests: \[\]$|tests: [t/probe.py]|')" \
+               'The system **shall** act.')
+rule "FR-CHK-200 covers the tests field too" 0 \
+     "names t/probe.py in tests and the file does not carry \`verifies:"
+
+# A draft carrying code is a harvested proposal, and a harvest that must be
+# annotated before anybody has approved it is a harvest nobody finishes.
+spec < <(block FR-CORE-010 "Harvested, not yet approved" \
+               "${REALIZED/status: implemented/status: draft}" \
+               'The system **shall** act.')
+printf 'print("no claim here")\n' > "$LAB/src/app.py"
+silent "FR-CHK-200 spares a draft" 0 "does not carry"
+
+# --- verifies: FR-CHK-210 — a file neither end claims.
+spec < <(block FR-CORE-010 "Names nothing at all" "$META" \
+               'The system **shall** act.')
+printf 'print("nobody wants me")\n' > "$LAB/src/orphan.py"
+rule "FR-CHK-210 names the unclaimed file" 0 \
+     "src/orphan.py — no requirement names this file and it claims none"
+rule "FR-CHK-210 strict fails" 1 "treated as errors" --strict
+
+# Claimed from either end and it goes quiet — the field alone is enough,
+# because pairing is FR-CHK-200's business and not this rule's.
+printf '# implements: FR-CORE-010\n' > "$LAB/src/orphan.py"  # srs-ignore: a fixture
+silent "FR-CHK-210 silent when the file claims a requirement" 0 \
+       "orphan.py — no requirement names"
+
+# A cancelled requirement counts for neither end. Its `code` field records
+# what it once pointed at; treated as a claim, a withdrawal would be the
+# quietest way to take code out of sight.
+rm -f "$LAB/src/orphan.py"
+printf 'print("left behind")\n' > "$LAB/src/dropped.py"
+spec < <(block FR-CORE-010 "Withdrawn, and its file stayed" \
+               "$(printf '%s' "${META/status: deferred/status: withdrawn}" \
+                  | sed 's|^code: \[\]$|code: [src/dropped.py]|')" \
+               'The system **shall** have done something dropped.')
+rule "FR-CHK-210 a file only a withdrawn requirement names" 0 \
+     "src/dropped.py — no requirement names this file"
+
+# Superseded is the other way of being over, and the same answer.
+spec < <(block FR-CORE-010 "Replaced, and its file stayed" \
+               "$(printf '%s' "${META/status: deferred/status: superseded}" \
+                  | sed 's|^code: \[\]$|code: [src/dropped.py]|')
+superseded_by: FR-CORE-020" 'The system **shall** have done something.'
+         block FR-CORE-020 "The replacement" "$META" \
+               'The system **shall** replace.')
+rule "FR-CHK-210 a file only a superseded requirement names" 0 \
+     "src/dropped.py — no requirement names this file"
+
+# But an annotation the file carries is something it said about itself, and
+# FR-CHK-080 has answered it with the line and the identifier. Saying it
+# again here would put two findings on one file, the second claiming it
+# says nothing while the first quotes what it says. Both ways an annotation
+# fails to resolve, because the rule turns on there being one at all.
+printf '# implements: FR-CORE-010\n' > "$LAB/src/dropped.py"  # srs-ignore: a fixture
+rule "FR-CHK-210 leaves a dead annotation to FR-CHK-080" 0 \
+     "annotation points at superseded"
+silent "FR-CHK-210 and does not name the file twice" 0 \
+       "dropped.py — no requirement names"
+
+printf '# implements: FR-CORE-990\n' > "$LAB/src/dropped.py"  # srs-ignore: a fixture
+rule "FR-CHK-210 leaves an unknown annotation to FR-CHK-080" 1 \
+     "annotation references unknown requirement FR-CORE-990"
+silent "FR-CHK-210 does not call a claiming file unclaimed" 1 \
+       "dropped.py — no requirement names"
+rm -f "$LAB/src/dropped.py" "$LAB/src/app.py" "$LAB/t/probe.py"
+
+# The other end of the same line, and the one the rule was written around:
+# a file a live requirement names is FR-CHK-200's business however bare it
+# is. Saying "no requirement names this file" of a file a requirement names
+# would be the doubled finding again, and this half of it false. Worth a
+# fixture of its own because the state is not exotic — it is every project's
+# before its annotations are written, and was this repository's for 174
+# pairs until ADR-0014. It runs after the clean-up above: the fixture before
+# it leaves an unresolvable annotation behind, which makes the checker exit
+# 1 over something this one is not about.
+printf 'x = 1\n' > "$LAB/src/named.py"
+spec < <(block FR-CORE-010 "Names a file that stays bare" \
+               "$(printf '%s' "${META/status: deferred/status: implemented}" \
+                  | sed 's|^code: \[\]$|code: [src/named.py]|')" \
+               'The system **shall** act.')
+rule "FR-CHK-210 leaves a named file to FR-CHK-200" 0 \
+     "FR-CORE-010 names src/named.py in code and the file does not carry"
+silent "FR-CHK-210 does not call a named file unclaimed" 0 \
+       "src/named.py — no requirement names this file"
+rm -f "$LAB/src/named.py"
+
+# --- verifies: IF-SPEC-020 — a published rule name keeps its meaning. The names are
+# --- written into somebody else's `specs/srs-config.json` and into `exempt`
+# --- fields in their requirements, and a renamed one has no retired table to
+# --- be found through the way a metadata key does — the checker refuses to
+# --- start and lists what it knows. A promise about the future cannot be
+# --- tested; what can is the past, listed here so a rename has to walk past
+# --- it. Written out rather than read from RULES, which would compare the
+# --- tuple with itself and never fail.
+( cd "$LAB" && python3 -c "
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import srs_check
+
+published = (
+    'unknown-key', 'draft-with-code', 'rests-on-draft', 'rests-on-withdrawn',
+    'test-missing', 'unlinked', 'annotation-unknown-area',
+    'annotation-superseded', 'annotation-unlisted', 'annotation-unpaired',
+    'annotation-absent', 'baseline-without-row',
+)
+gone = [name for name in published if name not in srs_check.RULES]
+if gone:
+    sys.stderr.write('rule names withdrawn or renamed: %s\n' % ', '.join(gone))
+    sys.exit(1)
+" ) > /tmp/srs-rules.log 2>&1 || { echo "FAIL IF-SPEC-020 — a published rule name is gone"
+                                  cat /tmp/srs-rules.log; exit 1; }
+passes=$((passes + 1))
+
+# --- verifies: IF-CI-020 — the exit codes are what other people's pipelines bind to.
+# --- Every fixture above proves 1 and 2 for a specification that was read;
+# --- what nothing proved is the two refusals that happen before one ever is.
+# The flag is judged before the configuration and before any file, so
+# whatever the lab holds at this point is beside the point.
+rule "IF-CI-020 unknown flag" 2 "unknown flag(s): --bogus" --bogus
+
+# And a checker started where there is no specification to read. Its own
+# directory: the lab above has a specs/ by construction, and the helper
+# always runs inside it.
+LAB3=/tmp/srs-nospecs
+rm -rf "$LAB3"; mkdir -p "$LAB3/tools"
+cp tools/srs_check.py "$LAB3/tools/"
+rc=0
+( cd "$LAB3" && python3 tools/srs_check.py --no-write ) \
+    > /tmp/srs-rules.log 2>&1 || rc=$?
+test "$rc" -eq 2 || { echo "FAIL IF-CI-020 no specs — exit $rc, expected 2"
+                      cat /tmp/srs-rules.log; exit 1; }
+grep -qF "specs/ directory not found" /tmp/srs-rules.log \
+    || { echo "FAIL IF-CI-020 no specs — wrong message"
+         cat /tmp/srs-rules.log; exit 1; }
+rm -rf "$LAB3"
+passes=$((passes + 2))
+
+# --- verifies: FR-CI-080 — the shared assertion reports. `absent` is the
+# --- one thing in these suites whose whole job is to fail, so it is the one
+# --- thing that has to be watched failing: run in a subshell, because a
+# --- working `absent` exits, and this fixture is here to see it do that.
+. tools/test_lib.sh
+printf 'the needle is here\n' > "$LAB/haystack.txt"
+rc=0
+( absent "needle" "$LAB/haystack.txt" ) > /tmp/srs-rules.log 2>&1 || rc=$?
+test "$rc" -eq 1 || { echo "FAIL FR-CI-080 — absent did not fail on a match"
+                      cat /tmp/srs-rules.log; exit 1; }
+grep -qF "still contains: needle" /tmp/srs-rules.log \
+    || { echo "FAIL FR-CI-080 — absent failed without saying what it found"
+         cat /tmp/srs-rules.log; exit 1; }
+# And it is silent when the thing really is absent, or every suite using it
+# would be red for the wrong reason.
+absent "no such string" "$LAB/haystack.txt"
+# A pattern beginning with a dash is a pattern, not a flag. The haystack
+# holds the literal `-e`, so a working `absent` must fail on it. Without
+# `--`, grep reads `-e` as its own flag and takes the path as the pattern,
+# then waits on stdin — hence the redirect, which turns what would be a
+# hung suite into a wrong answer this can see.
+printf -- '-e is in here too\n' >> "$LAB/haystack.txt"
+rc=0
+( absent "-e" "$LAB/haystack.txt" < /dev/null ) > /tmp/srs-rules.log 2>&1 || rc=$?
+test "$rc" -eq 1 || { echo "FAIL FR-CI-080 — a dash-leading pattern was read as a flag"
+                      cat /tmp/srs-rules.log; exit 1; }
+rm -f "$LAB/haystack.txt"
+passes=$((passes + 3))
+
+# --- verifies: FR-CI-090 — a suite working on a target leaves this
+# --- repository alone. What the six target-making suites do about it is a
+# --- line clearing the git environment they inherited; this proves that
+# --- line is what stands between a target's `git add` and the index the
+# --- hook handed down. The suites themselves are compared against that
+# --- index where they already run, in tools/ci_selftest.sh — running them
+# --- again here would triple the gate to assert what it already asserts.
+LAB4=/tmp/srs-gitenv
+rm -rf "$LAB4"; mkdir -p "$LAB4/target"
+( cd "$LAB4/target" && git init -q . && printf 'x\n' > only-here.txt )
+git rev-parse --git-dir >/dev/null 2>&1 \
+    || { echo "FAIL FR-CI-090 — not a git repository"; exit 1; }
+# A repository is not enough: `git init` writes no index until something is
+# staged, and this fixture needs a real one to hand down. Without the guard
+# the `cp` below fails under `set -e` and the suite dies saying only
+# "No such file or directory" — an assertion that cannot report, which is
+# the shape FR-CI-080 exists to forbid.
+stand_in="$(git rev-parse --git-dir)/index"
+[ -f "$stand_in" ] \
+    || { echo "FAIL FR-CI-090 — no index to hand down; stage something first"
+         exit 1; }
+cp "$stand_in" "$LAB4/index"
+cksum < "$LAB4/index" > "$LAB4/before"
+
+# Inherited, as a hook leaves it: the target's file lands in the index it
+# was handed. This is the defect, reproduced.
+( cd "$LAB4/target" && GIT_INDEX_FILE="$LAB4/index" git add -A ) >/dev/null 2>&1
+cksum < "$LAB4/index" > "$LAB4/after"
+cmp -s "$LAB4/before" "$LAB4/after" \
+    && { echo "FAIL FR-CI-090 — the fixture no longer reproduces the leak"
+         exit 1; }
+
+# Cleared, as every target-making suite does before it starts: the same
+# command cannot reach it.
+cp "$(git rev-parse --git-dir)/index" "$LAB4/index"
+cksum < "$LAB4/index" > "$LAB4/before"
+( cd "$LAB4/target" \
+  && unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY \
+  && git add -A ) >/dev/null 2>&1
+cksum < "$LAB4/index" > "$LAB4/after"
+cmp -s "$LAB4/before" "$LAB4/after" \
+    || { echo "FAIL FR-CI-090 — clearing the environment did not protect the index"
+         exit 1; }
+
+# And every suite that makes a target carries that line, or the protection
+# above is a property of this fixture rather than of the suites.
+for suite in view-smoke baseline-smoke release-smoke installer-smoke \
+             adopt-smoke upgrade-smoke checker-rules; do
+    grep -q "^unset GIT_INDEX_FILE" "tests/$suite.sh" \
+        || { echo "FAIL FR-CI-090 — tests/$suite.sh does not clear the environment"
+             exit 1; }
+done
+rm -rf "$LAB4"
 passes=$((passes + 3))
 
 # The backdrop itself has to pass — and pass a strict gate, or "valid"

@@ -28,7 +28,7 @@ duplicate silently splits its history in two.
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [INV-SPEC-060]
 depends_on: [FR-CHK-090]
 refines: []
 conflicts_with: []
@@ -82,7 +82,7 @@ report it as an error listing the requirements on the cycle.
 **Rationale.** The derivation graph answers "why does this exist"; a cycle
 means the answer is circular, and it also breaks the tree view.
 
-### FR-CHK-050 — Realized requirements point at real code
+### FR-CHK-050 — A requirement being realized names where
 
 ```yaml
 status: implemented
@@ -95,13 +95,54 @@ code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 ```
 
-The checker **shall** report as an error a requirement with status
-`implemented` and an empty `code` field, and any `code` or `tests` entry that
+The checker **shall** report as an error an `implemented` or `partial`
+requirement with an empty `code` field.
+
+**Rationale.** The `code` field is half of the only machine-checkable bridge
+between the specification and the tree, and a requirement claiming to be
+built while naming nowhere has cut it.
+
+Both statuses the standard defines as being realized, not `implemented`
+alone. The lifecycle separates them by how much is built and not by whether
+anything is: `deferred` is the state for approved and not yet started, so a
+`partial` with an empty `code` field is either a status nobody updated or a
+half that was built and never written down. Reported for the same reason as
+the other. FR-CHK-075 and FR-CHK-140 already name both statuses; this one
+said `implemented` alone, which read as a decision and was an oversight.
+
+The second half of what this once said — that a path named must exist — is
+FR-CHK-055. Split under INV-SPEC-060 rather than widened in place: a
+statement carrying two obligations has no answer to what passing it means,
+and the fixture for either half would have kept the requirement looking
+verified while the other went missing. The same reason, and the same
+remedy, as FR-CHK-070 and FR-CHK-075.
+
+### FR-CHK-055 — A path a requirement names exists
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+```
+
+The checker **shall** report as an error a `code` or `tests` entry that
 names a path absent from the repository.
 
-**Rationale.** The two fields are the only machine-checkable bridge between
-the specification and the tree; a stale path turns the traceability matrix
-into fiction.
+**Rationale.** A stale path turns the traceability matrix into fiction: the
+row is there, the file is not, and every reader downstream believes the
+link. Both fields, because a test that moved is as invisible as a source
+file that did.
+
+Carved out of FR-CHK-050, which stated this and the obligation to name
+something in the same sentence. The number is new because identifiers are
+never reused (INV-SPEC-010) and the half that stays with the old number is
+the one its statement opened with — the reading FR-CHK-070 and FR-CHK-075
+already established here.
 
 ### FR-CHK-060 — Lifecycle consistency
 
@@ -202,12 +243,28 @@ tests: [tests/checker-rules.sh]
 
 The checker **shall** cross-check the `implements:` and `verifies:`
 annotations found under the configured code and test roots against the
-specification — never reporting a file that carries none — treating an
-annotation that names an unknown requirement in a declared area as an error
-and every other mismatch as a warning.
+specification, treating an annotation that names an unknown requirement in
+a declared area as an error and every other mismatch as a warning.
 
-**Rationale.** Annotations are an optional second opinion; making them
-mandatory would turn every source file into specification surface.
+**Rationale.** An annotation is a claim made at the code, and a claim that
+resolves to nothing is worse than no claim: it reads as traceability that
+was never there.
+
+An annotation naming a cancelled requirement is one of those mismatches,
+and it is dead in both directions: it is reported, and it claims nothing —
+so the file it sits in counts as unclaimed for FR-CHK-210 unless something
+live speaks for it. This covered `superseded` alone until INV-SPEC-050 gave
+a requirement a second way to be over, and a `withdrawn` one left the
+annotation reading as live traceability to a decision to do nothing.
+
+This carried the clause "never reporting a file that carries none" while
+annotations were optional, and the clause did two jobs — it described this
+rule and it forbade a different one. ADR-0014 settles that a file a
+requirement names is obliged to say so, which the prohibition stood in the
+way of. What this requirement covers is unchanged: the annotations that are
+there, judged against the specification. What is asked of a file that
+carries none belongs to FR-CHK-200 and FR-CHK-210, where it can be argued
+on its own terms and priced by the rules those two carry.
 
 ### FR-CHK-090 — The lexicon, not a language
 
@@ -500,3 +557,109 @@ carries a name so a project can decide what it costs (FR-CHK-160).
 one has lost nothing it was standing on — the divergence is simply beside
 the point now, and reporting it would leave every deliberate trade-off in a
 specification outliving its subject as noise.
+
+### FR-CHK-200 — A file a requirement names says so
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-080, FR-CHK-055]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+```
+
+Where an `implemented` or `partial` requirement names in its `code` or
+`tests` field a file the checker scans for annotations, the checker
+**shall** report as a warning a file that does not name that requirement
+back.
+
+**Rationale.** The forward half of this link has been checked since the
+beginning and the backward half never was, and the missing half is the one
+that decays. A field naming a path is the specification's claim that a
+requirement is realized there; the annotation is the file's own claim about
+why it exists, made by whoever is editing it. Only the second notices when
+a file is gutted, split or repurposed and stops deserving the entry that
+still points at it. Inverting the fields cannot supply it — that yields the
+requirements which claim the file, never whether the file agrees
+(ADR-0014).
+
+Four combinations, and each is somebody's: named and annotated is silent;
+named and not annotated is this rule; annotated and not named is
+FR-CHK-080's `annotation-unlisted`; neither is FR-CHK-210. The rule is
+written to the one row nothing covered.
+
+Scoped to the files the checker reads, because a `code` field names more
+than source. When this was written a fifth of this project's
+requirement-to-file pairs pointed at things no annotation belongs in: the
+standard it ships, every skill written in markdown, the CI templates, the
+generated matrix, and one entry that is a directory. A rule demanding a
+comment in `specs/README.md` would be answered by deleting the rule.
+
+Scoped to the two statuses that claim realization for the same reason
+FR-CHK-075 and FR-CHK-140 are: a `draft` carrying code is a harvested
+proposal, and a harvest that also has to be annotated before the maintainer
+has approved anything is a harvest nobody finishes.
+
+A warning rather than an error, and it carries a name so a project can
+lower or silence it (FR-CHK-160). The cost is not hypothetical: this
+project carried no annotation at all when the rule was written, so it fires
+once per in-scope pair on the day it ships — well over a hundred of them,
+thirty in a single file. That is a queue of mechanical work, not a defect —
+but a project meeting it mid-adoption must be able to decide when to take
+it, which is what the severity lever is for, and this project does exactly
+that in its own configuration until the queue is worked off.
+
+### FR-CHK-210 — A file neither end claims is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-080]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py, tools/srs_init.py]
+tests: [tests/checker-rules.sh, tests/adopt-smoke.sh, tests/installer-smoke.sh]
+```
+
+Where no requirement that has not been cancelled names a file under the
+configured code or test roots, and that file carries no annotation, the
+checker **shall** report it as a warning naming the file.
+
+**Rationale.** The matrix lists code files no requirement references and
+stops there, which makes the fact readable and never actionable; nothing at
+all is said about test files, so a suite nobody claims is invisible in both
+directions. A file neither end claims is either behaviour with no
+requirement behind it — the thing this framework exists to prevent — or a
+helper that will never have one.
+
+A cancelled requirement counts for neither end, and this is the case the
+rule exists for as much as the plainly orphaned file. Withdrawing a
+requirement leaves its code where it was; counting the dead `code` field as
+somebody naming the file would make a withdrawal the quietest way to take
+code out of sight, which is the opposite of what INV-SPEC-050 was for.
+
+Any annotation at all, rather than one that resolves. A file carrying
+`implements:` for a requirement that was cancelled, or never existed, has
+said something about itself and has already been answered by FR-CHK-080 —
+with the line and the identifier, which is more than this rule can give.
+Reporting it here as well would put two findings on one file, the second of
+them saying it claims nothing while the first quotes what it claims.
+
+Taken with FR-CHK-200 this amounts to every file under the roots accounting
+for itself, which is the state worth reaching and the wrong state to demand
+on the first day. A project adopting the framework has code in the
+thousands of files and requirements in the dozens; this rule fires on all
+of it, and a wall is not a queue. So an adopted target starts with it
+silenced in its configuration, and switching it on is what finishing the
+adoption means (ADR-0014). A fresh project has nothing to silence and
+starts strict.
+
+The per-requirement lever does not reach here, and cannot: the finding is
+about a file, and there is no requirement to write `exempt` in. A project
+that keeps fixtures and helpers under its test roots tunes this rule in its
+configuration or lives with the list — the same position `baseline-without-row`
+is in, and for the same reason.

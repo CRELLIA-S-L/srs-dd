@@ -60,8 +60,12 @@ When the target already has an SRS-shaped spec (numbered requirements in
 1. Read one or two of its requirement files. Infer the language, the
    modal verbs actually used (all their forms), the negation particle,
    the rationale marker, and note the areas in the identifiers.
-2. Build the lexicon lists and **confirm them with the user**, same as
-   fresh step 3.
+2. Build the lexicon lists and **confirm them with the user together with
+   the areas you read out of the identifiers** — both, and before anything
+   is installed. In the fresh path the areas are the user's own answer; here
+   they are your reading of somebody else's specification, and they are the
+   middle segment of every identifier that project will ever publish. Show
+   the list back and let them correct it, exactly as with the lexicon.
 3. Run the installer as in fresh step 4 (it will detect adopt mode; the
    discovered areas are its default, but pass `--areas` explicitly with
    what you saw). The installer validates the whole spec against the

@@ -24,11 +24,11 @@ say where to look, and the lexicon defines the modal verbs and the
    language, one bolded modal verb from the lexicon, `status: draft`,
    `verification` chosen honestly, `code` listing the real paths
    (`tests` only when matching tests actually exist — never invent
-   them), numbers in steps of 10.
+   them).
 3. **Judge the batch, then show it — BEFORE writing it.** Every drafted
    statement goes through the same judgement `srs-new` gives a new one,
    against the qualities `specs/README.md` requires of a statement, and
-   what you found is said alongside the batch (FR-SKILL-120). Mined
+   what you found is said alongside the batch. Mined
    statements are where this bites hardest — a sentence read off an `if`
    arrives sounding precise and describing how rather than what, and a
    batch is where a bad one is least likely to be noticed. Batching is
@@ -55,7 +55,10 @@ batches are approved — approve before pushing, or expect a red pipeline.
 - Describe only behavior that is actually in the code — do not invent,
   extrapolate, or "improve" while harvesting.
 - Behavior you cannot make sense of goes to `specs/91-open-issues.md`
-  (with the user's confirmation), not into a guessed requirement.
+  (with the user's confirmation), not into a guessed requirement. Say what
+  you tried and what the open question is: an entry that only records that
+  something was confusing hands the reading back to somebody with less
+  context than you had.
 - Do not flip statuses yourself — approval is the maintainer's act.
 - Do not run builds or tests (ART-030 of the constitution); harvesting
   is reading.

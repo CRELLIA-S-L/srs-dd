@@ -42,16 +42,34 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, specs/README.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, specs/README.md]
 tests: []
 ```
 
-The skills **shall** point at `specs/README.md` for the markup rules instead
-of restating them.
+The skills **shall** point at `specs/README.md` for the markup rules rather
+than restating what that document defines.
 
 **Rationale.** Two copies of the same rule diverge, and the copy an agent
 happens to read wins — which is the failure mode this whole framework exists
 to prevent.
+
+What is forbidden is a second definition, not a second mention. This read as
+an absolute ban on saying anything the standard also says, and under that
+reading step 4 of `srs-new` stood in violation of it, recorded as an open
+question rather than fixed: it names the qualities a statement owes — one capability, verifiable, unambiguous, about
+behaviour — which `specs/README.md` owns under *How to phrase*. Cutting it
+to a pointer would have left the step that teaches the judgement saying
+nothing about it, because the passage is not a list. It says what the
+checker proves and what it cannot see, gives an agent the sentences to say
+back — "this names two capabilities, I would split it" — and argues why no
+word list would serve instead. That is teaching, and it belongs where the
+teaching happens.
+
+The line is where a reader would go looking. A procedure that says what the
+form is — which keys a block carries, what the statuses are, how a link
+field is spelled — is writing a second standard, and a project that edits
+one of them gets two answers. A procedure explaining why a rule exists, or
+drilling the reader on applying it, is doing its own job.
 
 ### FR-SKILL-030 — Harvesting proposes, the maintainer approves
 
@@ -302,7 +320,7 @@ branch so a link may already exist.
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-SKILL-090]
+depends_on: [FR-SKILL-090, INV-SPEC-060]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]
@@ -389,6 +407,52 @@ Inspection rather than test, because what is verified is that a procedure
 written for a person says these things. No suite here runs a dialog, and one
 that asserted the wording would be a copy of the file rather than a check on
 it.
+
+### FR-SKILL-170 — An observation is reported as a finding only once it is one
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-160]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-harvest/SKILL.md]
+tests: []
+```
+
+Before reporting something as a finding, the procedure doing so **shall**
+establish what follows from it, and say so with the finding or drop it.
+
+**Rationale.** An agent reading a specification notices far more than
+matters: a count that looks stale, a file in an odd place, a flag no
+statement names. Reported as they come, each arrives at the maintainer as
+homework — read this, work out whether it means anything. A list of those is
+worse than a short list, because the reader cannot tell the two kinds apart
+and starts skimming both.
+
+The test is a sentence the reporter has to be able to finish: *therefore*.
+Therefore this must be fixed; therefore this is deliberate and here is why;
+therefore nobody can tell without a decision that is the maintainer's. All
+three are findings. What is not a finding is an observation with no
+therefore — and the cost of writing one is paid by the reader, which is why
+the rule sits on the reporter.
+
+"Cannot tell" stays a legitimate answer and is not an escape from this: it
+is a finding whose consequence is *a decision is needed*, and it is reported
+with the options. What it may not become is a place to put anything
+unresolved — the difference is whether the reporter looked and could not
+settle it, or did not look.
+
+This is FR-SKILL-160 one step up. That one refuses to call a test proof
+until the edit that would redden it is named; this refuses to call an
+observation a finding until its consequence is named. Both replace a feeling
+that something is wrong with a statement that can be checked, and both put
+the work on the side that has the context — which is never the reader.
+
+Verified by inspection, like every requirement about what a procedure says.
+No suite runs a dialog, and one that asserted the wording would be a copy of
+the file rather than a check on it.
 
 ### FR-SKILL-160 — A test counts as proof only if it could fail
 

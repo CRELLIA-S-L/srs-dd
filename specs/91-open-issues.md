@@ -125,8 +125,8 @@ in a column, and a gap at exactly the requirement worth noticing: one that
 rests on nothing and that nothing needs.
 
 **Why it is recorded rather than fixed:** this specification has no such
-requirement — all 95 carry at least one link — so nothing that ships is
-wrong. What is unresolved is what a project in that position should see,
+requirement — every one of them carries at least one link, which the
+`unlinked` rule keeps true — so nothing that ships is wrong. What is unresolved is what a project in that position should see,
 and the answer is not obvious: a fresh install spends its first weeks with
 a specification that is mostly unlinked, and a drawing that reserved a row
 for every one of them would be tall and empty at exactly the moment it is
@@ -143,27 +143,118 @@ asking about is a poor candidate for a lane of its own.
 in their lane as islands, or keep the drawing to what has links and say so
 on the page next to the count of what was left out.
 
-## A procedure spells out a rule that belongs to specs/README.md
+## One requirement annotated twice in a file cannot be judged from the file
 
-**Found:** while building FR-SKILL-120 into the remaining procedures
-(2026-08-11).
+**Found:** while considering a rule against it (2026-08-17).
 
-**What diverged:** FR-SKILL-020 has the skills point at `specs/README.md`
-for the rules instead of restating them, and step 4 of `srs-new` restates
-one — the qualities a statement is obliged to have, which
-`specs/README.md` owns under *How to phrase*. When the judgement was
-extended to `srs` and `srs-harvest` both were written to point rather than
-repeat; `srs-new` was left as it stood, so the framework now names those
-qualities in three places, one of which is FR-SKILL-120's own statement.
+**What diverged:** nothing yet — this is a rule proposed and left unbuilt,
+recorded so the reasoning is not lost. Two `implements:` lines naming one
+requirement in one file are noise when they mark the same thing twice, and
+correct when the requirement is realized in two places. The checker knows
+only the path, so it cannot tell those apart.
 
-**Why it is recorded rather than fixed:** the passage is not a list. It
-says what the checker proves and what it cannot see, gives an agent the
-sentences to say back — "this names two capabilities, I would split it" —
-and argues why no word list would serve instead. Cutting it to a pointer
-would leave the step that teaches the judgement saying nothing about it.
-And the third naming is a requirement rather than a document, which is the
-one place a rule is supposed to live.
+The evidence says the noise is not what is there. All seven duplicates in
+this repository are the honest kind: FR-INIT-080 marks installing the hook
+beside an existing one and saying so; FR-INIT-110 marks deciding which
+upgrade notes apply and printing them; FR-INIT-140 marks computing the
+framework address and recording it; FR-VIEW-040 and FR-VIEW-210 each mark a
+computation and its rendering; IF-SPEC-010 marks the parser and the
+tolerance of an unknown key; FR-CHK-150 marks the isolation rule and the
+exemption cancelled requirements have from it. A rule warning on all of
+them would fire seven times on the first run with nothing wrong, and be
+silenced — which is what FR-CHK-160 argues makes a rule worthless.
 
-**Decision needed:** accept the passage as teaching text and narrow
-FR-SKILL-020, which today reads as absolute, or cut it to a pointer and
-accept a step 4 that only refers.
+Finer granularity is the way out and is closed: telling a block from a file
+means understanding the structure of the code, and the checker is
+language-neutral by construction — the same rule has to work in a project
+written in Swift.
+
+A narrow reading works and is nearly empty. A requirement named twice
+inside one uninterrupted run of comment lines is unambiguously one entity,
+needs no understanding of code, and occurs zero times here. It would catch
+a duplicated paste and nothing else.
+
+**Decision needed:** write the narrow rule as a guard that will rarely
+speak — the position FR-CHK-030 is in — or accept that a duplicate
+annotation is the author's business and close this.
+
+## FR-INIT-060 carries two obligations under one number
+
+**Found:** while putting the standard into the precious bucket (2026-08-18).
+
+**What diverged:** the statement says the installer refreshes the checker,
+the viewer and the skills without a flag, *and* that files which may be the
+project's own are refreshed only with `--force` and only when marked. Two
+capabilities, one identifier, one `verification` field, one status. It reads
+as a single sentence because the second half is written as a `while` clause,
+which is a subordinate grammatical form doing the work of a second
+requirement.
+
+Nothing about this is new — the compound has stood since the requirement was
+written — but 0.14.0 added the standard to the second half, so the number now
+answers for one more thing than it did.
+
+The cost is not tidiness. A test proving the first half says nothing about
+the second, and the status is a single word for both: `implemented` was true
+of this requirement while its second half had a gap the size of the standard,
+which is exactly how that gap survived to 0.14.0 unseen.
+
+**Decision needed:** split it into two requirements — the second one taking a
+new number, since identifiers are never reused — or leave the compound and
+accept that its status and its tests speak for two behaviours at once.
+
+## A project that adopted the framework never receives the standard
+
+**Found:** while making upgrades refresh the standard (2026-08-18).
+
+**What diverged:** `--mode adopt` deliberately keeps a project's own
+`specs/README.md` (FR-INIT-040), and the file it keeps carries no
+`SRS-DD-<version>` marker — so `--force` will not replace it either, now or
+ever. Verified end to end: adopt on a project whose `specs/README.md` says
+"We follow the SRS-DD standard", then `--force`, answers `specs/README.md
+(no SRS-DD marker — not ours, merge manually)` and leaves the file alone.
+
+That refusal is correct in itself. What follows from it is that such a
+project has no copy of the standard at all, while the skills installed
+alongside cite its sections by name — a licence `CON-SPEC-020` grants on the
+grounds that the standard is the same document in every project. For an
+adopted project it is no document at all. The installer says one advisory
+line about merging, once, at adopt time.
+
+**Decision needed:** install the standard beside theirs under a name that
+cannot collide, so the citations resolve; or drop the citations from the
+shipped procedures and let them explain themselves; or accept that adopted
+projects merge the standard by hand and say so where it will be read twice
+rather than once.
+
+## A procedure states what another procedure does without reading it
+
+**Found:** twice in one session, while reviewing the 0.14.0 work
+(2026-08-18).
+
+**What diverged:** an agent reported that the `## [X.Y.Z]` changelog section
+"is written by a person" and belongs to the maintainer. It does not: step 3
+of `srs-release` drafts it, and the description line of that skill says so in
+so many words. The claim was inferred from the refusal message in
+`tools/srs_release.py`, which only says the section is missing. The same
+agent had earlier reported that the template section of the `srs` skill could
+not be removed without loss, and withdrew it two rounds later on discovering
+that nothing referenced it — again a claim about this project's own files,
+made without opening them.
+
+Neither is covered by what exists. FR-SKILL-160 binds a claim that a test
+proves something; FR-SKILL-170 binds a claim that an observation is a
+finding, and demands its consequence. Both leave alone the plainest kind of
+claim there is: what a procedure prescribes, what a file contains, who
+performs a step. Those are read in seconds and were not read.
+
+Adding a summary of each procedure somewhere central was considered and
+rejected while writing this entry: every skill's `description` already
+carries one, `srs-release`'s already names the drafting step, and a second
+copy inside another skill is what FR-SKILL-020 forbids. The gap is not in
+what is available to read.
+
+**Decision needed:** write a third requirement in that family — a procedure
+asserting what another procedure does, or what a file holds, reads it first
+— or accept that this is a matter of care rather than of rule, and that the
+two existing members of the family draw the line where it can be drawn.

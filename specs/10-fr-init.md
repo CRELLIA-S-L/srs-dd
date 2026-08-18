@@ -122,14 +122,34 @@ tests: [tests/installer-smoke.sh]
 ```
 
 When run against an initialized target, the installer **shall** refresh the
-checker, the viewer and the skills without a flag, while files a project
-commonly owns — CI configuration, the agent guides, `.gitattributes`, the
-hook — are refreshed only with `--force` and only when they carry the SRS-DD
-marker.
+checker, the viewer and the skills without a flag, while files that may be
+the project's own — CI configuration, the agent guides, `.gitattributes`,
+the hook, the specification standard — are refreshed only with `--force` and
+only when they carry the SRS-DD marker.
 
 **Rationale.** Tooling has to move with the framework or targets drift;
 everything a maintainer has edited must not, and the marker is how we tell a
 file we installed from one they wrote.
+
+The standard was in neither list until 0.14.0, so it was installed once and
+never moved again: a project set up at 0.7.0 and upgraded since ran the
+current checker and the current skills against a standard 112 lines out of
+date. That is worse than a stale CI file, because `CON-SPEC-020` lets a
+shipped procedure cite the standard's sections by name on the grounds that
+it is the same document in every project — a claim nothing maintained.
+
+It joins the second list rather than the first because adopt deliberately
+keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing
+without a flag would undo that at the first upgrade. So the characterization
+widened: "commonly owns" was true of CI files and agent guides, and the
+standard is not something anyone writes for themselves — it is merely a file
+that may already be theirs.
+
+The marker carries the framework version — `SRS-DD-0.14.0`, matched as a
+pattern — because the bare name appears in ordinary prose. A project that
+adopted the framework and wrote "we follow the SRS-DD standard" in its own
+`specs/README.md` would otherwise be told its document is ours and have it
+replaced.
 
 ### FR-INIT-070 — A dry run writes nothing and tells the truth
 

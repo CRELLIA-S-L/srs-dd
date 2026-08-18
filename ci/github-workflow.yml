@@ -1,4 +1,4 @@
-# SRS-DD specification gate.
+# SRS-DD-VERSION specification gate.
 # Template copied into target projects as .github/workflows/srs.yml by
 # tools/srs_init.py.
 

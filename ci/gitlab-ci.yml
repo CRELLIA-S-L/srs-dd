@@ -1,4 +1,4 @@
-# SRS-DD specification gate.
+# SRS-DD-VERSION specification gate.
 # Template copied into target projects as .gitlab-ci.yml by
 # tools/srs_init.py. If your project already has a .gitlab-ci.yml, merge
 # the job below into it instead.

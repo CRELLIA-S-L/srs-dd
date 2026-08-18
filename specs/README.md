@@ -1,4 +1,5 @@
 # Specification
+<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
 This describes what the system is obliged to do. It is the single normative
 document on how the specification is maintained: if a rule here contradicts
@@ -112,7 +113,7 @@ undo history noisy.
 | `depends_on` | no | list of identifiers | What it is meaningless without |
 | `conflicts_with` | no | list of identifiers | What it deliberately diverges from (a trade-off) |
 | `superseded_by` | no | one identifier | Only with `status: superseded` |
-| `code` | no | list of paths | Where it is implemented. Mandatory for `implemented` |
+| `code` | no | list of paths | Where it is realized. Mandatory for `implemented` and `partial` |
 | `tests` | no | list of paths | What verifies it |
 | `exempt` | no | list of rule names | Rules this requirement is excused from — see *Configuration* |
 
@@ -152,8 +153,9 @@ Any of those states may instead end at `withdrawn`.
 - `draft` — recorded but not yet approved. Only the maintainer flips it to
   `deferred`.
 - `deferred` — approved, awaiting implementation.
-- `partial` / `implemented` — being realized; `implemented` requires a
-  filled `code` field.
+- `partial` / `implemented` — being realized; both require a filled `code`
+  field, since they differ by how much is built and not by whether anything
+  is.
 - `superseded` — cancelled with a successor (see *Identifier*).
 - `withdrawn` — cancelled with nothing to replace it, and therefore
   carrying no `superseded_by`. The requirement stays where it is and its
@@ -192,6 +194,25 @@ A requirement is obliged to be:
 - **unambiguous** — no “fast”, “convenient”, “if possible”;
 - **about what, not how** — implementation lives in code, only behavior
   lives here.
+
+Singular is the one that gets misread, because the checker enforces the
+easy half of it. One bolded verb is a rule a script can apply, and two
+verbs are two requirements — but a single verb carrying a list of objects
+is just as compound and nothing catches it. “The viewer **shall** render
+the specification into a page — search, filters, a dashboard and a graph —
+that requests nothing over the network” is one verb and five obligations,
+and there is no answer to what “it passes” would mean for it: three of the
+five can be built and verified while the statement stands satisfied on
+paper. Where you find one, split — a requirement per obligation, each with
+its own number, its own links and its own `tests`.
+
+A list on its own is not the tell, and treating it as one would split most
+of a healthy specification. “Report a link that does not resolve or that
+names its own requirement” is one act over two cases; so is a list of exit
+codes, where splitting would destroy the only claim a caller relies on —
+that these are all of them. Ask instead whether the items are separable:
+could each be built and called done while the others were missing, with a
+reader unable to tell? That is the compound one.
 
 A rationale is written whenever the decision is not obvious. It answers “why
 this way”, and six months later it is the only thing that saves you from
