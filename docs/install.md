@@ -79,10 +79,13 @@ as `.githooks/pre-commit.srs-dd`.
 
 ## Precious files
 
-CI config, `CLAUDE.md`/`AGENTS.md`, `.gitattributes` and the hook are
-"precious": they are refreshed only with `--force`, and only when the
-existing file carries the `SRS-DD` marker. A file the installer did not
-write is never overwritten.
+CI config, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the hook and
+`specs/README.md` — the standard — are "precious": they are refreshed only
+with `--force`, and only when the existing file carries the installer's
+marker, a line reading `SRS-DD-<version>`. A file the installer did not
+write is never overwritten; the version is part of the marker because the
+bare name turns up in ordinary prose, and a standard of your own that
+mentions SRS-DD must not be mistaken for ours.
 
 ## Manual fallback
 

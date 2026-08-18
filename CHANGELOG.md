@@ -11,6 +11,131 @@ embedded in `tools/srs_check.py` as `__version__`.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.14.0] — 2026-08-18
+
+### Added
+
+- The annotation check works in both directions now. A file a requirement
+  names in its `code` or `tests` field is expected to carry `implements:`
+  or `verifies:` for that requirement, and a file neither the
+  specification nor an annotation claims is reported by name. Both are
+  warnings, `annotation-unpaired` and `annotation-absent`, so a project
+  decides when to take the queue (FR-CHK-200, FR-CHK-210, ADR-0014).
+- A path a requirement names is checked to exist by a rule of its own. It
+  was stated inside the rule that obliges a realized requirement to name
+  something, and a stale path turns the traceability matrix into fiction
+  whether or not the field is empty (FR-CHK-055).
+- The rendered page lists what outlived a cancelled requirement. A live
+  requirement still deriving from it, a file its `code` field named that
+  nothing live claims now, an annotation still naming it: three rules
+  report these one line at a time to whoever ran the checker, and the
+  reviewer being asked to approve the cancellation reads the page
+  (FR-VIEW-210).
+- The JSON the viewer emits is a published interface now. What is promised
+  is every requirement with the fields of its block, where it was read
+  from, and the reverse links computed for it; two suites already parsed
+  it, one of them the guard that no requirement of this framework leaks
+  into a target (IF-VIEW-010).
+- Narrowing the list of requirements is stated rather than implemented.
+  The viewer has filtered over metadata and over text since it was
+  written, which made it the one behaviour here that could have been
+  deleted without a requirement noticing (FR-VIEW-220).
+- A rule name the checker has published keeps its meaning. It is never
+  renamed and never given to a different rule: those names are a
+  vocabulary other people's `specs/srs-config.json` and `exempt` fields are
+  written in, and a rename breaks them by refusing to start (IF-SPEC-020).
+- A requirement states exactly one obligation. The mechanical half is the
+  two-verb rule the checker already enforces; the half no script reaches —
+  one verb carrying a list of separable objects — is held by whoever writes
+  and reviews a statement (INV-SPEC-060).
+- A suite asserting something is absent has to be able to fail
+  (FR-CI-080).
+- A suite working on a target leaves its own repository's git state alone.
+  What it creates under `/tmp` is its business; the repository it was
+  started from is not (FR-CI-090).
+- An observation is reported as a finding only once it is one. The
+  procedure reporting it establishes what follows and says so with the
+  finding, or drops it: an agent reading a specification notices far more
+  than matters, and a list that mixes the two is skimmed entirely
+  (FR-SKILL-170).
+
+### Changed
+
+- The installer refreshes the standard, `specs/README.md`, under `--force`.
+  It moves with the framework now instead of staying at whatever version
+  installed it, and it joins the files a project may already own rather
+  than the tooling, because adopt deliberately keeps a project's own copy
+  and refreshing without a flag would undo that at the first upgrade
+  (FR-INIT-060).
+- The marker on an installed file now carries the framework version.
+  `SRS-DD-<version>`, matched as a pattern, because the bare name turns up
+  in ordinary prose (FR-INIT-060).
+- A `partial` requirement with an empty `code` field is now an error. It is
+  what `implemented` already was: the two statuses differ by how much is
+  built, not by whether anything is (FR-CHK-050).
+- A cancelled requirement no longer hides the code its `code` field named.
+  The proportion of source files no requirement references counts only
+  requirements that have not been cancelled (FR-VIEW-040).
+- The checker's exit codes state the condition for exiting 0. It is no
+  error, and under `--strict` no warning either — which was true before
+  and left implied (IF-CI-020).
+- Links are recorded in one direction between two requirements. That is
+  what the rule always meant and not what it said (INV-SPEC-020).
+- The skills point at the standard rather than restating it. The
+  requirement template went out of the `srs` skill, where it was a second
+  copy of the markup rules that nothing referenced (FR-SKILL-020).
+- The standard-library-only promise is made of every Python tool. It names
+  all six, the three commands added since it was written included
+  (NFR-SPEC-010).
+
+### Fixed
+
+- Ten assertions in the test suites could not fail. Each was written
+  `! grep -q PATTERN file`, and POSIX exempts a command negated with `!`
+  from `set -e`, so the suite walked past whether the pattern was there —
+  including the checks that `--up` prints no downward subtree, that a
+  shallow clone offers no baseline picker, and that a refused baseline left
+  no row behind (FR-CI-080).
+- The suites no longer write into the index of the commit being prepared.
+  A pre-commit hook exports `GIT_INDEX_FILE` and `GIT_DIR`, every suite
+  inherited them, and a `git add -A` meant for a throwaway target under
+  `/tmp` staged that target's paths into this repository's commit; `git
+  commit` then answered "invalid object … Error building trees" with no
+  hint why (FR-CI-090).
+
+### Upgrade notes
+
+- Two new warnings may report on your project the first time you upgrade.
+  `annotation-unpaired` names a requirement whose `code` or `tests` field
+  points at a file that does not carry `implements:` or `verifies:` for
+  it; `annotation-absent` names a file under your code or test roots that
+  no requirement references and that claims nothing itself. Both are
+  warnings, so only a `--strict` gate fails on them. Lower or silence
+  either in `specs/srs-config.json` under `rules`, and excuse
+  `annotation-unpaired` for one requirement with
+  `exempt: [annotation-unpaired]` in its own block. A project that adopted
+  the framework starts with `annotation-absent` set to `off`, because that
+  rule fires on every unclaimed file in a codebase of thousands; switching
+  it on is what finishing the adoption means.
+- A requirement with status `partial` and an empty `code` field now fails
+  the checker where it used to pass. Only `implemented` was an error
+  before. Fill the field with the files carrying the part that is built,
+  or move the requirement to `deferred`, which is the status for approved
+  and not begun.
+- `--force` does not recognize the files it installed in a project set up
+  before this release, and says so: `.gitattributes`, `.githooks/pre-commit`
+  and `specs/README.md` are reported as "no SRS-DD marker — not ours, merge
+  manually" and left alone. The marker the installer looks for now carries
+  a version and the files earlier releases wrote carry the bare name. To
+  hand those files back: in `.gitattributes` and in `.githooks/pre-commit`,
+  change `SRS-DD` to `SRS-DD-0.14.0` in the comment on the first lines; in
+  `specs/README.md`, which earlier releases installed with no marker at
+  all, insert `<!-- SRS-DD-0.14.0 — installed by the framework; --force
+  overwrites local edits -->` as the second line. `--force` refreshes all
+  three from then on and keeps the marker current by itself. Check what a
+  refresh would overwrite with `--dry-run` first if you have edited any of
+  them.
+
 ## [0.13.0] — 2026-08-12
 
 ### Added

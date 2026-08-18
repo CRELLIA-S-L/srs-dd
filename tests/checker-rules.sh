@@ -692,6 +692,26 @@ silent "FR-CHK-210 does not call a claiming file unclaimed" 1 \
        "dropped.py — no requirement names"
 rm -f "$LAB/src/dropped.py" "$LAB/src/app.py" "$LAB/t/probe.py"
 
+# The other end of the same line, and the one the rule was written around:
+# a file a live requirement names is FR-CHK-200's business however bare it
+# is. Saying "no requirement names this file" of a file a requirement names
+# would be the doubled finding again, and this half of it false. Worth a
+# fixture of its own because the state is not exotic — it is every project's
+# before its annotations are written, and was this repository's for 174
+# pairs until ADR-0014. It runs after the clean-up above: the fixture before
+# it leaves an unresolvable annotation behind, which makes the checker exit
+# 1 over something this one is not about.
+printf 'x = 1\n' > "$LAB/src/named.py"
+spec < <(block FR-CORE-010 "Names a file that stays bare" \
+               "$(printf '%s' "${META/status: deferred/status: implemented}" \
+                  | sed 's|^code: \[\]$|code: [src/named.py]|')" \
+               'The system **shall** act.')
+rule "FR-CHK-210 leaves a named file to FR-CHK-200" 0 \
+     "FR-CORE-010 names src/named.py in code and the file does not carry"
+silent "FR-CHK-210 does not call a named file unclaimed" 0 \
+       "src/named.py — no requirement names this file"
+rm -f "$LAB/src/named.py"
+
 # --- verifies: IF-SPEC-020 — a published rule name keeps its meaning. The names are
 # --- written into somebody else's `specs/srs-config.json` and into `exempt`
 # --- fields in their requirements, and a renamed one has no retired table to
@@ -785,7 +805,16 @@ rm -rf "$LAB4"; mkdir -p "$LAB4/target"
 ( cd "$LAB4/target" && git init -q . && printf 'x\n' > only-here.txt )
 git rev-parse --git-dir >/dev/null 2>&1 \
     || { echo "FAIL FR-CI-090 — not a git repository"; exit 1; }
-cp "$(git rev-parse --git-dir)/index" "$LAB4/index"
+# A repository is not enough: `git init` writes no index until something is
+# staged, and this fixture needs a real one to hand down. Without the guard
+# the `cp` below fails under `set -e` and the suite dies saying only
+# "No such file or directory" — an assertion that cannot report, which is
+# the shape FR-CI-080 exists to forbid.
+stand_in="$(git rev-parse --git-dir)/index"
+[ -f "$stand_in" ] \
+    || { echo "FAIL FR-CI-090 — no index to hand down; stage something first"
+         exit 1; }
+cp "$stand_in" "$LAB4/index"
 cksum < "$LAB4/index" > "$LAB4/before"
 
 # Inherited, as a hook leaves it: the target's file lands in the index it

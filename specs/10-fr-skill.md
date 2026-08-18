@@ -42,7 +42,7 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, specs/README.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, specs/README.md]
 tests: []
 ```
 

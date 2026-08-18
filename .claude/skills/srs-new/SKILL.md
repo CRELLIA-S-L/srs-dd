@@ -13,11 +13,10 @@ lexicon.
 
 1. **What behavior?** One capability per requirement. If the user
    describes two, say so and split.
-2. **Type and area.** `FR`/`NFR`/`IF`/`INV`/`CON`; the area comes from the
-   `areas` list in `specs/srs-config.json`. Propose both, let the user
-   confirm.
-3. **Number.** The next free one in steps of 10 within the area — check
-   the target file (see the map in `specs/README.md`).
+2. **Type and area.** The area comes from the `areas` list in
+   `specs/srs-config.json`. Propose both, let the user confirm.
+3. **Number.** The next free one in the area — check the target file
+   (see the map in `specs/README.md`).
 4. **Statement.** Pick the EARS pattern from the How-to-phrase table in
    `specs/README.md`; use a modal verb from the project lexicon
    (`modal_verbs`) and write in the lexicon's language — the lexicon in
@@ -61,8 +60,8 @@ lexicon.
    later — when the requirement is built and somebody has to write a test
    that cannot be written. Here the sentence and the method are on the
    table together, which is the one moment the question costs nothing.
-6. **Links.** `derives_from` / `depends_on` / `refines` /
-   `conflicts_with` — propose candidates from neighboring requirements.
+6. **Links.** Propose candidates from neighboring requirements for each
+   link field.
 7. **Initial status.** Per the Lifecycle section of `specs/README.md`.
 8. **Rationale.** Ask why this way, if the answer is not obvious; write it
    down.

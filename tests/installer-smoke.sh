@@ -210,6 +210,37 @@ python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
 grep -qF "no SRS-DD marker" /tmp/precious-mine.log
 grep -q "not ours at all" /tmp/srs-precious/.gitattributes
 
+# The standard is precious too, and that is the half of FR-INIT-060 that
+# was missing until 0.14.0: it was installed once and never moved again,
+# so a project set up at 0.7.0 ran the current tooling against a standard
+# 112 lines out of date. It joins the precious files rather than the
+# tooling because adopt leaves a project its own on purpose (FR-INIT-040).
+printf 'ours, edited\n' >> /tmp/srs-precious/specs/README.md
+python3 tools/srs_init.py /tmp/srs-precious --defaults > /tmp/std-keep.log
+grep -qF "specs/README.md (use --force to refresh)" /tmp/std-keep.log
+grep -q "ours, edited" /tmp/srs-precious/specs/README.md
+
+python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
+    > /tmp/std-force.log
+if grep -q "ours, edited" /tmp/srs-precious/specs/README.md; then
+    echo "--force did not refresh the standard"
+    exit 1
+fi
+grep -qE "SRS-DD-[0-9]+\.[0-9]+\.[0-9]+" /tmp/srs-precious/specs/README.md
+
+# The version is what makes the marker a marker, and the standard is where
+# that matters: skeleton/AGENTS.md teaches the sentence "the project follows
+# the SRS-DD standard", so a project that adopted the framework and wrote a
+# standard of its own is likely to carry the bare name. Matched loosely, its
+# document would be read as ours and replaced — undoing exactly what adopt
+# preserved.
+printf '# Our own notes\n\nWe follow the SRS-DD standard.\n' \
+    > /tmp/srs-precious/specs/README.md
+python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
+    > /tmp/std-mine.log
+grep -qF "specs/README.md (no SRS-DD marker" /tmp/std-mine.log
+grep -q "Our own notes" /tmp/srs-precious/specs/README.md
+
 # verifies: IF-CI-010
 # The installer's exit codes are a contract. The adopt suite
 # covers 0, 2 and 3; 1 — the checker found errors in the target — was

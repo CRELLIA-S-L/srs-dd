@@ -23,8 +23,9 @@ Three modes, detected automatically:
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
 files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
-hook) — and only when the existing file carries the "SRS-DD" marker; a
-file the installer did not install is never overwritten.
+hook, specs/README.md) — and only when the existing file carries the
+"SRS-DD-<version>" marker; a file the installer did not install is never
+overwritten. The project's requirements are never touched under any flag.
 
 `--dry-run` writes nothing in any mode and prints the created /
 refreshed / skipped list the real run would produce, so the change can
@@ -97,6 +98,18 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 # there. It carries no requirements (srs_check.SKIP_FILES), so nothing
 # framework-specific can leak through it.
 SPEC_STANDARD = os.path.join("specs", "README.md")
+
+# implements: FR-INIT-060
+# How the installer tells a file it wrote from one the project wrote.
+# Shipped files carry the token; `copy` stamps the running version into
+# it on the way out, and `carries_marker` looks for the stamped shape.
+# The version is what makes the marker a marker: the bare name turns up
+# in ordinary prose — skeleton/AGENTS.md teaches the sentence "the
+# project follows the SRS-DD standard" — and a project that wrote that
+# in a file of its own would have it read as ours and overwritten.
+MARKER_TOKEN = "SRS-DD-VERSION"
+MARKER = "SRS-DD-" + __version__
+RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
 TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
@@ -183,7 +196,8 @@ def parse_args():
     parser.add_argument("--force", action="store_true",
                         help="also refresh existing SRS-DD-marked precious "
                              "files (CI config, CLAUDE.md/AGENTS.md, "
-                             ".gitattributes, the pre-commit hook); a hook "
+                             ".gitattributes, the pre-commit hook, "
+                             "specs/README.md); a file "
                              "without the marker is still never touched; "
                              "the checker and skills are "
                              "refreshed without it in adopt/upgrade modes; "
@@ -260,11 +274,12 @@ class Installer(object):
     def carries_marker(self, dst_rel):
         """Whether the target's copy of this file is one of ours. The
         marker is how the installer tells its own files from a
-        project's; a file without it is never overwritten."""
+        project's; a file without it is never overwritten. Any version
+        counts — the question is who wrote the file, not when."""
         try:
             with open(os.path.join(self.target, dst_rel), "r",
                       encoding="utf-8", errors="replace") as handle:
-                return "SRS-DD" in handle.read()
+                return RE_MARKER.search(handle.read()) is not None
         except OSError:
             return False
 
@@ -274,10 +289,11 @@ class Installer(object):
 
         Existing tooling files are refreshed in adopt/upgrade modes (or
         with --force); existing specification content is never
-        overwritten. `precious` marks files a project commonly owns
-        already (CI config, agent docs): those are refreshed only when
-        --force is given AND the existing file carries the "SRS-DD"
-        marker — a file we did not install is never clobbered.
+        overwritten. `precious` marks files that may already be the
+        project's own (CI config, agent docs, and the standard, which
+        adopt leaves them): those are refreshed only when --force is
+        given AND the existing file carries the marker — a file we did
+        not install is never clobbered.
         """
         dst = os.path.join(self.target, dst_rel)
         exists = os.path.exists(dst)
@@ -317,6 +333,14 @@ class Installer(object):
         src = os.path.join(ROOT, src_rel)
         with open(src, "rb") as handle:
             raw = handle.read()
+        # Stamped here rather than at the call sites: every precious file
+        # arrives through this method, and threading the version through
+        # six `substitute` dictionaries would leave the seventh unstamped
+        # and unrecognizable. Byte-level, so a file this does not concern
+        # is never decoded.
+        if MARKER_TOKEN.encode("utf-8") in raw:
+            raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
+                              MARKER.encode("utf-8"))
         if substitute:
             text = raw.decode("utf-8")
             for old, new in substitute.items():
@@ -1071,6 +1095,13 @@ def run_upgrade(args, target):
 
     install_tools(installer)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
+                   precious=True)
+    # implements: FR-INIT-060
+    # The standard moves with the framework like the tooling does, but
+    # under --force: adopt leaves a project its own specs/README.md on
+    # purpose (FR-INIT-040), and refreshing unasked would undo that at
+    # the first upgrade.
+    installer.copy(SPEC_STANDARD, SPEC_STANDARD, tooling=True,
                    precious=True)
     install_skills(installer, substitute=None)
     if args.ci:

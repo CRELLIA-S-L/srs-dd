@@ -24,7 +24,7 @@ say where to look, and the lexicon defines the modal verbs and the
    language, one bolded modal verb from the lexicon, `status: draft`,
    `verification` chosen honestly, `code` listing the real paths
    (`tests` only when matching tests actually exist — never invent
-   them), numbers in steps of 10.
+   them).
 3. **Judge the batch, then show it — BEFORE writing it.** Every drafted
    statement goes through the same judgement `srs-new` gives a new one,
    against the qualities `specs/README.md` requires of a statement, and

@@ -70,7 +70,7 @@ Total requirements: 106.
 | **FR-INIT-150** A fresh install says what to do first | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-160** An upgrade says what arrived, not only what to do | `implemented` | T | `tools/srs_init.py` | `tests/upgrade-smoke.sh` |
 | **FR-SKILL-010** The everyday loop | `implemented` | I | `.claude/skills/srs/SKILL.md` | — |
-| **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`specs/README.md` | — |
+| **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`specs/README.md` | — |
 | **FR-SKILL-030** Harvesting proposes, the maintainer approves | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
 | **FR-SKILL-040** Setup brings two decisions back to the maintainer | `implemented` | I | `.claude/skills/srs-init/SKILL.md` | — |
 | **FR-SKILL-050** An audit reports, it does not repair | `implemented` | I | `.claude/skills/srs-audit/SKILL.md` | — |

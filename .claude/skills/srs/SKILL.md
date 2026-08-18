@@ -198,35 +198,6 @@ The plan lives in the conversation. Do not write it into `specs/` or
 anywhere else — the specification records what the system does, not the
 work queue; and a plan is not approval: statuses are (ART-020).
 
-## Template
-
-The file is chosen by area — see the map in `specs/README.md`. The statuses
-and the verbs come from `specs/README.md` and the project lexicon in
-`specs/srs-config.json`; the template below shows the default English
-lexicon.
-
-````markdown
-### FR-CORE-050 — Short one-line title
-
-```yaml
-status: deferred
-verification: T
-derives_from: [FR-CORE-010]
-depends_on: []
-refines: []
-conflicts_with: []
-code: []
-tests: []
-```
-
-When `<event>`, the system **shall** `<action>`.
-
-**Rationale.** Why this way and not the obvious alternative.
-````
-
-The number is the next free one in steps of 10 within the area. Occupied
-numbers are visible in the same file.
-
 ## Prohibitions
 
 The list lives in the What-not-to-do section of `specs/README.md` — it is

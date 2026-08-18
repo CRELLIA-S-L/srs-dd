@@ -1,4 +1,5 @@
 # Specification
+<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
 This describes what the system is obliged to do. It is the single normative
 document on how the specification is maintained: if a rule here contradicts

@@ -177,3 +177,84 @@ a duplicated paste and nothing else.
 **Decision needed:** write the narrow rule as a guard that will rarely
 speak — the position FR-CHK-030 is in — or accept that a duplicate
 annotation is the author's business and close this.
+
+## FR-INIT-060 carries two obligations under one number
+
+**Found:** while putting the standard into the precious bucket (2026-08-18).
+
+**What diverged:** the statement says the installer refreshes the checker,
+the viewer and the skills without a flag, *and* that files which may be the
+project's own are refreshed only with `--force` and only when marked. Two
+capabilities, one identifier, one `verification` field, one status. It reads
+as a single sentence because the second half is written as a `while` clause,
+which is a subordinate grammatical form doing the work of a second
+requirement.
+
+Nothing about this is new — the compound has stood since the requirement was
+written — but 0.14.0 added the standard to the second half, so the number now
+answers for one more thing than it did.
+
+The cost is not tidiness. A test proving the first half says nothing about
+the second, and the status is a single word for both: `implemented` was true
+of this requirement while its second half had a gap the size of the standard,
+which is exactly how that gap survived to 0.14.0 unseen.
+
+**Decision needed:** split it into two requirements — the second one taking a
+new number, since identifiers are never reused — or leave the compound and
+accept that its status and its tests speak for two behaviours at once.
+
+## A project that adopted the framework never receives the standard
+
+**Found:** while making upgrades refresh the standard (2026-08-18).
+
+**What diverged:** `--mode adopt` deliberately keeps a project's own
+`specs/README.md` (FR-INIT-040), and the file it keeps carries no
+`SRS-DD-<version>` marker — so `--force` will not replace it either, now or
+ever. Verified end to end: adopt on a project whose `specs/README.md` says
+"We follow the SRS-DD standard", then `--force`, answers `specs/README.md
+(no SRS-DD marker — not ours, merge manually)` and leaves the file alone.
+
+That refusal is correct in itself. What follows from it is that such a
+project has no copy of the standard at all, while the skills installed
+alongside cite its sections by name — a licence `CON-SPEC-020` grants on the
+grounds that the standard is the same document in every project. For an
+adopted project it is no document at all. The installer says one advisory
+line about merging, once, at adopt time.
+
+**Decision needed:** install the standard beside theirs under a name that
+cannot collide, so the citations resolve; or drop the citations from the
+shipped procedures and let them explain themselves; or accept that adopted
+projects merge the standard by hand and say so where it will be read twice
+rather than once.
+
+## A procedure states what another procedure does without reading it
+
+**Found:** twice in one session, while reviewing the 0.14.0 work
+(2026-08-18).
+
+**What diverged:** an agent reported that the `## [X.Y.Z]` changelog section
+"is written by a person" and belongs to the maintainer. It does not: step 3
+of `srs-release` drafts it, and the description line of that skill says so in
+so many words. The claim was inferred from the refusal message in
+`tools/srs_release.py`, which only says the section is missing. The same
+agent had earlier reported that the template section of the `srs` skill could
+not be removed without loss, and withdrew it two rounds later on discovering
+that nothing referenced it — again a claim about this project's own files,
+made without opening them.
+
+Neither is covered by what exists. FR-SKILL-160 binds a claim that a test
+proves something; FR-SKILL-170 binds a claim that an observation is a
+finding, and demands its consequence. Both leave alone the plainest kind of
+claim there is: what a procedure prescribes, what a file contains, who
+performs a step. Those are read in seconds and were not read.
+
+Adding a summary of each procedure somewhere central was considered and
+rejected while writing this entry: every skill's `description` already
+carries one, `srs-release`'s already names the drafting step, and a second
+copy inside another skill is what FR-SKILL-020 forbids. The gap is not in
+what is available to read.
+
+**Decision needed:** write a third requirement in that family — a procedure
+asserting what another procedure does, or what a file holds, reads it first
+— or accept that this is a matter of care rather than of rule, and that the
+two existing members of the family draw the line where it can be drawn.
