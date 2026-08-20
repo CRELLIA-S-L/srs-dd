@@ -316,7 +316,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [tools/srs_check.py, tools/srs_parse.py]
 tests: [tests/checker-rules.sh]
 ```
 

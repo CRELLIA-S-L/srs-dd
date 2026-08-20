@@ -26,7 +26,7 @@ cd "$(dirname "$0")/.."
 LAB=/tmp/srs-rules
 rm -rf "$LAB"
 mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/src" "$LAB/t"
-cp tools/srs_check.py "$LAB/tools/"
+cp tools/srs_check.py tools/srs_parse.py "$LAB/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {
@@ -337,6 +337,32 @@ The system **shall** never be counted.
 ````')
 rule "FR-CHK-110 opaque fence" 0 "Requirements: 1"
 
+# --- The same rule at the two edges CommonMark draws, neither of which the
+# --- fixture above reaches: a backtick run shorter than the opener does not
+# --- close the block, and a run carrying an info string never closes one at
+# --- all. Both were unguarded — a mutation of the fence walk passed all 96
+# --- fixtures. What catches them is the ghost requirement that surfaces the
+# --- moment a block ends a line too early: it has no metadata block, so the
+# --- count moves and the run turns red together.
+spec < <(block FR-CORE-010 "Opened with four, three inside" "$META" \
+               'The system **shall** act.
+
+````markdown
+The next line is a bare run of three, and closes nothing:
+```
+### FR-CORE-020 — Exposed if a shorter run closed the block
+````')
+rule "FR-CHK-110 short closer" 0 "Requirements: 1"
+
+spec < <(block FR-CORE-010 "An info string opens and never closes" "$META" \
+               'The system **shall** act.
+
+```text
+```python
+### FR-CORE-030 — Exposed if an info string closed the block
+```')
+rule "FR-CHK-110 info-string closer" 0 "Requirements: 1"
+
 # --- verifies: FR-CHK-100 — a broken configuration is refused by name, exit 2.
 spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
 cp "$LAB/specs/srs-config.json" "$LAB/specs/srs-config.json.bak"
@@ -579,7 +605,8 @@ config "{$BASE}"
 # --- used to be told that something was wrong and never what.
 LAB2=/tmp/srs-refusal
 rm -rf "$LAB2"; mkdir -p "$LAB2/tools" "$LAB2/specs"
-cp tools/srs_baseline.py tools/srs_view.py tools/srs_check.py "$LAB2/tools/"
+cp tools/srs_baseline.py tools/srs_view.py tools/srs_check.py \
+   tools/srs_parse.py "$LAB2/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB2/specs/"
 printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
     > "$LAB2/specs/92-baselines.md"
@@ -752,7 +779,7 @@ rule "IF-CI-020 unknown flag" 2 "unknown flag(s): --bogus" --bogus
 # always runs inside it.
 LAB3=/tmp/srs-nospecs
 rm -rf "$LAB3"; mkdir -p "$LAB3/tools"
-cp tools/srs_check.py "$LAB3/tools/"
+cp tools/srs_check.py tools/srs_parse.py "$LAB3/tools/"
 rc=0
 ( cd "$LAB3" && python3 tools/srs_check.py --no-write ) \
     > /tmp/srs-rules.log 2>&1 || rc=$?

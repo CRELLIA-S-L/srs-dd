@@ -112,7 +112,7 @@ MARKER = "SRS-DD-" + __version__
 RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
-TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
+TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
          "srs_baseline.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
@@ -1000,7 +1000,18 @@ def run_adopt(args, target, batch, found_areas):
         sys.stdout.write("Validating the existing specification against "
                          "the proposed configuration:\n")
         sys.stdout.flush()
-        rc = subprocess.call([sys.executable, temp_path, "--no-write"])
+        # The checker reads the record shape through srs_parse, which it
+        # imports from beside itself — and nothing of ours is in the
+        # target yet, because the tooling is installed only once this
+        # validation has passed. Lend it the framework's copy for the
+        # duration rather than writing a second file the rollback would
+        # have to take back out.
+        env = dict(os.environ)
+        env["PYTHONPATH"] = os.pathsep.join(
+            [os.path.join(ROOT, "tools")]
+            + ([env["PYTHONPATH"]] if env.get("PYTHONPATH") else []))
+        rc = subprocess.call([sys.executable, temp_path, "--no-write"],
+                             env=env)
         if rc != 0:
             sys.stdout.write(
                 "\nValidation failed — nothing was installed. Fix the "

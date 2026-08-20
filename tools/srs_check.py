@@ -25,6 +25,27 @@ import re
 import subprocess
 import sys
 
+# The record shape is read by tools/srs_parse.py, which ships beside
+# this file; what stays here is the judgement (ADR-0019). Bytecode is
+# disabled first: this tool runs inside other people's repositories,
+# and a __pycache__ they did not ask for is litter.
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    import srs_parse                                        # noqa: E402
+except ImportError:
+    # Exit 2, not a traceback: IF-CI-020 reserves 2 for "could not run
+    # at all", and a checker that dies on its own import has not read
+    # anybody's specification. The case is reachable — the tooling can
+    # be copied by hand, one file at a time (docs/install.md).
+    sys.stderr.write(
+        "tools/srs_parse.py: missing — the checker reads the record shape "
+        "through it, and the two travel together. Copy it beside this file "
+        "from the framework clone, or re-run tools/srs_init.py to refresh "
+        "the tooling.\n")
+    sys.exit(2)
+
 __version__ = "0.14.0"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -181,33 +202,10 @@ def _alternation(words):
     return "|".join(re.escape(w) for w in words)
 
 
+# srs_parse captures anything ID-shaped, junk included; this is what
+# judges it, and it must stay loud — a malformed identifier is never
+# skipped silently.
 RE_ID = re.compile(r"^(%s)-(%s)-(\d{3})$" % ("|".join(TYPES), "|".join(AREAS)))
-# A deliberately broad net: anything ID-shaped is captured (including
-# junk like FR-CORE-010-B) and then judged loudly by RE_ID — a malformed
-# identifier must never be skipped silently.
-RE_HEADING = re.compile(
-    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
-    r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
-RE_ANY_HEADING = re.compile(r"^#{1,6}\s")
-RE_FENCE = re.compile(r"^\s*(`{3,})")
-RE_FENCE_OPEN = re.compile(r"^\s*```+\s*yaml\s*$")
-RE_FENCE_CLOSE = re.compile(r"^\s*```+\s*$")
-
-
-def _fence_len(line):
-    match = RE_FENCE.match(line)
-    return len(match.group(1)) if match else 0
-
-
-RE_FENCE_BARE = re.compile(r"^\s*(`{3,})\s*$")
-
-
-def _closer_len(line):
-    """Length of a bare closing fence; 0 for anything else. Per
-    CommonMark a closer carries no info string, so ```python can open a
-    block but never close one."""
-    match = RE_FENCE_BARE.match(line)
-    return len(match.group(1)) if match else 0
 
 
 # The statement lexicon comes from the config; the patterns are
@@ -262,40 +260,29 @@ class Requirement(object):
         return "%s:%d" % (self.path, self.line)
 
 
-def parse_metadata(lines, path, line_no, errors):
-    """Parses a restricted YAML subset: flat keys, scalars, bracketed lists."""
-    meta = {}
-    for offset, raw in enumerate(lines):
-        text = raw.strip()
-        if not text or text.startswith("#"):
-            continue
-        if ":" not in text:
-            errors.append("%s:%d — metadata line without a colon: %r"
-                          % (path, line_no + offset, text))
-            continue
-        key, _, value = text.partition(":")
-        key = key.strip()
-        value = value.strip()
-        if key in meta:
-            errors.append("%s:%d — duplicate key %r" % (path, line_no + offset, key))
-        if value.startswith("[") and value.endswith("]"):
-            inner = value[1:-1].strip()
-            meta[key] = [v.strip() for v in inner.split(",") if v.strip()] if inner else []
-        else:
-            meta[key] = value
-    return meta
+def _split_body(lines):
+    """Statement and rationale, split at the first rationale marker.
 
-
-def _skip_fence(lines, index):
-    """`index` points at a fence opener; returns the index just past the
-    matching closing fence (or EOF). Per CommonMark, the closer is a
-    backtick run at least as long as the opener."""
-    opener = _fence_len(lines[index])
-    index += 1
+    The split is the caller's and not the parser's: the marker comes
+    from the project lexicon, so where a body divides is a question
+    about language and not about shape. Fenced blocks are passed over
+    while looking for the marker, and dropped from the statement —
+    modal verbs are counted in prose only. The rationale keeps its
+    blocks whole, because readers render them.
+    """
+    statement = []
+    index = 0
     total = len(lines)
-    while index < total and _closer_len(lines[index]) < opener:
+    while index < total:
+        if srs_parse.RE_FENCE.match(lines[index]):
+            index = srs_parse.skip_fence(lines, index)
+            continue
+        if RE_RATIONALE.match(lines[index]):
+            break
+        statement.append(lines[index])
         index += 1
-    return index + 1
+    rationale = lines[index:] if index < total else []
+    return "\n".join(statement).strip(), "\n".join(rationale).strip()
 
 
 def parse_text(text, rel, errors):
@@ -306,99 +293,15 @@ def parse_text(text, rel, errors):
     file — tools/srs_view.py reading a past revision through `git
     show` — goes through the same parser. The parser is
     language-neutral: the lexicon is consulted by validate(), never
-    here.
+    here, and the one lexical question this function does ask — where
+    the rationale begins — it asks of a body srs_parse already found.
     """
-    lines = text.split("\n")
-
     requirements = []
-    index = 0
-    total = len(lines)
-
-    while index < total:
-        # Fenced code blocks may contain example headings and example
-        # statements; they never contribute requirements.
-        if RE_FENCE.match(lines[index]):
-            index = _skip_fence(lines, index)
-            continue
-
-        match = RE_HEADING.match(lines[index])
-        if not match:
-            index += 1
-            continue
-
-        req = Requirement(match.group(1), match.group(2).strip(), rel, index + 1)
-        index += 1
-
-        # Metadata block: the first ```yaml fence before the next heading.
-        meta_lines = []
-        found_fence = False
-        while index < total:
-            if RE_ANY_HEADING.match(lines[index]):
-                break
-            if RE_FENCE_OPEN.match(lines[index]):
-                found_fence = True
-                opener = _fence_len(lines[index])
-                index += 1
-                start = index + 1
-                while index < total \
-                        and not (RE_FENCE_CLOSE.match(lines[index])
-                                 and _fence_len(lines[index]) >= opener) \
-                        and not RE_HEADING.match(lines[index]):
-                    meta_lines.append(lines[index])
-                    index += 1
-                if index < total and RE_FENCE_CLOSE.match(lines[index]) \
-                        and _fence_len(lines[index]) >= opener:
-                    index += 1  # closing fence
-                else:
-                    errors.append("%s — unterminated metadata fence"
-                                  % req.where)
-                req.meta = parse_metadata(meta_lines, rel, start, errors)
-                break
-            if RE_FENCE.match(lines[index]):
-                # Some other fenced block before the metadata — skip it.
-                index = _skip_fence(lines, index)
-                continue
-            index += 1
-
-        if not found_fence:
-            errors.append("%s — no metadata block" % req.where)
-            requirements.append(req)
-            continue
-
-        # Statement: prose up to the rationale or the next heading.
-        # Fenced blocks are skipped — modal verbs are counted in prose only.
-        statement = []
-        while index < total:
-            if RE_FENCE.match(lines[index]):
-                index = _skip_fence(lines, index)
-                continue
-            if RE_ANY_HEADING.match(lines[index]) or RE_RATIONALE.match(lines[index]):
-                break
-            statement.append(lines[index])
-            index += 1
-        req.statement = "\n".join(statement).strip()
-
-        # Rationale: from its marker to the next heading. Fenced blocks
-        # are skipped exactly as above — a `###` line inside an example
-        # block must not end the rationale, or the outer loop would
-        # resume on it and mint a phantom requirement. Unlike the
-        # statement, the block's own lines are kept: readers render them.
-        rationale = []
-        if index < total and RE_RATIONALE.match(lines[index]):
-            while index < total:
-                if RE_FENCE.match(lines[index]):
-                    opener = index
-                    index = _skip_fence(lines, index)
-                    rationale.extend(lines[opener:index])
-                    continue
-                if RE_ANY_HEADING.match(lines[index]):
-                    break
-                rationale.append(lines[index])
-                index += 1
-        req.rationale = "\n".join(rationale).strip()
-
+    for entry in srs_parse.parse_entries(text, rel, errors):
+        req = Requirement(entry.id, entry.title, entry.path, entry.line)
+        req.meta = entry.fields
+        req.statement, req.rationale = _split_body(entry.body)
         requirements.append(req)
-
     return requirements
 
 

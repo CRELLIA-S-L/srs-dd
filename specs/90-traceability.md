@@ -73,7 +73,7 @@ Total requirements: 154.
 | **FR-CHK-080** Annotations are cross-checked, never required | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-090** The lexicon, not a language | `implemented` | T | `tools/srs_check.py` | `tests/adopt-smoke.sh` |
 | **FR-CHK-100** A readable failure for a broken configuration | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
-| **FR-CHK-110** Code blocks are opaque | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
+| **FR-CHK-110** Code blocks are opaque | `implemented` | T | `tools/srs_check.py`<br>`tools/srs_parse.py` | `tests/checker-rules.sh` |
 | **FR-CHK-120** Strict mode | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
 | **FR-CHK-130** A baseline tag without a log entry is reported | `implemented` | T | `tools/srs_check.py` | `tests/installer-smoke.sh` |
 | **FR-CHK-140** A requirement verified by test and carrying none is reported | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -169,7 +169,7 @@ Total requirements: 154.
 | **INV-SPEC-050** A requirement can be withdrawn as well as replaced | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py`<br>`tools/srs_view.py` | `tests/view-smoke.sh` |
 | **INV-SPEC-060** A requirement states one obligation | `implemented` | I | `specs/README.md` | — |
 | **NFR-CHK-010** Validation stays under a second at 500 requirements | `implemented` | A | `tools/srs_check.py` | — |
-| **NFR-SPEC-010** Nothing to install | `implemented` | I | `tools/srs_check.py`<br>`tools/srs_view.py`<br>`tools/srs_init.py`<br>`tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`tools/srs_upgrade.py` | — |
+| **NFR-SPEC-010** Nothing to install | `implemented` | I | `tools/srs_check.py`<br>`tools/srs_parse.py`<br>`tools/srs_view.py`<br>`tools/srs_init.py`<br>`tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`tools/srs_upgrade.py` | — |
 | **NFR-SPEC-020** Plain text all the way down | `implemented` | I | `specs/README.md` | — |
 | **NFR-VIEW-010** The page stays readable at scale | `implemented` | I | `tools/srs_view.py` | — |
 
@@ -278,6 +278,6 @@ Verified by means other than testing — or the check has not been set up yet.
 
 ## Code files outside the specification
 
-No requirement references them: 0 of 8.
+No requirement references them: 0 of 9.
 
 

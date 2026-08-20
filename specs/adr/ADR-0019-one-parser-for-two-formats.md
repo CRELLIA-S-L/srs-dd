@@ -73,16 +73,34 @@ keys (FR-CHK-180), rule severities (FR-CHK-160), identifier immutability
 
 ## Consequences
 
-A fifth Python file ships with the framework. It is standard-library only
-like the rest (NFR-SPEC-010), it has its own requirement because otherwise a
-file under the code roots that no requirement names fails the strict gate,
-and it carries the annotation back.
+A fifth file joins the tooling copied into every target. It is
+standard-library only like the rest (NFR-SPEC-010), which names it, and so
+does FR-CHK-110 — the one behaviour that moved. It needs no requirement of
+its own: FR-CHK-210 reports a file under the code roots that neither a
+requirement names nor an annotation claims, and this one is named at both
+ends.
 
 The extraction is a behaviour-preserving change to a file thirty-two
 requirements point at, and the only honest evidence for that is external:
 the whole suite passes afterwards without a single edit to the suites
 themselves. That is the acceptance condition, and it is worth more than any
 review of the diff.
+
+Recorded after the fact, because it was not quite met. Every assertion in
+every suite passed untouched; three `cp` lines did not. The fixtures in
+`tests/checker-rules.sh` are built by copying the tooling file by file, so a
+new tooling file has to be named there — an inventory, not a check. Running
+them also found the one place the extraction genuinely broke something:
+`--mode adopt` validates a stranger's specification with a checker it places
+in the target before any tooling is installed, and that checker had no parser
+beside it. Neither would have come out of reading the diff.
+
+Mutating the moved code found something older than the move: neither edge
+CommonMark draws around a closing fence — a run shorter than the opener, a
+run carrying an info string — was covered by anything, and breaking both
+passed all ninety-six fixtures. Two fixtures now fail on them. That gap is
+not the extraction's doing and would have kept until something else went
+looking.
 
 Where the line between shape and meaning falls is settled by having two
 consumers rather than by argument. The first consumer alone cannot tell which
