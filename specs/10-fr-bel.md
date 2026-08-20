@@ -696,3 +696,285 @@ default pipelines.
 Saying so is the answer `FR-VIEW-090` already gives for baselines it cannot
 reach, and the reason carries over: a reader who is told nothing assumes the
 check ran.
+
+### FR-BEL-280 — The register is a choice at install
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+A fresh install and an adoption **shall** offer the belief register as a
+choice, installing nothing of it where it is declined.
+
+**Rationale.** The layer answers a question many projects do not have. Its
+own scope note excludes a project whose basis is externally fixed and
+stable — avionics, a protocol implementation, regulatory compliance — and
+installing it there produces records nobody will ever measure.
+
+Declined, it leaves nothing: no directory, no tool, no skill, no
+configuration key. A target that said no is byte-for-byte a target that was
+never asked, which is what makes the choice cheap to make and cheap to
+reverse.
+
+### FR-BEL-290 — The register is added deliberately, never silently
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-280]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+An upgrade **shall** refresh the belief register's tooling only where the
+register is already present, adding it to a project that has none only when
+asked.
+
+**Rationale.** Upgrades refresh the tooling and the skills without a flag,
+and along that path a new subsystem would arrive at every project that merely
+updated. The ones it would surprise are exactly the ones the scope note
+excludes: they did not decline the register, they never heard of it.
+
+Presence is read from the register itself rather than from a setting, so
+there is nothing to disagree with what is on disk. The same reading the
+installer already makes when it decides between a fresh install and an
+upgrade.
+
+### FR-BEL-300 — A fresh register is one its own checker accepts
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-280]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where the belief register is installed, the target's own belief checker
+**shall** pass strictly on what was installed.
+
+**Rationale.** The same promise `FR-INIT-020` makes for the specification: a
+project's first run is green, so the first red one means something the
+project did. A skeleton that arrives already warning teaches its reader that
+the warnings are furniture.
+
+Strictly, and not merely without errors, because almost everything this
+checker says is a warning by design — a skeleton that passes only the loose
+run would be hiding its own state from the gate the project is about to
+switch on.
+
+### FR-BEL-310 — The hook says which bets the commit touches
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a project carries a belief register, the installed hook **shall**
+report, without failing the commit, the bets on the requirements whose files
+the commit changes.
+
+**Rationale.** The register's promise is that a stale belief becomes visible
+where the code is, and a dashboard nobody is obliged to open does not keep
+it. The hook is the one place the framework already reaches everyone who
+opted into the gate, and the moment it reaches them is the moment they are
+touching the code in question.
+
+Scoped to the commit, because a refuted belief elsewhere in the project is
+not this commit's business and a report that always speaks is a report nobody
+reads. Never failing, because a refuted belief is not the committer's fault
+and may be precisely what they are in the middle of repairing.
+
+What may not fail is this report, not the hook. The hook already fails on a
+stale matrix, and the shipped template invites a project to add `--strict`
+and fail on warnings besides; nothing here takes either away.
+
+### FR-BEL-320 — The register procedure travels with the project
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-280]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The skills installed into a project **shall** include the belief procedure
+where the register is installed.
+
+**Rationale.** A project's beliefs are its own, and nothing about writing one
+is about this repository — the reading `FR-SKILL-080` gives for the baseline
+procedure, and the opposite of the one `FR-SKILL-070` gives for the release
+procedure, which stays here because a target releases nothing of ours.
+
+Only where the register is installed. A skill for a subsystem a project
+declined is a file explaining something it does not have.
+
+### FR-BEL-330 — Whoever writes a belief judges what no checker reaches
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [IF-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+When a belief is written or reworded, the procedure doing so **shall** judge
+it against the qualities no checker reaches — a bounded population, an
+observable action rather than an attitude, a magnitude, and no solution
+carried inside the need — and say what it found before the text is recorded.
+
+**Rationale.** `FR-SKILL-120` makes this obligation for requirement
+statements and gives the reason no word list can do it. The qualities differ
+here, and two of them are where beliefs go wrong.
+
+Attitudes do not measure. "Studios need time roll-up" cannot be false; "at
+least a quarter of those who reach the report take a paid plan within a
+fortnight" can. And the commoner mistake runs the other way: a solution
+smuggled into the need. "We need a comparison screen" is already an answer,
+and a belief written that way tests the answer instead of the need — which
+is how a project ends up measuring whether its idea was popular rather than
+whether the problem was real.
+
+Verified by inspection for the reason every procedure requirement is: no
+suite runs a dialog, and one asserting the wording would be a copy of the
+file rather than a check on it.
+
+### FR-BEL-340 — The class is checked against the measurement
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [FR-BEL-330]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+When a belief's class is chosen, the procedure doing so **shall** check that
+the declared measurement can produce a number the threshold compares against,
+and say where it cannot.
+
+**Rationale.** `FR-SKILL-140` puts the same question to a requirement's
+verification method at the one moment it costs nothing — while the statement
+and the method are on the table together. Left to surface later, it surfaces
+when somebody has to take a measurement that cannot be taken.
+
+Class I is where this bites. It claims the measurement is passive and
+automatic, and an author who declares it over a quantity nobody instruments
+has written a belief that will sit unconfirmed until its term runs out, with
+nothing saying why.
+
+### FR-BEL-350 — A refutation opens a decommissioning, not a deletion
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [FR-BEL-140]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+When a belief is refuted, the procedure doing so **shall** settle each
+requirement that rested on it with the maintainer, taking removal as the
+default.
+
+**Rationale.** The requirements do not evaporate: they are shipped, people
+use them, their data is in the schema. What refutation takes away is the
+ground, not the code, and the difference between those two is a project with
+a date rather than a deletion.
+
+Removal is the default because the opposite default is how dead features
+survive for years. Where somebody still uses it, that is not a reason to
+keep it — it is a new fact: something other than the refuted belief is
+holding it up. Naming that belief is the price of keeping the code, and where
+nobody will name it the code goes.
+
+Which requirements rested on it is read from the bets, and the shape of the
+conversation is the one `FR-SKILL-150` prescribes for a withdrawal: show what
+stands on it, settle each dependant, do not cascade silently.
+
+### FR-BEL-360 — Admission to the core is its own act
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [FR-BEL-180]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+When a belief is confirmed, the procedure doing so **shall** put its
+admission to the core to the maintainer as a decision of its own, and record
+a refusal with its reason.
+
+**Rationale.** Confirmation answers whether something is true. Admission
+answers whether being true makes it ours, and only the first has a
+measurement. A register that admits whatever confirms has a core that cannot
+decline anything, which is the one thing a core is for.
+
+The outcomes are absorb, spin off as a second product, or refuse. The third
+is the one that needs writing down: without it nobody can tell a belief
+nobody tested from one tested, confirmed and turned down, and the same
+question returns every six months to be argued from scratch.
+
+### FR-BEL-370 — The dashboard is compared, not trusted
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [CON-BEL-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a project carries a belief register, its gate **shall** regenerate the
+dashboard and fail when the committed copy differs from it.
+
+**Rationale.** `CON-BEL-020` says the dashboard is generated and never edited
+by hand; this is what makes that true rather than hoped for. Generated output
+that nothing compares is output somebody will eventually edit, and the
+readings it carries — how much of the system stands on refuted ground, how
+old the confirmations are — are exactly the numbers worth editing.
+
+`FR-CI-010` states the same obligation for the traceability matrix and lives
+in the area about gates. This one lives here instead, because what it is
+about is the register's own integrity; the gate is where it happens, not what
+it concerns.
