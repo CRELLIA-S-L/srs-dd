@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-08-19
-- **Related requirements:** IF-SPEC-010
+- **Related requirements:** FR-BEL-170, FR-BEL-180, IF-BEL-010, IF-SPEC-010
 
 ## Context and problem statement
 

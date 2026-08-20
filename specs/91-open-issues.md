@@ -258,3 +258,65 @@ what is available to read.
 asserting what another procedure does, or what a file holds, reads it first
 — or accept that this is a matter of care rather than of rule, and that the
 two existing members of the family draw the line where it can be drawn.
+
+## A project without the register never hears that it exists
+
+**Found:** while writing the belief layer's install and delivery
+requirements (2026-08-20).
+
+**What diverged:** FR-BEL-280 offers the register as a choice at install and
+at adoption, FR-BEL-290 forbids an upgrade from adding it to a project that
+has none, and FR-BEL-320 ships the belief procedure only where the register
+is installed. Each is right on its own, and together they leave nobody to
+tell a project that the layer exists. A project installed before the layer
+shipped, or one that declined it once, receives nothing that mentions it
+again: the tooling is refreshed, the skills are refreshed, and not one of
+them says there is a subsystem available for the asking. The only
+description lives in this repository — `docs/`, the changelog, the
+concept — which is exactly what a target never reads.
+
+**Decision needed:** have the upgrade say once, where the register is
+absent, that it can be added and how; or accept that the layer is found
+through the framework's own documentation and say so where that documentation
+will be read; or install a minimal procedure everywhere, against the reason
+FR-BEL-320 gives for installing none.
+
+## Calibration is built at a fraction of what the concept describes
+
+**Found:** while planning the belief layer (2026-08-20).
+
+**What diverged:** the concept the layer is built from weighs a judgement by
+its author's measured accuracy, after Cooke's method — calibration questions
+with known answers, experts scored against them, opinions combined by that
+score. What FR-BEL-210 builds is the half that needs no programme: how many
+of an author's verdicts a later measurement reversed. It answers whether
+this person has been right before, and nothing else. No rule weighs a class
+III verdict by it, and the register has no way to acquire calibration
+questions in the first place.
+
+**Why it is recorded rather than fixed:** the missing half is an
+organizational undertaking — somebody writes the questions, somebody runs
+them, somebody keeps the scores — and none of that is a file format or a
+rule. No amount of code here produces it.
+
+**Decision needed:** say in the layer's standard that calibration stops at
+the reversal count and the weighting is deliberately not attempted; or carry
+the fuller model as intended work and name what a project would have to run
+to get it.
+
+## An unchangeable minimum can be made loud, not prevented
+
+**Found:** while planning the belief layer (2026-08-20).
+
+**What diverged:** the concept holds that an ideology carries a minimum that
+changes only by dissolving the ideology itself — not amendable, whatever the
+evidence arrives. A repository delivers no such thing. A file is a file: the
+minimum can be edited by anyone who can commit, and what the framework
+actually offers is that the edit is visible, attributable and diffable. The
+requirements for ideology and its self-revision are not written yet, so the
+difference is at present written down nowhere.
+
+**Decision needed:** state the weaker promise when those requirements are
+authored — the minimum is changed loudly, never silently — or place
+immutability outside the repository, in protected paths, required review or
+signed commits, none of which this framework configures in any target today.
