@@ -221,13 +221,13 @@ backdated.
 ### INV-GND-010 — Hypothesis identifiers are immutable and never reused
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
+code: [grounds/README.md, tools/srs_grounds.py]
 tests: []
 ```
 
@@ -249,13 +249,13 @@ apply to the other.
 ### INV-GND-020 — A bet is recorded in one direction only
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
+code: [grounds/README.md, tools/srs_grounds.py]
 tests: []
 ```
 
@@ -306,13 +306,13 @@ a reading of the rule set rather than of behaviour. The same position
 ### INV-GND-040 — A hypothesis states exactly one claim
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
+code: [grounds/README.md]
 tests: []
 ```
 
@@ -411,14 +411,14 @@ the articles of the constitution they receive, and the sections of
 ### CON-GND-010 — The grounds layer writes nowhere else
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The grounds layer's commands **shall not** write to any path outside the

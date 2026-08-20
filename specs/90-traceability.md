@@ -8,9 +8,9 @@ Total requirements: 157.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 27 |
-| `partial` | 0 |
-| `implemented` | 130 |
+| `deferred` | 21 |
+| `partial` | 1 |
+| `implemented` | 135 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -18,7 +18,7 @@ Total requirements: 157.
 
 | Requirement | Status | Method | Code | Tests |
 |---|---|---|---|---|
-| **CON-GND-010** The grounds layer writes nowhere else | `deferred` | T | — | — |
+| **CON-GND-010** The grounds layer writes nowhere else | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **CON-GND-020** The dashboard is generated | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh`<br>`tests/grounds-check.sh` |
 | **CON-GND-030** Records are authored, never written | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-check.sh` |
 | **CON-SPEC-010** The traceability matrix is generated | `implemented` | T | `tools/srs_check.py`<br>`specs/90-traceability.md` | `tests/spec-check.sh` |
@@ -80,7 +80,7 @@ Total requirements: 157.
 | **FR-GND-220** The weight of an unclaimed requirement | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-230** New unclaimed requirements, and where they cluster | `deferred` | T | — | — |
 | **FR-GND-240** The age of the core, by class of confirmation | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
-| **FR-GND-250** What each frame has refused | `deferred` | T | — | — |
+| **FR-GND-250** What each frame has refused | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-260** How many ideologies the core carries | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-270** History that cannot be read is said to be unread | `deferred` | T | — | — |
 | **FR-GND-280** The register is a choice at install | `deferred` | T | — | — |
@@ -92,7 +92,7 @@ Total requirements: 157.
 | **FR-GND-340** The class is checked against the measurement | `deferred` | I | — | — |
 | **FR-GND-350** A refutation opens a decommissioning, not a deletion | `deferred` | I | — | — |
 | **FR-GND-360** Admission to the core is its own act | `deferred` | I | — | — |
-| **FR-GND-370** The dashboard is compared, not trusted | `deferred` | T | — | — |
+| **FR-GND-370** The dashboard is compared, not trusted | `partial` | T | `.github/workflows/srs.yml` | `tests/grounds-check.sh` |
 | **FR-GND-380** An instrument outlives what it measures | `deferred` | I | — | — |
 | **FR-GND-390** A value outside the format's vocabulary is reported | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-400** A bet names a hypothesis that exists | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
@@ -161,10 +161,10 @@ Total requirements: 157.
 | **IF-SPEC-010** The requirement block is a stable format | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **IF-SPEC-020** A published rule name keeps its meaning | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **IF-VIEW-010** The model is published, not merely dumped | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
-| **INV-GND-010** Hypothesis identifiers are immutable and never reused | `deferred` | I | — | — |
-| **INV-GND-020** A bet is recorded in one direction only | `deferred` | I | — | — |
+| **INV-GND-010** Hypothesis identifiers are immutable and never reused | `implemented` | I | `grounds/README.md`<br>`tools/srs_grounds.py` | — |
+| **INV-GND-020** A bet is recorded in one direction only | `implemented` | I | `grounds/README.md`<br>`tools/srs_grounds.py` | — |
 | **INV-GND-030** An unclaimed requirement is a reading, not a defect | `implemented` | I | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
-| **INV-GND-040** A hypothesis states exactly one claim | `deferred` | I | — | — |
+| **INV-GND-040** A hypothesis states exactly one claim | `implemented` | I | `grounds/README.md` | — |
 | **INV-SPEC-010** Identifiers are immutable and never reused | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-020** Links are stored in one direction only | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-030** A baseline and a release are separate acts | `implemented` | T | `tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`specs/README.md` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
@@ -274,6 +274,9 @@ Verified by means other than testing — or the check has not been set up yet.
 - **IF-GND-010** (`implemented`, method `I`) — The register record is a stable format
 - **IF-SKILL-010** (`implemented`, method `I`) — The published entry point for an agent
 - **IF-SPEC-010** (`implemented`, method `I`) — The requirement block is a stable format
+- **INV-GND-010** (`implemented`, method `I`) — Hypothesis identifiers are immutable and never reused
+- **INV-GND-020** (`implemented`, method `I`) — A bet is recorded in one direction only
+- **INV-GND-040** (`implemented`, method `I`) — A hypothesis states exactly one claim
 - **INV-SPEC-010** (`implemented`, method `I`) — Identifiers are immutable and never reused
 - **INV-SPEC-020** (`implemented`, method `I`) — Links are stored in one direction only
 - **INV-SPEC-060** (`implemented`, method `I`) — A requirement states one obligation

@@ -20,6 +20,10 @@ committed and compared against a fresh run, so a number that
 moved every night would fail the gate every morning without
 saying anything new.
 
+## What each frame has refused
+
+No frames are recorded.
+
 ## The debt
 
 No requirement carries a bet that resolves, so there is
@@ -40,6 +44,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-INIT-010 | 7 | 1 | 8 |
 | IF-SPEC-010 | 6 | 2 | 8 |
 | FR-CI-020 | 4 | 3 | 7 |
+| INV-GND-020 | 5 | 2 | 7 |
 | CON-GND-020 | 5 | 1 | 6 |
 | FR-CI-010 | 3 | 3 | 6 |
 | FR-SKILL-020 | 0 | 6 | 6 |
@@ -47,11 +52,11 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-050 | 3 | 3 | 6 |
 | FR-CHK-030 | 4 | 1 | 5 |
 | FR-INIT-020 | 4 | 1 | 5 |
-| INV-GND-020 | 5 | 0 | 5 |
 | FR-CHK-070 | 3 | 1 | 4 |
 | FR-CHK-090 | 3 | 1 | 4 |
 | FR-GND-140 | 4 | 0 | 4 |
 | FR-SKILL-120 | 1 | 3 | 4 |
+| INV-GND-010 | 2 | 2 | 4 |
 | INV-GND-030 | 3 | 1 | 4 |
 | INV-SPEC-040 | 1 | 3 | 4 |
 | CON-SPEC-010 | 1 | 2 | 3 |
@@ -73,6 +78,7 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-010 | 1 | 2 | 3 |
 | INV-SPEC-020 | 1 | 2 | 3 |
 | INV-SPEC-060 | 2 | 1 | 3 |
+| CON-GND-010 | 1 | 1 | 2 |
 | CON-GND-030 | 1 | 1 | 2 |
 | CON-SPEC-020 | 0 | 2 | 2 |
 | CON-SPEC-030 | 0 | 2 | 2 |
@@ -104,8 +110,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-140 | 1 | 1 | 2 |
 | IF-GND-030 | 1 | 1 | 2 |
 | IF-SKILL-010 | 0 | 2 | 2 |
-| INV-GND-010 | 2 | 0 | 2 |
-| CON-GND-010 | 1 | 0 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-040 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
@@ -132,9 +136,11 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-180 | 1 | 0 | 1 |
 | FR-GND-190 | 1 | 0 | 1 |
 | FR-GND-240 | 0 | 1 | 1 |
+| FR-GND-250 | 0 | 1 | 1 |
 | FR-GND-260 | 0 | 1 | 1 |
 | FR-GND-330 | 1 | 0 | 1 |
 | FR-GND-350 | 1 | 0 | 1 |
+| FR-GND-370 | 0 | 1 | 1 |
 | FR-GND-390 | 0 | 1 | 1 |
 | FR-GND-400 | 0 | 1 | 1 |
 | FR-INIT-040 | 0 | 1 | 1 |
@@ -169,6 +175,7 @@ requirements link to them, plus how many files their `code` field names.
 | IF-GND-020 | 0 | 1 | 1 |
 | IF-SPEC-020 | 0 | 1 | 1 |
 | IF-VIEW-010 | 0 | 1 | 1 |
+| INV-GND-040 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-SPEC-020 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
@@ -177,7 +184,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-200 | 0 | 0 | 0 |
 | FR-GND-210 | 0 | 0 | 0 |
 | FR-GND-230 | 0 | 0 | 0 |
-| FR-GND-250 | 0 | 0 | 0 |
 | FR-GND-270 | 0 | 0 | 0 |
 | FR-GND-290 | 0 | 0 | 0 |
 | FR-GND-300 | 0 | 0 | 0 |
@@ -185,7 +191,5 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-320 | 0 | 0 | 0 |
 | FR-GND-340 | 0 | 0 | 0 |
 | FR-GND-360 | 0 | 0 | 0 |
-| FR-GND-370 | 0 | 0 | 0 |
 | FR-GND-380 | 0 | 0 | 0 |
 | FR-VIEW-230 | 0 | 0 | 0 |
-| INV-GND-040 | 0 | 0 | 0 |

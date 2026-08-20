@@ -356,3 +356,34 @@ of its own for the band between them; or state in the standard that the
 register records only the refutation line and that the target lives in the
 plan it justifies, naming where; or accept the collapse and say so, so that
 nobody reads the single number as if it were the aim.
+
+## A requirement does not say which frames bound it
+
+**Found:** while sorting the concept's record format against what the layer
+builds (2026-08-20).
+
+**What diverged:** the concept gives a requirement a `bounded_by` field —
+the frames it falls under — and this layer has no equivalent. The reason it
+was left out is that nothing reads it: the dashboard states what each frame
+has refused from the frame's own journal, and frames are applied when a
+hypothesis is let into the fog, by a person following a procedure rather
+than by a stored link. A field with no reader is what the constitution
+declines by default.
+
+There is a second reason it could not be copied as written. In the concept
+`bounded_by` sits on the requirement, and nothing in this layer writes into
+a requirement file, so it would have had to move to the bet — the same
+displacement `bets_on` went through, and the same one the instrument marker
+went through after it.
+
+**Why it is recorded rather than fixed:** leaving it out is a decision, and
+an undocumented decision is indistinguishable from an oversight. A reader
+comparing the concept with the format will find the gap and, finding no
+note, will close it — adding a key that can afterwards be added to but never
+renamed or removed.
+
+**Decision needed:** none until something wants to read it. What would
+change that is a reading nobody can take today — which requirements a frame
+would have refused, or which parts of the system a frame now touches that it
+did not when it was drawn. If such a reading is wanted, the field goes on
+the bet and not on the requirement.

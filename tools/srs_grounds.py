@@ -43,6 +43,8 @@ __version__ = "0.14.0"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GROUNDS = os.path.join(ROOT, "grounds")
 CONFIG = os.path.join(GROUNDS, "grounds-config.json")
+# implements: CON-GND-010
+# The only path this tool ever writes. Everything else it does is read.
 DASHBOARD = os.path.join(GROUNDS, "90-dashboard.md")
 VIEWER = os.path.join(ROOT, "tools", "srs_view.py")
 
@@ -67,6 +69,9 @@ RE_THRESHOLD = re.compile(
 # means is the standard's business; this is the standard's shape as code.
 KINDS = {"I": "ideology", "F": "frame", "H": "hypothesis",
          "B": "bet", "U": "unclaimed"}
+# implements: INV-GND-010
+# One number, one meaning, forever: the checker's part of that promise is
+# that no two records in the register carry the same one.
 RE_ID = re.compile(r"^(%s)-(\d{3})$" % "|".join(sorted(KINDS)))
 
 # implements: FR-GND-030
@@ -225,24 +230,41 @@ def statement_of(entry):
     return "\n".join(lines).strip()
 
 
-def table_of(entry):
-    """Rows of the first table under a record, as lists of cells."""
-    rows = []
-    started = False
+def tables_of(entry):
+    """Every table under a record, as (heading cells, rows).
+
+    A record can carry more than one — a frame keeps its refusals and its
+    amendments — so tables are told apart by their heading and never by
+    their order, which is what the standard promises a reader.
+    """
+    out = []
+    heading, rows = None, []
     for line in entry.body:
         text = line.strip()
-        if not text.startswith("|"):
-            if started:
-                break
+        cells = ([c.strip() for c in text.strip("|").split("|")]
+                 if text.startswith("|") else None)
+        if cells is None:
+            if heading is not None:
+                out.append((heading, rows))
+            heading, rows = None, []
             continue
-        cells = [c.strip() for c in text.strip("|").split("|")]
         if all(set(c) <= set("-: ") for c in cells):
-            continue                      # the header separator
-        if not started:
-            started = True
-            continue                      # the header itself
+            continue                      # the separator under a heading
+        if heading is None:
+            heading = cells
+            continue
         rows.append(cells)
-    return rows
+    if heading is not None:
+        out.append((heading, rows))
+    return out
+
+
+def table_with(entry, column):
+    """The rows of the record's table that has this column, or nothing."""
+    for heading, rows in tables_of(entry):
+        if column in heading:
+            return rows
+    return []
 
 
 def as_date(value):
@@ -415,7 +437,10 @@ def _pick(hyps, names, strongest):
 def decide(records, req):
     """The hypothesis that decides a requirement, as (rank, id).
 
-    implements: FR-GND-070
+    implements: FR-GND-070, INV-GND-020
+
+    Nothing stores what a requirement rests on. It is read off the bets
+    every time it is needed, which is what keeps the join in one direction.
 
     Within a bet: the weakest of what it requires, the strongest of what it
     offers as alternatives, and the weaker of those two. Across the bets of
@@ -447,7 +472,7 @@ def decide(records, req):
 def confirmation_dates(rec):
     """Dates of the evidence rows under a hypothesis, oldest first."""
     out = []
-    for row in table_of(rec):
+    for row in table_with(rec, "verdict"):
         if row and RE_DATE.match(row[0]):
             out.append(row[0])
     return sorted(out)
@@ -481,6 +506,27 @@ def build_dashboard(records, model, incoming):
             "committed and compared against a fresh run, so a number that",
             "moved every night would fail the gate every morning without",
             "saying anything new.", ""]
+
+    # implements: FR-GND-250
+    out += ["## What each frame has refused", ""]
+    if kinds["F"]:
+        for fid in kinds["F"]:
+            rec = records[fid]
+            rows = table_with(rec, "what was refused")
+            out.append("**%s — %s**" % (fid, rec.title))
+            out.append("")
+            if rows:
+                out += ["| date | what was refused | who asked |",
+                        "|---|---|---|"]
+                for row in rows:
+                    out.append("| %s |" % " | ".join(row[:3]))
+            else:
+                out.append("Nothing recorded. A frame that has turned down "
+                           "nothing is either untested or drawn where "
+                           "nothing was going to happen.")
+            out.append("")
+    else:
+        out += ["No frames are recorded.", ""]
 
     out += ["## The debt", ""]
     if model is None:

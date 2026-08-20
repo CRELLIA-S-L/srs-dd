@@ -6,7 +6,8 @@
 # verifies: FR-GND-070, FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-110,
 # verifies: FR-GND-120, FR-GND-390, FR-GND-400, IF-GND-020, INV-GND-030
 # verifies: CON-GND-020, FR-GND-130, FR-GND-220, FR-GND-240
-# verifies: FR-GND-260, FR-GND-010, IF-GND-030
+# verifies: FR-GND-260, FR-GND-010, IF-GND-030, FR-GND-250
+# verifies: CON-GND-010
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -395,6 +396,51 @@ grep -qF "2 of 2 requirements" "$D" \
     || { echo "FAIL FR-GND-220 — the unclaimed count is wrong"; cat "$D"; exit 1; }
 grep -qE "^\| FR-CORE-010 \| [0-9]+ \| [0-9]+ \| [0-9]+ \|$" "$D" \
     || { echo "FAIL FR-GND-220 — no weight row for FR-CORE-010"; cat "$D"; exit 1; }
+passes=$((passes + 2))
+rm -f "$D"
+
+# --- verifies: FR-GND-250 — a frame's whole value is in what it turned
+# --- down, and the second table proves the rule that tables are found by
+# --- their heading: the amendment table is written first on purpose.
+ground < <(printf '### F-010 — No regulatory surface we cannot staff\n\n```yaml\nstatus: active\n```\n\nWe do not take on what we cannot support.\n\n| date | what changed | why | territory it opens |\n|---|---|---|---|\n| 2026-06-01 | narrowed to payroll | one refusal | nothing yet |\n\n| date | what was refused | who asked |\n|---|---|---|\n| 2026-05-02 | selling timing data to tool vendors | growth |\n\n'
+           printf '### F-020 — Nothing has tested this one\n\n```yaml\nstatus: active\n```\n\nWe do not grow by making the thing worse.\n\n')
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+D="$LAB/grounds/90-dashboard.md"
+grep -qF "selling timing data to tool vendors" "$D" \
+    || { echo "FAIL FR-GND-250 — the refusal journal is not on the dashboard"
+         cat "$D"; exit 1; }
+absent "narrowed to payroll" "$D"
+grep -qF "Nothing recorded." "$D" \
+    || { echo "FAIL FR-GND-250 — a frame that refused nothing says nothing"
+         cat "$D"; exit 1; }
+passes=$((passes + 3))
+
+# --- verifies: CON-GND-010 — the layer writes nowhere else. Every file is
+# --- weighed before and after a run that does write, and the dashboard is
+# --- the only one allowed to move.
+# ---
+# --- In a tree the checker has never run in, and that is the whole point:
+# --- weighed inside the lab above, a file left behind by an earlier
+# --- fixture's run sits in both snapshots and the assertion cannot fail.
+LAB4=/tmp/srs-grounds-write
+rm -rf "$LAB4"; mkdir -p "$LAB4/tools" "$LAB4/specs" "$LAB4/grounds"
+cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
+   tools/srs_view.py "$LAB4/tools/"
+cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB4/specs/"
+cp "$LAB/grounds/grounds-config.json" "$LAB4/grounds/"
+{ printf '# g\n\n'; rec H-010 "Ground" "$HYP" 'Studios export weekly.'
+} > "$LAB4/grounds/10-h-test.md"
+weigh() { ( cd "$LAB4" && find . -type f ! -name 90-dashboard.md \
+            -exec cksum {} \; | sort ); }
+weigh > /tmp/srs-grounds-before
+( cd "$LAB4" && python3 tools/srs_grounds.py ) > /dev/null 2>&1
+[ -f "$LAB4/grounds/90-dashboard.md" ] \
+    || { echo "FAIL CON-GND-010 — the run wrote no dashboard, so this"
+         echo "assertion would hold for a checker that did nothing"; exit 1; }
+weigh > /tmp/srs-grounds-after
+cmp -s /tmp/srs-grounds-before /tmp/srs-grounds-after \
+    || { echo "FAIL CON-GND-010 — a run touched something outside the register"
+         diff /tmp/srs-grounds-before /tmp/srs-grounds-after | head -10; exit 1; }
 passes=$((passes + 2))
 rm -f "$D"
 

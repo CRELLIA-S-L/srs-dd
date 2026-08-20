@@ -2,7 +2,7 @@
 # The gate for this repository's own register: it passes its checker
 # strictly, and the committed dashboard is what the records say now.
 #
-# verifies: FR-GND-010, FR-GND-120, CON-GND-020, CON-GND-030
+# verifies: FR-GND-010, FR-GND-120, FR-GND-370, CON-GND-020, CON-GND-030
 #
 # The comparison is done without `git add`. tools/ci_selftest.sh exempts
 # exactly one suite from its index check and that exemption belongs to

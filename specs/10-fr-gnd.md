@@ -635,14 +635,14 @@ information.
 ### FR-GND-250 — What each frame has refused
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The dashboard **shall** state, for each frame, what it has refused and when.
@@ -963,14 +963,14 @@ question returns every six months to be argued from scratch.
 ### FR-GND-370 — The dashboard is compared, not trusted
 
 ```yaml
-status: deferred
+status: partial
 verification: T
 derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [.github/workflows/srs.yml]
+tests: [tests/grounds-check.sh]
 ```
 
 Where a project carries a grounds register, its gate **shall** regenerate the
@@ -981,6 +981,10 @@ by hand; this is what makes that true rather than hoped for. Generated output
 that nothing compares is output somebody will eventually edit, and the
 readings it carries — how much of the system stands on refuted ground, how
 old the confirmations are — are exactly the numbers worth editing.
+
+Realized in part: this repository's own gate regenerates the dashboard and
+compares it, and a project that installs the register has no gate doing so
+until the layer is shipped with one. That is the half this status records.
 
 `FR-CI-010` states the same obligation for the traceability matrix and lives
 in the area about gates. This one lives here instead, because what it is

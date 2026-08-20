@@ -132,6 +132,13 @@ format. Neither is obliged to follow the other's edge cases, and a later
 reader who merges them would be inventing a coupling this register was
 designed to avoid.
 
+**A table is identified by its heading row, never by its position.** A
+record may carry more than one — a hypothesis its evidence, a frame its
+refusals and its amendments — and each is found by the column that only it
+has: `verdict` for evidence, `what was refused` for a frame's journal,
+`what changed` for an amendment. Put them in any order; add a paragraph
+between them; nothing reads position.
+
 **Keys are added, never renamed.** Each kind below declares which of its keys
 are required and which are optional. A key that is neither is not an error —
 that tolerance is what lets a later version of this format add a key without
@@ -211,7 +218,12 @@ worth knowing.
 
 ### `H` — hypothesis
 
-A claim about the world that could turn out to be false.
+A claim about the world that could turn out to be false. Exactly one claim:
+a hypothesis carries a single threshold and a single verdict, so "studios
+need time roll-up **and** will pay for reporting" has one `refuted_if` for
+two things, and a measurement that settles half of it settles nothing while
+the record says `supported`. Nothing checks this and nothing can — it is
+held by whoever writes the statement and by whoever reads it back.
 
 | Key | | |
 |---|---|---|
