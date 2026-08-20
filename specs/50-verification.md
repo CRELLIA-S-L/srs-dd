@@ -22,8 +22,10 @@ repository.
 | `tests/upgrade-smoke.sh` | Upgrading a project from an older framework, the version transition and the notes it prints |
 | `tests/baseline-smoke.sh` | Freezing a baseline in a target and in a clone, including a hand-written row and a history too shallow to hold one |
 | `tests/release-smoke.sh` | Preparing a release: refusals, the dry run, and that nothing is committed or tagged |
+| `tests/grounds-rules.sh` | One fixture per rule of the grounds checker, including the three that pass silently when the rule under them is deleted: an unclaimed requirement stays quiet, two bets on one requirement speak, and a lowered rule stops failing without stopping being computed |
+| `tests/grounds-check.sh` | This repository's own register passes strictly, its committed dashboard is what the records say now, and a run leaves every authored record untouched |
 
-All eight run in CI and locally through `tools/ci_selftest.sh`, which
+All ten run in CI and locally through `tools/ci_selftest.sh`, which
 executes every suite in `tests/` rather than a copy of them.
 
 ## Recorded measurements

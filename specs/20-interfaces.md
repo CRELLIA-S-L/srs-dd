@@ -201,13 +201,13 @@ property into a promise: an addition is compatible, a removal is not.
 ### IF-GND-010 — The register record is a stable format
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [INV-GND-010]
 refines: []
 conflicts_with: []
-code: []
+code: [grounds/README.md, tools/srs_grounds.py]
 tests: []
 ```
 
@@ -235,14 +235,14 @@ merges them would be inventing a coupling this subsystem was built to avoid
 ### IF-GND-020 — Exit codes of the grounds checker
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The grounds checker **shall** exit 0 where it found no error and, under
@@ -262,14 +262,14 @@ on, to describe a subsystem most of them do not have.
 ### IF-GND-030 — A published grounds rule name keeps its meaning
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 A rule name the grounds checker has published **shall** keep its meaning:

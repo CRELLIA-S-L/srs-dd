@@ -271,14 +271,14 @@ does for requirements, and the register does it for bets.
 ### INV-GND-030 — An unclaimed requirement is a reading, not a defect
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 A rule of the grounds layer **shall not** require that a requirement be
@@ -437,14 +437,14 @@ stored (`INV-GND-020`), and this is the constraint that keeps it so.
 ### CON-GND-020 — The dashboard is generated
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
 ```
 
 The register's dashboard **shall** be produced by the grounds checker from
@@ -464,14 +464,14 @@ now.
 ### CON-GND-030 — Records are authored, never written
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-check.sh]
 ```
 
 The grounds layer's commands **shall not** modify a record in the register.

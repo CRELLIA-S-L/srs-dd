@@ -8,14 +8,14 @@ and is unaffected by all of it.
 ### FR-GND-010 — The register is read and reported on
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
 ```
 
 Where a project carries a grounds register, the grounds checker **shall** read
@@ -40,14 +40,14 @@ and that the run says something about them.
 ### FR-GND-020 — Well-formed and unique identifiers
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 If a register identifier is repeated or does not match `<KIND>-<NNN>` with a
@@ -66,14 +66,14 @@ and every citation in a decision, a commit or a bet is by number.
 ### FR-GND-030 — A missing required key is named as missing
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a record omits a key the format requires, the grounds checker
@@ -84,21 +84,22 @@ here: a hypothesis without `refuted_if` is not a hypothesis with an empty
 threshold, it is a claim nobody agreed how to kill. Told the value is bad, an
 author goes looking at what they wrote; told the key is absent, they write it.
 
-### FR-GND-040 — A bet names a requirement that exists
+### FR-GND-040 — A record names a requirement that exists
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
-Where a bet names a requirement absent from the requirement model, the grounds
-checker **shall** report it as an error naming the bet and the requirement.
+Where a record names a requirement absent from the requirement model, the
+grounds checker **shall** report it as an error naming the record and the
+requirement.
 
 **Rationale.** The register points into a model it does not own, and a
 dangling name is the way that pointer rots. Left unreported it is worse than
@@ -110,17 +111,24 @@ An error rather than a warning because the cause is never legitimate. A
 requirement that was cancelled still exists and is `FR-GND-050`; a name that
 resolves to nothing is a typo or a rename nobody carried through.
 
+Two kinds of record name a requirement and both are covered by one
+obligation, because the failure is one thing: a pointer into a model this
+register does not own. A declaration is the quieter half — it says a
+requirement rests on nothing, and where the requirement does not exist it
+says that about nothing at all, while looking from the outside exactly like
+the honest declaration the whole layer is built to encourage.
+
 ### FR-GND-050 — A bet on a cancelled requirement is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 When a bet names a requirement that has been cancelled, the grounds checker
@@ -136,14 +144,14 @@ bet, or move it to whatever replaced the requirement.
 ### FR-GND-060 — A hypothesis past its term is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a hypothesis's term has run out, the grounds checker **shall** report
@@ -159,14 +167,14 @@ touch it is `CON-GND-030`.
 ### FR-GND-070 — The weakest necessary hypothesis decides
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The grounds checker **shall** take the hypothesis that decides a
@@ -197,14 +205,14 @@ Across several bets on one requirement the weakest wins again, which is why
 ### FR-GND-080 — Two bets on one requirement are reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where more than one bet names the same requirement, the grounds checker
@@ -221,14 +229,14 @@ what turns it loud without forbidding the legitimate case.
 ### FR-GND-090 — A declared unclaimed requirement carries a reason
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a requirement is declared as resting on no hypothesis, the grounds
@@ -248,14 +256,14 @@ made declaring cheap; what was made expensive is lying.
 ### FR-GND-100 — A declaration that stopped being true is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a requirement declared as resting on no hypothesis is named by a bet,
@@ -271,14 +279,14 @@ forgotten it exists.
 ### FR-GND-110 — What a hypothesis rule costs is the project's to set
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-GND-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The grounds checker **shall** let a project lower a rule to a report or
@@ -299,14 +307,14 @@ reason.
 ### FR-GND-120 — Strict mode
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
 ```
 
 Where `--strict` is given, the grounds checker **shall** exit non-zero when
@@ -325,14 +333,14 @@ publishes the numbers a caller binds to.
 ### FR-GND-130 — The debt is on the dashboard
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The dashboard **shall** state what proportion of the requirements carrying a
@@ -554,14 +562,14 @@ this person has been right before.
 ### FR-GND-220 — The weight of an unclaimed requirement
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The dashboard **shall** state, for each requirement resting on no hypothesis,
@@ -604,14 +612,14 @@ enough proxy to make the question worth asking.
 ### FR-GND-240 — The age of the core, by class of confirmation
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The dashboard **shall** state how old the confirmations in the core are,
@@ -647,14 +655,14 @@ and neither is visible without the journal.
 ### FR-GND-260 — How many ideologies the core carries
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The dashboard **shall** state how many ideologies the core carries.
@@ -978,3 +986,109 @@ old the confirmations are — are exactly the numbers worth editing.
 in the area about gates. This one lives here instead, because what it is
 about is the register's own integrity; the gate is where it happens, not what
 it concerns.
+
+### FR-GND-380 — An instrument outlives what it measures
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [FR-GND-350]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a bet declares its requirement to be an instrument, the procedure
+settling a refutation **shall** leave that requirement out of the removal it
+proposes.
+
+**Rationale.** `FR-GND-350` takes removal as the default, and that default is
+right for the feature and wrong for the thing that measured it. The screen
+existed because somebody believed the hypothesis; the event counting who
+opened the screen existed to find out whether they were right. Refutation is
+that event answering its question, and answering it is not a reason to delete
+the answering.
+
+What the instrument is for is the bet after this one. A funnel and an
+attribution are what the successor hypothesis will be measured with, and a
+project that removes them with every refutation is a project that has to
+rebuild its measuring before it can ask anything again — which is how
+measuring quietly stops happening.
+
+Declared on the bet and not on the requirement, for the reason the join
+itself is: nothing in this layer writes into a requirement file. It is also
+the more accurate place. Being an instrument is a fact about a pair — the
+same requirement can measure one hypothesis and rest on another — and the
+bet is the record that names exactly that pair.
+
+Verified by inspection for the reason every procedure requirement here is: no
+suite runs a dialog, and one asserting the wording would be a copy of the
+procedure rather than a check on it.
+
+### FR-GND-390 — A value outside the format's vocabulary is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a record carries a value the format does not define for its key, the
+grounds checker **shall** report it as an error naming the record, the key
+and the value.
+
+**Rationale.** Every reading this register produces is a function of a
+handful of constrained values, and a value nothing recognises has to be
+treated as something. Both available answers are wrong, and which one is
+worse depends only on the key.
+
+For `status` it is the reduction: rank an unrecognised one weakest and a typo
+reads as a refutation, rank it strongest and it hides in the core. For
+`class` there is no ranking to get wrong and the failure is quieter — the
+core is reported by class, so a supported hypothesis whose class is not one
+the format defines appears in no row at all, and the core reads smaller than
+it is while the register plainly holds it. For a date it is louder still: a
+term that cannot be read is a term that never runs out.
+
+An error rather than a tunable finding, and for the reason a malformed
+identifier is one: the alternative to failing is a number that is
+confidently wrong, and a project cannot usefully choose to be told less
+about that.
+
+Separate from `FR-GND-030`, which is about a key that is absent. This is
+about a key that is present and says something the format does not define —
+the distinction that requirement's own statement draws.
+
+### FR-GND-400 — A bet names a hypothesis that exists
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-040]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a bet names a hypothesis absent from the register, the grounds checker
+**shall** report it as an error naming the bet and the hypothesis.
+
+**Rationale.** `FR-GND-040` guards the requirement end of a bet and nothing
+guarded the other one. The two ends fail differently and both fail silently:
+a missing requirement means the bet points outside the register, a missing
+hypothesis means the bet points at nothing inside it, and in the second case
+the reduction quietly computes over a shorter list and reports a requirement
+as better supported than it is.
+
+Identifiers are never reused, so a name that resolves to nothing is a
+mistyped reference or a record somebody deleted rather than retired — and the
+second is what `INV-GND-010` exists to prevent.

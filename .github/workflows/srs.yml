@@ -63,6 +63,12 @@ jobs:
       - name: Release smoke
         run: tests/release-smoke.sh
 
+      - name: Grounds rules
+        run: tests/grounds-rules.sh
+
+      - name: Grounds check
+        run: tests/grounds-check.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \

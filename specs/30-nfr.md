@@ -11,7 +11,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py]
+code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py]
 tests: []
 ```
 

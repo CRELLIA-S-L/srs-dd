@@ -107,6 +107,7 @@ population: studios of 5 to 50 people already tracking time
 refuted_if: proportion < 0.30 at n >= 40
 expires: 2027-03-01
 owner: @kira
+impact: about half the 2027 paid-subscription plan; nothing else drives it
 ```
 
 At least three studios in ten spend more than an hour a week assembling
@@ -147,12 +148,34 @@ project has one or a few; a project with a dozen has a list of features.
 | Key | | |
 |---|---|---|
 | `status` | required | `active`, `dissolved` |
+| `admissible_arguments` | required | what counts as a reason to revise it |
 | `adopted` | optional | date |
 
 An ideology is not measured. It is part of the core without ever having been
 confirmed, because it is what the hypotheses are confirmed *for*, and it
 changes only when enough of the ground under it has moved — which is a
 decision, taken deliberately, and recorded as one.
+
+**`admissible_arguments` is what makes that decision governable.** An
+ideology that any argument can move is a preference; one that no argument can
+move is a slogan. The set is declared by the ideology itself rather than
+fixed here, because what counts as weighty is the thing that describes an
+organisation most exactly — and revenue installed as the universal currency
+of persuasion is the mechanism that makes every organisation the same one.
+
+An amendment is recorded as a row, and the last column is the one that
+matters:
+
+```markdown
+| date | what changed | why | territory it opens |
+|---|---|---|---|
+| 2027-01-12 | studios of 5–30 becomes 5–80 | three refusals in a quarter | teams with a delivery manager |
+```
+
+A revision is legitimate when it opens ground that was out of bounds before
+and names that ground in advance. A quarter later somebody looks at whether
+anyone went there. Nobody did, and it was not a revision — it was a capture,
+written up as learning.
 
 ### `F` — frame
 
@@ -166,7 +189,13 @@ can refute it — refusing it is the whole point.
 | `status` | required | `active`, `retired` |
 | `adopted` | optional | date |
 
-A frame carries a journal of what it has refused, as a table below the
+A frame carries the same amendment table an ideology does, and for a
+sharper reason: a frame is amended by decision rather than by argument, and a
+new boundary has to be applied backwards over everything already accepted.
+That sweep is the real content of the word, and the row is where anyone finds
+out it was owed.
+
+A frame also carries a journal of what it has refused, as a table below the
 statement:
 
 ```markdown
@@ -192,7 +221,16 @@ A claim about the world that could turn out to be false.
 | `refuted_if` | required | the threshold, in the grammar below |
 | `expires` | required | date after which confirmation no longer counts |
 | `owner` | required | who answers for measuring it |
+| `impact` | required | what it is worth if true |
 | `grade` | optional | how much the evidence is worth |
+
+`impact` is written as a business outcome and not as a score. "About half the
+2027 paid-subscription plan, and nothing else in the plan drives it" is an
+impact; "high" is a label that ranks against other labels and against nothing
+real. It is declared apart from anything about confidence on purpose, because
+true and unimportant is an ordinary combination and the two questions have
+different answers — what a hypothesis is worth decides whether to measure it
+at all, and how well it is measured decides what may be done once it holds.
 
 Statuses, and they are a lifecycle rather than a scale of confidence:
 
@@ -224,12 +262,23 @@ stands on it, and the other direction is computed.
 | `all_of` | optional | hypotheses that are all needed |
 | `any_of` | optional | hypotheses of which any one suffices |
 | `served_by_any` | optional | competing solutions to the same need |
+| `instrument` | optional | `yes` where the requirement exists to measure |
 
 The two lists are not decoration. `all_of` is a chain — refute any one of
 them and the ground is gone. `any_of` is a set of alternatives — the
 strongest of them carries the requirement. Collapsing the two into a single
 list produces a number that is wrong in the optimistic direction, which is
 the direction that does no good.
+
+`instrument` marks the requirement that exists so the measurement can be
+taken at all — the event, the attribution, the cohort tag. It sits on the bet
+rather than on the requirement because being an instrument is a fact about
+the pair: the same requirement can measure one hypothesis and rest on
+another. What it buys is an exemption. When the hypothesis is refuted, what
+was built on it is put up for removal and the instrument is not, because the
+instrument is what the next bet will be measured with, and a project that
+tears down its measuring after every refutation ends up unable to ask
+anything twice.
 
 Where a requirement has two independent sets of alternatives, write two bets
 naming it. The record *is* the group; there is no nesting and no group label.
@@ -272,11 +321,13 @@ as permanently confirmable is a register whose expiry dates are fiction.
 `refuted_if` is declared before the first measurement, in this grammar:
 
 ```
-proportion|mean|count  <op>  <number>  at n >= <integer>
+proportion|mean|count   <  <=  >  >=   <number>  at n >= <integer>
 ```
 
 for example `proportion < 0.25 at n >= 200`, `mean < 4.0 at n >= 50`,
-`count < 3 at n >= 1`.
+`count < 3 at n >= 1`. Those four comparisons and no others: a threshold
+written with `=` is a coincidence rather than a boundary, and one written in
+prose is a threshold nobody can apply twice the same way.
 
 The kind of quantity comes first because it decides what a fair test is: a
 proportion, a mean and a count are not compared to a threshold the same way.
