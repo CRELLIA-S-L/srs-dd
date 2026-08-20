@@ -5,7 +5,8 @@
     "VIEW",
     "INIT",
     "SKILL",
-    "CI"
+    "CI",
+    "BEL"
   ],
   "code_roots": [
     "tools"

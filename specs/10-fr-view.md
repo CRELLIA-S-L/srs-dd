@@ -427,7 +427,7 @@ A form rather than a colour, and the difference is deliberate. Colour is
 what implements it here and reuses the palette the badges already use, but a
 page read in grey, or by somebody who separates two of those hues poorly,
 still has to work — which is why the status is also in the node's tooltip
-and why the legend names all five.
+and why the legend names every status.
 
 ### FR-VIEW-190 — The dashboard counts every status
 
@@ -568,3 +568,48 @@ page that lies quietly when they did not; and the scan it needs is one the
 viewer already performs for a single file, so what this asks for is that
 the rule live in one place and serve both — not that a second copy be
 written.
+
+### FR-VIEW-230 — The page explains its own notation
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The rendered page **shall** say what each notation it draws stands for.
+
+**Rationale.** The verification method is drawn as a single letter and
+nothing on the page says what it is a letter of. `T`, `D`, `I` and `A` are
+defined in `specs/50-verification.md` and in the field table of
+`specs/README.md` — two documents the reader this page exists for does not
+have, because the page is what gets sent to somebody who will never clone
+the repository.
+
+Half the page already does this. The graph carries a legend naming every
+link kind and every status (FR-VIEW-160, FR-VIEW-180), and the reader meets
+it after the list of requirements, where the same statuses appear as badges
+with no legend at all. What was reasoned about the drawing holds for the
+badges: a page read in grey, or by somebody who separates two of those hues
+poorly, still has to work.
+
+Each notation rather than a list of them. Naming the badges, the chips and
+the colours in the statement would make it compound — half of them explained
+and the requirement stands satisfied on paper — and would grow it by one
+obligation every time the page gains a mark. That is the mistake FR-VIEW-060
+made and FR-VIEW-210 was written to avoid.
+
+The form is left to whoever builds it. A legend, a tooltip on the mark
+itself, or both are ways of saying the same thing, and which of them a mark
+deserves depends on where it sits; the obligation is that the reader can
+find out, not that a particular widget exists.
+
+What a suite can hold here is the marks that exist when it is written,
+which is the position IF-SPEC-020 is in for rule names. That is enough to
+catch the way this breaks in practice — a mark added to the page and
+explained nowhere.

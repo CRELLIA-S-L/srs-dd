@@ -197,3 +197,86 @@ not know has always been tolerated rather than refused, which is what lets a
 later version of the framework add one without breaking a specification
 written against an earlier one. Saying so out loud turns an emergent
 property into a promise: an addition is compatible, a removal is not.
+
+### IF-BEL-010 — The register record is a stable format
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [INV-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The metadata block of a register record **shall** declare which of its keys
+are required, a key it declares neither required nor optional being no error.
+
+**Rationale.** The same promise `IF-SPEC-010` makes for the requirement
+block, made separately because it is a separate format: an addition is
+compatible, a removal or a rename is not, and what lets a later version add a
+key is that an unknown one is tolerated rather than refused.
+
+One statement over every kind of record in the register — belief, bet,
+ideology, frame — rather than one per kind. The obligation is that the rule
+is the same throughout, and splitting it would destroy exactly that claim,
+which is the reading `specs/README.md` gives for a list of exit codes.
+
+The shape deliberately resembles the requirement block so that whoever has
+read `specs/README.md` recognises it. Resemblance is not identity: neither
+format is obliged to track the other's edge cases, and a later reader who
+merges them would be inventing a coupling this subsystem was built to avoid
+(ADR-0015).
+
+### IF-BEL-020 — Exit codes of the belief checker
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The belief checker **shall** exit 0 where it found no error and, under
+`--strict`, no warning either; 1 on errors — or on warnings under `--strict`
+— and 2 when it could not run at all.
+
+**Rationale.** A gate binds to these numbers, so they are an interface and
+not an implementation detail. The three are one statement for the reason
+`IF-CI-020`'s are: what a caller relies on is that these are all of them.
+
+Its own requirement rather than an extension of `IF-CI-010`. That statement
+gives the installer four codes, and `specs/README.md` names an exit-code list
+as the case where splitting destroys the only claim a caller has. A fifth
+code there would rewrite a promise every installed project already depends
+on, to describe a subsystem most of them do not have.
+
+### IF-BEL-030 — A published belief rule name keeps its meaning
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+A belief rule name the checker has published **shall** keep its meaning: it
+is never renamed, and never given to a different rule.
+
+**Rationale.** The names are what a project writes in its own configuration
+to say what a rule costs, so they are a vocabulary somebody else's files are
+written in. `IF-SPEC-020` makes this promise for the specification checker
+and explains why the compatible move is the only move: a rename breaks those
+files in the least helpful way available, and a name quietly reused for a
+different rule is worse, because everything keeps running while the
+exemption now excuses something nobody meant to excuse.
