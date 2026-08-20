@@ -460,3 +460,34 @@ under pressure would round.
 Committed rather than generated on demand, so that a diff shows the readings
 moving and a gate can compare what is committed against what the records say
 now.
+
+### CON-BEL-030 — Records are authored, never written
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [CON-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The belief layer's commands **shall not** modify a record in the register.
+
+**Rationale.** `CON-BEL-010` draws the boundary of the register and says
+nothing about what happens inside it, which leaves the tool free to edit the
+entries themselves. That freedom is one the subsystem must not have. Evidence
+is appended and never rewritten; a belief whose term has run out is reported
+and left alone, because expiry is not a verdict and a tool that changed the
+status would be answering a question only a measurement can answer.
+
+The instinct is the framework's own: `FR-VIEW-080` forbids the viewer to
+modify anything under `specs/`, and the reason carries over unchanged —
+authored content belongs to whoever authored it, and a tool that improves it
+is a tool nobody can trust with the rest.
+
+The dashboard is not a record. It is generated output living in the register,
+governed by `CON-BEL-020`, and writing it is the one thing these commands do
+inside `beliefs/`.

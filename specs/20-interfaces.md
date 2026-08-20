@@ -211,8 +211,10 @@ code: []
 tests: []
 ```
 
-The metadata block of a register record **shall** declare which of its keys
-are required, a key it declares neither required nor optional being no error.
+A register record **shall** be written as a level-three heading, a fenced
+`yaml` metadata block of flat keys with scalar or bracketed-list values, a
+statement, and an optional rationale, whose keys are declared either required
+or optional, a key it declares neither being no error.
 
 **Rationale.** The same promise `IF-SPEC-010` makes for the requirement
 block, made separately because it is a separate format: an addition is
