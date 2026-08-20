@@ -202,9 +202,16 @@ def _alternation(words):
     return "|".join(re.escape(w) for w in words)
 
 
-# srs_parse captures anything ID-shaped, junk included; this is what
-# judges it, and it must stay loud — a malformed identifier is never
-# skipped silently.
+# Capture, then judgement, deliberately far apart in strictness.
+# RE_HEADING is a broad net: anything ID-shaped is taken, junk like
+# FR-CORE-010-B included, and RE_ID judges it loudly afterwards — a
+# malformed identifier must never be skipped silently. The net lives
+# here rather than in srs_parse because how a format numbers its
+# entries is the format's own business, and the register beside specs/
+# numbers its entries in two parts (ADR-0019).
+RE_HEADING = re.compile(
+    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
+    r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
 RE_ID = re.compile(r"^(%s)-(%s)-(\d{3})$" % ("|".join(TYPES), "|".join(AREAS)))
 
 
@@ -297,7 +304,7 @@ def parse_text(text, rel, errors):
     the rationale begins — it asks of a body srs_parse already found.
     """
     requirements = []
-    for entry in srs_parse.parse_entries(text, rel, errors):
+    for entry in srs_parse.parse_entries(text, rel, errors, RE_HEADING):
         req = Requirement(entry.id, entry.title, entry.path, entry.line)
         req.meta = entry.fields
         req.statement, req.rationale = _split_body(entry.body)

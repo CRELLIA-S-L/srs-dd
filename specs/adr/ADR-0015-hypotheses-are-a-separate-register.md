@@ -1,22 +1,22 @@
-# ADR-0015 — Beliefs live in a register of their own, not in a sixth requirement type
+# ADR-0015 — Hypotheses live in a register of their own, not in a sixth requirement type
 
 - **Status:** accepted
 - **Date:** 2026-08-19
-- **Related requirements:** FR-BEL-010, IF-BEL-010, INV-BEL-010, CON-BEL-010,
+- **Related requirements:** FR-GND-010, IF-GND-010, INV-GND-010, CON-GND-010,
   IF-VIEW-010, CON-SPEC-020
 
 ## Context and problem statement
 
-A product's requirements rest on beliefs about people — who needs the thing,
-what they will pay for, what they do today instead. The specification records
-the obligations and says nothing about the ground under them. That ground
-lives in rationale prose, which the standard asks for only "whenever the
-decision is not obvious" and which no rule checks: delete a requirement's
+A product's requirements rest on hypotheses about people — who needs the
+thing, what they will pay for, what they do today instead. The specification
+records the obligations and says nothing about the ground under them. That
+ground lives in rationale prose, which the standard asks for only "whenever
+the decision is not obvious" and which no rule checks: delete a requirement's
 rationale and a strict run reports nothing at all.
 
-An optional subsystem is being added to record those beliefs as first-class
+An optional subsystem is being added to record those hypotheses as first-class
 entries with a statement, a way to measure them, a threshold declared in
-advance, an expiry and a status — so that a belief going stale becomes
+advance, an expiry and a status — so that a hypothesis going stale becomes
 visible where the code is.
 
 The question this decides is where such an entry physically lives. It is not
@@ -29,8 +29,8 @@ type and let the existing machinery carry it.
 
 1. A sixth `TYPE` — `HYP-<AREA>-<NNN>` beside `FR`, `NFR`, `IF`, `INV`, `CON`,
    parsed and checked by `tools/srs_check.py`.
-2. Reuse an existing type — record beliefs as `INV-*` or `CON-*` and let the
-   rationale carry what the fields cannot.
+2. Reuse an existing type — record hypotheses as `INV-*` or `CON-*` and let
+   the rationale carry what the fields cannot.
 3. A register of its own beside `specs/`, with its own format, its own
    checker, and the requirement model read through the published JSON.
 
@@ -60,15 +60,15 @@ of the requirement block presumes that the truth of the entry is under the
 author's control. `status` says how much of it is built. `verification` says
 how conformance is checked. `code` says where it is realized, and
 `implemented` without it is an error. None of that means anything for a
-statement about the world: `implemented` is not a state a belief can be in,
-`tests` is the wrong word for a cohort measurement, and there is no `code`
+statement about the world: `implemented` is not a state a hypothesis can be
+in, `tests` is the wrong word for a cohort measurement, and there is no `code`
 because nobody implements a fact about buyers. A sixth type would be a record
-that ignores most of the format and needs a parallel set of keys — two
-schemas in one file format, which `IF-SPEC-010` promises the opposite of.
+that ignores most of the format and needs a parallel set of keys — two schemas
+in one file format, which `IF-SPEC-010` promises the opposite of.
 
 **Option 2 is worse than either.** It keeps the grammar quiet by lying about
 what the entry is: an invariant is something the system must never violate, a
-constraint is something it must not do, and a belief is neither. The
+constraint is something it must not do, and a hypothesis is neither. The
 rationale would then carry the threshold, the expiry and the evidence as
 prose no rule can read, which is the condition this whole subsystem exists to
 end.
@@ -85,19 +85,20 @@ binding to the rest of the object is not, and the register does not.
 
 ## Consequences
 
-The belief register is a sibling of `specs/`, not a part of it. Requirement
-files are never modified by the subsystem, in any mode, for any reason.
+The grounds register is a sibling of `specs/`, not a part of it.
+Requirement files are never modified by the subsystem, in any mode, for any
+reason.
 
 Two formats now exist that look alike on purpose — a heading, a fenced block
 of flat keys, prose — because an agent that has read `specs/README.md` should
 recognise the shape without learning a second syntax. They are not the same
-format and neither is obliged to track the other's edge cases; the belief
+format and neither is obliged to track the other's edge cases; the hypothesis
 standard says so in as many words, so that a later reader does not "fix" the
 divergence by merging them.
 
-The join between the two — which requirements rest on which beliefs — cannot
-live in a requirement file and does not belong in a belief either. Where it
-goes is ADR-0016.
+The join between the two — which requirements rest on which hypotheses —
+cannot live in a requirement file and does not belong in a hypothesis either.
+Where it goes is ADR-0016.
 
 Reading the requirement model through a subprocess rather than an import is
 part of this decision: the register keeps working, and keeps saying something

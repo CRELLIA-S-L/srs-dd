@@ -11,9 +11,15 @@ This module finds the boundaries of a record and splits every field it
 carries **without knowing their names or how many there are**. It
 returns the identifier as written — junk included — the title, the
 fields, the body and the line. What a field means, which are required,
-which are retired, and what an identifier is allowed to look like
-belong to whoever calls it; the capture is here and the judgement is
-theirs (ADR-0019).
+which are retired, and whether an identifier is well-formed belong to
+whoever calls it (ADR-0019).
+
+What an identifier *looks* like is theirs too, and arrives as the
+`heading` pattern: the two formats number their entries differently,
+one in three parts and one in two, and neither grammar is a property
+of the shape. That pattern is meant to be a broad net — anything
+ID-shaped captured, junk included, judged loudly afterwards — because
+a malformed identifier must never be skipped silently.
 
 The errors it reports are the ones no caller can recover from: a
 metadata line with no colon, a duplicate key, a fence that never
@@ -26,12 +32,6 @@ Standard library only, compatible with Python 3.9.
 
 import re
 
-# A deliberately broad net: anything ID-shaped is captured (including
-# junk like FR-CORE-010-B) and then judged loudly by the caller — a
-# malformed identifier must never be skipped silently.
-RE_HEADING = re.compile(
-    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
-    r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
 RE_ANY_HEADING = re.compile(r"^#{1,6}\s")
 RE_FENCE = re.compile(r"^\s*(`{3,})")
 RE_FENCE_OPEN = re.compile(r"^\s*```+\s*yaml\s*$")
@@ -107,8 +107,11 @@ class Entry(object):
         return "%s:%d" % (self.path, self.line)
 
 
-def parse_entries(text, path, errors):
+def parse_entries(text, path, errors, heading):
     """Every record in one file already held in memory.
+
+    `heading` is a compiled pattern matching a record's opening line,
+    capturing two groups: the identifier and the title.
 
     Works on text rather than a path so that a caller holding a past
     revision — one read through `git show` — goes through the same
@@ -127,7 +130,7 @@ def parse_entries(text, path, errors):
             index = skip_fence(lines, index)
             continue
 
-        match = RE_HEADING.match(lines[index])
+        match = heading.match(lines[index])
         if not match:
             index += 1
             continue
@@ -148,7 +151,7 @@ def parse_entries(text, path, errors):
                 while index < total \
                         and not (RE_FENCE_CLOSE.match(lines[index])
                                  and fence_len(lines[index]) >= opener) \
-                        and not RE_HEADING.match(lines[index]):
+                        and not heading.match(lines[index]):
                     meta_lines.append(lines[index])
                     index += 1
                 if index < total and RE_FENCE_CLOSE.match(lines[index]) \

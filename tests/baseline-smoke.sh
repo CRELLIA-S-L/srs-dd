@@ -117,6 +117,15 @@ git config user.name CI
 # existed and fails for a reason that has nothing to do with baselines.
 ( cd "$FRAMEWORK" && tar --exclude ./.git --exclude ./.srs-site \
                        --exclude ./public -cf - . ) | tar -xf -
+
+# The overlay adds and overwrites; it cannot remove. A file the working tree
+# has deleted or renamed survives from the clone and is then judged beside
+# its replacement — two files claiming the same identifiers, and a failure
+# that says nothing about what is under test. So take out whatever this
+# clone carries that the working tree no longer has.
+git ls-files -z | while IFS= read -r -d "" f; do
+    [ -e "$FRAMEWORK/$f" ] || rm -f "$f"
+done
 python3 tools/srs_check.py > /tmp/base-precheck.log 2>&1 || {
     echo "the clone does not pass its own checker:"; cat /tmp/base-precheck.log
     exit 1

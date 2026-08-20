@@ -261,34 +261,34 @@ two existing members of the family draw the line where it can be drawn.
 
 ## A project without the register never hears that it exists
 
-**Found:** while writing the belief layer's install and delivery
+**Found:** while writing the grounds layer's install and delivery
 requirements (2026-08-20).
 
-**What diverged:** FR-BEL-280 offers the register as a choice at install and
-at adoption, FR-BEL-290 forbids an upgrade from adding it to a project that
-has none, and FR-BEL-320 ships the belief procedure only where the register
-is installed. Each is right on its own, and together they leave nobody to
-tell a project that the layer exists. A project installed before the layer
-shipped, or one that declined it once, receives nothing that mentions it
-again: the tooling is refreshed, the skills are refreshed, and not one of
-them says there is a subsystem available for the asking. The only
-description lives in this repository — `docs/`, the changelog, the
-concept — which is exactly what a target never reads.
+**What diverged:** FR-GND-280 offers the register as a choice at install and
+at adoption, FR-GND-290 forbids an upgrade from adding it to a project that
+has none, and FR-GND-320 ships the grounds procedure only where the
+register is installed. Each is right on its own, and together they leave
+nobody to tell a project that the layer exists. A project installed before the
+layer shipped, or one that declined it once, receives nothing that mentions it
+again: the tooling is refreshed, the skills are refreshed, and not one of them
+says there is a subsystem available for the asking. The only description lives
+in this repository — `docs/`, the changelog, the concept — which is exactly
+what a target never reads.
 
 **Decision needed:** have the upgrade say once, where the register is
 absent, that it can be added and how; or accept that the layer is found
 through the framework's own documentation and say so where that documentation
 will be read; or install a minimal procedure everywhere, against the reason
-FR-BEL-320 gives for installing none.
+FR-GND-320 gives for installing none.
 
 ## Calibration is built at a fraction of what the concept describes
 
-**Found:** while planning the belief layer (2026-08-20).
+**Found:** while planning the grounds layer (2026-08-20).
 
 **What diverged:** the concept the layer is built from weighs a judgement by
 its author's measured accuracy, after Cooke's method — calibration questions
 with known answers, experts scored against them, opinions combined by that
-score. What FR-BEL-210 builds is the half that needs no programme: how many
+score. What FR-GND-210 builds is the half that needs no programme: how many
 of an author's verdicts a later measurement reversed. It answers whether
 this person has been right before, and nothing else. No rule weighs a class
 III verdict by it, and the register has no way to acquire calibration
@@ -306,7 +306,7 @@ to get it.
 
 ## An unchangeable minimum can be made loud, not prevented
 
-**Found:** while planning the belief layer (2026-08-20).
+**Found:** while planning the grounds layer (2026-08-20).
 
 **What diverged:** the concept holds that an ideology carries a minimum that
 changes only by dissolving the ideology itself — not amendable, whatever the
@@ -320,3 +320,39 @@ difference is at present written down nowhere.
 authored — the minimum is changed loudly, never silently — or place
 immutability outside the repository, in protected paths, required review or
 signed commits, none of which this framework configures in any target today.
+
+## A hypothesis carries one number where the concept carries two
+
+**Found:** while reviewing the grounds standard against the concept it is
+built from (2026-08-20).
+
+**What diverged:** the record format has `refuted_if` and nothing else
+numeric. The concept has two numbers and says plainly that confusing them is
+expensive: the target magnitude is what the thing is being built for, the
+refutation threshold is the line below which the claim is false, and a result
+landing between them neither supports nor refutes — it says the claim
+survived and its magnitude was wrong. That middle band cannot be expressed
+here at all, and `grounds/README.md` demonstrates the collapse in its own
+worked example, where the statement claims three studios in ten and
+`refuted_if` fires below the same 0.30.
+
+The cost is not that a number is missing. It is that a measurement in the
+middle has no name, so it reads as support to whoever compares it against the
+threshold and as failure to whoever compares it against the target — and both
+are looking at the same row of evidence. The concept's example is exactly
+this case: 19% measured against a 15% floor and a 30% aim, where what
+actually happened was that the pricing built on 30% had to go back for
+review while the hypothesis itself stood.
+
+**Why it is recorded rather than fixed:** a second number is a new key on the
+hypothesis record, and no requirement prescribes one. Writing it into the
+standard alone would describe machinery nothing obliges, and the format is
+the one thing that cannot be quietly corrected later — a key may be added but
+never renamed, and this register ships to other projects.
+
+**Decision needed:** give the hypothesis record a `target` key beside
+`refuted_if`, with a rule that the two are not the same number and a verdict
+of its own for the band between them; or state in the standard that the
+register records only the refutation line and that the target lives in the
+plan it justifies, naming where; or accept the collapse and say so, so that
+nobody reads the single number as if it were the aim.

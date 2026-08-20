@@ -2,11 +2,11 @@
 
 - **Status:** accepted
 - **Date:** 2026-08-19
-- **Related requirements:** FR-BEL-170, FR-BEL-180, IF-BEL-010, IF-SPEC-010
+- **Related requirements:** FR-GND-170, FR-GND-180, IF-GND-010, IF-SPEC-010
 
 ## Context and problem statement
 
-A belief needs to record two different things about itself, and the source
+A hypothesis needs to record two different things about itself, and the source
 concept does not separate them.
 
 The first is where it stands in its own life: nobody has looked at it yet, it
@@ -38,7 +38,7 @@ replaced by a grade. Building either reading alone loses something real.
 Option 3, with the rule that makes the grade do work rather than decorate.
 
 **A grade with nothing attached is a label.** The move that makes this worth
-building is not the scale but the binding: `beliefs/beliefs-config.json`
+building is not the scale but the binding: `grounds/grounds-config.json`
 carries a map from grade to the actions permitted on it, and an entry whose
 declared action is not permitted at its grade is reported. This is taken from
 evidence-based medicine, where certainty is rated high, moderate, low or very
@@ -54,7 +54,7 @@ to any rule.
 **Option 2 loses the lifecycle.** `untested`, `assumed`, `expired` and
 `declined` are not points on a confidence scale — they say what happened to
 the entry, not how good the evidence is. Collapsing them into a grade means
-an untested belief and a well-measured weak one become indistinguishable.
+an untested hypothesis and a well-measured weak one become indistinguishable.
 
 **Option 4 is the version to avoid, and it is the one already in
 circulation.** Opportunity solution trees carry a numeric confidence score
@@ -78,7 +78,7 @@ this framework already refuses that trade elsewhere.
 
 Two fields where the source concept has one, and a configuration key that
 projects will tune. The map is per project because what a low-certainty
-belief may be used for is a matter of appetite, not of fact.
+hypothesis may be used for is a matter of appetite, not of fact.
 
 The grade is assigned, not computed. Nothing in the register derives it from
 sample size or method, and it should not: a large cohort measuring the wrong

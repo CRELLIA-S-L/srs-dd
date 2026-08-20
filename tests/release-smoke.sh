@@ -37,6 +37,15 @@ git config user.name CI
 # each time the specification learns to reference something else.
 ( cd "$FRAMEWORK" && tar --exclude ./.git --exclude ./.srs-site \
                        --exclude ./public -cf - . ) | tar -xf -
+
+# The overlay adds and overwrites; it cannot remove. A file the working tree
+# has deleted or renamed survives from the clone and is then judged beside
+# its replacement — two files claiming the same identifiers, and a failure
+# that says nothing about what is under test. So take out whatever this
+# clone carries that the working tree no longer has.
+git ls-files -z | while IFS= read -r -d "" f; do
+    [ -e "$FRAMEWORK/$f" ] || rm -f "$f"
+done
 # Regenerate the matrix: the copies are new to this clone, and the command
 # refuses on a matrix that is not fresh. The output is kept — a suite that
 # discards it reports a dead hook and no reason, which is exactly what the

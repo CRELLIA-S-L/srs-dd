@@ -6,7 +6,7 @@
     "INIT",
     "SKILL",
     "CI",
-    "BEL"
+    "GND"
   ],
   "code_roots": [
     "tools"

@@ -6,7 +6,7 @@
 
 ## Context and problem statement
 
-ADR-0015 gives the belief register its own checker. Both checkers read the
+ADR-0015 gives the grounds register its own checker. Both checkers read the
 same physical shape: a `### <identifier> — <title>` heading, a fenced block of
 flat `key: value` lines under it, and prose until the next heading. The shape
 was chosen for the register precisely so that a reader of `specs/README.md`
@@ -17,8 +17,8 @@ new checker needs the same reading, and there are three ways to get it.
 
 ## Considered options
 
-1. Write it again in `tools/srs_beliefs.py` — about thirty lines.
-2. Import `srs_check` from the belief checker.
+1. Write it again in `tools/srs_grounds.py` — about thirty lines.
+2. Import `srs_check` from the grounds checker.
 3. Extract the shape reading into `tools/srs_parse.py` and have both use it.
 
 ## Decision outcome
@@ -27,13 +27,13 @@ Option 3.
 
 **Option 2 couples an optional subsystem to the mandatory one's startup.**
 `CFG = load_config()` runs at module level (`tools/srs_check.py:124`) and
-`_config_fail` calls `sys.exit(2)`. Importing means the belief checker dies on
-the import line, with a message about a configuration it does not own, before
-it can say anything about beliefs. It fails either way when the specification
-is unreadable — the register reads the requirement model through a subprocess
-and that subprocess would fail too — but there is a difference between
-reporting "the requirement model could not be read, here is why" and exiting
-from an import.
+`_config_fail` calls `sys.exit(2)`. Importing means the grounds checker
+dies on the import line, with a message about a configuration it does not own,
+before it can say anything about hypotheses. It fails either way when the
+specification is unreadable — the register reads the requirement model through
+a subprocess and that subprocess would fail too — but there is a difference
+between reporting "the requirement model could not be read, here is why" and
+exiting from an import.
 
 **Option 1 is affordable and still wrong for the reason that decides this.**
 The duplication is small: `parse_metadata` is 24 lines and `parse_file` is 5;
@@ -106,3 +106,15 @@ Where the line between shape and meaning falls is settled by having two
 consumers rather than by argument. The first consumer alone cannot tell which
 of its habits are the format and which are its own; the second one can, and
 the boundary is expected to move a little when it arrives.
+
+It moved on the day the second consumer first ran, and outward rather than
+inward: the identifier grammar left the module. The register numbers its
+entries in two parts — `H-010` — and the capture written for `FR-CHK-010`
+requires three, so the shared parser returned nothing at all for a well-formed
+hypothesis. Broadening the one capture to cover both was the obvious repair
+and was rejected on a measured cost: it also takes `### Phase-2` and `###
+Windows-10`, so a heading that a stranger's `specs/` may already contain
+becomes a hard error, and `--mode adopt` on that project stops installing. The
+pattern is now an argument and each checker brings its own. What stayed is the
+fence walk, the field split and the boundaries of a record — the bulk of the
+module, and the part that turned out to have no test coverage at all.

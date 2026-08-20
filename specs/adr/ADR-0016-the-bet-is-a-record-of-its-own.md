@@ -1,17 +1,17 @@
-# ADR-0016 — The bet is a record of its own, not fields on a belief
+# ADR-0016 — The bet is a record of its own, not fields on a hypothesis
 
 - **Status:** accepted
 - **Date:** 2026-08-19
-- **Related requirements:** INV-BEL-020, INV-BEL-030, IF-VIEW-010
+- **Related requirements:** INV-GND-020, INV-GND-030, IF-VIEW-010
 
 ## Context and problem statement
 
-ADR-0015 puts beliefs in a register beside `specs/` and forbids the subsystem
-from writing into requirement files. The join therefore has to live on the
-belief side: a requirement never says what it rests on, so the register says
-what rests on it.
+ADR-0015 puts hypotheses in a register beside `specs/` and forbids the
+subsystem from writing into requirement files. The join therefore has to live
+on the hypothesis side: a requirement never says what it rests on, so the
+register says what rests on it.
 
-The join is not a plain list. A requirement can rest on several beliefs at
+The join is not a plain list. A requirement can rest on several hypotheses at
 once, all of them necessary — if any is refuted the ground is gone. It can
 also rest on one of several alternatives, where any one suffices and the
 strongest carries it. Both readings are needed, because the reduction that
@@ -19,17 +19,18 @@ produces "how much of the system stands on refuted ground" is a minimum over
 the necessary and a maximum over the alternatives, and collapsing them yields
 a number that is wrong in the optimistic direction.
 
-The cheap encoding is three fields on the belief: the requirements that need
-it together with others, the requirements it is an alternative for, and the
-requirements that are competing solutions to it.
+The cheap encoding is three fields on the hypothesis: the requirements that
+need it together with others, the requirements it is an alternative for, and
+the requirements that are competing solutions to it.
 
 ## Considered options
 
-1. Three list fields on each belief record.
+1. Three list fields on each hypothesis record.
 2. A group label appended to each identifier in the alternative list, so that
    `FR-CORE-030/g1` and `FR-CORE-030/g2` are two independent alternative sets.
-3. A separate flat record — the bet — naming one requirement and the beliefs
-   it rests on, with the quantifier expressed by which field they sit in.
+3. A separate flat record — the bet — naming one requirement and the
+   hypotheses it rests on, with the quantifier expressed by which field they
+   sit in.
 
 ## Decision outcome
 
@@ -60,14 +61,14 @@ by default, and there is no ADR-worthy gain to set against it.
 **Option 3 needs no new concept to express the uncovered case.** Two
 independent alternative sets are two bet records naming the same requirement.
 The reduction is a minimum across the records of a requirement and, within
-each record, a minimum over the necessary beliefs and a maximum over the
+each record, a minimum over the necessary hypotheses and a maximum over the
 alternatives. Nesting is not required; group labels are not required; the
 record *is* the group.
 
 It also gives the join something the field encoding cannot: a name. A bet has
-an identifier that survives the beliefs coming and going underneath it, which
-is what makes it citable in a review, in a decision, and — the reason this
-matters most — in a place a developer already looks.
+an identifier that survives the hypotheses coming and going underneath it,
+which is what makes it citable in a review, in a decision, and — the reason
+this matters most — in a place a developer already looks.
 
 **The one failure mode it introduces, and how it is closed.** Two bet records
 for the same requirement that were meant to be one silently change a maximum
@@ -78,8 +79,8 @@ failure mode the field encoding lacked.
 
 ## Consequences
 
-The register gains a third kind of entry, and the belief record loses the
-three list fields it would otherwise have carried. A belief says what it
+The register gains a third kind of entry, and the hypothesis record loses the
+three list fields it would otherwise have carried. A hypothesis says what it
 claims and how it is measured; a bet says who is standing on it.
 
 The reduction has one input the subsystem cannot see: whether a requirement

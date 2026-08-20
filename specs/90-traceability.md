@@ -18,49 +18,12 @@ Total requirements: 154.
 
 | Requirement | Status | Method | Code | Tests |
 |---|---|---|---|---|
-| **CON-BEL-010** The belief layer writes nowhere else | `deferred` | T | — | — |
-| **CON-BEL-020** The dashboard is generated | `deferred` | T | — | — |
-| **CON-BEL-030** Records are authored, never written | `deferred` | T | — | — |
+| **CON-GND-010** The grounds layer writes nowhere else | `deferred` | T | — | — |
+| **CON-GND-020** The dashboard is generated | `deferred` | T | — | — |
+| **CON-GND-030** Records are authored, never written | `deferred` | T | — | — |
 | **CON-SPEC-010** The traceability matrix is generated | `implemented` | T | `tools/srs_check.py`<br>`specs/90-traceability.md` | `tests/spec-check.sh` |
 | **CON-SPEC-020** Nothing of the framework travels into a target | `implemented` | T | `tools/srs_init.py`<br>`skeleton` | `tests/installer-smoke.sh` |
 | **CON-SPEC-030** The tooling does not write git history | `implemented` | T | `tools/srs_baseline.py`<br>`tools/srs_release.py` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
-| **FR-BEL-010** The register is read and reported on | `deferred` | T | — | — |
-| **FR-BEL-020** Well-formed and unique identifiers | `deferred` | T | — | — |
-| **FR-BEL-030** A missing required key is named as missing | `deferred` | T | — | — |
-| **FR-BEL-040** A bet names a requirement that exists | `deferred` | T | — | — |
-| **FR-BEL-050** A bet on a cancelled requirement is reported | `deferred` | T | — | — |
-| **FR-BEL-060** A belief past its term is reported | `deferred` | T | — | — |
-| **FR-BEL-070** The weakest necessary belief decides | `deferred` | T | — | — |
-| **FR-BEL-080** Two bets on one requirement are reported | `deferred` | T | — | — |
-| **FR-BEL-090** A declared unclaimed requirement carries a reason | `deferred` | T | — | — |
-| **FR-BEL-100** A declaration that stopped being true is reported | `deferred` | T | — | — |
-| **FR-BEL-110** What a belief rule costs is the project's to set | `deferred` | T | — | — |
-| **FR-BEL-120** Strict mode | `deferred` | T | — | — |
-| **FR-BEL-130** The debt is on the dashboard | `deferred` | T | — | — |
-| **FR-BEL-140** A verdict follows from the threshold | `deferred` | T | — | — |
-| **FR-BEL-150** The criterion follows the kind of quantity | `deferred` | T | — | — |
-| **FR-BEL-160** A class III verdict names who made it | `deferred` | T | — | — |
-| **FR-BEL-170** A grade permits only the actions declared for it | `deferred` | T | — | — |
-| **FR-BEL-180** A declined belief carries a reason and a date | `deferred` | T | — | — |
-| **FR-BEL-190** The threshold was not moved after the first measurement | `deferred` | T | — | — |
-| **FR-BEL-200** Evidence is only ever added | `deferred` | T | — | — |
-| **FR-BEL-210** How often an author's verdicts were reversed | `deferred` | T | — | — |
-| **FR-BEL-220** The weight of an unclaimed requirement | `deferred` | T | — | — |
-| **FR-BEL-230** New unclaimed requirements, and where they cluster | `deferred` | T | — | — |
-| **FR-BEL-240** The age of the core, by class of confirmation | `deferred` | T | — | — |
-| **FR-BEL-250** What each frame has refused | `deferred` | T | — | — |
-| **FR-BEL-260** How many ideologies the core carries | `deferred` | T | — | — |
-| **FR-BEL-270** History that cannot be read is said to be unread | `deferred` | T | — | — |
-| **FR-BEL-280** The register is a choice at install | `deferred` | T | — | — |
-| **FR-BEL-290** The register is added deliberately, never silently | `deferred` | T | — | — |
-| **FR-BEL-300** A fresh register is one its own checker accepts | `deferred` | T | — | — |
-| **FR-BEL-310** The hook says which bets the commit touches | `deferred` | T | — | — |
-| **FR-BEL-320** The register procedure travels with the project | `deferred` | T | — | — |
-| **FR-BEL-330** Whoever writes a belief judges what no checker reaches | `deferred` | I | — | — |
-| **FR-BEL-340** The class is checked against the measurement | `deferred` | I | — | — |
-| **FR-BEL-350** A refutation opens a decommissioning, not a deletion | `deferred` | I | — | — |
-| **FR-BEL-360** Admission to the core is its own act | `deferred` | I | — | — |
-| **FR-BEL-370** The dashboard is compared, not trusted | `deferred` | T | — | — |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -93,6 +56,43 @@ Total requirements: 154.
 | **FR-CI-070** Cutting a release is one command | `implemented` | T | `tools/srs_release.py` | `tests/release-smoke.sh` |
 | **FR-CI-080** An assertion that something is absent can fail | `implemented` | T | `tools/test_lib.sh` | `tests/checker-rules.sh` |
 | **FR-CI-090** A suite working on a target leaves this repository alone | `implemented` | T | `tests/view-smoke.sh`<br>`tests/baseline-smoke.sh`<br>`tests/release-smoke.sh`<br>`tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh`<br>`tests/upgrade-smoke.sh`<br>`tests/checker-rules.sh`<br>`tools/ci_selftest.sh` | `tests/checker-rules.sh` |
+| **FR-GND-010** The register is read and reported on | `deferred` | T | — | — |
+| **FR-GND-020** Well-formed and unique identifiers | `deferred` | T | — | — |
+| **FR-GND-030** A missing required key is named as missing | `deferred` | T | — | — |
+| **FR-GND-040** A bet names a requirement that exists | `deferred` | T | — | — |
+| **FR-GND-050** A bet on a cancelled requirement is reported | `deferred` | T | — | — |
+| **FR-GND-060** A hypothesis past its term is reported | `deferred` | T | — | — |
+| **FR-GND-070** The weakest necessary hypothesis decides | `deferred` | T | — | — |
+| **FR-GND-080** Two bets on one requirement are reported | `deferred` | T | — | — |
+| **FR-GND-090** A declared unclaimed requirement carries a reason | `deferred` | T | — | — |
+| **FR-GND-100** A declaration that stopped being true is reported | `deferred` | T | — | — |
+| **FR-GND-110** What a hypothesis rule costs is the project's to set | `deferred` | T | — | — |
+| **FR-GND-120** Strict mode | `deferred` | T | — | — |
+| **FR-GND-130** The debt is on the dashboard | `deferred` | T | — | — |
+| **FR-GND-140** A verdict follows from the threshold | `deferred` | T | — | — |
+| **FR-GND-150** The criterion follows the kind of quantity | `deferred` | T | — | — |
+| **FR-GND-160** A class III verdict names who made it | `deferred` | T | — | — |
+| **FR-GND-170** A grade permits only the actions declared for it | `deferred` | T | — | — |
+| **FR-GND-180** A declined hypothesis carries a reason and a date | `deferred` | T | — | — |
+| **FR-GND-190** The threshold was not moved after the first measurement | `deferred` | T | — | — |
+| **FR-GND-200** Evidence is only ever added | `deferred` | T | — | — |
+| **FR-GND-210** How often an author's verdicts were reversed | `deferred` | T | — | — |
+| **FR-GND-220** The weight of an unclaimed requirement | `deferred` | T | — | — |
+| **FR-GND-230** New unclaimed requirements, and where they cluster | `deferred` | T | — | — |
+| **FR-GND-240** The age of the core, by class of confirmation | `deferred` | T | — | — |
+| **FR-GND-250** What each frame has refused | `deferred` | T | — | — |
+| **FR-GND-260** How many ideologies the core carries | `deferred` | T | — | — |
+| **FR-GND-270** History that cannot be read is said to be unread | `deferred` | T | — | — |
+| **FR-GND-280** The register is a choice at install | `deferred` | T | — | — |
+| **FR-GND-290** The register is added deliberately, never silently | `deferred` | T | — | — |
+| **FR-GND-300** A fresh register is one its own checker accepts | `deferred` | T | — | — |
+| **FR-GND-310** The hook says which bets the commit touches | `deferred` | T | — | — |
+| **FR-GND-320** The register procedure travels with the project | `deferred` | T | — | — |
+| **FR-GND-330** Whoever writes a hypothesis judges what no checker reaches | `deferred` | I | — | — |
+| **FR-GND-340** The class is checked against the measurement | `deferred` | I | — | — |
+| **FR-GND-350** A refutation opens a decommissioning, not a deletion | `deferred` | I | — | — |
+| **FR-GND-360** Admission to the core is its own act | `deferred` | I | — | — |
+| **FR-GND-370** The dashboard is compared, not trusted | `deferred` | T | — | — |
 | **FR-INIT-010** Three modes, detected from the target | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh` |
 | **FR-INIT-020** Fresh install leaves a target its checker accepts | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-030** Adoption is transactional | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
@@ -149,19 +149,19 @@ Total requirements: 154.
 | **FR-VIEW-210** What outlived a cancelled requirement is on the page | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-220** The list can be narrowed to what is being looked for | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-230** The page explains its own notation | `deferred` | T | — | — |
-| **IF-BEL-010** The register record is a stable format | `deferred` | I | — | — |
-| **IF-BEL-020** Exit codes of the belief checker | `deferred` | T | — | — |
-| **IF-BEL-030** A published belief rule name keeps its meaning | `deferred` | T | — | — |
 | **IF-CI-010** Exit codes of the installer | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh`<br>`tests/installer-smoke.sh` |
 | **IF-CI-020** Exit codes of the checker | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
+| **IF-GND-010** The register record is a stable format | `deferred` | I | — | — |
+| **IF-GND-020** Exit codes of the grounds checker | `deferred` | T | — | — |
+| **IF-GND-030** A published grounds rule name keeps its meaning | `deferred` | T | — | — |
 | **IF-SKILL-010** The published entry point for an agent | `implemented` | I | `.claude/skills/srs-init/SKILL.md`<br>`README.md` | — |
 | **IF-SPEC-010** The requirement block is a stable format | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **IF-SPEC-020** A published rule name keeps its meaning | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **IF-VIEW-010** The model is published, not merely dumped | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
-| **INV-BEL-010** Belief identifiers are immutable and never reused | `deferred` | I | — | — |
-| **INV-BEL-020** A bet is recorded in one direction only | `deferred` | I | — | — |
-| **INV-BEL-030** An unclaimed requirement is a reading, not a defect | `deferred` | I | — | — |
-| **INV-BEL-040** A belief states exactly one claim | `deferred` | I | — | — |
+| **INV-GND-010** Hypothesis identifiers are immutable and never reused | `deferred` | I | — | — |
+| **INV-GND-020** A bet is recorded in one direction only | `deferred` | I | — | — |
+| **INV-GND-030** An unclaimed requirement is a reading, not a defect | `deferred` | I | — | — |
+| **INV-GND-040** A hypothesis states exactly one claim | `deferred` | I | — | — |
 | **INV-SPEC-010** Identifiers are immutable and never reused | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-020** Links are stored in one direction only | `implemented` | I | `specs/README.md`<br>`tools/srs_check.py` | — |
 | **INV-SPEC-030** A baseline and a release are separate acts | `implemented` | T | `tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`specs/README.md` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
@@ -179,19 +179,10 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 
 | Requirement | Referenced by |
 |---|---|
-| **CON-BEL-010** | CON-BEL-030 (depends_on) |
-| **CON-BEL-020** | FR-BEL-130 (depends_on), FR-BEL-240 (depends_on), FR-BEL-250 (depends_on), FR-BEL-260 (depends_on), FR-BEL-370 (depends_on) |
-| **CON-BEL-030** | FR-BEL-200 (depends_on) |
+| **CON-GND-010** | CON-GND-030 (depends_on) |
+| **CON-GND-020** | FR-GND-130 (depends_on), FR-GND-240 (depends_on), FR-GND-250 (depends_on), FR-GND-260 (depends_on), FR-GND-370 (depends_on) |
+| **CON-GND-030** | FR-GND-200 (depends_on) |
 | **CON-SPEC-010** | FR-VIEW-080 (depends_on) |
-| **FR-BEL-010** | CON-BEL-010 (depends_on), CON-BEL-020 (depends_on), FR-BEL-060 (depends_on), FR-BEL-120 (depends_on), FR-BEL-280 (depends_on), FR-BEL-310 (depends_on), IF-BEL-020 (depends_on), IF-BEL-030 (depends_on) |
-| **FR-BEL-110** | FR-BEL-170 (depends_on) |
-| **FR-BEL-140** | FR-BEL-150 (depends_on), FR-BEL-160 (depends_on), FR-BEL-190 (depends_on), FR-BEL-350 (depends_on) |
-| **FR-BEL-160** | FR-BEL-210 (depends_on) |
-| **FR-BEL-180** | FR-BEL-360 (depends_on) |
-| **FR-BEL-190** | FR-BEL-270 (depends_on) |
-| **FR-BEL-220** | FR-BEL-230 (depends_on) |
-| **FR-BEL-280** | FR-BEL-290 (depends_on), FR-BEL-300 (depends_on), FR-BEL-320 (depends_on) |
-| **FR-BEL-330** | FR-BEL-340 (depends_on) |
 | **FR-CHK-010** | INV-SPEC-010 (depends_on) |
 | **FR-CHK-030** | FR-CHK-040 (depends_on), FR-CHK-075 (depends_on), FR-CHK-150 (depends_on), INV-SPEC-020 (depends_on) |
 | **FR-CHK-050** | CON-SPEC-010 (depends_on), FR-CHK-080 (depends_on) |
@@ -207,6 +198,15 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-CI-020** | FR-CI-030 (derives_from), FR-CI-090 (depends_on), FR-INIT-080 (depends_on), NFR-CHK-010 (depends_on) |
 | **FR-CI-030** | FR-CI-080 (depends_on) |
 | **FR-CI-070** | FR-SKILL-070 (depends_on) |
+| **FR-GND-010** | CON-GND-010 (depends_on), CON-GND-020 (depends_on), FR-GND-060 (depends_on), FR-GND-120 (depends_on), FR-GND-280 (depends_on), FR-GND-310 (depends_on), IF-GND-020 (depends_on), IF-GND-030 (depends_on) |
+| **FR-GND-110** | FR-GND-170 (depends_on) |
+| **FR-GND-140** | FR-GND-150 (depends_on), FR-GND-160 (depends_on), FR-GND-190 (depends_on), FR-GND-350 (depends_on) |
+| **FR-GND-160** | FR-GND-210 (depends_on) |
+| **FR-GND-180** | FR-GND-360 (depends_on) |
+| **FR-GND-190** | FR-GND-270 (depends_on) |
+| **FR-GND-220** | FR-GND-230 (depends_on) |
+| **FR-GND-280** | FR-GND-290 (depends_on), FR-GND-300 (depends_on), FR-GND-320 (depends_on) |
+| **FR-GND-330** | FR-GND-340 (depends_on) |
 | **FR-INIT-010** | FR-INIT-020 (derives_from), FR-INIT-030 (derives_from), FR-INIT-050 (derives_from), FR-INIT-060 (derives_from), FR-INIT-070 (depends_on), FR-INIT-100 (depends_on), IF-CI-010 (depends_on) |
 | **FR-INIT-020** | CON-SPEC-020 (depends_on), FR-CI-050 (depends_on), FR-INIT-140 (depends_on), FR-INIT-150 (derives_from) |
 | **FR-INIT-030** | FR-INIT-040 (derives_from) |
@@ -230,12 +230,12 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-VIEW-060** | FR-CI-040 (depends_on), FR-SKILL-110 (depends_on), FR-VIEW-070 (depends_on), FR-VIEW-090 (depends_on), FR-VIEW-100 (depends_on), FR-VIEW-110 (depends_on), FR-VIEW-130 (depends_on), FR-VIEW-140 (depends_on), FR-VIEW-150 (depends_on), FR-VIEW-160 (depends_on), FR-VIEW-180 (depends_on), FR-VIEW-190 (depends_on), FR-VIEW-200 (depends_on), FR-VIEW-210 (depends_on), FR-VIEW-230 (depends_on), NFR-VIEW-010 (depends_on) |
 | **FR-VIEW-120** | FR-SPEC-010 (depends_on) |
 | **FR-VIEW-140** | FR-SKILL-110 (depends_on) |
-| **IF-BEL-010** | FR-BEL-010 (depends_on), FR-BEL-020 (depends_on), FR-BEL-030 (depends_on), FR-BEL-140 (depends_on), FR-BEL-330 (depends_on), INV-BEL-020 (depends_on), INV-BEL-040 (depends_on) |
-| **IF-BEL-030** | FR-BEL-110 (depends_on) |
+| **IF-GND-010** | FR-GND-010 (depends_on), FR-GND-020 (depends_on), FR-GND-030 (depends_on), FR-GND-140 (depends_on), FR-GND-330 (depends_on), INV-GND-020 (depends_on), INV-GND-040 (depends_on) |
+| **IF-GND-030** | FR-GND-110 (depends_on) |
 | **IF-SPEC-010** | FR-CHK-110 (depends_on), FR-CHK-170 (derives_from), FR-CHK-180 (derives_from), FR-VIEW-020 (depends_on), FR-VIEW-220 (depends_on), IF-VIEW-010 (depends_on) |
-| **INV-BEL-010** | FR-BEL-180 (depends_on), IF-BEL-010 (depends_on) |
-| **INV-BEL-020** | FR-BEL-040 (depends_on), FR-BEL-050 (depends_on), FR-BEL-070 (depends_on), FR-BEL-080 (depends_on), INV-BEL-030 (depends_on) |
-| **INV-BEL-030** | FR-BEL-090 (depends_on), FR-BEL-100 (depends_on), FR-BEL-220 (depends_on) |
+| **INV-GND-010** | FR-GND-180 (depends_on), IF-GND-010 (depends_on) |
+| **INV-GND-020** | FR-GND-040 (depends_on), FR-GND-050 (depends_on), FR-GND-070 (depends_on), FR-GND-080 (depends_on), INV-GND-030 (depends_on) |
+| **INV-GND-030** | FR-GND-090 (depends_on), FR-GND-100 (depends_on), FR-GND-220 (depends_on) |
 | **INV-SPEC-010** | INV-SPEC-050 (depends_on) |
 | **INV-SPEC-020** | IF-VIEW-010 (depends_on) |
 | **INV-SPEC-030** | FR-CI-070 (derives_from), FR-SPEC-010 (derives_from), INV-SPEC-040 (derives_from) |
