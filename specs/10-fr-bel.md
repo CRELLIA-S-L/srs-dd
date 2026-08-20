@@ -351,3 +351,348 @@ and `refuted` alone flatters a project that never checks anything.
 Scoped to the requirements carrying a bet. Those carrying none are a
 different reading with a different meaning, and folding them in here would
 let a project improve this number by writing fewer bets.
+
+### FR-BEL-140 — A verdict follows from the threshold
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a measurement's verdict does not follow from comparing it against the
+belief's threshold, the belief checker **shall** report it as an error naming
+both.
+
+**Rationale.** The threshold is declared before the measurement precisely so
+that the verdict stops being a matter of opinion, and a row saying the belief
+survived at a value below its own threshold is the record disagreeing with
+itself. Left alone it is worse than a missing verdict: it reads as a
+judgement somebody made rather than an arithmetic nobody did.
+
+### FR-BEL-150 — The criterion follows the kind of quantity
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-140]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The belief checker **shall** take the reconfirmation criterion from the kind
+of quantity the threshold names, and report a belief of class I whose kind it
+supports no criterion for.
+
+**Rationale.** "Reconfirm by a sequential criterion" has no content until the
+quantity is typed. A sequential probability ratio test is meaningful for a
+proportion with a denominator; for a mean it is a different test, for a count
+a different one again, and for a revenue figure the prescription says nothing
+at all. Naming the kind in the threshold is what makes the criterion
+choosable rather than assumed.
+
+A kind with no criterion closes class I rather than falling back to a naive
+comparison, because automatic reconfirmation is the whole of what class I
+means. Left to fall back, the naive comparison would refute on the first dip
+— which is the failure the criterion exists to prevent, arriving through the
+door marked convenience.
+
+### FR-BEL-160 — A class III verdict names who made it
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-140]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a verdict on a class III measurement does not name who made it, the
+belief checker **shall** report it.
+
+**Rationale.** Forty thousand in a cohort and a dozen conversations both end
+in the word `supported`, and only for the second is the word somebody's
+reading. A reading with no reader named is not evidence anyone can weigh, and
+it is also the hook `FR-BEL-210` needs: an author whose verdicts keep being
+reversed cannot be noticed if the verdicts are anonymous.
+
+Reported and not corrected. Which status is right is a question only whoever
+took the measurement can answer, and `CON-BEL-030` forbids the tool to touch
+the record in any case.
+
+### FR-BEL-170 — A grade permits only the actions declared for it
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-110]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a belief declares an action its grade does not permit in the register's
+configuration, the belief checker **shall** report it.
+
+**Rationale.** A grade with nothing attached is a label. What makes it do
+work is the binding: the configuration says which actions each grade permits,
+and a belief acting beyond its evidence is reported rather than left to the
+reader to notice (ADR-0017).
+
+The map lives in the configuration and not in the format because what a
+weakly supported belief may be used for is a matter of appetite. A project
+betting a quarter on low certainty and one betting a release are both
+coherent; neither is the framework's to decide.
+
+### FR-BEL-180 — A declined belief carries a reason and a date
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [INV-BEL-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a belief is declined without a reason or without the date the refusal
+was made, the belief checker **shall** report it as an error.
+
+**Rationale.** A refusal is recorded so that the same question returning in
+six months is answered from the record instead of argued again. Without the
+reason it answers nothing; without the date nobody can tell whether the
+answer is still the current one or predates everything that has changed
+since.
+
+### FR-BEL-190 — The threshold was not moved after the first measurement
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-140]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a belief's threshold was last changed after its earliest recorded
+measurement, the belief checker **shall** report it.
+
+**Rationale.** A threshold named after the result turns every outcome into an
+encouraging one, which is the failure the declared-in-advance rule exists to
+prevent — and a rule nothing checks is a rule that decays into a habit.
+
+Read from the history of the file rather than from the file, which is the
+only place the ordering exists. Where that history cannot be read — a shallow
+clone, a squashed import — the run says so rather than passing in silence,
+the position `FR-VIEW-090` takes for baselines it cannot reach.
+
+### FR-BEL-200 — Evidence is only ever added
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [CON-BEL-030]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a measurement recorded earlier is absent from a belief or differs from
+what was recorded, the belief checker **shall** report it.
+
+**Rationale.** The older measurement is what the newer one is a change from.
+Deleting it deletes the change, and a belief whose evidence shows only the
+result that suited its author is a belief with no history at all.
+
+Distinct from `CON-BEL-030`, which forbids the tool to modify a record. That
+one binds the machinery; this one catches a person, and neither covers the
+other. Same reliance on history, same answer where the history is missing.
+
+### FR-BEL-210 — How often an author's verdicts were reversed
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-160]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The dashboard **shall** state, for each author of a verdict, how many of
+their verdicts a later measurement reversed.
+
+**Rationale.** Weighting expert judgement by measured accuracy needs
+calibration questions with known answers and a programme to run them, which
+is an organizational undertaking and not a file format. This is its
+affordable half: it needs nothing the register does not already hold, and it
+answers the question that matters most about a class III verdict — whether
+this person has been right before.
+
+### FR-BEL-220 — The weight of an unclaimed requirement
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [INV-BEL-030]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The dashboard **shall** state, for each requirement resting on no belief, how
+much of the system rests on that requirement.
+
+**Rationale.** An unclaimed requirement that twelve others depend on and that
+names eight files is a different reading from a leaf naming one, and treating
+them alike is how the signal drowns in its own volume.
+
+No field is asked of anyone. The weight of a missing belief cannot be
+recorded, because there is no belief to record it on; what is available is
+the requirement's own weight, and it is available already — what depends on
+it and how much code it names.
+
+### FR-BEL-230 — New unclaimed requirements, and where they cluster
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-220]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The dashboard **shall** state how many requirements came to rest on no belief
+within the period and in which areas.
+
+**Rationale.** One unclaimed requirement is noise and is meant to be. Five in
+a quarter, four of them in one area, is the product having become something
+nobody said out loud — and that reading is unavailable from any single one of
+them.
+
+Whether they point in one direction is a question about meaning and stays
+with the reader. The area is the part a machine can see, and it is a good
+enough proxy to make the question worth asking.
+
+### FR-BEL-240 — The age of the core, by class of confirmation
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [CON-BEL-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The dashboard **shall** state how old the confirmations in the core are,
+separately for each class of confirmation.
+
+**Rationale.** A single figure lets a cheap class refresh often enough to
+hide an expensive one that has not been checked in a year — and the expensive
+classes are the ones carrying the claims about whether the product should
+exist at all. Separated, the reading says not only how fresh the core is but
+which part of it is fresh, which is the difference between reassurance and
+information.
+
+### FR-BEL-250 — What each frame has refused
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [CON-BEL-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The dashboard **shall** state, for each frame, what it has refused and when.
+
+**Rationale.** A frame is a rule about what the product will not do whatever
+the evidence, and its whole value is in the refusals. One that has refused
+nothing in a year is either a slogan or a rule applied at the wrong moment,
+and neither is visible without the journal.
+
+### FR-BEL-260 — How many ideologies the core carries
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [CON-BEL-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The dashboard **shall** state how many ideologies the core carries.
+
+**Rationale.** One or two is the intended state. Grown to five, what the
+register describes is a suite of products sharing a repository, and the
+counting is the cheapest way to notice a drift nobody decided on.
+
+### FR-BEL-270 — History that cannot be read is said to be unread
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-BEL-190]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+Where a rule needs the register's history and that history cannot be read,
+the belief checker **shall** report that it could not be read rather than
+pass the rule.
+
+**Rationale.** Three rules read history rather than files — the threshold's
+ordering, the evidence that must only grow, the verdicts a later measurement
+reversed — and all three meet the same wall in a shallow clone, a squashed
+import, or a checkout that is not a repository at all.
+
+Passing in silence there is the worst of the three available answers. It
+turns a rule into an assertion that cannot fail, which is the shape
+`FR-CI-080` exists to forbid, and it does so exactly where somebody would
+most want to know: a history nobody can read is also a history nobody can
+audit. Failing outright is the other extreme and would make the register
+unusable in every environment that clones shallowly, which includes most
+default pipelines.
+
+Saying so is the answer `FR-VIEW-090` already gives for baselines it cannot
+reach, and the reason carries over: a reader who is told nothing assumes the
+check ran.
