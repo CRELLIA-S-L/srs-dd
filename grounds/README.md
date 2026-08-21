@@ -444,6 +444,7 @@ carries the register.
 |---|---|---|
 | `rules` | `{}` | What a finding costs: `warn` (the default, and what `--strict` fails on), `report` (said, never fatal), `off` (not said at all). Keys are rule names |
 | `grades` | `{}` | Which actions each grade permits: `{"high": ["release", "quarter"], "low": ["experiment"]}`. A grade absent from the map permits anything, which is what an empty map means for every grade |
+| `period` | `"quarter"` | The unit the dashboard counts arrivals in: `month`, `quarter` or `year` |
 
 Errors are not in this table and cannot be lowered: a malformed or repeated
 identifier, a missing required key, a bet naming a requirement that does not
@@ -457,6 +458,21 @@ that a diff shows the readings move and a gate can compare what is committed
 against what the records say now. It is never edited by hand — a summary
 somebody can edit is a summary that will be edited into agreement with what
 its author wishes were true.
+
+**One reading counts by period, and the period is yours.** How many
+requirements arrived standing on no hypothesis is a rate rather than a
+total: one is noise and is meant to be, and five in a period with four of
+them in one area is the product having become something nobody said out
+loud. What counts as "lately" is not the same for a product shipping weekly
+and one shipping twice a year, so `period` in the configuration says which
+unit to use — `month`, `quarter` or `year`, and `quarter` where nothing says
+otherwise.
+
+Periods are calendar ones and never a window measured back from today. This
+file is committed and compared against a fresh run, so a boundary that moved
+every night would fail the gate every morning while saying nothing new. The
+dashboard names the unit it used in the section itself, so nobody has to
+look here to know what a row counts.
 
 ## Checking
 

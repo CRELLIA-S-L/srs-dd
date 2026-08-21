@@ -5,6 +5,7 @@
 #
 # verifies: FR-INIT-010, FR-INIT-030, FR-INIT-040, FR-INIT-050
 # verifies: FR-INIT-070, FR-INIT-090, FR-CHK-090, FR-CHK-210, IF-CI-010
+# verifies: FR-GND-480
 #
 # One scenario answers for all of them, which is what an end-to-end suite
 # is: the mode is detected, the lexicon comes from the flags, a wrong one
@@ -37,7 +38,7 @@ find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
 
 # Adopt under --dry-run lists the install and leaves the tree alone.
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --dry-run --areas "APP" \
-    "${LEXICON[@]}" > /tmp/adopt-dry.log
+    --grounds yes --period year "${LEXICON[@]}" > /tmp/adopt-dry.log
 grep -q "specs/srs-config.json" /tmp/adopt-dry.log
 find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/after.dry.sum
 diff /tmp/before.sum /tmp/after.dry.sum
@@ -55,7 +56,13 @@ test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
 
 # Correct lexicon adopts cleanly; skills land, matrix generated.
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" \
-    "${LEXICON[@]}" | tee /tmp/adopt-real.log
+    --grounds yes --period year "${LEXICON[@]}" | tee /tmp/adopt-real.log
+
+# verifies: FR-GND-480 — the adoption path takes the answer too, and the
+# comparison below is what proves the dry run listed the file it writes.
+grep -qF '"period": "year"' /tmp/srs-adopt/grounds/grounds-config.json \
+    || { echo "FAIL FR-GND-480 — adoption did not carry the chosen period"
+         cat /tmp/srs-adopt/grounds/grounds-config.json; exit 1; }
 
 # Adopt is the one mode where --dry-run takes a separate branch, so the
 # two lists are compared entry by entry: a file added to the real path and

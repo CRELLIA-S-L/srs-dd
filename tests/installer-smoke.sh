@@ -3,6 +3,7 @@
 # with a project's own pre-commit hook, and isolation of the payload.
 #
 # verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
+# verifies: FR-GND-480
 # verifies: FR-INIT-170
 set -eo pipefail
 
@@ -459,6 +460,36 @@ grep -qF "does not remove a register that is already there" /tmp/grounds-no.log 
          echo "carries a register"; exit 1; }
 [ -f "$GT/grounds/grounds-config.json" ] \
     || { echo "FAIL — --grounds no removed the register"; exit 1; }
+
+# The register's one install-time choice: what "lately" means for this
+# project. Written rather than copied, so it carries the answer.
+python3 - "$GT/grounds/grounds-config.json" <<'PY'
+import json, sys
+cfg = json.load(open(sys.argv[1], encoding="utf-8"))
+assert cfg.get("period") == "quarter", \
+    "the register's configuration does not carry the period chosen at install"
+PY
+rm -rf /tmp/srs-period; python3 tools/srs_init.py /tmp/srs-period --defaults \
+    --areas APP --ci none --grounds yes --period year > /dev/null 2>&1
+grep -qF '"period": "year"' /tmp/srs-period/grounds/grounds-config.json \
+    || { echo "FAIL FR-GND-480 — --period was not written into the register's"
+         echo "configuration"; cat /tmp/srs-period/grounds/grounds-config.json
+         exit 1; }
+grep -qF "Counted by year" /tmp/srs-period/grounds/90-dashboard.md \
+    || { echo "FAIL FR-GND-480 — the dashboard does not count by the unit"
+         echo "the install chose"; exit 1; }
+
+# A setting that has nothing to set says so rather than evaporating.
+rm -rf /tmp/srs-noperiod
+python3 tools/srs_init.py /tmp/srs-noperiod --defaults --areas APP --ci none \
+    --grounds no --period month > /tmp/srs-noperiod.log 2>&1
+grep -qF "it has nothing to set" /tmp/srs-noperiod.log \
+    || { echo "FAIL FR-GND-480 — --period without a register was dropped in"
+         echo "silence"; cat /tmp/srs-noperiod.log; exit 1; }
+[ -e /tmp/srs-noperiod/grounds ] \
+    && { echo "FAIL FR-GND-480 — --period pulled in a register that was"
+         echo "declined"; exit 1; }
+absent "grounds" /tmp/srs-noperiod/specs/srs-config.json
 
 # --- verifies: FR-INIT-170 — an undated specification is told it can be
 # --- dated, and nothing is written on its behalf. Nobody looks for a tool

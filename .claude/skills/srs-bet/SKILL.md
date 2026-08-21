@@ -130,6 +130,12 @@ is worse than an absent one because it looks like knowledge. What may be
 asked is a declaration: one record saying this requirement rests on
 nothing, and why. It retires itself the moment a real bet appears.
 
+How often that is worth looking at is the dashboard's business: it counts
+unclaimed arrivals by period, and **what a period is comes from `period` in
+`grounds/grounds-config.json`** — `month`, `quarter` or `year`, and
+`quarter` where nothing says otherwise. The dashboard names the unit it used
+in that section, so the answer is in front of whoever is reading it.
+
 ## When a measurement lands
 
 Append a row to the evidence table. Never edit one: a measurement that

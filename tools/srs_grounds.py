@@ -118,7 +118,21 @@ RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
          "action-beyond-grade", "declined-leftover", "action-without-grade")
 SEVERITIES = ("warn", "report", "off")
 
-DEFAULTS = {"rules": {}, "grades": {}}
+# implements: FR-GND-230
+# What counts as "lately" is the project's: a product shipping weekly and
+# one shipping twice a year do not share a unit. Calendar periods only —
+# a window measured back from today would move this file every night.
+PERIODS = ("month", "quarter", "year")
+DEFAULTS = {"rules": {}, "grades": {}, "period": "quarter"}
+
+
+def period_of(date, period):
+    """The calendar period a date falls in, as its own label."""
+    if period == "month":
+        return "%d-%02d" % (date.year, date.month)
+    if period == "year":
+        return "%d" % date.year
+    return "%d-Q%d" % (date.year, (date.month - 1) // 3 + 1)
 
 
 def _config_fail(message):
@@ -165,6 +179,10 @@ def load_config():
             _config_fail("grade %r: permitted actions must be a list of "
                          "non-empty strings" % grade)
     cfg["grades"] = grades
+    period = raw.get("period", DEFAULTS["period"])
+    if period not in PERIODS:
+        _config_fail("period must be one of %s" % ", ".join(PERIODS))
+    cfg["period"] = period
     return cfg
 
 
@@ -788,7 +806,7 @@ def reversals(records):
     return given, turned
 
 
-def build_dashboard(records, model, incoming):
+def build_dashboard(records, model, incoming, cfg):
     # implements: FR-GND-130, FR-GND-220, FR-GND-240, FR-GND-260,
     # implements: CON-GND-020
     kinds = {k: [i for i, r in sorted(records.items()) if r.kind == k]
@@ -889,6 +907,51 @@ def build_dashboard(records, model, incoming):
     # The list no rule of this layer is allowed to shorten. A requirement
     # standing on nothing is a reading, and demanding a bet would replace it
     # with invented ones.
+    # implements: FR-GND-230
+    # The rate, not the total: one requirement standing on nothing is noise
+    # and is meant to be, and five in a quarter with four of them in one
+    # area is the product having become something nobody said out loud.
+    # A calendar period and not "the last ninety days", whatever length the
+    # configuration names: this file is committed and compared, and a window
+    # anchored to today would move every night and fail the gate every
+    # morning without saying anything new.
+    out += ["## Requirements that arrived standing on nothing", "",
+            "Counted by %s, which is what `period` says in the register's "
+            "configuration." % cfg["period"], ""]
+    if model is None:
+        out += ["The requirement model could not be read, so this is not a "
+                "reading of none.", ""]
+    else:
+        claimed = {r.fields.get("requirement") for r in records.values()
+                   if r.kind == "B" and active(r)}
+        buckets, undated = {}, 0
+        for req in sorted(model):
+            if req in claimed:
+                continue
+            date = as_date(model[req].get("created"))
+            if date is None:
+                undated += 1
+                continue
+            entry = buckets.setdefault(period_of(date, cfg["period"]), {})
+            entry[model[req].get("area", "?")] = \
+                entry.get(model[req].get("area", "?"), 0) + 1
+        if buckets:
+            out += ["| %s | arrived unclaimed | areas |" % cfg["period"],
+                    "|---|---|---|"]
+            for label in sorted(buckets):
+                areas = buckets[label]
+                out.append("| %s | %d | %s |"
+                           % (label, sum(areas.values()),
+                              ", ".join("%s %d" % (a, n)
+                                        for a, n in sorted(areas.items()))))
+            out.append("")
+        else:
+            out += ["Nothing arrived unclaimed in any dated period.", ""]
+        if undated:
+            out += ["%d of them carry no `created` date and fall in no "
+                    "period. `tools/srs_dates.py` writes one from the "
+                    "history." % undated, ""]
+
     out += ["## Requirements resting on no hypothesis", ""]
     if model is None:
         out += ["The requirement model could not be read, so this list is",
@@ -997,7 +1060,7 @@ def main():
 
     wrote = ""
     if not errors and "--no-write" not in flags:
-        text = build_dashboard(records, model, incoming or {})
+        text = build_dashboard(records, model, incoming or {}, cfg)
         with open(DASHBOARD, "w", encoding="utf-8") as handle:
             handle.write(text)
         wrote = " Dashboard rewritten: grounds/90-dashboard.md."

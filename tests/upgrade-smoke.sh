@@ -4,7 +4,7 @@
 # --from, so the suite never reaches the network.
 #
 # verifies: FR-INIT-120, FR-INIT-130, FR-INIT-140, FR-INIT-160
-# verifies: FR-SKILL-060, FR-GND-290
+# verifies: FR-SKILL-060, FR-GND-290, FR-GND-480
 set -eo pipefail
 
 # implements: FR-CI-090
@@ -136,11 +136,27 @@ python3 tools/srs_init.py "$GU" --defaults --areas APP --ci none \
                           echo "register, so the next assertion proves nothing"
                           exit 1; }
 ( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" \
-    --grounds yes ) > /tmp/upgrade-grounds.log 2>&1 \
+    --grounds yes --period month ) > /tmp/upgrade-grounds.log 2>&1 \
     || { echo "FAIL FR-GND-290 — the target's own upgrade refused --grounds"
          tail -5 /tmp/upgrade-grounds.log; exit 1; }
 [ -f "$GU/grounds/grounds-config.json" ] \
     || { echo "FAIL FR-GND-290 — --grounds yes did not add the register"
          tail -5 /tmp/upgrade-grounds.log; exit 1; }
+# The register's one setting reaches the target through the command the
+# target actually has, and not only through the framework's own installer.
+grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
+    || { echo "FAIL FR-GND-480 — --period did not reach the new register"
+         cat "$GU/grounds/grounds-config.json"; exit 1; }
+# And a later upgrade leaves that answer alone. This is the whole reason
+# the configuration is written rather than copied from the skeleton: a
+# skeleton file would arrive with every refresh and reset the project's
+# unit to the default without anyone asking.
+( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
+    > /tmp/upgrade-grounds2.log 2>&1 \
+    || { echo "FAIL — the second upgrade failed"
+         tail -5 /tmp/upgrade-grounds2.log; exit 1; }
+grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
+    || { echo "FAIL FR-GND-480 — an upgrade reset the register's period"
+         cat "$GU/grounds/grounds-config.json"; exit 1; }
 
 echo "upgrade-smoke: a target adds the grounds register with its own command"

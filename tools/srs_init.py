@@ -213,6 +213,10 @@ def parse_args():
                              "the checker and skills are "
                              "refreshed without it in adopt/upgrade modes; "
                              "specification content is never overwritten")
+    parser.add_argument("--period", choices=("month", "quarter", "year"),
+                        default=None,
+                        help="the unit the grounds dashboard counts "
+                             "unclaimed arrivals in")
     parser.add_argument("--grounds", choices=("yes", "no"), default=None,
                         help="install the grounds register: the hypotheses "
                              "the requirements rest on. Declined, nothing "
@@ -499,11 +503,21 @@ def collect_grounds_skeleton():
         if name.endswith(SKELETON_SUFFIXES):
             result.append((os.path.join(SKELETON, "grounds", name),
                            os.path.join("grounds", name)))
+    # The configuration is written rather than copied: it carries a choice.
+    result = [pair for pair in result if pair[1] != GROUNDS_CONFIG]
     result.append((GROUNDS_STANDARD, GROUNDS_STANDARD))
     return sorted(result, key=lambda pair: pair[1])
 
 
-def install_grounds(installer, substitute=None):
+def grounds_config_json(period):
+    """The register's configuration, with the one answer the install takes."""
+    return ('{\n'
+            '  "rules": {},\n'
+            '  "period": "%s"\n'
+            '}\n' % period)
+
+
+def install_grounds(installer, substitute=None, period="quarter"):
     # implements: FR-GND-280, FR-GND-300, FR-GND-320
     """The register, its checker and its procedure — all or none of them.
 
@@ -511,6 +525,7 @@ def install_grounds(installer, substitute=None):
     byte-for-byte a target that was never asked, which is what makes the
     choice cheap to make and cheap to reverse.
     """
+    installer.put(GROUNDS_CONFIG, grounds_config_json(period), tooling=False)
     for src, dst in collect_grounds_skeleton():
         standard = dst == GROUNDS_STANDARD
         installer.copy(src, dst, tooling=standard, precious=standard,
@@ -894,6 +909,25 @@ def collect_settings(args, batch, area_default):
                          % grounds)
         return None
     settings["grounds"] = grounds == "yes"
+    # implements: FR-GND-480
+    # What counts as "lately" is the project's rhythm, and the dashboard
+    # counts arrivals in it. Asked only where the register is wanted.
+    period = args.period
+    if settings["grounds"] and not period:
+        period = "quarter" if batch else ask(
+            "Count unclaimed arrivals by (month/quarter/year)", "quarter",
+            batch)
+    if period and period not in ("month", "quarter", "year"):
+        sys.stderr.write("Unknown period %r.\n" % period)
+        return None
+    if period and not settings["grounds"]:
+        # The setting belongs to a register, and there is not going to be
+        # one. Said rather than dropped: a flag that does nothing and says
+        # nothing is a flag somebody believes worked.
+        sys.stdout.write(
+            "Note: --period sets the grounds dashboard's calendar unit and "
+            "this install takes no register, so it has nothing to set.\n")
+    settings["period"] = period or "quarter"
     return settings
 
 
@@ -972,7 +1006,7 @@ def run_fresh(args, target, batch):
 
     install_tools(installer)
     if settings["grounds"]:
-        install_grounds(installer, substitute)
+        install_grounds(installer, substitute, settings["period"])
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
     install_skills(installer, substitute)
@@ -1055,7 +1089,7 @@ def install_adopt_files(installer, settings, substitute, target,
 
     install_tools(installer, skip=tools_skip)
     if settings["grounds"]:
-        install_grounds(installer, substitute)
+        install_grounds(installer, substitute, settings["period"])
     install_skills(installer, substitute)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
@@ -1262,10 +1296,17 @@ def run_upgrade(args, target):
                 "already there; it is refreshed like the rest of the "
                 "tooling. To be rid of it, delete grounds/, "
                 "tools/srs_grounds.py and the srs-bet skill.\n")
+        if args.period:
+            # Same silence the note above exists to break: the register's
+            # configuration is the project's and an upgrade never edits it.
+            sys.stdout.write(
+                "Note: --period sets the dashboard's calendar unit when a "
+                "register is created, and this project already has one. To "
+                "change it, edit `period` in grounds/grounds-config.json.\n")
         install_grounds(installer)
     elif args.grounds == "yes":
         sys.stdout.write("Adding the grounds register, as asked.\n")
-        install_grounds(installer)
+        install_grounds(installer, period=args.period or "quarter")
     elif args.grounds is None:
         sys.stdout.write(
             "This project carries no grounds register. To add one: "

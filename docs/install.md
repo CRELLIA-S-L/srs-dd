@@ -105,7 +105,12 @@ Copy into your repository, by hand:
   on — also `skeleton/grounds/` → `grounds/`, plus `grounds/README.md` from
   this repository, `tools/srs_grounds.py` and the `srs-bet` skill. All of it
   or none of it: the checker, the standard and the procedure only make sense
-  together. Declining costs nothing and leaves no trace;
+  together. Declining costs nothing and leaves no trace. The skeleton carries
+  no `grounds/grounds-config.json` and there is none to copy: write it
+  yourself as `{"rules": {}, "period": "quarter"}`, where `period` is the
+  calendar unit the dashboard counts arrivals in — `month`, `quarter` or
+  `year`, a choice about your project's rhythm rather than a default worth
+  inheriting;
 - `skeleton/AGENTS.md`, `skeleton/CLAUDE.md` → repository root;
 - `.gitattributes`, and a CI template from `ci/`.
 

@@ -10,7 +10,7 @@
 # verifies: CON-GND-010, FR-GND-190, FR-GND-200, FR-GND-210
 # verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
 # verifies: FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-450
-# verifies: FR-GND-460, FR-GND-470
+# verifies: FR-GND-460, FR-GND-470, FR-GND-230
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -80,6 +80,7 @@ The system **shall** have done something nobody wants now.
 MD
 
 printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+cp "$LAB/specs/10-fr-core.md" /tmp/srs-grounds-core.md
 
 # The register under test. Everything after the heading is whatever the
 # fixture pipes in, so a fixture reads as the one thing it breaks.
@@ -602,6 +603,95 @@ grep -qF "Nothing recorded." "$D" \
     || { echo "FAIL FR-GND-250 — a frame that refused nothing says nothing"
          cat "$D"; exit 1; }
 passes=$((passes + 3))
+
+# --- verifies: FR-GND-230 — the rate and where it clusters, not the total.
+# --- One requirement standing on nothing is noise and is meant to be; the
+# --- reading is five in a period with four in one area. Periods are
+# --- calendar ones of the length `period` names, taken from the dates in
+# --- the records, so this file stays comparable — a window anchored to
+# --- today would move every night.
+cat > "$LAB/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — Dated, and claimed
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-02-10
+```
+
+The system **shall** act.
+
+### FR-CORE-020 — Dated, and standing on nothing
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-08-14
+```
+
+The system **shall** also act.
+
+### FR-CORE-030 — Undated, and standing on nothing
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+```
+
+The system **shall** act a third time.
+MD
+ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
+           rec B-010 "Claims the first" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+D="$LAB/grounds/90-dashboard.md"
+grep -qE "^\| 2026-Q3 \| 1 \| CORE 1 \|" "$D" \
+    || { echo "FAIL FR-GND-230 — the quarter that received one unclaimed"
+         echo "requirement is not stated"; cat "$D"; exit 1; }
+absent "| 2026-Q1 |" "$D"
+grep -qF "carry no \`created\` date and fall in no period" "$D" \
+    || { echo "FAIL FR-GND-230 — an undated requirement is silently dropped"
+         echo "rather than counted apart"; cat "$D"; exit 1; }
+passes=$((passes + 3))
+
+# The unit is the project's, and the dashboard says which one it used so
+# that nobody has to open the configuration to know what a row counts.
+grep -qF "Counted by quarter, which is what \`period\` says" "$D" \
+    || { echo "FAIL FR-GND-230 — the dashboard does not name its own unit"
+         cat "$D"; exit 1; }
+printf '{"rules": {}, "period": "month"}\n' > "$LAB/grounds/grounds-config.json"
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+grep -qE "^\| 2026-08 \| 1 \| CORE 1 \|" "$D" \
+    || { echo "FAIL FR-GND-230 — the configured period is not used"
+         cat "$D"; exit 1; }
+absent "| 2026-Q3 |" "$D"
+printf '{"rules": {}, "period": "fortnight"}\n' > "$LAB/grounds/grounds-config.json"
+rule "FR-GND-230 unknown period" 2 "period must be one of"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+passes=$((passes + 3))
+rm -f "$D"
+cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md" 2>/dev/null || true
 
 # --- verifies: CON-GND-010 — the layer writes nowhere else. Every file is
 # --- weighed before and after a run that does write, and the dashboard is

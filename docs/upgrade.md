@@ -62,8 +62,15 @@ never heard of the layer is not a project that declined it.
 To add one to a project that has none:
 
 ```
-python3 path/to/srs-dd/tools/srs_init.py path/to/your-project --grounds yes
+python3 path/to/srs-dd/tools/srs_init.py path/to/your-project --grounds yes \
+    --period month
 ```
+
+`--period` is the calendar unit the register's dashboard counts arrivals in
+— `month`, `quarter` or `year`. It is written into
+`grounds/grounds-config.json` when the register is created and never touched
+again; omit the flag and it is `quarter`. To change it afterwards, edit the
+file.
 
 To be rid of it, delete `grounds/`, `tools/srs_grounds.py` and the `srs-bet`
 skill. Nothing else refers to them.

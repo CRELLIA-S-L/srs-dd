@@ -77,11 +77,16 @@ def main():
     parser.add_argument("--force", action="store_true",
                         help="also refresh precious files (CI config, agent "
                              "guides, .gitattributes, the hook)")
-    # implements: FR-GND-290
+    # implements: FR-GND-290, FR-GND-480
     # Asking has to be possible with the command a project actually has.
     # Without this the only way to add the register is the framework
     # clone's own installer, which is the thing this tool exists to spare
     # anyone from keeping around.
+    parser.add_argument("--period", choices=("month", "quarter", "year"),
+                        default=None,
+                        help="with --grounds yes: the calendar unit the "
+                             "register's dashboard counts arrivals in "
+                             "(default quarter)")
     parser.add_argument("--grounds", choices=("yes", "no"), default=None,
                         help="add the grounds register to this project, or "
                              "say no. Left out, an upgrade refreshes a "
@@ -128,6 +133,8 @@ def main():
         extra = ["--force"] if args.force else []
         if args.grounds:
             extra += ["--grounds", args.grounds]
+        if args.period:
+            extra += ["--period", args.period]
         code = run_installer(clone, extra + ["--dry-run"])
         if code != 0:
             return fail("the framework's installer refused; nothing was "

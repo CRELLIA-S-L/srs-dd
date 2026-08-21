@@ -609,19 +609,20 @@ it and how much code it names.
 ### FR-GND-230 — New unclaimed requirements, and where they cluster
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-220]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
 The dashboard **shall** state how many requirements came to rest on no
-hypothesis within the period and in which areas.
+hypothesis within each period of the length the register's configuration
+names, and in which areas.
 
 **Rationale.** One unclaimed requirement is noise and is meant to be. Five in
 a quarter, four of them in one area, is the product having become something
@@ -631,6 +632,18 @@ them.
 Whether they point in one direction is a question about meaning and stays
 with the reader. The area is the part a machine can see, and it is a good
 enough proxy to make the question worth asking.
+
+The length of the period is the project's and not this format's, for the
+reason the map from grade to permitted action is: a product shipping weekly
+and one shipping twice a year do not have the same unit of "lately", and a
+quarter that gives the first of them four readings a year gives them too
+late. It is named in the register's configuration, and the dashboard says
+which length it used, so that a reader never has to guess what a row counts.
+
+Periods are calendar ones — whole months, quarters or years — and never a
+window measured back from today. This file is committed and compared
+against a fresh run, so a boundary that moved every night would fail the
+gate every morning while saying nothing new.
 
 ### FR-GND-240 — The age of the core, by class of confirmation
 
@@ -1404,3 +1417,37 @@ expressed no appetite and there is nothing for the omission to be measured
 against. Where the map exists, somebody sat down and decided what may be
 done at each grade, and an action that opts out of that decision is the one
 thing the map cannot otherwise notice.
+
+### FR-GND-480 — The period is asked for at install, never assumed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-GND-230]
+depends_on: [FR-GND-280]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py, tools/srs_upgrade.py]
+tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-21
+```
+
+Where the grounds register is taken, an install **shall** settle what length
+of period the dashboard counts arrivals by, recording the answer in the
+register's configuration rather than assuming one.
+
+**Rationale.** The dashboard's one calendar unit is the project's, and the
+only moment somebody is already answering questions about their project is
+the install. Asked later, it is a key nobody knows exists in a file nobody
+has opened; asked here, it costs one line of a conversation already
+happening.
+
+Recorded rather than copied, for the reason `specs/srs-config.json` is
+written rather than copied: a file that carries an answer cannot be a
+skeleton file, and a skeleton file copied over an answer would be an upgrade
+silently resetting it. The configuration is written through the installer's
+own writer, so the dry run reports it without a special case.
+
+A default remains, because an install that has to stop and ask is an install
+somebody abandons. The default is not the point; being able to say otherwise
+before the first dashboard is generated is.

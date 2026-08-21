@@ -33,9 +33,17 @@ No verdicts are recorded.
 No requirement carries a bet that resolves, so there is
 nothing to reduce. This is not a reading of zero debt.
 
+## Requirements that arrived standing on nothing
+
+Counted by quarter, which is what `period` says in the register's configuration.
+
+| quarter | arrived unclaimed | areas |
+|---|---|---|
+| 2026-Q3 | 167 | CHK 24, CI 11, GND 58, INIT 17, SKILL 18, SPEC 15, VIEW 24 |
+
 ## Requirements resting on no hypothesis
 
-166 of 166 requirements. Weight is what stands on them: how many
+167 of 167 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -55,11 +63,11 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-030 | 3 | 3 | 6 |
 | INV-SPEC-050 | 3 | 3 | 6 |
 | FR-CHK-030 | 4 | 1 | 5 |
+| FR-GND-280 | 4 | 1 | 5 |
 | FR-INIT-020 | 4 | 1 | 5 |
 | FR-CHK-070 | 3 | 1 | 4 |
 | FR-CHK-090 | 3 | 1 | 4 |
 | FR-GND-140 | 4 | 0 | 4 |
-| FR-GND-280 | 3 | 1 | 4 |
 | FR-SKILL-120 | 1 | 3 | 4 |
 | INV-GND-010 | 2 | 2 | 4 |
 | INV-GND-030 | 3 | 1 | 4 |
@@ -107,12 +115,14 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-170 | 1 | 1 | 2 |
 | FR-GND-190 | 1 | 1 | 2 |
 | FR-GND-220 | 1 | 1 | 2 |
+| FR-GND-230 | 1 | 1 | 2 |
 | FR-GND-290 | 0 | 2 | 2 |
 | FR-GND-300 | 0 | 2 | 2 |
 | FR-GND-310 | 0 | 2 | 2 |
 | FR-GND-320 | 0 | 2 | 2 |
 | FR-GND-350 | 1 | 1 | 2 |
 | FR-GND-410 | 1 | 1 | 2 |
+| FR-GND-480 | 0 | 2 | 2 |
 | FR-INIT-030 | 1 | 1 | 2 |
 | FR-INIT-070 | 1 | 1 | 2 |
 | FR-INIT-090 | 1 | 1 | 2 |
@@ -204,5 +214,4 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-SPEC-020 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
 | FR-GND-150 | 0 | 0 | 0 |
-| FR-GND-230 | 0 | 0 | 0 |
 | FR-VIEW-230 | 0 | 0 | 0 |
