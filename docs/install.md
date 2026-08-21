@@ -101,6 +101,11 @@ Copy into your repository, by hand:
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`,
   `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or
   `srs-release`, which are framework-only);
+- to keep a grounds register as well — the hypotheses the requirements rest
+  on — also `skeleton/grounds/` → `grounds/`, plus `grounds/README.md` from
+  this repository, `tools/srs_grounds.py` and the `srs-bet` skill. All of it
+  or none of it: the checker, the standard and the procedure only make sense
+  together. Declining costs nothing and leaves no trace;
 - `skeleton/AGENTS.md`, `skeleton/CLAUDE.md` → repository root;
 - `.gitattributes`, and a CI template from `ci/`.
 

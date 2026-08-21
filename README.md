@@ -191,7 +191,8 @@ The viewer never writes to `specs/` and never gates anything.
 | `specs/README.md` | The standard: markup rules, identifier scheme, lifecycle, annotations, baselines, configuration |
 | `specs/` | This framework's own specification — it uses itself |
 | `skeleton/` | What the installer copies into your project |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py` (yours after install); `srs_init.py`, `srs_release.py` (stay here) |
+| `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
+| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_init.py`, `srs_release.py` (stay here) |
 | `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |

@@ -259,28 +259,6 @@ asserting what another procedure does, or what a file holds, reads it first
 — or accept that this is a matter of care rather than of rule, and that the
 two existing members of the family draw the line where it can be drawn.
 
-## A project without the register never hears that it exists
-
-**Found:** while writing the grounds layer's install and delivery
-requirements (2026-08-20).
-
-**What diverged:** FR-GND-280 offers the register as a choice at install and
-at adoption, FR-GND-290 forbids an upgrade from adding it to a project that
-has none, and FR-GND-320 ships the grounds procedure only where the
-register is installed. Each is right on its own, and together they leave
-nobody to tell a project that the layer exists. A project installed before the
-layer shipped, or one that declined it once, receives nothing that mentions it
-again: the tooling is refreshed, the skills are refreshed, and not one of them
-says there is a subsystem available for the asking. The only description lives
-in this repository — `docs/`, the changelog, the concept — which is exactly
-what a target never reads.
-
-**Decision needed:** have the upgrade say once, where the register is
-absent, that it can be added and how; or accept that the layer is found
-through the framework's own documentation and say so where that documentation
-will be read; or install a minimal procedure everywhere, against the reason
-FR-GND-320 gives for installing none.
-
 ## Calibration is built at a fraction of what the concept describes
 
 **Found:** while planning the grounds layer (2026-08-20).
@@ -387,3 +365,83 @@ change that is a reading nobody can take today — which requirements a frame
 would have refused, or which parts of the system a frame now touches that it
 did not when it was drawn. If such a reading is wanted, the field goes on
 the bet and not on the requirement.
+
+## The shipped tooling carries this framework's requirement identifiers
+
+**Found:** while widening the leak check to everything the installer
+copies (2026-08-20).
+
+**What diverged:** `CON-SPEC-020` says what the installer copies shall not
+contain requirement identifiers of this framework or annotations naming
+them. Every Python tool it copies contains both: `tools/srs_check.py` alone
+carries some forty `implements:` lines naming `FR-CHK-*`, `IF-SPEC-*` and
+the rest, and the viewer carries as many again. The check that guards the
+constraint has only ever walked `.claude/skills`, so this has been true and
+unobserved since the annotations were introduced.
+
+Measured rather than reasoned. In a target whose code roots are the default
+`src`, the checker never reads `tools/` and the annotations are inert: a
+fresh install reports no warning about them. In a target whose code roots
+include `tools`, the same install reports **71** warnings of the form
+`annotation references FR-SPEC-010 with an unknown type or area`. And where
+such a project also declares an area this framework uses, the annotation
+stops being unknown and resolves to *their* requirement under that number —
+which is the harm the constraint is worded against.
+
+**Why it is recorded rather than fixed:** the annotations are the second
+half of the two-way link the framework checks on itself, and stripping them
+from the shipped copies means either shipping different bytes than the
+repository runs — two versions of one file, which is worse — or giving up
+the link. Neither is a change to make while widening a test.
+
+**Decision needed:** append `srs-ignore` to every annotation line in the
+shipped tooling, which the checker already honours and which costs the
+framework's own two-way check nothing; or declare `tools/` out of scope in
+`CON-SPEC-020`'s statement, which is honest but narrows a constraint rather
+than meeting it; or leave it and note in the standard that a project putting
+its code roots on `tools/` will hear about our annotations.
+
+## Whether the specification could live in a database
+
+**Found:** raised by the maintainer (2026-08-20).
+
+**What is being asked:** keep requirements in a database rather than in
+markdown files, and put a real editing interface on top of it. The reasons
+given are concurrent work — several people, or several agents, authoring
+requirements at once without colliding in the same file — and the same
+problem for the code the requirements describe.
+
+**What it collides with, by name.** `NFR-SPEC-020` says the specification
+shall be stored as markdown files a review tool diffs line by line, "with no
+database and no build step between the author and the file". This is not an
+addition to it; it is its reversal, and taking the idea up means withdrawing
+or superseding that requirement rather than working around it. What hangs
+off it is worth listing before anyone decides, because none of it is
+decoration:
+
+- a requirement change is reviewed today in the same pull request as the
+  code it governs, by a tool that already exists and that nobody has to be
+  taught;
+- history is git's, which is what lets the checker read baselines from tags
+  and lets `INV-SPEC-040` mean anything;
+- the two generated files are compared byte for byte by a gate, which needs
+  a text the generator and the reader agree on;
+- `NFR-SPEC-010` keeps the tooling to the standard library, and a database
+  ends that whether it is embedded or served.
+
+**The cheaper door, and it should be ruled out before the expensive one is
+opened.** Files stay the source of truth; a service indexes them into a
+database it owns, and the interface edits requirements by writing the files
+back through the existing format. Concurrency is then a matter of the
+service serialising writes, the review tooling is untouched, git remains the
+history, and nothing in the specification has to be withdrawn. What that
+does *not* give is row-level locking across a large team and offline
+editing with server-side merge — which is where the expensive door starts
+being the right one.
+
+**Decision needed:** whether the concurrency being solved is real and
+measured — how often two authors do collide in one requirement file — since
+that number decides between the two doors; and, if the database is wanted as
+the store, which requirement replaces `NFR-SPEC-020` and what it promises
+instead about review, history and the gate. The interface is a separate
+question and can be answered either way afterwards.

@@ -52,6 +52,22 @@ Commit the refreshed tooling together with the regenerated
 `specs/90-traceability.md`: a new checker may generate a matrix that differs
 from the committed one, and the gate compares them byte-for-byte.
 
+## The grounds register
+
+An upgrade refreshes the register's standard, checker and procedure where
+the project already keeps one, and installs none of it where it does not.
+Nothing arrives through an upgrade that was never asked for — a project that
+never heard of the layer is not a project that declined it.
+
+To add one to a project that has none:
+
+```
+python3 path/to/srs-dd/tools/srs_init.py path/to/your-project --grounds yes
+```
+
+To be rid of it, delete `grounds/`, `tools/srs_grounds.py` and the `srs-bet`
+skill. Nothing else refers to them.
+
 ## The long way
 
 The command above is a wrapper around what the framework's installer has

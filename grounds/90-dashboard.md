@@ -55,6 +55,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-070 | 3 | 1 | 4 |
 | FR-CHK-090 | 3 | 1 | 4 |
 | FR-GND-140 | 4 | 0 | 4 |
+| FR-GND-280 | 3 | 1 | 4 |
 | FR-SKILL-120 | 1 | 3 | 4 |
 | INV-GND-010 | 2 | 2 | 4 |
 | INV-GND-030 | 3 | 1 | 4 |
@@ -65,7 +66,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-120 | 2 | 1 | 3 |
 | FR-CHK-160 | 1 | 2 | 3 |
 | FR-CI-050 | 0 | 3 | 3 |
-| FR-GND-280 | 3 | 0 | 3 |
+| FR-GND-370 | 0 | 3 | 3 |
 | FR-INIT-060 | 2 | 1 | 3 |
 | FR-INIT-110 | 1 | 2 | 3 |
 | FR-INIT-120 | 2 | 1 | 3 |
@@ -94,6 +95,11 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-040 | 1 | 1 | 2 |
 | FR-GND-110 | 1 | 1 | 2 |
 | FR-GND-220 | 1 | 1 | 2 |
+| FR-GND-300 | 0 | 2 | 2 |
+| FR-GND-310 | 0 | 2 | 2 |
+| FR-GND-320 | 0 | 2 | 2 |
+| FR-GND-330 | 1 | 1 | 2 |
+| FR-GND-350 | 1 | 1 | 2 |
 | FR-INIT-030 | 1 | 1 | 2 |
 | FR-INIT-070 | 1 | 1 | 2 |
 | FR-INIT-090 | 1 | 1 | 2 |
@@ -138,9 +144,10 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-240 | 0 | 1 | 1 |
 | FR-GND-250 | 0 | 1 | 1 |
 | FR-GND-260 | 0 | 1 | 1 |
-| FR-GND-330 | 1 | 0 | 1 |
-| FR-GND-350 | 1 | 0 | 1 |
-| FR-GND-370 | 0 | 1 | 1 |
+| FR-GND-290 | 0 | 1 | 1 |
+| FR-GND-340 | 0 | 1 | 1 |
+| FR-GND-360 | 0 | 1 | 1 |
+| FR-GND-380 | 0 | 1 | 1 |
 | FR-GND-390 | 0 | 1 | 1 |
 | FR-GND-400 | 0 | 1 | 1 |
 | FR-INIT-040 | 0 | 1 | 1 |
@@ -185,11 +192,4 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-210 | 0 | 0 | 0 |
 | FR-GND-230 | 0 | 0 | 0 |
 | FR-GND-270 | 0 | 0 | 0 |
-| FR-GND-290 | 0 | 0 | 0 |
-| FR-GND-300 | 0 | 0 | 0 |
-| FR-GND-310 | 0 | 0 | 0 |
-| FR-GND-320 | 0 | 0 | 0 |
-| FR-GND-340 | 0 | 0 | 0 |
-| FR-GND-360 | 0 | 0 | 0 |
-| FR-GND-380 | 0 | 0 | 0 |
 | FR-VIEW-230 | 0 | 0 | 0 |

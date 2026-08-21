@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # tools/srs_init.py: fresh install, upgrade, --dry-run honesty, coexistence
 # with a project's own pre-commit hook, and isolation of the payload.
+#
+# verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 set -eo pipefail
 
 # implements: FR-CI-090
@@ -284,16 +286,173 @@ import json, os, re
 # nobody is being asked to look it up.
 areas = json.load(open('specs/srs-config.json', encoding='utf-8'))['areas']
 RE = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3}\b' % '|'.join(areas))
-skills = '/tmp/srs-clean/.claude/skills'
+# The whole installed target, not the skills alone. Skills were the only
+# prose the installer shipped when this was written; the register's
+# standard is prose too, and the check has to follow what travels rather
+# than what travelled once.
+target = '/tmp/srs-clean'
+mine = {'specs/90-traceability.md'}          # generated from the target's own
+# tools/ is out of scope here and not because it is clean: the shipped
+# Python carries its own `implements:` annotations, which name this
+# framework's requirements. They are inert in a target whose code roots do
+# not include tools/ — the default does not — and 91-open-issues.md carries
+# what is left of that. Prose is what this check is for, and prose is what
+# the installer newly ships.
 found = []
-for root, _dirs, files in os.walk(skills):
-    for name in files:
+for root, dirs, files in os.walk(target):
+    dirs[:] = [d for d in dirs if d != '.git' and
+               os.path.join(root, d) != os.path.join(target, 'tools')]
+    for name in sorted(files):
         path = os.path.join(root, name)
-        for lineno, line in enumerate(open(path, encoding='utf-8'), 1):
+        rel = os.path.relpath(path, target)
+        if rel in mine:
+            continue
+        try:
+            lines = list(enumerate(open(path, encoding='utf-8'), 1))
+        except (OSError, UnicodeDecodeError):
+            continue
+        for lineno, line in lines:
             for rid in RE.findall(line):
-                found.append('%s:%d %s' % (os.path.relpath(path, skills),
-                                           lineno, rid))
-assert not found, ('a shipped skill cites a requirement of this framework, '
-                   'which the target does not have — and may have its own '
-                   'requirement under that number: %s' % found)
+                found.append('%s:%d %s' % (rel, lineno, rid))
+assert not found, ('something the installer shipped cites a requirement of '
+                   'this framework, which the target does not have — and may '
+                   'have its own requirement under that number: %s' % found)
 PY
+
+# --- verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
+# --- The grounds register: offered, never imposed, and complete or absent.
+GT=/tmp/srs-grounds-target
+rm -rf "$GT"
+python3 tools/srs_init.py "$GT" --defaults --areas APP --ci github \
+    --grounds yes > /tmp/grounds-fresh.log 2>&1
+
+# All of it or none of it: the standard, the starter files, the checker and
+# the procedure only make sense together.
+for f in grounds/README.md grounds/grounds-config.json grounds/00-ideology.md \
+         grounds/01-frames.md grounds/02-unclaimed.md grounds/03-bets.md \
+         tools/srs_grounds.py .claude/skills/srs-bet/SKILL.md; do
+    [ -f "$GT/$f" ] || { echo "FAIL FR-GND-280/320 — $f did not travel"; exit 1; }
+done
+
+# What was installed passes the target's own checker strictly, so a project's
+# first red run means something the project did.
+( cd "$GT" && python3 tools/srs_grounds.py --no-write --strict ) \
+    > /tmp/grounds-strict.log 2>&1 \
+    || { echo "FAIL FR-GND-300 — a fresh register does not pass strictly"
+         cat /tmp/grounds-strict.log; exit 1; }
+
+# And a dashboard is there to compare against: the gate the templates carry
+# would otherwise fail before anybody wrote a record.
+[ -f "$GT/grounds/90-dashboard.md" ] \
+    || { echo "FAIL FR-GND-300 — no dashboard was generated"; exit 1; }
+
+# Declined, the register leaves nothing: a target that said no is
+# byte-for-byte a target that was never asked.
+rm -rf /tmp/srs-nogrounds
+python3 tools/srs_init.py /tmp/srs-nogrounds --defaults --areas APP \
+    --ci none --grounds no > /dev/null 2>&1
+for f in grounds tools/srs_grounds.py .claude/skills/srs-bet; do
+    [ -e "/tmp/srs-nogrounds/$f" ] \
+        && { echo "FAIL FR-GND-280 — $f arrived at a target that declined"
+             exit 1; }
+done
+
+# An upgrade adds nothing unasked — the projects it would surprise are the
+# ones that never heard of the layer — and says how to ask.
+python3 tools/srs_init.py /tmp/srs-nogrounds --defaults \
+    > /tmp/grounds-upgrade.log 2>&1
+[ -e /tmp/srs-nogrounds/grounds ] \
+    && { echo "FAIL FR-GND-290 — an upgrade installed the register unasked"
+         exit 1; }
+grep -qF -- "--grounds yes" /tmp/grounds-upgrade.log \
+    || { echo "FAIL FR-GND-290 — an upgrade says nothing about the register"
+         cat /tmp/grounds-upgrade.log; exit 1; }
+
+# Asked, it adds it.
+python3 tools/srs_init.py /tmp/srs-nogrounds --defaults --grounds yes \
+    > /dev/null 2>&1
+[ -f /tmp/srs-nogrounds/grounds/grounds-config.json ] \
+    || { echo "FAIL FR-GND-290 — an upgrade asked for the register and did"
+         echo "not install it"; exit 1; }
+
+# The hook reports what the commit touches and never fails it. A refuted
+# hypothesis is not the committer's fault and may be what they are repairing.
+cat > "$GT/grounds/10-h-product.md" <<'MD'
+### H-010 — Studios lose time to manual roll-up
+
+```yaml
+status: refuted
+class: III
+population: studios of five to fifty people
+refuted_if: proportion < 0.15 at n >= 250
+expires: 2027-03-01
+owner: @kira
+impact: about half the 2027 plan
+```
+
+Studios spend more than an hour a week assembling reports by hand.
+MD
+cat > "$GT/grounds/03-bets.md" <<'MD'
+### B-010 — The placeholder requirement stands on it
+
+```yaml
+status: active
+requirement: FR-APP-010
+all_of: [H-010]
+```
+
+The requirement exists because that was believed.
+MD
+( cd "$GT" && git init -q . && git add -A && python3 tools/srs_grounds.py \
+  && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1
+rc=$?
+[ "$rc" = 0 ] || { echo "FAIL FR-GND-310 — the hook failed the commit over a"
+                   echo "refuted hypothesis"; cat /tmp/grounds-hook.log; exit 1; }
+grep -qF "FR-APP-010 — B-010 rests on H-010 (refuted)" /tmp/grounds-hook.log \
+    || { echo "FAIL FR-GND-310 — the hook said nothing about the bet"
+         cat /tmp/grounds-hook.log; exit 1; }
+
+# A register that warns is the ordinary case — an expired hypothesis is
+# what this layer exists to surface — and an install that reported failure
+# over one would be an install nobody believes. The exit code is for errors.
+cat > "$GT/grounds/10-h-product.md" <<'MD'
+### H-010 — Term ran out a while ago
+
+```yaml
+status: assumed
+class: III
+population: studios of five to fifty people
+refuted_if: proportion < 0.15 at n >= 250
+expires: 2020-01-01
+owner: @kira
+impact: about half the 2027 plan
+```
+
+Studios spend more than an hour a week assembling reports by hand.
+MD
+( cd "$GT" && python3 tools/srs_grounds.py --no-write 2>&1 | grep -q "ran out of term" ) \
+    || { echo "FAIL — the fixture register does not warn, so the next"
+         echo "assertion would hold for any register at all"; exit 1; }
+python3 tools/srs_init.py "$GT" --defaults > /tmp/grounds-warn.log 2>&1 \
+    || { echo "FAIL FR-GND-290 — an upgrade failed over a warning in the"
+         echo "register"; tail -5 /tmp/grounds-warn.log; exit 1; }
+
+# And nothing under --force overwrites what the project authored. The
+# standard is refreshed; the records are the project's.
+printf '\n### F-010 — Ours\n\n```yaml\nstatus: active\n```\n\nWe do not sell attention.\n' \
+    >> "$GT/grounds/01-frames.md"
+before=$(cksum < "$GT/grounds/01-frames.md")
+python3 tools/srs_init.py "$GT" --defaults --force > /dev/null 2>&1
+[ "$(cksum < "$GT/grounds/01-frames.md")" = "$before" ] \
+    || { echo "FAIL — --force overwrote a record the project wrote"; exit 1; }
+
+# A flag that reads as an instruction and does nothing has to say so: the
+# installer tells a target about its other inert flags already.
+python3 tools/srs_init.py "$GT" --defaults --grounds no > /tmp/grounds-no.log 2>&1
+grep -qF "does not remove a register that is already there" /tmp/grounds-no.log \
+    || { echo "FAIL — --grounds no was silently ignored on a target that"
+         echo "carries a register"; exit 1; }
+[ -f "$GT/grounds/grounds-config.json" ] \
+    || { echo "FAIL — --grounds no removed the register"; exit 1; }
+
+echo "installer-smoke: the grounds register is offered, complete and quiet"

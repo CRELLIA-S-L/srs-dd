@@ -124,8 +124,8 @@ tests: [tests/installer-smoke.sh]
 When run against an initialized target, the installer **shall** refresh the
 checker, the viewer and the skills without a flag, while files that may be
 the project's own — CI configuration, the agent guides, `.gitattributes`,
-the hook, the specification standard — are refreshed only with `--force` and
-only when they carry the SRS-DD marker.
+the hook, the specification standard, the grounds standard — are refreshed
+only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Tooling has to move with the framework or targets drift;
 everything a maintainer has edited must not, and the marker is how we tell a
@@ -140,7 +140,10 @@ it is the same document in every project — a claim nothing maintained.
 
 It joins the second list rather than the first because adopt deliberately
 keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing
-without a flag would undo that at the first upgrade. So the characterization
+without a flag would undo that at the first upgrade. `grounds/README.md`
+joined it on the same terms and reaches only the projects that keep a
+register — an upgrade refreshes it where it is and installs it nowhere
+else. So the characterization
 widened: "commonly owns" was true of CI files and agent guides, and the
 standard is not something anyone writes for themselves — it is merely a file
 that may already be theirs.

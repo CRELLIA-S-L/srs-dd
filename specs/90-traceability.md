@@ -8,9 +8,9 @@ Total requirements: 157.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 21 |
-| `partial` | 1 |
-| `implemented` | 135 |
+| `deferred` | 11 |
+| `partial` | 0 |
+| `implemented` | 146 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -83,17 +83,17 @@ Total requirements: 157.
 | **FR-GND-250** What each frame has refused | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-260** How many ideologies the core carries | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-270** History that cannot be read is said to be unread | `deferred` | T | — | — |
-| **FR-GND-280** The register is a choice at install | `deferred` | T | — | — |
-| **FR-GND-290** The register is added deliberately, never silently | `deferred` | T | — | — |
-| **FR-GND-300** A fresh register is one its own checker accepts | `deferred` | T | — | — |
-| **FR-GND-310** The hook says which bets the commit touches | `deferred` | T | — | — |
-| **FR-GND-320** The register procedure travels with the project | `deferred` | T | — | — |
-| **FR-GND-330** Whoever writes a hypothesis judges what no checker reaches | `deferred` | I | — | — |
-| **FR-GND-340** The class is checked against the measurement | `deferred` | I | — | — |
-| **FR-GND-350** A refutation opens a decommissioning, not a deletion | `deferred` | I | — | — |
-| **FR-GND-360** Admission to the core is its own act | `deferred` | I | — | — |
-| **FR-GND-370** The dashboard is compared, not trusted | `partial` | T | `.github/workflows/srs.yml` | `tests/grounds-check.sh` |
-| **FR-GND-380** An instrument outlives what it measures | `deferred` | I | — | — |
+| **FR-GND-280** The register is a choice at install | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-GND-290** The register is added deliberately, never silently | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-GND-300** A fresh register is one its own checker accepts | `implemented` | T | `tools/srs_init.py`<br>`skeleton/grounds` | `tests/installer-smoke.sh` |
+| **FR-GND-310** The hook says which bets the commit touches | `implemented` | T | `ci/pre-commit`<br>`tools/srs_grounds.py` | `tests/installer-smoke.sh` |
+| **FR-GND-320** The register procedure travels with the project | `implemented` | T | `tools/srs_init.py`<br>`.claude/skills/srs-bet/SKILL.md` | `tests/installer-smoke.sh` |
+| **FR-GND-330** Whoever writes a hypothesis judges what no checker reaches | `implemented` | I | `.claude/skills/srs-bet/SKILL.md` | — |
+| **FR-GND-340** The class is checked against the measurement | `implemented` | I | `.claude/skills/srs-bet/SKILL.md` | — |
+| **FR-GND-350** A refutation opens a decommissioning, not a deletion | `implemented` | I | `.claude/skills/srs-bet/SKILL.md` | — |
+| **FR-GND-360** Admission to the core is its own act | `implemented` | I | `.claude/skills/srs-bet/SKILL.md` | — |
+| **FR-GND-370** The dashboard is compared, not trusted | `implemented` | T | `.github/workflows/srs.yml`<br>`ci/github-workflow.yml`<br>`ci/gitlab-ci.yml` | `tests/grounds-check.sh` |
+| **FR-GND-380** An instrument outlives what it measures | `implemented` | I | `.claude/skills/srs-bet/SKILL.md` | — |
 | **FR-GND-390** A value outside the format's vocabulary is reported | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-400** A bet names a hypothesis that exists | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-INIT-010** Three modes, detected from the target | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh` |
@@ -257,6 +257,11 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-CI-030** (`implemented`, method `I`) — The local self-test runs the real pipeline
 - **FR-CI-040** (`implemented`, method `I`) — The rendered specification is published from the default branch
 - **FR-CI-060** (`implemented`, method `I`) — The example project is checked as a downstream consumer
+- **FR-GND-330** (`implemented`, method `I`) — Whoever writes a hypothesis judges what no checker reaches
+- **FR-GND-340** (`implemented`, method `I`) — The class is checked against the measurement
+- **FR-GND-350** (`implemented`, method `I`) — A refutation opens a decommissioning, not a deletion
+- **FR-GND-360** (`implemented`, method `I`) — Admission to the core is its own act
+- **FR-GND-380** (`implemented`, method `I`) — An instrument outlives what it measures
 - **FR-INIT-100** (`implemented`, method `I`) — The installer refuses to install into itself
 - **FR-INIT-110** (`implemented`, method `I`) — Upgrade notes come from the changelog
 - **FR-SKILL-010** (`implemented`, method `I`) — The everyday loop

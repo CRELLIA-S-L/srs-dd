@@ -708,14 +708,14 @@ check ran.
 ### FR-GND-280 — The register is a choice at install
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 ```
 
 A fresh install and an adoption **shall** offer the grounds register as a
@@ -734,14 +734,14 @@ reverse.
 ### FR-GND-290 — The register is added deliberately, never silently
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-280]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 ```
 
 An upgrade **shall** refresh the grounds register's tooling only where the
@@ -761,14 +761,14 @@ upgrade.
 ### FR-GND-300 — A fresh register is one its own checker accepts
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-280]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py, skeleton/grounds]
+tests: [tests/installer-smoke.sh]
 ```
 
 Where the grounds register is installed, the target's own grounds checker
@@ -787,14 +787,14 @@ switch on.
 ### FR-GND-310 — The hook says which bets the commit touches
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [ci/pre-commit, tools/srs_grounds.py]
+tests: [tests/installer-smoke.sh]
 ```
 
 Where a project carries a grounds register, the installed hook **shall**
@@ -819,14 +819,14 @@ and fail on warnings besides; nothing here takes either away.
 ### FR-GND-320 — The register procedure travels with the project
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-280]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py, .claude/skills/srs-bet/SKILL.md]
+tests: [tests/installer-smoke.sh]
 ```
 
 The skills installed into a project **shall** include the grounds procedure
@@ -843,13 +843,13 @@ declined is a file explaining something it does not have.
 ### FR-GND-330 — Whoever writes a hypothesis judges what no checker reaches
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
 ```
 
@@ -877,13 +877,13 @@ file rather than a check on it.
 ### FR-GND-340 — The class is checked against the measurement
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-GND-330]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
 ```
 
@@ -904,13 +904,13 @@ with nothing saying why.
 ### FR-GND-350 — A refutation opens a decommissioning, not a deletion
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
 ```
 
@@ -936,13 +936,13 @@ stands on it, settle each dependant, do not cascade silently.
 ### FR-GND-360 — Admission to the core is its own act
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-GND-180]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
 ```
 
@@ -963,13 +963,13 @@ question returns every six months to be argued from scratch.
 ### FR-GND-370 — The dashboard is compared, not trusted
 
 ```yaml
-status: partial
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [.github/workflows/srs.yml]
+code: [.github/workflows/srs.yml, ci/github-workflow.yml, ci/gitlab-ci.yml]
 tests: [tests/grounds-check.sh]
 ```
 
@@ -994,13 +994,13 @@ it concerns.
 ### FR-GND-380 — An instrument outlives what it measures
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [FR-GND-350]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
 ```
 

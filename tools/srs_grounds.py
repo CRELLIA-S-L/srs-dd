@@ -5,6 +5,8 @@
     python3 tools/srs_grounds.py             check and rewrite 90-dashboard.md
     python3 tools/srs_grounds.py --no-write  check only
     python3 tools/srs_grounds.py --strict    treat warnings as errors
+    python3 tools/srs_grounds.py --blast P…  what the requirements in these
+                                             files are staked on
 
 The register's format is described in grounds/README.md — that file is the
 normative one; this script only enforces it. Standard library only,
@@ -588,13 +590,57 @@ def build_dashboard(records, model, incoming):
     return "\n".join(out).rstrip() + "\n"
 
 
+def blast(records, model, paths):
+    # implements: FR-GND-310
+    """What the requirements defined in these files are staked on.
+
+    Quiet where nothing is staked: a report that speaks on every commit
+    is a report nobody reads, and the hook this feeds runs on all of
+    them.
+    """
+    if model is None:
+        return 0
+    wanted = {os.path.normpath(p) for p in paths}
+    here = {r["id"] for r in model.values()
+            if os.path.normpath(r.get("path", "")) in wanted}
+    if not here:
+        return 0
+    said = False
+    for rid in sorted(records):
+        rec = records[rid]
+        if rec.kind != "B" or not active(rec):
+            continue
+        req = rec.fields.get("requirement")
+        if req not in here:
+            continue
+        grounds = []
+        for name in as_list(rec.fields.get("all_of")) \
+                + as_list(rec.fields.get("any_of")):
+            status = records[name].fields.get("status", "?") \
+                if name in records else "not in the register"
+            grounds.append("%s (%s)" % (name, status))
+        if not said:
+            sys.stdout.write("\nWhat this commit touches is staked on:\n")
+            said = True
+        sys.stdout.write("  %s — %s rests on %s\n"
+                         % (req, rid, ", ".join(grounds) or "nothing named"))
+    return 0
+
+
 def main():
     # implements: FR-GND-010, FR-GND-120, IF-GND-020
-    flags = set(sys.argv[1:])
-    unknown = sorted(flags - {"--no-write", "--strict"})
+    argv = sys.argv[1:]
+    paths = []
+    if "--blast" in argv:
+        cut = argv.index("--blast")
+        paths = argv[cut + 1:]
+        argv = argv[:cut] + ["--blast"]
+    flags = set(argv)
+    unknown = sorted(flags - {"--no-write", "--strict", "--blast"})
     if unknown:
         sys.stderr.write("unknown flag(s): %s\nusage: srs_grounds.py "
-                         "[--no-write] [--strict]\n" % " ".join(unknown))
+                         "[--no-write] [--strict] [--blast PATH…]\n"
+                         % " ".join(unknown))
         return 2
     if not os.path.isdir(GROUNDS):
         sys.stderr.write("no grounds/ directory here — this project carries "
@@ -609,6 +655,9 @@ def main():
     if model_json is not None:
         model = {r["id"]: r for r in model_json["requirements"]}
         incoming = model_json.get("incoming", {})
+
+    if "--blast" in flags:
+        return blast(records, model, paths)
 
     found, warnings, reports = validate(records, model, model_error, cfg)
     errors += found

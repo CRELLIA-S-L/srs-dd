@@ -22,3 +22,16 @@ git diff --exit-code -- specs/90-traceability.md >/dev/null 2>&1 || {
     echo "pre-commit: specs/90-traceability.md was regenerated — stage it and retry." >&2
     exit 1
 }
+
+# Where the project keeps a grounds register, say what the requirements
+# this commit touches are standing on. A report and never a verdict: a
+# refuted hypothesis is not the committer's fault and may be exactly what
+# they are in the middle of repairing, so nothing below can fail the
+# commit. What may not fail is this report — the checker above still
+# fails on a stale matrix.
+if [ -f grounds/grounds-config.json ]; then
+    touched=$(git diff --cached --name-only --diff-filter=ACM -- 'specs/*.md')
+    if [ -n "$touched" ]; then
+        python3 tools/srs_grounds.py --blast $touched || true
+    fi
+fi

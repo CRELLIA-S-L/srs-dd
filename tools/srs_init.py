@@ -23,9 +23,10 @@ Three modes, detected automatically:
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
 files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
-hook, specs/README.md) — and only when the existing file carries the
-"SRS-DD-<version>" marker; a file the installer did not install is never
-overwritten. The project's requirements are never touched under any flag.
+hook, specs/README.md, grounds/README.md) — and only when the existing
+file carries the "SRS-DD-<version>" marker; a file the installer did not
+install is never overwritten. The project's requirements are never
+touched under any flag.
 
 `--dry-run` writes nothing in any mode and prints the created /
 refreshed / skipped list the real run would produce, so the change can
@@ -98,6 +99,15 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 # there. It carries no requirements (srs_check.SKIP_FILES), so nothing
 # framework-specific can leak through it.
 SPEC_STANDARD = os.path.join("specs", "README.md")
+
+# The grounds register: optional, and the same single-copy arrangement for
+# its standard. Its presence in a target is read from the configuration
+# file rather than from a setting — what is on disk is the only answer that
+# cannot disagree with itself.
+GROUNDS_STANDARD = os.path.join("grounds", "README.md")
+GROUNDS_CONFIG = os.path.join("grounds", "grounds-config.json")
+GROUNDS_TOOLS = ("srs_grounds.py",)
+GROUNDS_SKILLS = ("srs-bet",)
 
 # implements: FR-INIT-060
 # How the installer tells a file it wrote from one the project wrote.
@@ -197,11 +207,16 @@ def parse_args():
                         help="also refresh existing SRS-DD-marked precious "
                              "files (CI config, CLAUDE.md/AGENTS.md, "
                              ".gitattributes, the pre-commit hook, "
-                             "specs/README.md); a file "
+                             "specs/README.md, grounds/README.md); a "
+                             "file "
                              "without the marker is still never touched; "
                              "the checker and skills are "
                              "refreshed without it in adopt/upgrade modes; "
                              "specification content is never overwritten")
+    parser.add_argument("--grounds", choices=("yes", "no"), default=None,
+                        help="install the grounds register: the hypotheses "
+                             "the requirements rest on. Declined, nothing "
+                             "of it is written")
     parser.add_argument("--ci", choices=("github", "gitlab", "both", "none"),
                         default=None, help="which CI template(s) to install")
     parser.add_argument("--name", help="project name")
@@ -464,6 +479,70 @@ def install_skills(installer, substitute):
         rel = os.path.join(".claude", "skills", skill, "SKILL.md")
         if os.path.exists(os.path.join(ROOT, rel)):
             installer.copy(rel, rel, tooling=True, substitute=substitute)
+
+
+def has_grounds(target):
+    # implements: FR-GND-290
+    """Whether this project carries the register."""
+    return os.path.exists(os.path.join(target, GROUNDS_CONFIG))
+
+
+def collect_grounds_skeleton():
+    """(source, destination) pairs of the register skeleton.
+
+    The standard comes from grounds/ for the reason specs/README.md comes
+    from specs/: one canonical copy, kept in the place it describes.
+    """
+    result = []
+    base = os.path.join(ROOT, SKELETON, "grounds")
+    for name in sorted(os.listdir(base)):
+        if name.endswith(SKELETON_SUFFIXES):
+            result.append((os.path.join(SKELETON, "grounds", name),
+                           os.path.join("grounds", name)))
+    result.append((GROUNDS_STANDARD, GROUNDS_STANDARD))
+    return sorted(result, key=lambda pair: pair[1])
+
+
+def install_grounds(installer, substitute=None):
+    # implements: FR-GND-280, FR-GND-300, FR-GND-320
+    """The register, its checker and its procedure — all or none of them.
+
+    Declined, this writes nothing at all: a target that said no is
+    byte-for-byte a target that was never asked, which is what makes the
+    choice cheap to make and cheap to reverse.
+    """
+    for src, dst in collect_grounds_skeleton():
+        standard = dst == GROUNDS_STANDARD
+        installer.copy(src, dst, tooling=standard, precious=standard,
+                       substitute=substitute)
+    for name in GROUNDS_TOOLS:
+        rel = os.path.join("tools", name)
+        installer.copy(rel, rel, tooling=True)
+    for skill in GROUNDS_SKILLS:
+        rel = os.path.join(".claude", "skills", skill, "SKILL.md")
+        if os.path.exists(os.path.join(ROOT, rel)):
+            installer.copy(rel, rel, tooling=True, substitute=substitute)
+
+
+def run_target_grounds(target):
+    # implements: FR-GND-300
+    """The target's own grounds checker, on what was just installed.
+
+    It writes the dashboard, which a gate compares against a fresh run —
+    a target whose first commit has no dashboard would fail that gate
+    before anybody had written a single record.
+    """
+    checker = os.path.join(target, "tools", "srs_grounds.py")
+    if not os.path.exists(checker):
+        return 0
+    sys.stdout.write("\nRunning the grounds checker in the target:\n")
+    sys.stdout.flush()
+    # Not `--strict`, for the reason the specification checker is not run
+    # strictly either: an expired hypothesis is the most ordinary state a
+    # register can be in and the thing this layer exists to surface, and an
+    # install that reports failure over one is an install nobody believes.
+    # The exit code the installer publishes is for errors.
+    return subprocess.call([sys.executable, checker])
 
 
 def describe_hooks(target):
@@ -770,6 +849,15 @@ def collect_settings(args, batch, area_default):
         sys.stderr.write("Unknown CI choice %r.\n" % ci_choice)
         return None
     settings["ci"] = ci_choice
+    # implements: FR-GND-280
+    grounds = args.grounds or ("no" if batch else ask(
+        "Keep a grounds register — the hypotheses the requirements rest "
+        "on? (yes/no)", "no", batch))
+    if grounds not in ("yes", "no"):
+        sys.stderr.write("Unknown answer %r for the grounds register.\n"
+                         % grounds)
+        return None
+    settings["grounds"] = grounds == "yes"
     return settings
 
 
@@ -847,6 +935,8 @@ def run_fresh(args, target, batch):
                   placeholder, tooling=False)
 
     install_tools(installer)
+    if settings["grounds"]:
+        install_grounds(installer, substitute)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
     install_skills(installer, substitute)
@@ -862,6 +952,8 @@ def run_fresh(args, target, batch):
     sys.stdout.write("\nInstalled with srs_init (framework %s).\n"
                      % __version__)
     result = run_target_checker(target)
+    if result == 0 and settings["grounds"]:
+        result = run_target_grounds(target)
     if result == 0:
         sys.stdout.write(
             "\nFirst steps:\n"
@@ -924,6 +1016,8 @@ def install_adopt_files(installer, settings, substitute, target,
             "fit.\n")
 
     install_tools(installer, skip=tools_skip)
+    if settings["grounds"]:
+        install_grounds(installer, substitute)
     install_skills(installer, substitute)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
@@ -1069,6 +1163,8 @@ def run_adopt(args, target, batch, found_areas):
         return 1
 
     result = run_target_checker(target)
+    if result == 0 and settings["grounds"]:
+        result = run_target_grounds(target)
     if result == 0:
         sys.stdout.write(
             "\nNext steps: commit the regenerated "
@@ -1114,6 +1210,26 @@ def run_upgrade(args, target):
     # the first upgrade.
     installer.copy(SPEC_STANDARD, SPEC_STANDARD, tooling=True,
                    precious=True)
+    # implements: FR-GND-290
+    # Refreshed where the register already is; added only when this run
+    # was told to add it. An upgrade is what every project runs, and a
+    # subsystem that arrived through one would arrive at projects that
+    # never declined it because they never heard of it.
+    if has_grounds(target):
+        if args.grounds == "no":
+            sys.stdout.write(
+                "Note: --grounds no does not remove a register that is "
+                "already there; it is refreshed like the rest of the "
+                "tooling. To be rid of it, delete grounds/, "
+                "tools/srs_grounds.py and the srs-bet skill.\n")
+        install_grounds(installer)
+    elif args.grounds == "yes":
+        sys.stdout.write("Adding the grounds register, as asked.\n")
+        install_grounds(installer)
+    elif args.grounds is None:
+        sys.stdout.write(
+            "This project carries no grounds register. To add one: "
+            "re-run with --grounds yes.\n")
     install_skills(installer, substitute=None)
     if args.ci:
         install_ci(installer, args.ci)
@@ -1124,6 +1240,8 @@ def run_upgrade(args, target):
         return 0
     installer.gitattributes_hint()
     result = run_target_checker(target)
+    if result == 0 and has_grounds(target):
+        result = run_target_grounds(target)
     if result == 0 and old_version != __version__:
         sys.stdout.write(
             "\nNext steps: commit the refreshed tooling and the "
