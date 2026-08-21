@@ -15,6 +15,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_baseline.py]
 tests: [tests/baseline-smoke.sh]
+created: 2026-08-09
 ```
 
 When freezing a baseline, the baseline command **shall** write the row into
@@ -42,6 +43,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_dates.py]
 tests: [tests/dates-smoke.sh]
+created: 2026-08-21
 ```
 
 Where a requirement carries no `created` date, one command **shall** write

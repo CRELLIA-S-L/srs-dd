@@ -363,6 +363,18 @@ spec < <(block FR-CORE-010 "An info string opens and never closes" "$META" \
 ```')
 rule "FR-CHK-110 info-string closer" 0 "Requirements: 1"
 
+# --- The optional `created` date the standard declares. Declaring a key in
+# --- the standard is not enough on its own: the checker keeps its own set,
+# --- and a key missing from it is reported as unknown on every requirement
+# --- that carries one — which is every requirement, once a specification
+# --- has been dated.
+spec < <(block FR-CORE-010 "Dated" "$META
+created: 2026-01-15" 'The system **shall** act.')
+silent "created is a known key" 0 "unknown field"
+
+spec < <(block FR-CORE-010 "Undated" "$META" 'The system **shall** act.')
+silent "created is not demanded" 0 "created"
+
 # --- verifies: FR-CHK-100 — a broken configuration is refused by name, exit 2.
 spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
 cp "$LAB/specs/srs-config.json" "$LAB/specs/srs-config.json.bak"

@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** decide by inspecting the target which mode it is in —
@@ -36,6 +37,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 When installing into a target without a specification, the installer
@@ -58,6 +60,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 While adopting an existing specification, the installer **shall** validate it
@@ -79,6 +82,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 While adopting, the installer **shall** write only the tooling and the
@@ -99,6 +103,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 If the target holds markdown under `specs/` but no requirement the strict
@@ -119,6 +124,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 When run against an initialized target, the installer **shall** refresh the
@@ -165,6 +171,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 Where `--dry-run` is given, the installer **shall** print the created,
@@ -187,6 +194,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 If the target already runs something on commit, the installer **shall**
@@ -207,6 +215,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** accept the modal verbs, negation words and rationale
@@ -228,6 +237,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: []
+created: 2026-08-07
 ```
 
 If the target lies inside this repository, the installer **shall** refuse
@@ -248,6 +258,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, CHANGELOG.md]
 tests: []
+created: 2026-08-07
 ```
 
 When upgrading, the installer **shall** print the version transition and the
@@ -267,6 +278,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_upgrade.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 When run inside an initialized project, the upgrader **shall** fetch the
@@ -289,6 +301,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_upgrade.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 Before writing anything into the project, the upgrader **shall** print the
@@ -312,6 +325,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 When installing into a project, the installer **shall** record in
@@ -333,6 +347,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-08
 ```
 
 When a fresh installation finishes, the installer **shall** print what to do
@@ -362,6 +377,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 When an upgrade crosses one or more framework versions, the installer
@@ -384,6 +400,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-21
 ```
 
 Where a target's specification carries requirements without a `created`

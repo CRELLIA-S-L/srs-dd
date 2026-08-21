@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a requirement identifier, the viewer **shall** print that
@@ -34,6 +35,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a path, the viewer **shall** list the requirements that name it in
@@ -54,6 +56,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a requirement identifier, the viewer **shall** print what derives
@@ -74,6 +77,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 The viewer **shall** report, on request, realized requirements with no listed
@@ -108,6 +112,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a git revision or the version of a logged baseline, the viewer
@@ -131,6 +136,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 The viewer **shall** render the specification into a single self-contained
@@ -153,6 +159,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 Two renderings of an unchanged specification **shall** produce byte-identical
@@ -172,6 +179,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 The viewer **shall not** modify anything under `specs/` or leave bytecode in
@@ -191,6 +199,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-08
 ```
 
 The rendered page **shall** state the specification's current baseline, the
@@ -214,6 +223,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-08
 ```
 
 The rendered page **shall** let a reader pick any two of the specification's
@@ -239,6 +249,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-08
 ```
 
 The graph on the page **shall** fill the panel it is drawn in and
@@ -277,6 +288,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/baseline-smoke.sh]
+created: 2026-08-08
 ```
 
 When asked for a baseline row, the viewer **shall** print it ready to paste:
@@ -303,6 +315,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 When a requirement is picked from any view of the page — a link in the
@@ -328,6 +341,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 Where opening is asked for, the viewer **shall** open the page it has just
@@ -350,6 +364,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 When a requirement is chosen as the root, the graph **shall** draw only that
@@ -375,6 +390,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 The graph **shall** draw each kind of link between requirements in a form
@@ -409,6 +425,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-11
 ```
 
 The graph **shall** draw a requirement's node in a form that tells its
@@ -440,6 +457,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-12
 ```
 
 The dashboard **shall** state, for every status the standard defines, how
@@ -469,6 +487,7 @@ refines: [FR-VIEW-040]
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-12
 ```
 
 The rendered page **shall** report the coverage gaps FR-VIEW-040 names.
@@ -498,6 +517,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-17
 ```
 
 When listing requirements, the viewer **shall** narrow the list to those
@@ -533,6 +553,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-17
 ```
 
 The rendered page **shall** list what still points at a cancelled
@@ -580,6 +601,7 @@ refines: []
 conflicts_with: []
 code: []
 tests: []
+created: 2026-08-20
 ```
 
 The rendered page **shall** say what each notation it draws stands for.

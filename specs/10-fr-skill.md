@@ -15,6 +15,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs` procedure **shall** require naming the requirements a change
@@ -44,6 +45,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, specs/README.md]
 tests: []
+created: 2026-08-07
 ```
 
 The skills **shall** point at `specs/README.md` for the markup rules rather
@@ -82,6 +84,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-harvest/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs-harvest` procedure **shall** write requirements only in batches
@@ -102,6 +105,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-init/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs-init` procedure **shall** have the agent show the requirement areas
@@ -124,6 +128,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-audit/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs-audit` procedure **shall** report drift between the specification
@@ -144,6 +149,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-upgrade/SKILL.md, tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 The skills installed into a project **shall** include the upgrade procedure,
@@ -166,6 +172,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-release/SKILL.md]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-08
 ```
 
 Before cutting a release, the `srs-release` procedure **shall** have the
@@ -194,6 +201,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-baseline/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-09
 ```
 
 The skills installed into a project **shall** include the baseline
@@ -217,6 +225,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-baseline/SKILL.md]
 tests: []
+created: 2026-08-11
 ```
 
 Before a baseline row is written, the procedure **shall** show what changed
@@ -247,6 +256,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-10
 ```
 
 When a requirement is authored, the authoring procedure **shall** end at the
@@ -275,6 +285,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-check/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-10
 ```
 
 When a change is finished, the check procedure **shall** name the checks the
@@ -301,6 +312,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-page/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-10
 ```
 
 When the specification is to be read rather than grepped, the page procedure
@@ -325,6 +337,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-10
 ```
 
 When a statement is written or reworded, the procedure doing so **shall**
@@ -356,6 +369,7 @@ refines: [FR-SKILL-120]
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md]
 tests: []
+created: 2026-08-11
 ```
 
 When a verification method is chosen, the authoring procedure **shall**
@@ -383,6 +397,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-12
 ```
 
 Before a requirement's status becomes `withdrawn`, the procedure doing so
@@ -419,6 +434,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-harvest/SKILL.md]
 tests: []
+created: 2026-08-17
 ```
 
 Before reporting something as a finding, the procedure doing so **shall**
@@ -465,6 +481,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-audit/SKILL.md]
 tests: []
+created: 2026-08-12
 ```
 
 When judging whether a listed test proves a statement, the `srs-audit`

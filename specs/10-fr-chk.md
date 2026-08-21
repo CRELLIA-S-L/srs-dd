@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If a requirement identifier is repeated or does not match
@@ -34,6 +35,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If the statement of a requirement carries no bolded modal verb from the
@@ -55,6 +57,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If a link field names a requirement that does not exist, or names the
@@ -74,6 +77,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If `derives_from` or `refines` links form a cycle, the checker **shall**
@@ -93,6 +97,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** report as an error an `implemented` or `partial`
@@ -128,6 +133,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 The checker **shall** report as an error a `code` or `tests` entry that
@@ -155,6 +161,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** report as an error a `superseded` requirement without
@@ -182,6 +189,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 When a requirement has status `draft` and a non-empty `code` field, the
@@ -208,6 +216,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-12
 ```
 
 When an `implemented` or `partial` requirement derives from, depends on or
@@ -239,6 +248,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** cross-check the `implements:` and `verifies:`
@@ -277,6 +287,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** take the modal verbs, negation words and rationale
@@ -298,6 +309,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If `specs/srs-config.json` is unreadable, is not a JSON object, or holds a
@@ -318,6 +330,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, tools/srs_parse.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 While parsing a fenced code block, the checker **shall** ignore headings,
@@ -338,6 +351,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 Where `--strict` is given, the checker **shall** exit non-zero when warnings
@@ -358,6 +372,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-08
 ```
 
 If the repository holds a `spec/vX.Y.Z` tag that `92-baselines.md` has no row
@@ -382,6 +397,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement is `implemented` or `partial`, says it is verified by
@@ -412,6 +428,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement that has not been cancelled neither links to another nor
@@ -445,6 +462,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, tools/srs_view.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 The checker **shall** let a project lower a rule to a report or silence it
@@ -477,6 +495,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement omits a key the format requires, the checker **shall**
@@ -500,6 +519,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement uses a key a later version of the format renamed or
@@ -526,6 +546,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-12
 ```
 
 When a requirement that has not been cancelled derives from, depends on or
@@ -569,6 +590,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 Where an `implemented` or `partial` requirement names in its `code` or
@@ -623,6 +645,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, tools/srs_init.py]
 tests: [tests/checker-rules.sh, tests/adopt-smoke.sh, tests/installer-smoke.sh]
+created: 2026-08-17
 ```
 
 Where no requirement that has not been cancelled names a file under the

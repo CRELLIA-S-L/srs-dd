@@ -16,6 +16,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
+created: 2026-08-20
 ```
 
 Where a project carries a grounds register, the grounds checker **shall** read
@@ -48,6 +49,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 If a register identifier is repeated or does not match `<KIND>-<NNN>` with a
@@ -74,6 +76,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a record omits a key the format requires, the grounds checker
@@ -95,6 +98,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a record names a requirement absent from the requirement model, the
@@ -129,6 +133,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 When a bet names a requirement that has been cancelled, the grounds checker
@@ -152,6 +157,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a hypothesis's term has run out, the grounds checker **shall** report
@@ -175,6 +181,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The grounds checker **shall** take the hypothesis that decides a
@@ -213,6 +220,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where more than one bet names the same requirement, the grounds checker
@@ -237,6 +245,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a requirement is declared as resting on no hypothesis, the grounds
@@ -264,6 +273,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a requirement declared as resting on no hypothesis is named by a bet,
@@ -287,6 +297,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The grounds checker **shall** let a project lower a rule to a report or
@@ -315,6 +326,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
+created: 2026-08-20
 ```
 
 Where `--strict` is given, the grounds checker **shall** exit non-zero when
@@ -341,6 +353,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The dashboard **shall** state what proportion of the requirements carrying a
@@ -371,6 +384,7 @@ refines: []
 conflicts_with: []
 code: []
 tests: []
+created: 2026-08-20
 ```
 
 Where a measurement's verdict does not follow from comparing it against the
@@ -394,6 +408,7 @@ refines: []
 conflicts_with: []
 code: []
 tests: []
+created: 2026-08-20
 ```
 
 The grounds checker **shall** take the reconfirmation criterion from the
@@ -424,6 +439,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a verdict on a class III measurement does not name who made it, the
@@ -450,6 +466,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a hypothesis declares an action its grade does not permit in the
@@ -476,6 +493,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a hypothesis is declined without a reason or without the date the
@@ -498,6 +516,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a hypothesis's threshold was last changed after its earliest recorded
@@ -523,6 +542,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a measurement recorded earlier is absent from a hypothesis or differs
@@ -547,6 +567,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The dashboard **shall** state, for each author of a verdict, how many of
@@ -570,6 +591,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The dashboard **shall** state, for each requirement resting on no hypothesis,
@@ -595,6 +617,7 @@ refines: []
 conflicts_with: []
 code: []
 tests: []
+created: 2026-08-20
 ```
 
 The dashboard **shall** state how many requirements came to rest on no
@@ -620,6 +643,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The dashboard **shall** state how old the confirmations in the core are,
@@ -643,6 +667,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The dashboard **shall** state, for each frame, what it has refused and when.
@@ -663,6 +688,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The dashboard **shall** state how many ideologies the core carries.
@@ -682,6 +708,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a rule needs the register's history and that history cannot be read,
@@ -723,6 +750,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-20
 ```
 
 A fresh install and an adoption **shall** offer the grounds register as a
@@ -749,6 +777,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, tools/srs_upgrade.py]
 tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh]
+created: 2026-08-20
 ```
 
 An upgrade **shall** refresh the grounds register's tooling only where the
@@ -781,6 +810,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, skeleton/grounds]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-20
 ```
 
 Where the grounds register is installed, the target's own grounds checker
@@ -807,6 +837,7 @@ refines: []
 conflicts_with: []
 code: [ci/pre-commit, tools/srs_grounds.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-20
 ```
 
 Where a project carries a grounds register, the installed hook **shall**
@@ -839,6 +870,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, .claude/skills/srs-bet/SKILL.md]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-20
 ```
 
 The skills installed into a project **shall** include the grounds procedure
@@ -863,6 +895,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
+created: 2026-08-20
 ```
 
 When a hypothesis is written or reworded, the procedure doing so **shall**
@@ -897,6 +930,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
+created: 2026-08-20
 ```
 
 When a hypothesis's class is chosen, the procedure doing so **shall** check
@@ -924,6 +958,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
+created: 2026-08-20
 ```
 
 When a hypothesis is refuted, the procedure doing so **shall** settle each
@@ -956,6 +991,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
+created: 2026-08-20
 ```
 
 When a hypothesis is confirmed, the procedure doing so **shall** put its
@@ -983,6 +1019,7 @@ refines: []
 conflicts_with: []
 code: [.github/workflows/srs.yml, ci/github-workflow.yml, ci/gitlab-ci.yml]
 tests: [tests/grounds-check.sh]
+created: 2026-08-20
 ```
 
 Where a project carries a grounds register, its gate **shall** regenerate the
@@ -1014,6 +1051,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
+created: 2026-08-20
 ```
 
 Where a bet declares its requirement to be an instrument, the procedure
@@ -1054,6 +1092,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a record carries a value the format does not define for its key, the
@@ -1093,6 +1132,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 Where a bet names a hypothesis absent from the register, the grounds checker
@@ -1120,6 +1160,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-21
 ```
 
 Where a table row under a record has more or fewer cells than its heading
@@ -1159,6 +1200,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-21
 ```
 
 Where a bet names a hypothesis whose status is `untested`, the grounds
@@ -1191,6 +1233,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-21
 ```
 
 Where a hypothesis named by a bet has passed its term with no measurement
@@ -1231,6 +1274,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-bet/SKILL.md]
 tests: []
+created: 2026-08-21
 ```
 
 When a requirement is staked on a hypothesis, the procedure doing so
@@ -1270,6 +1314,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-21
 ```
 
 Where a record carries a table the format names and its heading is not the
@@ -1309,6 +1354,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-21
 ```
 
 Where a record carries a `declined` value and its status is not `declined`,
@@ -1340,6 +1386,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-21
 ```
 
 Where a record declares an action and no grade, and the register's

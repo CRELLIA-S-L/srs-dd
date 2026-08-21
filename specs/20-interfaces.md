@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh, tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** exit 0 on success, 1 on checker errors in the target
@@ -36,6 +37,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** exit 0 where it found no error and, under `--strict`,
@@ -67,6 +69,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-init/SKILL.md, README.md]
 tests: []
+created: 2026-08-07
 ```
 
 The installation procedure for an agent **shall** remain reachable at the raw
@@ -88,6 +91,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-17
 ```
 
 Where the model is asked for as JSON, the viewer **shall** emit every
@@ -132,6 +136,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 A requirement **shall** be written as a level-three heading, a fenced `yaml`
@@ -156,6 +161,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 A rule name the checker has published **shall** keep its meaning: it is
@@ -209,6 +215,7 @@ refines: []
 conflicts_with: []
 code: [grounds/README.md, tools/srs_grounds.py]
 tests: []
+created: 2026-08-20
 ```
 
 A register record **shall** be written as a level-three heading, a fenced
@@ -243,6 +250,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The grounds checker **shall** exit 0 where it found no error and, under
@@ -270,6 +278,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 A rule name the grounds checker has published **shall** keep its meaning:

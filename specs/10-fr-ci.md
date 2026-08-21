@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml]
 tests: [tests/spec-check.sh]
+created: 2026-08-07
 ```
 
 The specification gate **shall** regenerate the traceability matrix and fail
@@ -33,6 +34,7 @@ refines: []
 conflicts_with: []
 code: [ci/pre-commit, .githooks/pre-commit, tools/ci_selftest.sh]
 tests: []
+created: 2026-08-07
 ```
 
 The installed hook **shall** run the specification gate locally, so a stale
@@ -52,6 +54,7 @@ refines: []
 conflicts_with: []
 code: [tools/ci_selftest.sh]
 tests: []
+created: 2026-08-07
 ```
 
 The self-test **shall** run every suite in `tests/` and validate the YAML of
@@ -78,6 +81,7 @@ refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, .github/workflows/srs.yml]
 tests: []
+created: 2026-08-07
 ```
 
 On the default branch the pipeline **shall** render the specification into a
@@ -98,6 +102,7 @@ refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, ci/github-workflow.yml, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** offer the CI templates for GitHub and GitLab and
@@ -117,6 +122,7 @@ refines: []
 conflicts_with: []
 code: [.github/workflows/srs.yml]
 tests: []
+created: 2026-08-07
 ```
 
 The pipeline **shall** run the working tree's checker and viewer against the
@@ -138,6 +144,7 @@ refines: []
 conflicts_with: []
 code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tools/ci_selftest.sh]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 While a suite operates on a target it created, it **shall not** alter the
@@ -189,6 +196,7 @@ refines: []
 conflicts_with: []
 code: [tools/test_lib.sh]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 A suite asserting that something is absent **shall** fail when that thing is
@@ -229,6 +237,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_release.py]
 tests: [tests/release-smoke.sh]
+created: 2026-08-08
 ```
 
 When cutting a release, the release command **shall** date the changelog

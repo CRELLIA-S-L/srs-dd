@@ -181,7 +181,7 @@ VERIFICATIONS = ("T", "D", "I", "A")
 
 LINK_FIELDS = ("derives_from", "refines", "depends_on", "conflicts_with")
 LIST_FIELDS = LINK_FIELDS + ("code", "tests", "exempt")
-SCALAR_FIELDS = ("status", "verification", "superseded_by")
+SCALAR_FIELDS = ("status", "verification", "superseded_by", "created")
 KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 
 # Of the known keys, the ones a requirement must carry. Everything else is

@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 A published requirement identifier **shall** keep its meaning forever: a
@@ -41,6 +42,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 The specification **shall** record a link between two requirements in one
@@ -73,6 +75,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_baseline.py, tools/srs_release.py, specs/README.md]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
+created: 2026-08-09
 ```
 
 A specification baseline and a release **shall** be cut as separate acts,
@@ -95,6 +98,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py, tools/srs_baseline.py, specs/README.md]
 tests: [tests/baseline-smoke.sh]
+created: 2026-08-09
 ```
 
 The baseline log **shall** define the specification's baselines, a
@@ -120,6 +124,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py, tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-12
 ```
 
 A requirement cancelled with no successor **shall** be retained with the
@@ -168,6 +173,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md]
 tests: []
+created: 2026-08-17
 ```
 
 A requirement **shall** state exactly one obligation.
@@ -229,6 +235,7 @@ refines: []
 conflicts_with: []
 code: [grounds/README.md, tools/srs_grounds.py]
 tests: []
+created: 2026-08-20
 ```
 
 A published register identifier **shall** keep its meaning forever: a
@@ -257,6 +264,7 @@ refines: []
 conflicts_with: []
 code: [grounds/README.md, tools/srs_grounds.py]
 tests: []
+created: 2026-08-20
 ```
 
 The register **shall** record which requirements rest on a hypothesis in the
@@ -279,6 +287,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 A rule of the grounds layer **shall not** require that a requirement be
@@ -314,6 +323,7 @@ refines: []
 conflicts_with: []
 code: [grounds/README.md]
 tests: []
+created: 2026-08-20
 ```
 
 A hypothesis **shall** state exactly one claim about the world.
@@ -341,6 +351,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_baseline.py, tools/srs_release.py]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
+created: 2026-08-09
 ```
 
 The framework's commands **shall not** commit, tag, or push; each prepares
@@ -363,6 +374,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, specs/90-traceability.md]
 tests: [tests/spec-check.sh]
+created: 2026-08-07
 ```
 
 The traceability matrix **shall** be produced by the checker and committed as
@@ -383,6 +395,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, skeleton]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 What the installer copies **shall not** contain requirement identifiers of
@@ -419,6 +432,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
+created: 2026-08-20
 ```
 
 The grounds layer's commands **shall not** write to any path outside the
@@ -445,6 +459,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
+created: 2026-08-20
 ```
 
 The register's dashboard **shall** be produced by the grounds checker from
@@ -472,6 +487,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
 tests: [tests/grounds-check.sh]
+created: 2026-08-20
 ```
 
 The grounds layer's commands **shall not** modify a record in the register.

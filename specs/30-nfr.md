@@ -13,6 +13,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py]
 tests: []
+created: 2026-08-07
 ```
 
 Every Python tool in this repository **shall** run on Python 3.9 or newer
@@ -49,6 +50,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md]
 tests: []
+created: 2026-08-07
 ```
 
 The specification **shall** be stored as markdown files that a review tool
@@ -69,6 +71,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: []
+created: 2026-08-07
 ```
 
 Where the graph exceeds the node limit the page can lay out, the viewer
@@ -89,6 +92,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 The checker **shall** validate a specification of 500 requirements in under
