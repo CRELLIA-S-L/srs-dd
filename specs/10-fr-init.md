@@ -372,3 +372,32 @@ beside the upgrade notes and with a pointer to the changelog for the rest.
 Somebody who upgrades across three versions never learns that a new tool or
 a new skill arrived, and so never uses it. One line per entry keeps the jump
 across several versions readable, which the full sections would not be.
+
+### FR-INIT-170 — An undated specification is offered a date
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-SPEC-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+```
+
+Where a target's specification carries requirements without a `created`
+date, the installer **shall** say that one command can date them, and run
+nothing.
+
+**Rationale.** The dating command exists for specifications written before
+the field did, which is every specification a project already has. Nobody
+looks for a tool they have not heard of, and an upgrade is the one moment
+the framework has a project's attention.
+
+Said and not done, for the reason nothing else here writes a requirement
+block unasked. An installer that edited a hundred requirements because it
+noticed a missing field would be the tool taking a decision that belongs to
+whoever owns the specification, and a project that wants no dates at all is
+not a project in error.
+

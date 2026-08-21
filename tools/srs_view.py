@@ -133,6 +133,14 @@ def _requirement_dict(req):
     }
     for field in srs_check.LIST_FIELDS:
         entry[field] = _as_list(req.meta.get(field))
+    # Every field of the block, not only the ones this viewer has heard of.
+    # The format permits a key it declares neither required nor optional,
+    # so blocks legitimately carry keys nothing here knows — and a model
+    # that drops them is not "the fields of its block". Known fields keep
+    # the normalized form above; the rest pass through as written.
+    for key, value in sorted(req.meta.items()):
+        if key not in entry:
+            entry[key] = value
     return entry
 
 

@@ -3,6 +3,7 @@
 # with a project's own pre-commit hook, and isolation of the payload.
 #
 # verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
+# verifies: FR-INIT-170
 set -eo pipefail
 
 # implements: FR-CI-090
@@ -13,6 +14,7 @@ set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
+. tools/test_lib.sh
 
 # Clean slate: on shell runners a leftover dir would silently flip the
 # fresh-install step into upgrade mode.
@@ -457,5 +459,14 @@ grep -qF "does not remove a register that is already there" /tmp/grounds-no.log 
          echo "carries a register"; exit 1; }
 [ -f "$GT/grounds/grounds-config.json" ] \
     || { echo "FAIL — --grounds no removed the register"; exit 1; }
+
+# --- verifies: FR-INIT-170 — an undated specification is told it can be
+# --- dated, and nothing is written on its behalf. Nobody looks for a tool
+# --- they have not heard of, and an install is when the framework has a
+# --- project's attention.
+grep -qF "carry no \`created\` date" /tmp/grounds-fresh.log \
+    || { echo "FAIL FR-INIT-170 — an undated specification was not offered"
+         echo "the dating command"; tail -8 /tmp/grounds-fresh.log; exit 1; }
+absent "created:" "$GT/specs/10-fr-app.md"
 
 echo "installer-smoke: the grounds register is offered, complete and quiet"

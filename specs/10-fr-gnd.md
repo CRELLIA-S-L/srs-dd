@@ -416,14 +416,14 @@ door marked convenience.
 ### FR-GND-160 — A class III verdict names who made it
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a verdict on a class III measurement does not name who made it, the
@@ -442,14 +442,14 @@ the record in any case.
 ### FR-GND-170 — A grade permits only the actions declared for it
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-110]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a hypothesis declares an action its grade does not permit in the
@@ -468,14 +468,14 @@ coherent; neither is the framework's to decide.
 ### FR-GND-180 — A declined hypothesis carries a reason and a date
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [INV-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a hypothesis is declined without a reason or without the date the
@@ -1258,3 +1258,102 @@ not a longer first.
 Verified by inspection for the reason every procedure requirement here is:
 no suite runs a dialog, and one asserting the wording would be a copy of the
 procedure rather than a check on it.
+
+### FR-GND-450 — A table the format names carries the heading it declares
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-410]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a record carries a table the format names and its heading is not the
+columns the format declares for that table, the grounds checker **shall**
+report it as an error naming the record and the heading it found.
+
+**Rationale.** A table is found by the one column only it has, and read by
+position from there: the evidence table's fourth cell is the verdict and its
+fifth is who gave it. Both halves are needed and only the first was checked.
+A table headed `date | verdict | by` is found — it has `verdict` — and then
+read as though the verdict were in the fourth cell of a three-cell row,
+which it is not. Nothing errors: the rows are simply skipped, and every
+reading over them comes out empty while the register plainly holds the
+measurements.
+
+That is the failure this layer is least able to afford, because it is
+indistinguishable from the honest answer. A dashboard saying no verdicts are
+recorded is what a register with no verdicts looks like.
+
+Tables the format does not name are not touched. A record may carry a table
+of its own for a reader's benefit, and a rule that demanded a shape for
+every table would be a rule about markdown rather than about this register.
+
+Separate from `FR-GND-410`, which checks a row against the heading above it.
+That one keeps a table internally consistent; this one keeps it the table
+the format thinks it is, and a table can pass either while failing the
+other.
+
+### FR-GND-460 — A refusal is recorded only where there was one
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-180]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a record carries a `declined` value and its status is not `declined`,
+the grounds checker **shall** report it, naming the record.
+
+**Rationale.** The record then says two incompatible things about itself: a
+line giving the date and the reason it was refused, and a status saying it
+holds. A reader has no way to tell which is current, and the register exists
+to be read rather than interpreted.
+
+The way it happens is ordinary and worth naming, because it is the sequence
+somebody will actually walk: a hypothesis is refused, a later measurement
+changes the picture, the status moves to `supported`, and the refusal stays
+behind. Nothing about that sequence is a mistake except the leftover line.
+
+A warning a project can lower rather than an error, because nothing is
+broken and the repair is a line either way — remove it, or move the status
+back. Which of the two is right only the author knows, and `CON-GND-030`
+forbids the tool to choose.
+
+### FR-GND-470 — An action says what grade it rests on
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-170]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a record declares an action and no grade, and the register's
+configuration maps any grade to permitted actions, the grounds checker
+**shall** report it, naming the record and the action.
+
+**Rationale.** `FR-GND-170` catches an action beyond its grade and cannot
+see the case that matters more: an action with no grade at all. The map is
+consulted by grade, so a record with none is a decision taken without saying
+what it rests on — which is not a stricter version of acting beyond your
+evidence but a quieter one, because nothing is there to compare against.
+
+Conditioned on a map being configured, because a project without one has
+expressed no appetite and there is nothing for the omission to be measured
+against. Where the map exists, somebody sat down and decided what may be
+done at each grade, and an action that opts out of that decision is the one
+thing the map cannot otherwise notice.

@@ -116,6 +116,7 @@ undo history noisy.
 | `code` | no | list of paths | Where it is realized. Mandatory for `implemented` and `partial` |
 | `tests` | no | list of paths | What verifies it |
 | `exempt` | no | list of rule names | Rules this requirement is excused from — see *Configuration* |
+| `created` | no | `YYYY-MM-DD` | When the requirement first appeared. Written by hand when authoring, or once for a whole specification by `tools/srs_dates.py` |
 
 A required key that is absent is an error naming the key. An optional one
 may be left out entirely; the checker reads it as empty. **A key that is

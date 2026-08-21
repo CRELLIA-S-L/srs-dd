@@ -69,6 +69,9 @@ jobs:
       - name: Grounds check
         run: tests/grounds-check.sh
 
+      - name: Dates smoke
+        run: tests/dates-smoke.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \

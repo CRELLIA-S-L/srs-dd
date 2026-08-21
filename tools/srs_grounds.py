@@ -88,6 +88,11 @@ REQUIRED = {
 
 # implements: FR-GND-390
 CLASSES = ("I", "II", "III")
+GRADES = ("high", "moderate", "low", "very-low")
+# `declined` carries both halves because they are useless apart: a refusal
+# with no reason answers nothing next time, one with no date cannot be told
+# from one that predates everything since.
+RE_DECLINED = re.compile(r"^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(\S.*)$")
 STATUSES = {
     "I": ("active", "dissolved"),
     "F": ("active", "retired"),
@@ -109,10 +114,11 @@ DEBT_STATUSES = ("refuted", "expired", "assumed")
 # to a different rule.
 RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
          "declaration-superfluous", "threshold-moved", "evidence-dropped",
-         "relied-on-untested", "never-measured")
+         "relied-on-untested", "never-measured", "verdict-unattributed",
+         "action-beyond-grade", "declined-leftover", "action-without-grade")
 SEVERITIES = ("warn", "report", "off")
 
-DEFAULTS = {"rules": {}}
+DEFAULTS = {"rules": {}, "grades": {}}
 
 
 def _config_fail(message):
@@ -143,6 +149,22 @@ def load_config():
             _config_fail("rule %r: severity must be one of %s"
                          % (name, ", ".join(SEVERITIES)))
     cfg["rules"] = rules
+    # implements: FR-GND-170
+    # What a weakly supported hypothesis may be used for is a matter of
+    # appetite, so the map is the project's and the format only says it
+    # exists. A grade absent from it permits anything.
+    grades = raw.get("grades", {})
+    if not isinstance(grades, dict):
+        _config_fail("grades must be an object of grade to permitted actions")
+    for grade, actions in sorted(grades.items()):
+        if grade not in GRADES:
+            _config_fail("unknown grade %r; the format defines: %s"
+                         % (grade, ", ".join(GRADES)))
+        if not isinstance(actions, list) \
+                or not all(isinstance(a, str) and a for a in actions):
+            _config_fail("grade %r: permitted actions must be a list of "
+                         "non-empty strings" % grade)
+    cfg["grades"] = grades
     return cfg
 
 
@@ -348,6 +370,17 @@ def statement_of(entry):
     return "\n".join(lines).strip()
 
 
+# implements: FR-GND-450
+# The tables this format names, each by the one column only it has, and the
+# heading it must then carry. A table with none of these markers is one the
+# format has not named and is left alone.
+NAMED_TABLES = {
+    "verdict": ["date", "value", "n", "verdict", "by"],
+    "what was refused": ["date", "what was refused", "who asked"],
+    "what changed": ["date", "what changed", "why", "territory it opens"],
+}
+
+
 def tables_of(entry):
     """Every table under a record, as (heading cells, rows).
 
@@ -409,7 +442,8 @@ def active(rec):
 def validate(records, model, model_error, cfg):
     # implements: FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060,
     # implements: FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-390, FR-GND-400,
-    # implements: FR-GND-410, FR-GND-420, FR-GND-430
+    # implements: FR-GND-410, FR-GND-420, FR-GND-430, FR-GND-160,
+    # implements: FR-GND-170, FR-GND-180, FR-GND-460, FR-GND-470
     errors, warnings, reports = [], [], []
     today = datetime.date.today()
 
@@ -447,6 +481,14 @@ def validate(records, model, model_error, cfg):
                 "%s — %s carries expires %r, which is not a date the format "
                 "defines (YYYY-MM-DD)" % (rec.where, rid, expires))
         for heading, rows in tables_of(rec):
+            for marker, declared in sorted(NAMED_TABLES.items()):
+                if marker in heading and heading != declared:
+                    errors.append(
+                        "%s — %s carries a table headed | %s |, and the "
+                        "format declares | %s | for that one; read by "
+                        "position, the difference is silent"
+                        % (rec.where, rid, " | ".join(heading),
+                           " | ".join(declared)))
             for row in rows:
                 if len(row) != len(heading):
                     errors.append(
@@ -454,6 +496,19 @@ def validate(records, model, model_error, cfg):
                         "heading declares %d: | %s |"
                         % (rec.where, rid, len(row), len(heading),
                            " | ".join(row)))
+        grade = rec.fields.get("grade")
+        if rec.kind == "H" and grade is not None and grade not in GRADES:
+            errors.append(
+                "%s — %s carries grade %r, which the format does not define "
+                "(%s)" % (rec.where, rid, grade, ", ".join(GRADES)))
+        declined = rec.fields.get("declined")
+        if rec.kind == "H" and declined is not None \
+                and not (isinstance(declined, str)
+                         and RE_DECLINED.match(declined)):
+            errors.append(
+                "%s — %s carries declined %r, which is not the grammar the "
+                "format defines (a date, a dash, and the reason)"
+                % (rec.where, rid, declined))
         threshold = rec.fields.get("refuted_if")
         if rec.kind == "H" and threshold is not None \
                 and not (isinstance(threshold, str)
@@ -462,6 +517,63 @@ def validate(records, model, model_error, cfg):
                 "%s — %s carries refuted_if %r, which is not the grammar the "
                 "format defines (proportion|mean|count, one of < <= > >=, a "
                 "number, at n >= a whole number)" % (rec.where, rid, threshold))
+
+    # implements: FR-GND-160, FR-GND-170, FR-GND-180
+    for hid in sorted(hyps):
+        rec = hyps[hid]
+
+        # Forty thousand in a cohort and a dozen conversations both end in
+        # the word `supported`, and only for the second is the word
+        # somebody's reading.
+        if rec.fields.get("class") == "III":
+            for row in table_with(rec, "verdict"):
+                if len(row) >= 5 and not row[4]:
+                    rule_finding(warnings, reports, cfg,
+                                 "verdict-unattributed",
+                                 "%s — %s is class III and its measurement "
+                                 "of %s gives a verdict with nobody named; "
+                                 "a reading with no reader is not evidence "
+                                 "anyone can weigh"
+                                 % (rec.where, hid, row[0] or "no date"))
+
+        # A grade with nothing attached is a label. The binding is what
+        # makes it do work, and the map is the project's own.
+        action, grade = rec.fields.get("action"), rec.fields.get("grade")
+        permitted = cfg["grades"].get(grade) if grade else None
+        if action and permitted is not None and action not in permitted:
+            rule_finding(warnings, reports, cfg, "action-beyond-grade",
+                         "%s — %s is graded %s and declares the action %r, "
+                         "which that grade does not permit here (%s)"
+                         % (rec.where, hid, grade, action,
+                            ", ".join(permitted) or "nothing"))
+        # implements: FR-GND-470
+        # The quieter half: an action beyond its grade can be compared,
+        # an action with no grade cannot.
+        if action and not grade and cfg["grades"]:
+            rule_finding(warnings, reports, cfg, "action-without-grade",
+                         "%s — %s declares the action %r and no grade, so "
+                         "there is nothing to say whether its evidence "
+                         "carries it" % (rec.where, hid, action))
+
+        # implements: FR-GND-460
+        # One line says it was refused on a date and for a reason; the
+        # status says it holds. Which is current, only the author knows.
+        if "declined" in rec.fields \
+                and rec.fields.get("status") != "declined":
+            rule_finding(warnings, reports, cfg, "declined-leftover",
+                         "%s — %s is %s and still carries a `declined` "
+                         "value; a refusal left behind by a later "
+                         "measurement says the opposite of the status"
+                         % (rec.where, hid,
+                            rec.fields.get("status") or "without a status"))
+
+        # A refusal is recorded so the same question returning in six
+        # months is answered from the record instead of argued again.
+        if rec.fields.get("status") == "declined" \
+                and "declined" not in rec.fields:
+            errors.append("%s — %s is declined and carries no `declined` "
+                          "value, so neither the reason nor the date of the "
+                          "refusal is on the record" % (rec.where, hid))
 
     # A declaration that gives no reason is indistinguishable from a shrug.
     for rid in sorted(decls):

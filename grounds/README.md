@@ -144,6 +144,18 @@ the verdict and its fifth is who gave it. So **a row carries exactly the
 columns its heading declares** — one too few shifts everything after it, and
 the reading computed over the rest comes out wrong without looking wrong.
 
+And a table this format names carries the heading this format declares for
+it, in that order and no other:
+
+| Table | Heading |
+|---|---|
+| evidence | `date`, `value`, `n`, `verdict`, `by` |
+| a frame's refusals | `date`, `what was refused`, `who asked` |
+| an amendment | `date`, `what changed`, `why`, `territory it opens` |
+
+A table carrying none of those distinctive columns is a table this format
+has not named, and it is nobody's business but the record's.
+
 **Keys are added, never renamed.** Each kind below declares which of its keys
 are required and which are optional. A key that is neither is not an error —
 that tolerance is what lets a later version of this format add a key without
@@ -239,7 +251,9 @@ held by whoever writes the statement and by whoever reads it back.
 | `expires` | required | date after which confirmation no longer counts |
 | `owner` | required | who answers for measuring it |
 | `impact` | required | what it is worth if true |
-| `grade` | optional | how much the evidence is worth |
+| `grade` | optional | `high`, `moderate`, `low`, `very-low` |
+| `action` | optional | what is being done on its strength |
+| `declined` | optional | `<date> — <reason>`, and only where the status is |
 
 `impact` is written as a business outcome and not as a score. "About half the
 2027 paid-subscription plan, and nothing else in the plan drives it" is an
@@ -259,6 +273,32 @@ Statuses, and they are a lifecycle rather than a scale of confidence:
 | `refuted` | a measurement did not |
 | `expired` | its term ran out before anyone re-confirmed it |
 | `declined` | true, and deliberately not ours to act on |
+
+**`grade` and `action` are a pair, and neither does anything alone.** The
+grade says how much the evidence is worth; the action says what is being
+done on it — shipping a release, committing a quarter, running one more
+experiment. What binds them is `grades` in the configuration, which says
+which actions each grade permits. A grade with nothing attached is a label;
+an action beyond its grade is a decision resting on evidence that does not
+carry it, and the register says so rather than leaving a reader to notice.
+
+The scale is borrowed from evidence-based medicine, where certainty is rated
+high, moderate, low or very low and the guidance is explicit that a strong
+recommendation should not rest on low certainty. What counts as a permitted
+action at each grade is not borrowed and never will be: a project betting a
+quarter on low certainty and one betting a release are both coherent, and
+which you are is not this format's business.
+
+**`declined` carries the date and the reason in one value**, in that order:
+
+```yaml
+declined: 2026-12-02 — the core is for studios, and corporate revenue would
+```
+
+One key rather than two because the halves are useless apart. A refusal with
+no reason answers nothing the next time the question comes round; a refusal
+with no date cannot be told from one that predates everything that has
+changed since.
 
 `declined` is the one worth explaining. A hypothesis can be confirmed and
 still be refused: the thing is real, and this project is not going to be the
@@ -403,6 +443,7 @@ carries the register.
 | Key | Default | |
 |---|---|---|
 | `rules` | `{}` | What a finding costs: `warn` (the default, and what `--strict` fails on), `report` (said, never fatal), `off` (not said at all). Keys are rule names |
+| `grades` | `{}` | Which actions each grade permits: `{"high": ["release", "quarter"], "low": ["experiment"]}`. A grade absent from the map permits anything, which is what an empty map means for every grade |
 
 Errors are not in this table and cannot be lowered: a malformed or repeated
 identifier, a missing required key, a bet naming a requirement that does not

@@ -35,15 +35,15 @@ nothing to reduce. This is not a reading of zero debt.
 
 ## Requirements resting on no hypothesis
 
-161 of 161 requirements. Weight is what stands on them: how many
+166 of 166 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
 | FR-VIEW-060 | 16 | 1 | 17 |
 | IF-GND-010 | 9 | 2 | 11 |
+| NFR-SPEC-010 | 1 | 9 | 10 |
 | FR-GND-010 | 8 | 1 | 9 |
-| NFR-SPEC-010 | 1 | 8 | 9 |
 | FR-CI-090 | 0 | 8 | 8 |
 | FR-INIT-010 | 7 | 1 | 8 |
 | IF-SPEC-010 | 6 | 2 | 8 |
@@ -70,6 +70,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-120 | 2 | 1 | 3 |
 | FR-CHK-160 | 1 | 2 | 3 |
 | FR-CI-050 | 0 | 3 | 3 |
+| FR-GND-180 | 2 | 1 | 3 |
 | FR-GND-330 | 2 | 1 | 3 |
 | FR-GND-370 | 0 | 3 | 3 |
 | FR-INIT-060 | 2 | 1 | 3 |
@@ -79,6 +80,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-080 | 1 | 2 | 3 |
 | FR-SKILL-090 | 1 | 2 | 3 |
 | FR-SKILL-170 | 0 | 3 | 3 |
+| FR-SPEC-010 | 2 | 1 | 3 |
 | FR-VIEW-040 | 2 | 1 | 3 |
 | FR-VIEW-050 | 2 | 1 | 3 |
 | INV-SPEC-010 | 1 | 2 | 3 |
@@ -101,6 +103,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-060 | 1 | 1 | 2 |
 | FR-GND-070 | 1 | 1 | 2 |
 | FR-GND-110 | 1 | 1 | 2 |
+| FR-GND-160 | 1 | 1 | 2 |
+| FR-GND-170 | 1 | 1 | 2 |
 | FR-GND-190 | 1 | 1 | 2 |
 | FR-GND-220 | 1 | 1 | 2 |
 | FR-GND-290 | 0 | 2 | 2 |
@@ -108,6 +112,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-310 | 0 | 2 | 2 |
 | FR-GND-320 | 0 | 2 | 2 |
 | FR-GND-350 | 1 | 1 | 2 |
+| FR-GND-410 | 1 | 1 | 2 |
 | FR-INIT-030 | 1 | 1 | 2 |
 | FR-INIT-070 | 1 | 1 | 2 |
 | FR-INIT-090 | 1 | 1 | 2 |
@@ -118,7 +123,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-100 | 0 | 2 | 2 |
 | FR-SKILL-110 | 0 | 2 | 2 |
 | FR-SKILL-160 | 1 | 1 | 2 |
-| FR-SPEC-010 | 1 | 1 | 2 |
+| FR-SPEC-020 | 1 | 1 | 2 |
 | FR-VIEW-010 | 1 | 1 | 2 |
 | FR-VIEW-120 | 1 | 1 | 2 |
 | FR-VIEW-140 | 1 | 1 | 2 |
@@ -144,8 +149,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-100 | 0 | 1 | 1 |
 | FR-GND-120 | 0 | 1 | 1 |
 | FR-GND-130 | 0 | 1 | 1 |
-| FR-GND-160 | 1 | 0 | 1 |
-| FR-GND-180 | 1 | 0 | 1 |
 | FR-GND-200 | 0 | 1 | 1 |
 | FR-GND-210 | 0 | 1 | 1 |
 | FR-GND-240 | 0 | 1 | 1 |
@@ -157,10 +160,12 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-380 | 0 | 1 | 1 |
 | FR-GND-390 | 0 | 1 | 1 |
 | FR-GND-400 | 0 | 1 | 1 |
-| FR-GND-410 | 0 | 1 | 1 |
 | FR-GND-420 | 0 | 1 | 1 |
 | FR-GND-430 | 0 | 1 | 1 |
 | FR-GND-440 | 0 | 1 | 1 |
+| FR-GND-450 | 0 | 1 | 1 |
+| FR-GND-460 | 0 | 1 | 1 |
+| FR-GND-470 | 0 | 1 | 1 |
 | FR-INIT-040 | 0 | 1 | 1 |
 | FR-INIT-050 | 0 | 1 | 1 |
 | FR-INIT-080 | 0 | 1 | 1 |
@@ -168,6 +173,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-INIT-130 | 0 | 1 | 1 |
 | FR-INIT-150 | 0 | 1 | 1 |
 | FR-INIT-160 | 0 | 1 | 1 |
+| FR-INIT-170 | 0 | 1 | 1 |
 | FR-SKILL-030 | 0 | 1 | 1 |
 | FR-SKILL-070 | 0 | 1 | 1 |
 | FR-SKILL-130 | 0 | 1 | 1 |
@@ -198,6 +204,5 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-SPEC-020 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
 | FR-GND-150 | 0 | 0 | 0 |
-| FR-GND-170 | 0 | 0 | 0 |
 | FR-GND-230 | 0 | 0 | 0 |
 | FR-VIEW-230 | 0 | 0 | 0 |

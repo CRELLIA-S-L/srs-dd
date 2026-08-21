@@ -9,6 +9,8 @@
 # verifies: FR-GND-260, FR-GND-010, IF-GND-030, FR-GND-250
 # verifies: CON-GND-010, FR-GND-190, FR-GND-200, FR-GND-210
 # verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
+# verifies: FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-450
+# verifies: FR-GND-460, FR-GND-470
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -201,6 +203,30 @@ ground < <(rec H-010 "One cell short" "$HYP" \
 | 2026-02-14 | 0.38 | 42 | supported |')
 rule "FR-GND-410 short row" 1 "has a table row with 4 cell(s) where its heading declares 5"
 
+# --- verifies: FR-GND-450 — and the heading itself is the one the format
+# --- declares. Found by its marker column, read by position from there: a
+# --- table headed `date | verdict | by` is found and then read as though
+# --- the verdict were the fourth cell of a three-cell row. Nothing errored
+# --- before this; the rows were skipped and every reading over them came
+# --- out empty while the register plainly held the measurements.
+ground < <(rec H-010 "Its own idea of an evidence table" "$HYP" \
+               'Studios export weekly.
+
+| date | verdict | by |
+|---|---|---|
+| 2026-02-14 | supported | @kira |')
+rule "FR-GND-450 heading of its own" 1 "the format declares | date | value | n | verdict | by |"
+
+# A table carrying none of the marker columns is one the format has not
+# named, and it is nobody's business but the record's.
+ground < <(rec H-010 "A table of its own, for a reader" "$HYP" \
+               'Studios export weekly.
+
+| segment | note |
+|---|---|
+| enterprise | out of scope for now |')
+silent "FR-GND-450 an unnamed table is left alone" 0 "the format declares"
+
 # --- verifies: FR-GND-040 — a bet resolves into the requirement model.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
            rec B-010 "Points outside the model" \
@@ -272,6 +298,102 @@ mkdir -p "$LAB/grounds/product"
 } > "$LAB/grounds/product/10-h-deep.md"
 rule "FR-GND-010 reads a subdirectory" 0 "Records: 1"
 rm -rf "$LAB/grounds/product"
+
+# --- verifies: FR-GND-160 — a class III verdict names who made it. The
+# --- hook FR-GND-210 needs: an author whose verdicts keep being reversed
+# --- cannot be noticed if the verdicts are anonymous.
+ground < <(rec H-010 "Judged by nobody in particular" "$HYP" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-02-14 | 0.38 | 42 | supported |  |')
+rule "FR-GND-160 unattributed" 0 "a verdict with nobody named"
+
+# Class I is a machine reading and needs no name.
+ground < <(rec H-010 "Measured by an instrument" "${HYP/class: III/class: I}" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-02-14 | 0.38 | 42 | supported |  |')
+silent "FR-GND-160 class I needs no name" 0 "a verdict with nobody named"
+
+# --- verifies: FR-GND-170 — a grade permits only the actions declared for
+# --- it, and the map is the project's own.
+printf '{"rules": {}, "grades": {"low": ["experiment"], "high": ["release"]}}\n' \
+    > "$LAB/grounds/grounds-config.json"
+ground < <(rec H-010 "Weak evidence, strong action" \
+               "$HYP
+grade: low
+action: release" 'Studios export weekly.')
+rule "FR-GND-170 beyond its grade" 0 "which that grade does not permit here"
+
+ground < <(rec H-010 "Weak evidence, matching action" \
+               "$HYP
+grade: low
+action: experiment" 'Studios export weekly.')
+silent "FR-GND-170 within its grade" 0 "which that grade does not permit here"
+
+# A grade the map says nothing about permits anything — the project has not
+# expressed an appetite for it, and the framework has none to supply.
+ground < <(rec H-010 "A grade the map omits" \
+               "$HYP
+grade: moderate
+action: release" 'Studios export weekly.')
+silent "FR-GND-170 unmapped grade permits" 0 "which that grade does not permit here"
+
+ground < <(rec H-010 "A grade the format does not define" \
+               "$HYP
+grade: pretty-good" 'Studios export weekly.')
+rule "FR-GND-170 unknown grade" 1 "carries grade 'pretty-good'"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+
+# --- verifies: FR-GND-180 — a refusal carries its reason and its date, in
+# --- one value because the halves are useless apart.
+ground < <(rec H-010 "Turned down, silently" \
+               "${HYP/status: assumed/status: declined}" 'Studios export weekly.')
+rule "FR-GND-180 declined bare" 1 "carries no \`declined\` value"
+
+ground < <(rec H-010 "Turned down, with half of it" \
+               "${HYP/status: assumed/status: declined}
+declined: because we said so" 'Studios export weekly.')
+rule "FR-GND-180 declined without a date" 1 "is not the grammar the format defines"
+
+ground < <(rec H-010 "Turned down, on the record" \
+               "${HYP/status: assumed/status: declined}
+declined: 2026-12-02 — the core is for studios, not for their clients' finance teams" \
+               'Studios export weekly.')
+rule "FR-GND-180 declined properly" 0 "Errors: 0"
+
+# --- verifies: FR-GND-460 — the refusal outliving the status. The sequence
+# --- is ordinary: refused, then a later measurement changes the picture,
+# --- the status moves, and the line stays behind saying the opposite.
+ground < <(rec H-010 "Refused once, held later" \
+               "${HYP/status: assumed/status: supported}
+declined: 2026-12-02 — the core is for studios, not their clients" \
+               'Studios export weekly.')
+rule "FR-GND-460 refusal left behind" 0 "still carries a \`declined\` value"
+
+ground < <(rec H-010 "Refused, and saying so" \
+               "${HYP/status: assumed/status: declined}
+declined: 2026-12-02 — the core is for studios, not their clients" \
+               'Studios export weekly.')
+silent "FR-GND-460 a declined record may say so" 0 "still carries a"
+
+# --- verifies: FR-GND-470 — an action with no grade at all. Quieter than
+# --- acting beyond your grade, because nothing is there to compare it to.
+printf '{"rules": {}, "grades": {"low": ["experiment"]}}\n' \
+    > "$LAB/grounds/grounds-config.json"
+ground < <(rec H-010 "Acting on something unstated" \
+               "$HYP
+action: release" 'Studios export weekly.')
+rule "FR-GND-470 action with no grade" 0 "and no grade, so there is nothing to say"
+
+# Without a map the project has expressed no appetite, and there is nothing
+# for the omission to be measured against.
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+silent "FR-GND-470 no map, no finding" 0 "and no grade, so there is nothing to say"
 
 # --- verifies: FR-GND-090 — a declaration carries a reason.
 ground < <(printf '### U-010 — No reason given\n\n```yaml\nstatus: active\nrequirement: FR-CORE-010\n```\n\n')

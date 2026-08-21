@@ -891,3 +891,32 @@ done
 find specs -type f | sort | xargs cksum > /tmp/v-specs-after
 diff /tmp/v-specs-before /tmp/v-specs-after \
     || { echo "the viewer modified specs/"; exit 1; }
+
+# --- verifies: IF-VIEW-010 — every field of the block, not only the ones
+# --- this viewer has heard of. The format permits a key it declares
+# --- neither required nor optional, so a block legitimately carries keys
+# --- nothing here knows; dropping them published a model that was not the
+# --- block's fields, and the register beside specs/ reads requirements
+# --- through this and nothing else.
+UNK=/tmp/srs-view-unknown
+rm -rf "$UNK"; mkdir -p "$UNK/tools" "$UNK/specs"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$UNK/tools/"
+printf '{"areas": ["CORE"], "rules": {"unknown-key": "off"}}\n' \
+    > "$UNK/specs/srs-config.json"
+{ printf '# c\n\n### FR-CORE-010 — X\n\n'
+  printf '```yaml\nstatus: deferred\nverification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: []\n'
+  printf 'tests: []\ncreated: 2026-08-21\n```\n\n'
+  printf 'The system **shall** act.\n'
+} > "$UNK/specs/10-fr-core.md"
+( cd "$UNK" && python3 tools/srs_view.py --json ) > /tmp/unknown-key.json 2>/dev/null
+python3 - <<'PY'
+import json
+r = json.load(open('/tmp/unknown-key.json'))['requirements'][0]
+assert r.get('created') == '2026-08-21', \
+    'a key the viewer does not know was dropped from the published model'
+assert r['path'] == 'specs/10-fr-core.md' and r['title'] == 'X', \
+    'a block key overwrote a field computed from the heading'
+PY
+echo "view-smoke: an unknown block key reaches the published model"
+

@@ -123,7 +123,7 @@ RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
 TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
-         "srs_baseline.py")
+         "srs_baseline.py", "srs_dates.py")
 
 # Skills shipped to targets. srs-init itself stays framework-only.
 # implements: FR-SKILL-060, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
@@ -522,6 +522,42 @@ def install_grounds(installer, substitute=None):
         rel = os.path.join(".claude", "skills", skill, "SKILL.md")
         if os.path.exists(os.path.join(ROOT, rel)):
             installer.copy(rel, rel, tooling=True, substitute=substitute)
+
+
+def undated_hint(target):
+    # implements: FR-INIT-170
+    """Says that an undated specification can be dated, and runs nothing.
+
+    The dating command exists for specifications written before the field
+    did, which is every specification a project already has, and nobody
+    looks for a tool they have not heard of. Said and not done: nothing
+    else here writes a requirement block unasked, and a project that wants
+    no dates at all is not a project in error.
+    """
+    specs_dir = os.path.join(target, "specs")
+    if not os.path.isdir(specs_dir):
+        return
+    seen, undated = 0, 0
+    for current, dirs, files in os.walk(specs_dir):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        for name in sorted(files):
+            if not name.endswith(".md") or name in SKIP_FILES:
+                continue
+            full = os.path.join(current, name)
+            for req in parse_file(full, os.path.relpath(full, target), []):
+                if not RE_STRICT_ID.match(req.id):
+                    continue
+                seen += 1
+                if not req.meta.get("created"):
+                    undated += 1
+    if not undated:
+        return
+    sys.stdout.write(
+        "\n%d of %d requirements carry no `created` date. One command "
+        "writes\nthe date each first appeared, read from this repository's "
+        "own history:\n  python3 tools/srs_dates.py --dry-run   to see what "
+        "it would write\n  python3 tools/srs_dates.py             to write "
+        "it\n" % (undated, seen))
 
 
 def run_target_grounds(target):
@@ -952,6 +988,8 @@ def run_fresh(args, target, batch):
     sys.stdout.write("\nInstalled with srs_init (framework %s).\n"
                      % __version__)
     result = run_target_checker(target)
+    if result == 0:
+        undated_hint(target)
     if result == 0 and settings["grounds"]:
         result = run_target_grounds(target)
     if result == 0:
@@ -1163,6 +1201,8 @@ def run_adopt(args, target, batch, found_areas):
         return 1
 
     result = run_target_checker(target)
+    if result == 0:
+        undated_hint(target)
     if result == 0 and settings["grounds"]:
         result = run_target_grounds(target)
     if result == 0:
@@ -1240,6 +1280,8 @@ def run_upgrade(args, target):
         return 0
     installer.gitattributes_hint()
     result = run_target_checker(target)
+    if result == 0:
+        undated_hint(target)
     if result == 0 and has_grounds(target):
         result = run_target_grounds(target)
     if result == 0 and old_version != __version__:
