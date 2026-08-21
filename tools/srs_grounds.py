@@ -108,7 +108,8 @@ DEBT_STATUSES = ("refuted", "expired", "assumed")
 # Published names: a name here keeps its meaning forever, and is never given
 # to a different rule.
 RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
-         "declaration-superfluous")
+         "declaration-superfluous", "threshold-moved", "evidence-dropped",
+         "relied-on-untested", "never-measured")
 SEVERITIES = ("warn", "report", "off")
 
 DEFAULTS = {"rules": {}}
@@ -222,6 +223,121 @@ def read_model():
         return None, "tools/srs_view.py produced unreadable JSON: %s" % exc
 
 
+def history_of(paths):
+    # implements: FR-GND-270
+    """Past revisions of the register's record files, oldest first.
+
+    Returns (revisions, problem). Where `problem` is a sentence the
+    history could not be read, and the rules standing on it are not run
+    and not passed — a history nobody can read is also a history nobody
+    can audit, and a reader told nothing assumes the check ran.
+    """
+    def git(*args):
+        return subprocess.check_output(
+            ["git", "-C", ROOT] + list(args),
+            stderr=subprocess.DEVNULL).decode("utf-8", "replace")
+
+    try:
+        if git("rev-parse", "--is-shallow-repository").strip() == "true":
+            return [], "the clone is shallow, so earlier revisions are absent"
+        listed = git("log", "--format=%H", "--", *paths).split()
+    except (OSError, subprocess.CalledProcessError):
+        return [], "this is not a repository, or git could not read it"
+
+    revisions = []
+    for rev in reversed(listed):                  # oldest first
+        texts = {}
+        for path in paths:
+            try:
+                texts[path] = git("show", "%s:%s" % (rev, path))
+            except (OSError, subprocess.CalledProcessError):
+                continue                          # not in the tree yet
+        revisions.append(texts)
+    return revisions, None
+
+
+def hypotheses_in(text, path):
+    """The hypothesis records of one file's text, by identifier."""
+    out = {}
+    for entry in srs_parse.parse_entries(text, path, [], RE_HEADING):
+        match = RE_ID.match(entry.id)
+        if match and match.group(1) == "H":
+            out[entry.id] = entry
+    return out
+
+
+def check_history(records, cfg, warnings, reports):
+    # implements: FR-GND-190, FR-GND-200, FR-GND-270
+    """The two rules that read the register's history rather than its files.
+
+    Both are replayed from one walk: the ordering of a threshold against
+    the first measurement recorded under it, and the evidence rows that
+    were once there.
+    """
+    paths = [rel for _full, rel in collect_files()]
+    revisions, problem = history_of(paths)
+    if problem:
+        reports.append(
+            "the register's history could not be read (%s); the "
+            "threshold-moved and evidence-dropped rules did not run, which "
+            "is not the same as passing" % problem)
+        return
+
+    threshold = {}        # id -> (value, revision index, ever changed)
+    first_measured = {}   # id -> index of the revision that first showed one
+    rows_ever = {}        # id -> {row: index first seen}
+    for index, texts in enumerate(revisions):
+        for path, text in sorted(texts.items()):
+            for hid, entry in sorted(hypotheses_in(text, path).items()):
+                value = entry.fields.get("refuted_if")
+                if hid not in threshold:
+                    threshold[hid] = (value, index, False)
+                elif threshold[hid][0] != value:
+                    threshold[hid] = (value, index, True)
+                rows = [tuple(r) for r in table_with(entry, "verdict")]
+                if rows and hid not in first_measured:
+                    first_measured[hid] = index
+                for row in rows:
+                    rows_ever.setdefault(hid, {}).setdefault(row, index)
+
+    # A record that is simply gone takes its measurements with it, which is
+    # the easiest way to make an inconvenient one disappear and the one the
+    # loop below cannot see: it walks what is here.
+    for hid in sorted(rows_ever):
+        if hid not in records:
+            rule_finding(warnings, reports, cfg, "evidence-dropped",
+                         "grounds — %s recorded %d measurement(s) and is no "
+                         "longer in the register at all; an entry is "
+                         "retired in a status that says so, never deleted"
+                         % (hid, len(rows_ever[hid])))
+
+    for hid in sorted(records):
+        rec = records[hid]
+        if rec.kind != "H":
+            continue
+        moved = threshold.get(hid)
+        measured = first_measured.get(hid)
+        # `>=` and not `>`: inside one commit there is no ordering, so a
+        # threshold changed in the very commit that records the first
+        # measurement is the abuse done in one step instead of two. The
+        # `ever changed` flag is what keeps a hypothesis born with its
+        # first measurement out of this — declaring is not moving.
+        if moved and moved[2] and measured is not None and moved[1] >= measured:
+            rule_finding(warnings, reports, cfg, "threshold-moved",
+                         "%s — %s had its threshold changed after the first "
+                         "measurement was recorded under it; a threshold "
+                         "named after the result turns every outcome into an "
+                         "encouraging one" % (rec.where, hid))
+        now = {tuple(r) for r in table_with(rec, "verdict")}
+        for row in sorted(rows_ever.get(hid, {})):
+            if row not in now:
+                rule_finding(warnings, reports, cfg, "evidence-dropped",
+                             "%s — %s once recorded the measurement %s and "
+                             "no longer does; the older one is what the "
+                             "newer is a change from"
+                             % (rec.where, hid, " | ".join(row)))
+
+
 def statement_of(entry):
     """The record's prose, with any table below it left out."""
     lines = []
@@ -292,7 +408,8 @@ def active(rec):
 
 def validate(records, model, model_error, cfg):
     # implements: FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060,
-    # implements: FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-390, FR-GND-400
+    # implements: FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-390, FR-GND-400,
+    # implements: FR-GND-410, FR-GND-420, FR-GND-430
     errors, warnings, reports = [], [], []
     today = datetime.date.today()
 
@@ -329,6 +446,14 @@ def validate(records, model, model_error, cfg):
             errors.append(
                 "%s — %s carries expires %r, which is not a date the format "
                 "defines (YYYY-MM-DD)" % (rec.where, rid, expires))
+        for heading, rows in tables_of(rec):
+            for row in rows:
+                if len(row) != len(heading):
+                    errors.append(
+                        "%s — %s has a table row with %d cell(s) where its "
+                        "heading declares %d: | %s |"
+                        % (rec.where, rid, len(row), len(heading),
+                           " | ".join(row)))
         threshold = rec.fields.get("refuted_if")
         if rec.kind == "H" and threshold is not None \
                 and not (isinstance(threshold, str)
@@ -346,6 +471,28 @@ def validate(records, model, model_error, cfg):
                           % (rec.where, rid,
                              rec.fields.get("requirement", "a requirement")))
 
+    staked = {}
+    for rid in sorted(bets):
+        rec = bets[rid]
+        if not active(rec):
+            continue
+        for name in as_list(rec.fields.get("all_of")) \
+                + as_list(rec.fields.get("any_of")):
+            staked.setdefault(name, []).append(rid)
+
+    def never_measured(hid):
+        """Whether the more specific rule will speak for this record.
+
+        Checked against the severity a project chose and not only against
+        the facts: a project that silenced that rule has not silenced this
+        one, and stepping aside for a finding nobody will see would leave
+        the record unreported by either.
+        """
+        rec = hyps.get(hid)
+        return (cfg["rules"].get("never-measured", "warn") != "off"
+                and hid in staked and rec is not None
+                and not table_with(rec, "verdict"))
+
     # A hypothesis whose term has run out. Reported, never rewritten: expiry
     # is not a verdict, and only a measurement can answer what the status is.
     for rid in sorted(hyps):
@@ -353,7 +500,7 @@ def validate(records, model, model_error, cfg):
         expires = as_date(rec.fields.get("expires"))
         if expires is None:
             continue                      # already reported as a bad value
-        if expires < today:
+        if expires < today and not never_measured(rid):
             rule_finding(warnings, reports, cfg, "hypothesis-expired",
                          "%s — %s ran out of term on %s"
                          % (rec.where, rid, expires.isoformat()))
@@ -392,6 +539,29 @@ def validate(records, model, model_error, cfg):
                          "%s — %s stands on %s, which is %s"
                          % (rec.where, rid, req, target["status"]))
 
+    # implements: FR-GND-420, FR-GND-430
+    # What a hypothesis says about itself against what the register does
+    # with it. Both readings are of the same pair — the record and the bets
+    # standing on it — so they are computed together.
+    for name in sorted(staked):
+        if name not in hyps:
+            continue                      # already reported as dangling
+        rec = hyps[name]
+        on = ", ".join(sorted(staked[name]))
+        if rec.fields.get("status") == "untested":
+            rule_finding(warnings, reports, cfg, "relied-on-untested",
+                         "%s — %s is `untested`, which says nobody relies "
+                         "on it, and %s does; the honest status for a "
+                         "hypothesis being built on is `assumed`"
+                         % (rec.where, name, on))
+        expires = as_date(rec.fields.get("expires"))
+        if expires is not None and expires < today \
+                and not table_with(rec, "verdict"):
+            rule_finding(warnings, reports, cfg, "never-measured",
+                         "%s — %s passed its term on %s with no measurement "
+                         "recorded at all, and %s stands on it"
+                         % (rec.where, name, expires.isoformat(), on))
+
     # Two bets on one requirement turn a maximum into a minimum without
     # saying so, which is the only failure the record encoding introduces.
     for req in sorted(by_requirement):
@@ -414,6 +584,8 @@ def validate(records, model, model_error, cfg):
                          "%s — %s declares %s unclaimed, and %s names it"
                          % (rec.where, rid, req,
                             ", ".join(sorted(by_requirement[req]))))
+
+    check_history(records, cfg, warnings, reports)
 
     if model_error:
         reports.append("the requirement model could not be read (%s); the "
@@ -480,6 +652,30 @@ def confirmation_dates(rec):
     return sorted(out)
 
 
+def reversals(records):
+    # implements: FR-GND-210
+    """Per author: verdicts given, and how many a later one reversed.
+
+    Read from the evidence table and not from history. A verdict and the
+    measurement that reversed it are two rows of the same table, ordered
+    by their own dates, so the file in front of us holds the whole
+    answer.
+    """
+    given, turned = {}, {}
+    for hid in sorted(records):
+        rec = records[hid]
+        if rec.kind != "H":
+            continue
+        rows = [r for r in table_with(rec, "verdict") if len(r) >= 5]
+        rows.sort(key=lambda r: (as_date(r[0]) or datetime.date.min, r[0]))
+        for index, row in enumerate(rows):
+            verdict, author = row[3], row[4]
+            given[author] = given.get(author, 0) + 1
+            if any(later[3] != verdict for later in rows[index + 1:]):
+                turned[author] = turned.get(author, 0) + 1
+    return given, turned
+
+
 def build_dashboard(records, model, incoming):
     # implements: FR-GND-130, FR-GND-220, FR-GND-240, FR-GND-260,
     # implements: CON-GND-020
@@ -529,6 +725,24 @@ def build_dashboard(records, model, incoming):
             out.append("")
     else:
         out += ["No frames are recorded.", ""]
+
+    # implements: FR-GND-210
+    out += ["## Verdicts a later measurement reversed", ""]
+    given, turned = reversals(records)
+    if given:
+        out += ["| who | verdicts | reversed |", "|---|---|---|"]
+        for author in sorted(given):
+            out.append("| %s | %d | %d |"
+                       % (author, given[author], turned.get(author, 0)))
+        out += ["",
+                "The affordable half of weighting a judgement by its "
+                "author's",
+                "accuracy. The expensive half — calibration questions with "
+                "known",
+                "answers — is a programme somebody runs, not a file format.",
+                ""]
+    else:
+        out += ["No verdicts are recorded.", ""]
 
     out += ["## The debt", ""]
     if model is None:

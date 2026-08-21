@@ -490,14 +490,14 @@ since.
 ### FR-GND-190 — The threshold was not moved after the first measurement
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a hypothesis's threshold was last changed after its earliest recorded
@@ -515,14 +515,14 @@ the position `FR-VIEW-090` takes for baselines it cannot reach.
 ### FR-GND-200 — Evidence is only ever added
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [CON-GND-030]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a measurement recorded earlier is absent from a hypothesis or differs
@@ -539,14 +539,14 @@ other. Same reliance on history, same answer where the history is missing.
 ### FR-GND-210 — How often an author's verdicts were reversed
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-160]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 The dashboard **shall** state, for each author of a verdict, how many of
@@ -674,24 +674,31 @@ counting is the cheapest way to notice a drift nobody decided on.
 ### FR-GND-270 — History that cannot be read is said to be unread
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-190]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 ```
 
 Where a rule needs the register's history and that history cannot be read,
 the grounds checker **shall** report that it could not be read rather than
 pass the rule.
 
-**Rationale.** Three rules read history rather than files — the threshold's
-ordering, the evidence that must only grow, the verdicts a later measurement
-reversed — and all three meet the same wall in a shallow clone, a squashed
-import, or a checkout that is not a repository at all.
+**Rationale.** Two rules read history rather than files — the threshold's
+ordering and the evidence that must only grow — and both meet the same wall
+in a shallow clone, a squashed import, or a checkout that is not a
+repository at all.
+
+Two and not three: the count of an author's reversed verdicts looks like a
+history rule and is not one. A verdict and the measurement that reversed it
+are two rows of the same evidence table, ordered by their own dates, so that
+reading needs nothing but the file in front of it — which is what its own
+rationale says, and what makes it the affordable half of a method whose
+expensive half needs a programme.
 
 Passing in silence there is the worst of the three available answers. It
 turns a rule into an assertion that cannot fail, which is the shape
@@ -1101,3 +1108,153 @@ as better supported than it is.
 Identifiers are never reused, so a name that resolves to nothing is a
 mistyped reference or a record somebody deleted rather than retired — and the
 second is what `INV-GND-010` exists to prevent.
+
+### FR-GND-410 — A table row carries the columns its heading declares
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a table row under a record has more or fewer cells than its heading
+declares, the grounds checker **shall** report it as an error naming the
+record and the row.
+
+**Rationale.** A record's tables are read by position within the row: the
+evidence table's fourth cell is the verdict and its fifth is who gave it, and
+a row missing one shifts every cell after it or drops it altogether. What
+follows is not a parse failure but a quieter thing — the row is skipped, and
+a reading computed over the rest comes out confidently wrong. An author whose
+verdict fell out of a row stops appearing in the count of whose verdicts were
+reversed, which is the one reading that exists to say something about people.
+
+An error rather than a tunable finding, for the reason a status outside the
+vocabulary is one: the alternative to failing is a number nobody can tell is
+wrong.
+
+Separate from `FR-GND-390`, which is about the value under a key. A table is
+not a key and a row is not a value, and widening that requirement a third
+time would leave it saying nothing in particular about either.
+
+Rows are not checked against a fixed shape, only against their own heading.
+The format identifies a table by its heading rather than by its position, so
+the heading is the only thing that knows how wide its rows are — and a table
+this register has not heard of is checked exactly as well as the three it
+has.
+
+### FR-GND-420 — A hypothesis something rests on is not `untested`
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-070]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a bet names a hypothesis whose status is `untested`, the grounds
+checker **shall** report it, naming the bet and the hypothesis.
+
+**Rationale.** The format defines `untested` as written down, nothing
+measured, and nobody relying on it yet. A bet is somebody relying on it, so
+the two say opposite things about the same record, and one of them is wrong
+by construction. The honest status is `assumed` — taken on faith and being
+built on, which the format calls an honest state rather than a defect.
+
+What the mismatch hides is a number. The debt counts what rests on
+hypotheses that are `refuted`, `expired` or `assumed`, and `untested` is in
+none of those, so a record left in the wrong status makes the debt read
+smaller than it is. That is the direction a mislabelling always goes, and
+the only one worth a rule.
+
+A warning a project can lower rather than an error, because nothing here is
+broken: the register is describing itself inaccurately, and the repair is
+one word.
+
+### FR-GND-430 — Built on and never measured
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+```
+
+Where a hypothesis named by a bet has passed its term with no measurement
+recorded at all, the grounds checker **shall** report it, naming the
+hypothesis and the bets that stand on it.
+
+**Rationale.** `FR-GND-060` reports a term that has run out and cannot tell
+the two cases apart: measured once and long ago, or never measured. The
+second is a different fact about the project — something was built on a
+claim, the time to check it was set by whoever wrote the claim, and the time
+passed with nobody checking.
+
+Separate from the expiry rule rather than folded into it, because the two
+are answered differently. A stale measurement is answered by measuring
+again; nothing to measure again is answered by asking whether the
+measurement was ever possible, which is the question the confirmation class
+was supposed to have settled.
+
+Before the term runs out this is not a finding. Building on an unmeasured
+claim is what `assumed` is for, and the term is the moment the project
+itself chose as the one where that stops being enough.
+
+Where this speaks, `FR-GND-060` does not: one record earns one line, and
+this one says everything that one would plus who is standing on it. The
+stepping aside is conditional on this rule actually being heard — a project
+that lowered it to nothing has not lowered the other, and a record left
+unreported by both would be the severity lever silencing a rule nobody
+silenced.
+
+### FR-GND-440 — What a requirement is staked on is read back first
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-GND-330]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-bet/SKILL.md]
+tests: []
+```
+
+When a requirement is staked on a hypothesis, the procedure doing so
+**shall** read the hypothesis back against its own numbers — the magnitude
+its statement claims, the threshold that would refute it, and the sample
+that threshold names — and say what it found before the bet is recorded.
+
+**Rationale.** No rule can know the intended number. A hypothesis whose
+threshold lost a decimal point is well-formed, passes every check this layer
+has, and is wrong in the one way the format cannot see: it is consistent
+with itself. What catches it is somebody reading "at least three studios in
+ten" beside `proportion < 0.025 at n >= 200` and noticing that those are two
+orders of magnitude apart — a judgement rather than a pattern, and the
+readers of this specification are agents, which is what makes it worth
+asking for.
+
+Here rather than where the hypothesis is written, because at writing the
+number has nothing to be checked against yet. Staking is the moment the
+intent to build appears, and it is the last cheap one: after it come
+requirements, and after those, code. `FR-GND-330` asks its own four
+questions of a statement being written; this asks a different one of a
+statement about to be built on, which is why it is a second obligation and
+not a longer first.
+
+Verified by inspection for the reason every procedure requirement here is:
+no suite runs a dialog, and one asserting the wording would be a copy of the
+procedure rather than a check on it.

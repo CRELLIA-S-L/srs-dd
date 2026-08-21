@@ -96,6 +96,29 @@ Two independent sets of alternatives are two bets naming the same
 requirement. The checker will ask whether that was deliberate, because
 the same shape is what a duplicate looks like.
 
+**Before recording the bet, read the hypothesis back against its own
+numbers, and say what you found.** Three of them, together:
+
+- the magnitude the statement claims — "at least three studios in ten";
+- the threshold that would refute it — `proportion < 0.25 at n >= 200`;
+- the sample that threshold names — 200.
+
+They are meant to differ: the first is what the thing is being built for,
+the second is the line below which the claim is false. What they must not do
+is disagree by an order of magnitude. "Three in ten" beside
+`proportion < 0.025` is a decimal point that moved, and it will pass every
+check this layer has, because a record that lost a digit is still consistent
+with itself.
+
+This is the cheapest moment there will be. Where the requirement is new,
+nothing rests on the claim yet and what follows is requirements and then
+code. Where it already exists — a bet recorded after the fact, explaining
+why something was built — this is the first time anyone has asked whether it
+should be standing there, which is worth more, not less.
+
+Say what you found even when nothing is wrong. One clause is enough, and the
+alternative is a step nobody can tell was taken.
+
 **A requirement that exists so the measurement can be taken is marked
 `instrument: yes` on its bet** — the event, the cohort tag, the
 attribution. It is not a lesser requirement; it is the one that survives

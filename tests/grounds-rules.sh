@@ -7,7 +7,8 @@
 # verifies: FR-GND-120, FR-GND-390, FR-GND-400, IF-GND-020, INV-GND-030
 # verifies: CON-GND-020, FR-GND-130, FR-GND-220, FR-GND-240
 # verifies: FR-GND-260, FR-GND-010, IF-GND-030, FR-GND-250
-# verifies: CON-GND-010
+# verifies: CON-GND-010, FR-GND-190, FR-GND-200, FR-GND-210
+# verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -188,6 +189,18 @@ ground < <(rec H-010 "A comparison the format does not name" \
                'Studios export weekly.')
 rule "FR-GND-390 threshold operator" 1 "is not the grammar the format defines"
 
+# --- verifies: FR-GND-410 — a row carries the columns its heading declares.
+# --- Within a row position is all there is, so a missing cell shifts the
+# --- rest: before this, such a row was silently skipped and the author whose
+# --- verdict fell out stopped appearing in the count of reversals.
+ground < <(rec H-010 "One cell short" "$HYP" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-02-14 | 0.38 | 42 | supported |')
+rule "FR-GND-410 short row" 1 "has a table row with 4 cell(s) where its heading declares 5"
+
 # --- verifies: FR-GND-040 — a bet resolves into the requirement model.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
            rec B-010 "Points outside the model" \
@@ -273,6 +286,59 @@ all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
                'status: active
 requirement: FR-CORE-010' 'Nobody could name a ground for this.')
 rule "FR-GND-100 superfluous" 0 "declares FR-CORE-010 unclaimed, and B-010 names it"
+
+# --- verifies: FR-GND-420 — the status says nobody relies on it and a bet
+# --- says otherwise. The direction matters: `untested` is outside the debt
+# --- count and `assumed` is inside it, so the mislabelling always reads as
+# --- less debt than there is.
+ground < <(rec H-010 "Nobody relies on it, allegedly" \
+               "${HYP/status: assumed/status: untested}" 'Studios export.'
+           rec B-010 "Except this" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
+rule "FR-GND-420 relied on while untested" 0 "which says nobody relies on it"
+
+# --- And an `assumed` hypothesis with the same bet says nothing: that is
+# --- the honest state, not a defect.
+ground < <(rec H-010 "Taken on faith, openly" "$HYP" 'Studios export.'
+           rec B-010 "The bet" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
+silent "FR-GND-420 assumed is honest" 0 "which says nobody relies on it"
+
+# --- verifies: FR-GND-430 — built on, term passed, never measured at all.
+# --- Distinct from the expiry rule: that one cannot tell "measured long
+# --- ago" from "never measured", and the two are answered differently.
+ground < <(rec H-010 "Nobody ever checked" \
+               "${HYP/expires: 2099-01-01/expires: 2020-01-01}" 'Studios export.'
+           rec B-010 "Built anyway" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
+rule "FR-GND-430 never measured" 0 "with no measurement recorded at all"
+# One record, one line: the expiry rule steps aside for the more specific
+# one rather than saying the same thing first.
+absent "ran out of term on 2020-01-01" /tmp/srs-grounds.log
+passes=$((passes + 1))
+
+# But the lever must not silence both. A project that turned off the
+# specific rule has not turned off the general one.
+printf '{"rules": {"never-measured": "off"}}\n' > "$LAB/grounds/grounds-config.json"
+rule "FR-GND-430 silenced, expiry returns" 0 "ran out of term on 2020-01-01"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+
+# --- The same hypothesis measured once, long ago, is the other case: past
+# --- its term and reported as such, but not as never measured.
+ground < <(rec H-010 "Measured once, long ago" \
+               "${HYP/expires: 2099-01-01/expires: 2020-01-01}" \
+               'Studios export.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2019-06-01 | 0.38 | 42 | supported | @kira |'
+           rec B-010 "Built on it" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
+silent "FR-GND-430 measured once is not never" 0 "with no measurement recorded at all"
 
 # --- verifies: INV-GND-030 — a requirement no bet names is not an error and
 # --- not a warning. This fixture passes if the rule protecting it is
@@ -443,6 +509,156 @@ cmp -s /tmp/srs-grounds-before /tmp/srs-grounds-after \
          diff /tmp/srs-grounds-before /tmp/srs-grounds-after | head -10; exit 1; }
 passes=$((passes + 2))
 rm -f "$D"
+
+# --- verifies: FR-GND-210 — how often an author's verdict was reversed,
+# --- read from the evidence table and not from history.
+ground < <(rec H-010 "Measured twice, differently" \
+               "${HYP/status: assumed/status: refuted}" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-02-14 | 0.38 | 42 | supported | @kira |
+| 2026-08-01 | 0.09 | 210 | refuted | telemetry |')
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+D="$LAB/grounds/90-dashboard.md"
+grep -qF "| @kira | 1 | 1 |" "$D" \
+    || { echo "FAIL FR-GND-210 — the reversed verdict was not counted"
+         cat "$D"; exit 1; }
+grep -qF "| telemetry | 1 | 0 |" "$D" \
+    || { echo "FAIL FR-GND-210 — the last verdict counts as reversed"
+         cat "$D"; exit 1; }
+passes=$((passes + 2))
+rm -f "$D"
+
+# --- verifies: FR-GND-270 — a rule that needs history and cannot read it
+# --- says so rather than passing. This lab is deliberately not a
+# --- repository, so the two history rules meet that wall here.
+ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.')
+rule "FR-GND-270 no history" 0 "did not run, which is not the same as passing"
+
+# --- verifies: FR-GND-190, FR-GND-200 — the two rules that read the
+# --- register's history. A lab of their own, because they need one.
+HLAB=/tmp/srs-grounds-history
+rm -rf "$HLAB"; mkdir -p "$HLAB/tools" "$HLAB/specs" "$HLAB/grounds"
+cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
+   tools/srs_view.py "$HLAB/tools/"
+cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$HLAB/specs/"
+cp "$LAB/grounds/grounds-config.json" "$HLAB/grounds/"
+( cd "$HLAB" && git init -q . && git config user.email t@t \
+  && git config user.name t )
+
+hyp_at() {   # hyp_at <threshold> <evidence rows…>
+    { printf '### H-010 — Studios lose time\n\n```yaml\nstatus: assumed\nclass: III\npopulation: studios of five to fifty people\nrefuted_if: %s\nexpires: 2099-01-01\nowner: @kira\nimpact: a third of the plan\n```\n\nStudios export weekly.\n\n' "$1"
+      shift
+      if [ "$#" -gt 0 ]; then
+          printf '| date | value | n | verdict | by |\n|---|---|---|---|---|\n'
+          for row in "$@"; do printf '%s\n' "$row"; done
+      fi
+    } > "$HLAB/grounds/10-h-test.md"
+}
+commit_lab() { ( cd "$HLAB" && git add -A && git commit -qm "$1" ); }
+history_run() {
+    ( cd "$HLAB" && python3 tools/srs_grounds.py --no-write ) \
+        > /tmp/srs-history.log 2>&1 || true
+}
+
+# A threshold declared, then a measurement under it, then the threshold
+# moved: the ordering only exists in the history.
+hyp_at "proportion < 0.25 at n >= 200"; commit_lab "declared"
+hyp_at "proportion < 0.25 at n >= 200" "| 2026-02-14 | 0.38 | 42 | supported | @kira |"
+commit_lab "measured"
+hyp_at "proportion < 0.05 at n >= 200" "| 2026-02-14 | 0.38 | 42 | supported | @kira |"
+commit_lab "moved"
+history_run
+grep -qF "had its threshold changed after the first measurement" /tmp/srs-history.log \
+    || { echo "FAIL FR-GND-190 — a threshold moved after the first"
+         echo "measurement was not reported"; cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# The same edit made before any measurement is not that. This is the
+# assertion the rule would pass without: reporting every threshold that
+# ever changed would satisfy the one above and mean nothing.
+rm -rf "$HLAB/.git"; ( cd "$HLAB" && git init -q . && git config user.email t@t \
+  && git config user.name t )
+hyp_at "proportion < 0.25 at n >= 200"; commit_lab "declared"
+hyp_at "proportion < 0.10 at n >= 200"; commit_lab "reconsidered before measuring"
+hyp_at "proportion < 0.10 at n >= 200" "| 2026-02-14 | 0.38 | 42 | supported | @kira |"
+commit_lab "measured"
+history_run
+grep -qF "had its threshold changed after" /tmp/srs-history.log \
+    && { echo "FAIL FR-GND-190 — a threshold settled before the first"
+         echo "measurement was reported anyway"; cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# Moved in the very commit that records the first measurement: the same
+# abuse in one step instead of two. Inside a commit there is no ordering,
+# so this has to count as "after".
+rm -rf "$HLAB/.git"; ( cd "$HLAB" && git init -q . && git config user.email t@t \
+  && git config user.name t )
+hyp_at "proportion < 0.25 at n >= 200"; commit_lab "declared"
+hyp_at "proportion < 0.05 at n >= 200" "| 2026-02-14 | 0.38 | 42 | supported | @kira |"
+commit_lab "measured and moved in one go"
+history_run
+grep -qF "had its threshold changed after" /tmp/srs-history.log \
+    || { echo "FAIL FR-GND-190 — a threshold moved in the commit that"
+         echo "records the first measurement was not reported"
+         cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# And a hypothesis born with its first measurement is not that: declaring a
+# threshold is not moving one, and without this the rule above would fire on
+# every hypothesis whose first commit carries a result.
+rm -rf "$HLAB/.git"; ( cd "$HLAB" && git init -q . && git config user.email t@t \
+  && git config user.name t )
+hyp_at "proportion < 0.25 at n >= 200" "| 2026-02-14 | 0.38 | 42 | supported | @kira |"
+commit_lab "born measured"
+history_run
+grep -qF "had its threshold changed after" /tmp/srs-history.log \
+    && { echo "FAIL FR-GND-190 — a hypothesis born with its first"
+         echo "measurement was reported as having moved its threshold"
+         cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# A measurement that was recorded and is not there now.
+hyp_at "proportion < 0.10 at n >= 200" \
+    "| 2026-02-14 | 0.38 | 42 | supported | @kira |" \
+    "| 2026-08-01 | 0.09 | 210 | refuted | telemetry |"
+commit_lab "measured twice"
+hyp_at "proportion < 0.10 at n >= 200" \
+    "| 2026-08-01 | 0.09 | 210 | refuted | telemetry |"
+commit_lab "one row quietly gone"
+history_run
+grep -qF "once recorded the measurement" /tmp/srs-history.log \
+    || { echo "FAIL FR-GND-200 — a deleted measurement was not reported"
+         cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# Deleting the record takes its measurements with it, which is the easiest
+# way to make an inconvenient one disappear and the case the rule above
+# cannot see: that one walks the records that are still here.
+rm -rf "$HLAB/.git"; ( cd "$HLAB" && git init -q . && git config user.email t@t \
+  && git config user.name t )
+hyp_at "proportion < 0.10 at n >= 200" \
+    "| 2026-02-14 | 0.38 | 42 | supported | @kira |"
+commit_lab "measured"
+printf '# nothing here now\n' > "$HLAB/grounds/10-h-test.md"
+commit_lab "record deleted whole"
+history_run
+grep -qF "no longer in the register at all" /tmp/srs-history.log \
+    || { echo "FAIL FR-GND-200 — a record deleted with its evidence was not"
+         echo "reported"; cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# And a shallow clone says so rather than passing both rules in silence.
+rm -rf /tmp/srs-grounds-shallow
+git clone -q --depth 1 "file://$HLAB" /tmp/srs-grounds-shallow 2>/dev/null
+( cd /tmp/srs-grounds-shallow && python3 tools/srs_grounds.py --no-write ) \
+    > /tmp/srs-shallow.log 2>&1 || true
+grep -qF "the clone is shallow" /tmp/srs-shallow.log \
+    || { echo "FAIL FR-GND-270 — a shallow clone did not say so"
+         cat /tmp/srs-shallow.log; exit 1; }
+passes=$((passes + 1))
 
 # --- verifies: IF-GND-020 — the exit codes a gate binds to.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.')

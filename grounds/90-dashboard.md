@@ -24,6 +24,10 @@ saying anything new.
 
 No frames are recorded.
 
+## Verdicts a later measurement reversed
+
+No verdicts are recorded.
+
 ## The debt
 
 No requirement carries a bet that resolves, so there is
@@ -31,13 +35,13 @@ nothing to reduce. This is not a reading of zero debt.
 
 ## Requirements resting on no hypothesis
 
-157 of 157 requirements. Weight is what stands on them: how many
+161 of 161 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
 | FR-VIEW-060 | 16 | 1 | 17 |
-| IF-GND-010 | 8 | 2 | 10 |
+| IF-GND-010 | 9 | 2 | 11 |
 | FR-GND-010 | 8 | 1 | 9 |
 | NFR-SPEC-010 | 1 | 8 | 9 |
 | FR-CI-090 | 0 | 8 | 8 |
@@ -66,6 +70,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-120 | 2 | 1 | 3 |
 | FR-CHK-160 | 1 | 2 | 3 |
 | FR-CI-050 | 0 | 3 | 3 |
+| FR-GND-330 | 2 | 1 | 3 |
 | FR-GND-370 | 0 | 3 | 3 |
 | FR-INIT-060 | 2 | 1 | 3 |
 | FR-INIT-110 | 1 | 2 | 3 |
@@ -93,13 +98,15 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-040 | 0 | 2 | 2 |
 | FR-CI-070 | 1 | 1 | 2 |
 | FR-GND-040 | 1 | 1 | 2 |
+| FR-GND-060 | 1 | 1 | 2 |
+| FR-GND-070 | 1 | 1 | 2 |
 | FR-GND-110 | 1 | 1 | 2 |
+| FR-GND-190 | 1 | 1 | 2 |
 | FR-GND-220 | 1 | 1 | 2 |
 | FR-GND-290 | 0 | 2 | 2 |
 | FR-GND-300 | 0 | 2 | 2 |
 | FR-GND-310 | 0 | 2 | 2 |
 | FR-GND-320 | 0 | 2 | 2 |
-| FR-GND-330 | 1 | 1 | 2 |
 | FR-GND-350 | 1 | 1 | 2 |
 | FR-INIT-030 | 1 | 1 | 2 |
 | FR-INIT-070 | 1 | 1 | 2 |
@@ -132,8 +139,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-020 | 0 | 1 | 1 |
 | FR-GND-030 | 0 | 1 | 1 |
 | FR-GND-050 | 0 | 1 | 1 |
-| FR-GND-060 | 0 | 1 | 1 |
-| FR-GND-070 | 0 | 1 | 1 |
 | FR-GND-080 | 0 | 1 | 1 |
 | FR-GND-090 | 0 | 1 | 1 |
 | FR-GND-100 | 0 | 1 | 1 |
@@ -141,15 +146,21 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-130 | 0 | 1 | 1 |
 | FR-GND-160 | 1 | 0 | 1 |
 | FR-GND-180 | 1 | 0 | 1 |
-| FR-GND-190 | 1 | 0 | 1 |
+| FR-GND-200 | 0 | 1 | 1 |
+| FR-GND-210 | 0 | 1 | 1 |
 | FR-GND-240 | 0 | 1 | 1 |
 | FR-GND-250 | 0 | 1 | 1 |
 | FR-GND-260 | 0 | 1 | 1 |
+| FR-GND-270 | 0 | 1 | 1 |
 | FR-GND-340 | 0 | 1 | 1 |
 | FR-GND-360 | 0 | 1 | 1 |
 | FR-GND-380 | 0 | 1 | 1 |
 | FR-GND-390 | 0 | 1 | 1 |
 | FR-GND-400 | 0 | 1 | 1 |
+| FR-GND-410 | 0 | 1 | 1 |
+| FR-GND-420 | 0 | 1 | 1 |
+| FR-GND-430 | 0 | 1 | 1 |
+| FR-GND-440 | 0 | 1 | 1 |
 | FR-INIT-040 | 0 | 1 | 1 |
 | FR-INIT-050 | 0 | 1 | 1 |
 | FR-INIT-080 | 0 | 1 | 1 |
@@ -188,8 +199,5 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-VIEW-010 | 0 | 1 | 1 |
 | FR-GND-150 | 0 | 0 | 0 |
 | FR-GND-170 | 0 | 0 | 0 |
-| FR-GND-200 | 0 | 0 | 0 |
-| FR-GND-210 | 0 | 0 | 0 |
 | FR-GND-230 | 0 | 0 | 0 |
-| FR-GND-270 | 0 | 0 | 0 |
 | FR-VIEW-230 | 0 | 0 | 0 |

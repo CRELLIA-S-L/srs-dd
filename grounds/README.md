@@ -139,6 +139,11 @@ has: `verdict` for evidence, `what was refused` for a frame's journal,
 `what changed` for an amendment. Put them in any order; add a paragraph
 between them; nothing reads position.
 
+Within a row, position is all there is: the evidence table's fourth cell is
+the verdict and its fifth is who gave it. So **a row carries exactly the
+columns its heading declares** — one too few shifts everything after it, and
+the reading computed over the rest comes out wrong without looking wrong.
+
 **Keys are added, never renamed.** Each kind below declares which of its keys
 are required and which are optional. A key that is neither is not an error —
 that tolerance is what lets a later version of this format add a key without

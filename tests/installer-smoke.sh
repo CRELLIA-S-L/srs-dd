@@ -430,7 +430,10 @@ impact: about half the 2027 plan
 
 Studios spend more than an hour a week assembling reports by hand.
 MD
-( cd "$GT" && python3 tools/srs_grounds.py --no-write 2>&1 | grep -q "ran out of term" ) \
+# Any warning serves: what the next assertion needs is a register that
+# warns at all, not one that warns by a particular rule. Naming the rule
+# here couples this fixture to which of them happens to speak.
+( cd "$GT" && python3 tools/srs_grounds.py --no-write 2>&1 | grep -q "^warning:" ) \
     || { echo "FAIL — the fixture register does not warn, so the next"
          echo "assertion would hold for any register at all"; exit 1; }
 python3 tools/srs_init.py "$GT" --defaults > /tmp/grounds-warn.log 2>&1 \
