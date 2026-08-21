@@ -98,6 +98,18 @@ three break silently:
 - No two sources of truth: if a rule is stated in `specs/README.md`, other
   documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
+- **Line width: 120 columns in code, none in markdown.** Python, shell,
+  YAML and JSON wrap at 120. Markdown does not wrap at anything: a line
+  break inside a paragraph renders as a space — `tools/srs_view.py:1585`
+  joins them with `p.replace("\n", " ")` — so where a line ends is
+  invisible to every reader and matters only to `git diff`. Wrap prose
+  where it reads well and keep a paragraph's wrapping consistent with
+  itself, so that editing one sentence does not reflow the six lines
+  around it.
+- A line that cannot be split without changing what it produces is left
+  alone whatever its length: a single string literal, a `printf` whose
+  argument is a whole fixture document, a CI `script:` entry, one CSS
+  declaration. Four such lines exist today and none of them is a defect.
 - A tool that imports another tool sets `sys.dont_write_bytecode = True`
   **before** the import. The loader writes `__pycache__` before a
   module's body runs, so the flag only works in the importer — and a

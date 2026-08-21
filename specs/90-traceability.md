@@ -84,7 +84,7 @@ Total requirements: 157.
 | **FR-GND-260** How many ideologies the core carries | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-270** History that cannot be read is said to be unread | `deferred` | T | — | — |
 | **FR-GND-280** The register is a choice at install | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-GND-290** The register is added deliberately, never silently | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-GND-290** The register is added deliberately, never silently | `implemented` | T | `tools/srs_init.py`<br>`tools/srs_upgrade.py` | `tests/installer-smoke.sh`<br>`tests/upgrade-smoke.sh` |
 | **FR-GND-300** A fresh register is one its own checker accepts | `implemented` | T | `tools/srs_init.py`<br>`skeleton/grounds` | `tests/installer-smoke.sh` |
 | **FR-GND-310** The hook says which bets the commit touches | `implemented` | T | `ci/pre-commit`<br>`tools/srs_grounds.py` | `tests/installer-smoke.sh` |
 | **FR-GND-320** The register procedure travels with the project | `implemented` | T | `tools/srs_init.py`<br>`.claude/skills/srs-bet/SKILL.md` | `tests/installer-smoke.sh` |

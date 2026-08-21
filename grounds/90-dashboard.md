@@ -95,6 +95,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-040 | 1 | 1 | 2 |
 | FR-GND-110 | 1 | 1 | 2 |
 | FR-GND-220 | 1 | 1 | 2 |
+| FR-GND-290 | 0 | 2 | 2 |
 | FR-GND-300 | 0 | 2 | 2 |
 | FR-GND-310 | 0 | 2 | 2 |
 | FR-GND-320 | 0 | 2 | 2 |
@@ -144,7 +145,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-240 | 0 | 1 | 1 |
 | FR-GND-250 | 0 | 1 | 1 |
 | FR-GND-260 | 0 | 1 | 1 |
-| FR-GND-290 | 0 | 1 | 1 |
 | FR-GND-340 | 0 | 1 | 1 |
 | FR-GND-360 | 0 | 1 | 1 |
 | FR-GND-380 | 0 | 1 | 1 |

@@ -740,8 +740,8 @@ derives_from: []
 depends_on: [FR-GND-280]
 refines: []
 conflicts_with: []
-code: [tools/srs_init.py]
-tests: [tests/installer-smoke.sh]
+code: [tools/srs_init.py, tools/srs_upgrade.py]
+tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh]
 ```
 
 An upgrade **shall** refresh the grounds register's tooling only where the
@@ -752,6 +752,11 @@ asked.
 and along that path a new subsystem would arrive at every project that merely
 updated. The ones it would surprise are exactly the ones the scope note
 excludes: they did not decline the register, they never heard of it.
+
+Asking has to be possible with the command a project actually has.
+`tools/srs_upgrade.py` is the one command a target runs to pick up a new
+framework version, and a register that could only be added by reaching for
+the framework's own installer would be a register most projects never add.
 
 Presence is read from the register itself rather than from a setting, so
 there is nothing to disagree with what is on disk. The same reading the

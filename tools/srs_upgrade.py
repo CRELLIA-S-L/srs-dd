@@ -6,6 +6,7 @@
     python3 tools/srs_upgrade.py --yes        apply without asking
     python3 tools/srs_upgrade.py --ref v1.2.0 pin a release
     python3 tools/srs_upgrade.py --from ../srs-dd   use a clone you have
+    python3 tools/srs_upgrade.py --grounds yes     add the grounds register
 
 It fetches the framework this project was installed from, runs that
 framework's installer against this project, and removes what it fetched.
@@ -76,6 +77,16 @@ def main():
     parser.add_argument("--force", action="store_true",
                         help="also refresh precious files (CI config, agent "
                              "guides, .gitattributes, the hook)")
+    # implements: FR-GND-290
+    # Asking has to be possible with the command a project actually has.
+    # Without this the only way to add the register is the framework
+    # clone's own installer, which is the thing this tool exists to spare
+    # anyone from keeping around.
+    parser.add_argument("--grounds", choices=("yes", "no"), default=None,
+                        help="add the grounds register to this project, or "
+                             "say no. Left out, an upgrade refreshes a "
+                             "register that is already here and installs "
+                             "none where there is not")
     args = parser.parse_args()
 
     if not os.path.isdir(os.path.join(ROOT, "specs")):
@@ -115,6 +126,8 @@ def main():
 
     try:
         extra = ["--force"] if args.force else []
+        if args.grounds:
+            extra += ["--grounds", args.grounds]
         code = run_installer(clone, extra + ["--dry-run"])
         if code != 0:
             return fail("the framework's installer refused; nothing was "

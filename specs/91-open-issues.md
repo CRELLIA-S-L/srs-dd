@@ -406,10 +406,34 @@ its code roots on `tools/` will hear about our annotations.
 **Found:** raised by the maintainer (2026-08-20).
 
 **What is being asked:** keep requirements in a database rather than in
-markdown files, and put a real editing interface on top of it. The reasons
-given are concurrent work — several people, or several agents, authoring
-requirements at once without colliding in the same file — and the same
-problem for the code the requirements describe.
+markdown files, and put a real editing interface on top of it.
+
+**What the argument actually is, and it is sharper than "concurrency".**
+Identifiers are allocated per branch: `srs-new` picks "the next free one in
+the area" by reading the file in front of it. Two branches authoring at once
+therefore pick the same number, and the collision is not an accident of
+timing but the design.
+
+Worse than a conflict, and this was run rather than reasoned. Two branches
+each adding `FR-CORE-050` to the same file, one near the top and one at the
+end, **merge cleanly**: git reports no conflict and exits 0, because the
+texts do not overlap. What lands is a specification with the number twice.
+Nobody is asked to resolve anything, so nobody knows there was anything to
+resolve.
+
+What catches it is the gate afterwards: `FR-CHK-010` reports `identifier
+FR-CORE-050 is already used at specs/10-fr-core.md:6`, naming both
+occurrences, and the build fails on a branch that was already merged.
+Resolving it then means renumbering one side, which is permitted —
+`INV-SPEC-010` binds a *published* identifier, and one that never left a
+branch is not published — but choosing which side moves means understanding
+what both requirements say. That is not work a product manager will do, and
+asking them to do it is how a specification stops being theirs.
+
+**What the argument proves, and what it does not.** It proves a central
+point is needed. It does not prove that point must also be the store:
+allocation and storage are separate axes, and the collision sits on the
+first one.
 
 **What it collides with, by name.** `NFR-SPEC-020` says the specification
 shall be stored as markdown files a review tool diffs line by line, "with no
@@ -429,19 +453,29 @@ decoration:
 - `NFR-SPEC-010` keeps the tooling to the standard library, and a database
   ends that whether it is embedded or served.
 
-**The cheaper door, and it should be ruled out before the expensive one is
-opened.** Files stay the source of truth; a service indexes them into a
-database it owns, and the interface edits requirements by writing the files
-back through the existing format. Concurrency is then a matter of the
-service serialising writes, the review tooling is untouched, git remains the
-history, and nothing in the specification has to be withdrawn. What that
-does *not* give is row-level locking across a large team and offline
-editing with server-side merge — which is where the expensive door starts
-being the right one.
+**Three doors, and the expensive one should be opened last.**
 
-**Decision needed:** whether the concurrency being solved is real and
-measured — how often two authors do collide in one requirement file — since
-that number decides between the two doors; and, if the database is wanted as
-the store, which requirement replaces `NFR-SPEC-020` and what it promises
-instead about review, history and the gate. The interface is a separate
-question and can be answered either way afterwards.
+*Allocate centrally, store in files.* One small service hands out the next
+number per area and records that it did. Files stay the source of truth,
+review tooling is untouched, git remains the history, and the collision this
+issue is about stops happening. It answers nothing else — two people editing
+the same requirement's text still meet an ordinary content conflict.
+
+*Keep product managers off branches altogether.* The interface is the only
+way they touch requirements; it writes to one branch on their behalf and
+engineers merge. There are then no parallel requirement branches to collide,
+no git in front of anyone who should not be looking at it, and the store is
+still files. This is the shape closest to what is being asked for, and it
+costs a service and a UI rather than a migration.
+
+*Move the store.* A database holds the requirements and the files are
+generated from it, or abandoned. This is the only door that gives row-level
+locking across a large team and offline editing with server-side merge — and
+the only one that ends the four things listed above.
+
+**Decision needed:** which of the three doors, and the question that
+separates them is not how much concurrency there is but who is expected to
+hold a branch. If the answer is "not product managers", the second door is
+enough and the specification survives intact. If the store must move, then
+which requirement replaces `NFR-SPEC-020`, and what it promises instead
+about review, history and the gate.

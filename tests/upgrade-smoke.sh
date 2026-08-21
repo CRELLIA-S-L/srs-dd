@@ -4,7 +4,7 @@
 # --from, so the suite never reaches the network.
 #
 # verifies: FR-INIT-120, FR-INIT-130, FR-INIT-140, FR-INIT-160
-# verifies: FR-SKILL-060
+# verifies: FR-SKILL-060, FR-GND-290
 set -eo pipefail
 
 # implements: FR-CI-090
@@ -123,3 +123,24 @@ a = const('tools/srs_upgrade.py', 'DEFAULT_URL')
 b = const('tools/srs_init.py', 'DEFAULT_FRAMEWORK_URL')
 assert a == b, 'fallback framework address differs: %s vs %s' % (a, b)
 PY
+
+# --- verifies: FR-GND-290 — a project adds the register with the command it
+# --- has. Reaching for the framework's own installer is the thing this tool
+# --- exists to spare anyone from, so a flag it does not forward is a
+# --- register most projects would never add.
+GU=/tmp/srs-upgrade-grounds
+rm -rf "$GU"
+python3 tools/srs_init.py "$GU" --defaults --areas APP --ci none \
+    --grounds no > /dev/null 2>&1
+[ -e "$GU/grounds" ] && { echo "FAIL — the fixture target already has a"
+                          echo "register, so the next assertion proves nothing"
+                          exit 1; }
+( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" \
+    --grounds yes ) > /tmp/upgrade-grounds.log 2>&1 \
+    || { echo "FAIL FR-GND-290 — the target's own upgrade refused --grounds"
+         tail -5 /tmp/upgrade-grounds.log; exit 1; }
+[ -f "$GU/grounds/grounds-config.json" ] \
+    || { echo "FAIL FR-GND-290 — --grounds yes did not add the register"
+         tail -5 /tmp/upgrade-grounds.log; exit 1; }
+
+echo "upgrade-smoke: a target adds the grounds register with its own command"
