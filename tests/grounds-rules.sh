@@ -10,7 +10,8 @@
 # verifies: CON-GND-010, FR-GND-190, FR-GND-200, FR-GND-210
 # verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
 # verifies: FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-450
-# verifies: FR-GND-460, FR-GND-470, FR-GND-230
+# verifies: FR-GND-460, FR-GND-470, FR-GND-230, FR-GND-140
+# verifies: FR-GND-150, FR-GND-490
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -603,6 +604,253 @@ grep -qF "Nothing recorded." "$D" \
     || { echo "FAIL FR-GND-250 — a frame that refused nothing says nothing"
          cat "$D"; exit 1; }
 passes=$((passes + 3))
+
+# --- verifies: FR-GND-140 — a verdict follows from the threshold, and what
+# --- follows is not a bare comparison. A value below its threshold by less
+# --- than a sample of that size can miss by has refuted nothing: 0.24 on
+# --- 200 is forty-eight people where fifty were wanted, and burying a
+# --- hypothesis over two of them is a coin toss wearing an arithmetic's
+# --- clothes. This is the rule's whole reason for existing.
+HYP_I="${HYP/class: III/class: I}"
+
+ground < <(rec H-010 "Two people are not a refutation" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-02-14 | 0.24 | 200 | refuted | telemetry |')
+rule "FR-GND-140 refuted on noise" 1 "the verdict it compels is 'supported'"
+
+ground < <(rec H-010 "Past the threshold and past the error" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-08-01 | 0.19 | 210 | supported | telemetry |')
+rule "FR-GND-140 survived what killed it" 1 "the verdict it compels is 'refuted'"
+
+# The two halves that need no error calculation at all: the threshold's own
+# `at n >=` is part of the sentence its author wrote, and a value on the
+# safe side contradicts a refutation whatever the error.
+ground < <(rec H-010 "Refuted on a sample the threshold refuses" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 0.10 | 30 | refuted | telemetry |')
+rule "FR-GND-140 below the gate" 1 "is smaller than the threshold's own at n >= 200"
+
+ground < <(rec H-010 "Refuted while thriving" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 0.60 | 400 | refuted | telemetry |')
+rule "FR-GND-140 safe side" 1 "is on the safe side of < 0.25"
+
+ground < <(rec H-010 "A word no measurement reaches" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 0.60 | 400 | promising | telemetry |')
+rule "FR-GND-140 verdict vocabulary" 1 "which is not one a measurement can reach"
+
+ground < <(rec H-010 "Nothing to compare" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | most | 400 | supported | telemetry |')
+rule "FR-GND-140 unmeasurable value" 1 "which no threshold can be compared against"
+
+# And the fixture this rule would be worthless without: rows that are right
+# say nothing. Both of them cross a boundary the naive comparison would get
+# backwards, so a checker that reported everything would pass every fixture
+# above and fail only here.
+ground < <(rec H-010 "Both readings are honest" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-02-14 | 0.24 | 200 | supported | telemetry |
+| 2026-08-01 | 0.19 | 210 | refuted | telemetry |')
+silent "FR-GND-140 honest rows are quiet" 0 "the verdict it compels"
+
+# A register is written by hand, so a typo is ordinary input. Every one of
+# these reached the arithmetic before the guard existed and either crashed
+# it or was judged in silence, which for a checker is the same failure.
+HYP_COUNT="${HYP_I/refuted_if: proportion < 0.25 at n >= 200/refuted_if: count > 10 at n >= 1}"
+# Nought out of twenty is where a proportion's error is least like a
+# straight band around the value: the truth still reaches 0.12, twice what
+# a naive interval centred on the measurement would allow. Thresholds on a
+# proportion are drawn near the ends, so this is not an exotic case.
+HYP_EDGE="${HYP_I/refuted_if: proportion < 0.25 at n >= 200/refuted_if: proportion < 0.1 at n >= 20}"
+ground < <(rec H-010 "Nobody at all, out of twenty" "$HYP_EDGE" \
+               'A tenth of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 0 | 20 | refuted | telemetry |')
+rule "FR-GND-140 nought of twenty" 1 "the verdict it compels is 'supported'"
+
+ground < <(rec H-010 "A proportion above one" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 1.5 | 400 | refuted | telemetry |')
+rule "FR-GND-140 impossible proportion" 1 "is outside nought to one"
+
+ground < <(rec H-010 "Nothing observed at all" \
+               "${HYP_I/at n >= 200/at n >= 0}" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 0.1 | 0 | refuted | telemetry |')
+rule "FR-GND-140 an empty sample" 1 "measures nothing"
+
+ground < <(rec H-010 "Two and a half crashes" "$HYP_COUNT" \
+               'Crashes stay under ten a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 12.5 | 1 | refuted | ops |')
+rule "FR-GND-140 a fractional count" 1 "is not a whole number of things"
+
+ground < <(rec H-010 "Fewer crashes than none" "$HYP_COUNT" \
+               'Crashes stay under ten a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | -3 | 1 | refuted | ops |')
+rule "FR-GND-140 a negative count" 1 "is fewer than none of them"
+
+ground < <(rec H-010 "A value that is not a number" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | nan | 400 | refuted | telemetry |')
+rule "FR-GND-140 nan" 1 "is not a number anything can be compared against"
+
+ground < <(rec H-010 "A value with no end" "$HYP_COUNT" \
+               'Crashes stay under ten a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | inf | 1 | refuted | ops |')
+rule "FR-GND-140 infinity" 1 "is not a number anything can be compared against"
+
+# The seam between the exact criterion and its approximation is crossed by
+# ordinary data, and crossing it must not change the answer and must not
+# cost a term per event counted. The exact sum answers this row in about
+# thirty seconds, so the bound below is loose enough never to flake and
+# tight enough to notice that.
+ground < <(rec H-010 "Two million of them" "$HYP_COUNT" \
+               'Crashes stay under ten a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 2000000 | 1 | refuted | ops |')
+started=$(date +%s)
+silent "FR-GND-140 a large count is judged" 0 "the verdict it compels"
+
+# Two million events is far enough from any threshold that a badly wrong
+# spread would not show. These two straddle the seam a hundred apart from
+# it, close enough to their threshold that the bound decides the verdict:
+# the exact side and the approximate side must reach the same one.
+HYP_SEAM="${HYP_I/refuted_if: proportion < 0.25 at n >= 200/refuted_if: count > 900 at n >= 1}"
+ground < <(rec H-010 "Just short of the seam" "$HYP_SEAM" \
+               'Crashes stay under nine hundred a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 999 | 1 | supported | ops |')
+rule "FR-GND-140 below the seam" 1 "the verdict it compels is 'refuted'"
+
+ground < <(rec H-010 "Just past the seam" "$HYP_SEAM" \
+               'Crashes stay under nine hundred a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 1001 | 1 | supported | ops |')
+rule "FR-GND-140 above the seam" 1 "the verdict it compels is 'refuted'"
+
+# And the approximate side must carry an error at all, not merely agree
+# with the exact side about values far from their threshold. 1050 against
+# `count > 1000` crosses it raw and does not cross it once the fifty-three
+# a count of that size can miss by is allowed for.
+HYP_NOISE="${HYP_I/refuted_if: proportion < 0.25 at n >= 200/refuted_if: count > 1000 at n >= 1}"
+ground < <(rec H-010 "Fifty over, and fifty is the noise" "$HYP_NOISE" \
+               'Crashes stay under a thousand a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 1050 | 1 | refuted | ops |')
+rule "FR-GND-140 noise past the seam" 1 "the verdict it compels is 'supported'"
+
+ground < <(rec H-010 "Two hundred over is not noise" "$HYP_NOISE" \
+               'Crashes stay under a thousand a week.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-01 | 1200 | 1 | refuted | ops |')
+silent "FR-GND-140 past the seam and past the noise" 0 "the verdict it compels"
+elapsed=$(( $(date +%s) - started ))
+[ "$elapsed" -gt 10 ] && { echo "FAIL FR-GND-140 — judging one count took"
+                           echo "${elapsed}s, so the exact sum is being walked"
+                           exit 1; }
+passes=$((passes + 1))
+
+# --- verifies: FR-GND-150 — the criterion comes from the kind of quantity,
+# --- and a mean has none: how far it can miss needs the spread behind it,
+# --- which the row does not carry. Class I over one is a claim that
+# --- re-confirmation happens by itself when nothing can perform it.
+HYP_MEAN="${HYP_I/refuted_if: proportion < 0.25 at n >= 200/refuted_if: mean < 4.0 at n >= 50}"
+
+ground < <(rec H-010 "Class I over a mean" "$HYP_MEAN" \
+               'Sessions average four edits.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-03-01 | 3.9 | 60 | supported | telemetry |')
+rule "FR-GND-150 untestable class I" 0 "class-untestable"
+
+# The same threshold at a class that never claimed to re-confirm itself.
+ground < <(rec H-010 "Class II over a mean" "${HYP_MEAN/class: I/class: II}" \
+               'Sessions average four edits.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-03-01 | 3.9 | 60 | supported | telemetry |')
+silent "FR-GND-150 class II may hold a mean" 0 "class-untestable"
+
+# A mean compels no verdict either way, so the row above went unjudged —
+# but the half that needs no criterion still speaks.
+ground < <(rec H-010 "A mean refuted while thriving" "${HYP_MEAN/class: I/class: II}" \
+               'Sessions average four edits.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-03-01 | 9.0 | 60 | refuted | telemetry |')
+rule "FR-GND-150 the criterion-free half" 1 "is on the safe side of < 4"
+
+# --- verifies: FR-GND-490 — how much error is allowed is the project's, and
+# --- the proof is that the same row changes verdict when the answer does.
+ground < <(rec H-010 "Refuted at ninety-five, alive at ninety-nine" "$HYP_I" \
+               'Studios export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-08-01 | 0.19 | 210 | supported | telemetry |')
+rule "FR-GND-490 default confidence" 1 "the verdict it compels is 'refuted'"
+printf '{"rules": {}, "confidence": 0.99}\n' > "$LAB/grounds/grounds-config.json"
+silent "FR-GND-490 a surer project keeps it" 0 "the verdict it compels"
+printf '{"rules": {}, "confidence": 0.973}\n' > "$LAB/grounds/grounds-config.json"
+rule "FR-GND-490 unknown confidence" 2 "confidence must be one of"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
 
 # --- verifies: FR-GND-230 — the rate and where it clusters, not the total.
 # --- One requirement standing on nothing is noise and is meant to be; the

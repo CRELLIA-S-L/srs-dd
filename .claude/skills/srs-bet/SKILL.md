@@ -143,7 +143,23 @@ turned out to be wrong gets a later row saying so, because a register
 whose inconvenient rows disappear only ever agrees with the present.
 
 The verdict is against `refuted_if`, not against the target magnitude —
-see the third judgement above.
+see the third judgement above. It is `supported` or `refuted` and nothing
+else; the four other words in a hypothesis's `status` are things that happen
+to a hypothesis, not things a measurement found.
+
+**Do not write `refuted` because the value crossed the threshold.** A
+measurement is the truth plus however far a sample of that size can miss, so
+crossing by less than that has refuted nothing. `proportion < 0.25 at n >= 200`
+against a measurement of `0.24` on 200 is forty-eight people where fifty were
+wanted — two the other way and the hypothesis lives. The checker works the
+verdict out and reports the row where the two disagree, so the rule to follow
+is simply to write what you believe and let it be checked, rather than
+computing an interval by hand.
+
+Where the threshold names a `mean`, nothing works it out: how far a mean can
+miss needs the spread behind it and the row carries only the mean and the
+sample size. Such a hypothesis cannot be class I, and the verdict is yours to
+argue in the rationale.
 
 **Confirmed is not the same as ours.** Admission to the core is a
 separate decision and it belongs to the maintainer: absorb it, spin it

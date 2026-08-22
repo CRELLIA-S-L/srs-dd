@@ -387,13 +387,55 @@ written with `=` is a coincidence rather than a boundary, and one written in
 prose is a threshold nobody can apply twice the same way.
 
 The kind of quantity comes first because it decides what a fair test is: a
-proportion, a mean and a count are not compared to a threshold the same way.
-Where the kind is one this register cannot test sequentially, the hypothesis
-cannot be class I, and re-confirmation becomes a human act performed on
-purpose.
+proportion, a mean and a count do not carry the same error, and error is the
+whole of what stands between a threshold and a verdict.
 
 Moving a threshold after the first measurement is how a hypothesis stops being
 falsifiable. The record keeps enough history to notice.
+
+### Crossing a threshold is not the same as refuting
+
+A measurement is not the truth; it is the truth plus however far a sample of
+that size can miss. So a value below its threshold has refuted nothing until
+it is below by more than that.
+
+Take `proportion < 0.25 at n >= 200` and a measurement of `0.24` on exactly
+200. That is forty-eight people where fifty were wanted. Two people the other
+way and the hypothesis lives. The reading is `supported`, and a checker that
+called it `refuted` would be burying something requirements and code stand on
+because of a coin toss.
+
+What the checker does with the error is decided by the kind:
+
+| Kind | How far the measurement can miss | Class I |
+|---|---|---|
+| `proportion` | from the proportion and its denominator | yes |
+| `count` | from the count itself | yes |
+| `mean` | not knowable from the row — it needs the spread of the values behind the mean, and the row carries the mean and the sample size | no |
+
+A `mean` therefore cannot be class I. Nothing is wrong with the hypothesis;
+it simply cannot be re-confirmed by machine, so re-confirmation is a human
+act performed on purpose. Declaring class I over one is reported.
+
+Two things need no error calculation at all and are always reported: a row
+claiming `refuted` while its value sits on the *safe* side of its own
+threshold, and one claiming `refuted` on a sample smaller than the
+threshold's own `at n >=`. Both are the record contradicting a sentence its
+own author wrote.
+
+A row that cannot be compared at all is reported before any of that, and the
+message says which of these it is:
+
+- a `value` or an `n` that is not a number, including `nan` and `inf`
+- a sample of nought or less, which measures nothing
+- a `proportion` outside nought to one
+- a `count` that is fewer than none, or has a fraction in it
+- a `verdict` that is neither `supported` nor `refuted`
+
+None of these is a judgement about the hypothesis. They are the ways a row
+can fail to be a measurement, and they are errors because a register is
+typed by hand and a slipped decimal point should not be quietly weighed
+against a threshold.
 
 ### Evidence
 
@@ -445,6 +487,7 @@ carries the register.
 | `rules` | `{}` | What a finding costs: `warn` (the default, and what `--strict` fails on), `report` (said, never fatal), `off` (not said at all). Keys are rule names |
 | `grades` | `{}` | Which actions each grade permits: `{"high": ["release", "quarter"], "low": ["experiment"]}`. A grade absent from the map permits anything, which is what an empty map means for every grade |
 | `period` | `"quarter"` | The unit the dashboard counts arrivals in: `month`, `quarter` or `year` |
+| `confidence` | `0.95` | How sure a measurement has to be before it refutes: `0.9`, `0.95` or `0.99`. Higher keeps doubtful hypotheses alive longer |
 
 Errors are not in this table and cannot be lowered: a malformed or repeated
 identifier, a missing required key, a bet naming a requirement that does not

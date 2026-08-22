@@ -22,6 +22,7 @@ register whose specification is broken still has plenty to report.
 
 import datetime
 import json
+import math
 import os
 import re
 import subprocess
@@ -63,8 +64,8 @@ RE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # The threshold grammar the standard declares, and the four comparisons
 # it names. A threshold nothing can apply twice the same way is not one.
 RE_THRESHOLD = re.compile(
-    r"^(?:proportion|mean|count)\s+(?:<=|>=|<|>)\s+"
-    r"\d+(?:\.\d+)?\s+at\s+n\s*>=\s*\d+$")
+    r"^(proportion|mean|count)\s+(<=|>=|<|>)\s+"
+    r"(\d+(?:\.\d+)?)\s+at\s+n\s*>=\s*(\d+)$")
 
 # implements: IF-GND-010
 # The kinds the format defines, and the keys each declares. What a record
@@ -115,7 +116,8 @@ DEBT_STATUSES = ("refuted", "expired", "assumed")
 RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
          "declaration-superfluous", "threshold-moved", "evidence-dropped",
          "relied-on-untested", "never-measured", "verdict-unattributed",
-         "action-beyond-grade", "declined-leftover", "action-without-grade")
+         "action-beyond-grade", "declined-leftover", "action-without-grade",
+         "class-untestable")
 SEVERITIES = ("warn", "report", "off")
 
 # implements: FR-GND-230
@@ -123,7 +125,26 @@ SEVERITIES = ("warn", "report", "off")
 # one shipping twice a year do not share a unit. Calendar periods only —
 # a window measured back from today would move this file every night.
 PERIODS = ("month", "quarter", "year")
-DEFAULTS = {"rules": {}, "grades": {}, "period": "quarter"}
+
+# implements: FR-GND-490
+# A criterion that allows for error has to be told how much, and no answer
+# is right everywhere. Named levels rather than a free number: a confidence
+# somebody typed as 0.973 came from nowhere and cannot be discussed.
+CONFIDENCES = (0.9, 0.95, 0.99)
+# One-sided, because a threshold asks whether the truth is past it, not
+# whether it sits inside a band. Two-sided quantiles here would demand more
+# of a measurement than the sentence its author wrote does.
+Z_ONE_SIDED = {0.9: 1.2816, 0.95: 1.6449, 0.99: 2.3263}
+
+# implements: FR-GND-150
+# What a measurement's error is depends on what was measured. A mean's does
+# not follow from anything the row carries — it needs the spread behind the
+# mean, and the row holds the mean and the sample size. So a mean closes
+# class I rather than falling back to a comparison that refutes on noise.
+TESTABLE_KINDS = ("proportion", "count")
+
+DEFAULTS = {"rules": {}, "grades": {}, "period": "quarter",
+            "confidence": 0.95}
 
 
 def period_of(date, period):
@@ -183,7 +204,155 @@ def load_config():
     if period not in PERIODS:
         _config_fail("period must be one of %s" % ", ".join(PERIODS))
     cfg["period"] = period
+    # implements: FR-GND-490
+    confidence = raw.get("confidence", DEFAULTS["confidence"])
+    if confidence not in CONFIDENCES:
+        _config_fail("confidence must be one of %s"
+                     % ", ".join(str(c) for c in CONFIDENCES))
+    cfg["confidence"] = confidence
     return cfg
+
+
+# implements: FR-GND-150
+def wilson_bounds(value, n, z):
+    """Where a proportion's truth may sit, given `value` observed out of n.
+
+    Wilson's interval and not value ± z·sqrt(pq/n): the plain one runs off
+    the end of [0, 1] near zero and one, which is exactly where a threshold
+    on a proportion tends to be drawn.
+    """
+    denominator = 1.0 + z * z / n
+    centre = (value + z * z / (2 * n)) / denominator
+    half = z * math.sqrt(value * (1 - value) / n
+                         + z * z / (4 * n * n)) / denominator
+    return centre - half, centre + half
+
+
+def poisson_cdf(k, rate):
+    """P(X <= k) for a Poisson of this rate.
+
+    Summed through logarithms so that a large rate loses the first terms to
+    underflow one at a time instead of the whole sum at once.
+    """
+    if k < 0:
+        return 0.0
+    total, log_term = 0.0, -rate
+    for i in range(int(k) + 1):
+        if i:
+            log_term += math.log(rate) - math.log(i)
+        total += math.exp(log_term)
+    return min(1.0, total)
+
+
+# implements: FR-GND-150
+def poisson_bounds(k, confidence):
+    """Where a count's truth may sit, given k events observed.
+
+    Exact rather than k ± z·sqrt(k), because counts in a register of
+    hypotheses are small and the approximation is worst there: it puts the
+    bound for nought observations at nought, which would read as certainty
+    from the one measurement that carries none.
+    """
+    if k > POISSON_EXACT_TO:
+        # Far from nought the normal approximation is within two tenths of a
+        # percent of the exact bound, and the exact one costs a term per
+        # event counted. A register recording millions of events would wait
+        # half a minute to be told what a square root answers at once.
+        spread = Z_ONE_SIDED[confidence] * math.sqrt(k)
+        return k - spread, k + spread
+
+    tail = 1.0 - confidence
+
+    def solve(target, at):
+        low, high = 0.0, max(20.0, k + 20.0 * math.sqrt(k + 1.0))
+        for _ in range(80):
+            middle = (low + high) / 2
+            if poisson_cdf(at, middle) > target:
+                low = middle
+            else:
+                high = middle
+        return (low + high) / 2
+    return (0.0 if k == 0 else solve(1.0 - tail, k - 1)), solve(tail, k)
+
+
+# Beyond this many events the exact sum is not worth its terms; see
+# poisson_bounds. Chosen where the two methods already agree to a tenth of
+# a percent, so the seam is invisible in any message either produces.
+POISSON_EXACT_TO = 1000
+
+
+# implements: FR-GND-140
+# A register is written by hand, so a typo is ordinary input rather than an
+# attack. Every one of these used to reach the arithmetic and either crash
+# it or be silently judged, which for a checker is the same failure: it
+# stops being runnable on the file somebody actually has.
+def measurement_fault(kind, value, n):
+    """Why this row cannot be compared to a threshold of this kind, or None."""
+    for name, number in (("value", value), ("n", n)):
+        if math.isnan(number) or math.isinf(number):
+            return "%s %r is not a number anything can be compared against" \
+                % (name, number)
+    if n <= 0:
+        return "a sample of %g measures nothing" % n
+    if kind == "proportion" and not 0.0 <= value <= 1.0:
+        return "a proportion of %g is outside nought to one" % value
+    if kind == "count" and value < 0:
+        return "a count of %g is fewer than none of them" % value
+    if kind == "count" and value != int(value):
+        return "a count of %g is not a whole number of things" % value
+    return None
+
+
+# implements: FR-GND-140
+# The two words a measurement may end in. A record's `status` has six, and
+# four of them are things that happen to a hypothesis rather than things a
+# measurement found.
+VERDICTS = ("supported", "refuted")
+
+
+def _crosses(op, edge, bound):
+    """Whether a value sits past a threshold, the way the threshold asks."""
+    if op == "<":
+        return edge < bound
+    if op == "<=":
+        return edge <= bound
+    if op == ">":
+        return edge > bound
+    return edge >= bound
+
+
+# implements: FR-GND-140, FR-GND-150
+def verdict_owed(threshold, value, n, cfg):
+    """The verdict a measurement compels, with the phrase that says why.
+
+    `(None, None)` where the row does not compel one: the kind carries no
+    error the row can produce, and the raw value is on the refuting side, so
+    whether it refuted is exactly the question nothing here can answer.
+    """
+    kind, op, raw_bound, raw_gate = threshold.groups()
+    bound, gate = float(raw_bound), int(raw_gate)
+    if n < gate:
+        return VERDICTS[0], ("its sample of %g is smaller than the "
+                             "threshold's own at n >= %d" % (n, gate))
+    if not _crosses(op, value, bound):
+        return VERDICTS[0], ("its value of %g is on the safe side of %s %g"
+                             % (value, op, bound))
+    if kind not in TESTABLE_KINDS:
+        return None, None
+    if kind == "proportion":
+        low, high = wilson_bounds(value, n, Z_ONE_SIDED[cfg["confidence"]])
+    else:
+        low, high = poisson_bounds(value, cfg["confidence"])
+    edge = high if op in ("<", "<=") else low
+    if _crosses(op, edge, bound):
+        return VERDICTS[1], ("at %g%% confidence the truth behind %g is no "
+                             "further than %.4g, which is still %s %g"
+                             % (cfg["confidence"] * 100, value, edge, op,
+                                bound))
+    return VERDICTS[0], ("%g is %s %g by less than a sample of %g can miss "
+                         "by: at %g%% confidence the truth reaches %.4g"
+                         % (value, op, bound, n, cfg["confidence"] * 100,
+                            edge))
 
 
 def rule_finding(warnings, reports, cfg, rule, text):
@@ -539,6 +708,54 @@ def validate(records, model, model_error, cfg):
     # implements: FR-GND-160, FR-GND-170, FR-GND-180
     for hid in sorted(hyps):
         rec = hyps[hid]
+
+        # implements: FR-GND-140, FR-GND-150
+        # The threshold was written before the measurement so that the
+        # verdict would stop being a matter of opinion. A verdict left free
+        # to disagree with it gives that back.
+        threshold = RE_THRESHOLD.match(rec.fields.get("refuted_if") or "")
+        if threshold and threshold.group(1) not in TESTABLE_KINDS \
+                and rec.fields.get("class") == "I":
+            rule_finding(warnings, reports, cfg, "class-untestable",
+                         "%s — %s is class I over a %s, and how far a %s can "
+                         "miss does not follow from anything its rows carry; "
+                         "re-confirmation here is a human act, not an "
+                         "automatic one"
+                         % (rec.where, hid, threshold.group(1),
+                            threshold.group(1)))
+        for row in table_with(rec, "verdict") if threshold else []:
+            if len(row) < 4:
+                continue
+            date, verdict = row[0] or "no date", row[3]
+            if verdict not in VERDICTS:
+                errors.append(
+                    "%s — %s gives the measurement of %s the verdict %r, "
+                    "which is not one a measurement can reach (%s)"
+                    % (rec.where, hid, date, verdict, " or ".join(VERDICTS)))
+                continue
+            try:
+                value, sample = float(row[1]), float(row[2])
+            except ValueError:
+                errors.append(
+                    "%s — %s measures %s as %r out of %r, which no threshold "
+                    "can be compared against"
+                    % (rec.where, hid, date, row[1], row[2]))
+                continue
+            fault = measurement_fault(threshold.group(1), value, sample)
+            if fault:
+                errors.append(
+                    "%s — %s calls the measurement of %s %r against "
+                    "refuted_if %r, and %s, so no comparison was made"
+                    % (rec.where, hid, date, verdict,
+                       rec.fields["refuted_if"], fault))
+                continue
+            owed, why = verdict_owed(threshold, value, sample, cfg)
+            if owed is not None and owed != verdict:
+                errors.append(
+                    "%s — %s calls the measurement of %s %r against "
+                    "refuted_if %r, and %s, so the verdict it compels is %r"
+                    % (rec.where, hid, date, verdict,
+                       rec.fields["refuted_if"], why, owed))
 
         # Forty thousand in a cohort and a dozen conversations both end in
         # the word `supported`, and only for the second is the word

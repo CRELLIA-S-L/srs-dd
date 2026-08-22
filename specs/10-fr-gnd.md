@@ -376,14 +376,14 @@ let a project improve this number by writing fewer bets.
 ### FR-GND-140 — A verdict follows from the threshold
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
@@ -392,22 +392,36 @@ hypothesis's threshold, the grounds checker **shall** report it as an error
 naming both.
 
 **Rationale.** The threshold is declared before the measurement precisely so
-that the verdict stops being a matter of opinion, and a row saying the
-hypothesis survived at a value below its own threshold is the record
-disagreeing with itself. Left alone it is worse than a missing verdict: it
-reads as a judgement somebody made rather than an arithmetic nobody did.
+that the verdict stops being a matter of opinion. A verdict left to disagree
+with it is worse than a missing one: it reads as a judgement somebody made
+rather than an arithmetic nobody did.
+
+What "follow from" means is not a bare comparison, and this is the one place
+it would be easy to get backwards. A value sitting below its threshold by
+less than the measurement's own error has not refuted anything, and a row
+saying so is right. How much error a measurement carries depends on what kind
+of quantity it is, which is FR-GND-150's business and deliberately not this
+one's.
+
+Two halves need no criterion at all and are what this rule can always say. A
+row claiming refutation while its value sits on the safe side of its own
+threshold contradicts itself whatever the error is. So does one claiming
+refutation on a sample smaller than the threshold's own `at n >=`, because
+that gate is part of the sentence the author wrote. A verdict that is neither
+`supported` nor `refuted` follows from no comparison at all and is the same
+finding.
 
 ### FR-GND-150 — The criterion follows the kind of quantity
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
@@ -415,18 +429,21 @@ The grounds checker **shall** take the reconfirmation criterion from the
 kind of quantity the threshold names, and report a hypothesis of class I whose
 kind it supports no criterion for.
 
-**Rationale.** "Reconfirm by a sequential criterion" has no content until the
-quantity is typed. A sequential probability ratio test is meaningful for a
-proportion with a denominator; for a mean it is a different test, for a count
-a different one again, and for a revenue figure the prescription says nothing
-at all. Naming the kind in the threshold is what makes the criterion
-choosable rather than assumed.
+**Rationale.** "Reconfirm automatically" has no content until the quantity is
+typed, because what a measurement's error is depends entirely on what was
+measured. A proportion's follows from the proportion and its denominator; a
+count's follows from the count itself. A mean's does not follow from anything
+the row carries — it needs the spread of the underlying values, and the row
+records the mean and the sample size and nothing else. Naming the kind in the
+threshold is what makes the criterion choosable rather than assumed.
 
 A kind with no criterion closes class I rather than falling back to a naive
 comparison, because automatic reconfirmation is the whole of what class I
-means. Left to fall back, the naive comparison would refute on the first dip
-— which is the failure the criterion exists to prevent, arriving through the
-door marked convenience.
+means. Left to fall back, the naive comparison would refute on the first dip:
+a threshold of `proportion < 0.25 at n >= 200` and a measurement of `0.24` on
+exactly 200 is forty-eight people where fifty were wanted, and burying a
+hypothesis that requirements and code already stand on because two people
+answered otherwise is a coin toss wearing an arithmetic's clothes.
 
 ### FR-GND-160 — A class III verdict names who made it
 
@@ -1451,3 +1468,35 @@ own writer, so the dry run reports it without a special case.
 A default remains, because an install that has to stop and ask is an install
 somebody abandons. The default is not the point; being able to say otherwise
 before the first dashboard is generated is.
+
+### FR-GND-490 — How much error is allowed is the project's
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-150]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-21
+```
+
+The grounds checker **shall** decide how much error a measurement is allowed
+at the confidence the register's configuration names.
+
+**Rationale.** A criterion that allows for error has to be told how much, and
+there is no answer that is right everywhere. A team that would rather keep a
+dead hypothesis than bury a live one wants to be very sure before refuting; a
+team whose hypotheses are cheap to rewrite would rather hear the bad news
+early. Both are defensible and neither is this format's business to pick.
+
+Named levels rather than a free number, for the reason the threshold names
+four comparisons and no others: a confidence somebody typed as `0.973` is a
+number that came from nowhere and cannot be discussed, and the arithmetic
+behind an arbitrary level needs machinery this checker deliberately does not
+carry.
+
+A default exists and is the conventional one, because a project that has not
+thought about this should still get a criterion rather than a refusal to run.

@@ -479,3 +479,56 @@ hold a branch. If the answer is "not product managers", the second door is
 enough and the specification survives intact. If the store must move, then
 which requirement replaces `NFR-SPEC-020`, and what it promises instead
 about review, history and the gate.
+
+## The framework's own grounds register is empty
+
+**Found:** while building the reconfirmation criterion (2026-08-22).
+
+**What diverged:** ADR-0018 decided, on 2026-08-19, that this repository
+would keep a grounds register of its own — option 3 of three, chosen over
+"ship the layer, do not use it here" on the ground that a format never held
+by a real entry is a format whose first real entry will want a rename. The
+ADR goes as far as naming where to start: that an agent handed the
+specification follows the procedures rather than improvising, that a
+maintainer runs the checker unprompted, that the two-way annotations are
+worth what they cost.
+
+`grounds/` holds `README.md`, `grounds-config.json` and the generated
+`90-dashboard.md`, and nothing else. There is no `00-ideology.md`, no
+`01-frames.md`, no `02-unclaimed.md`, no `03-bets.md` — not empty files, no
+files. A target installing the layer receives all four as scaffolding; the
+repository that ships them has none.
+
+Nothing is pretending otherwise: the dashboard states `Records: 0 — 0
+ideology, 0 frame, 0 hypothesis, 0 bet, 0 unclaimed` on its first line. The
+gap is between the decision and the tree, not between the tree and its own
+report.
+
+**What will not notice:** `tests/grounds-check.sh` is the gate on this
+repository's register and it passes. It asserts that the checker accepts the
+register strictly and that the committed dashboard matches a fresh run, and
+both hold of an empty one — vacuously, and forever. The suite that exists to
+guard the register cannot tell the difference between a register that is
+sound and one that is not there.
+
+**Doors:**
+
+*Write it.* The ADR names three starting hypotheses and predicts the shape:
+mostly `assumed`, class III, named owners, no instruments. This is the
+maintainer's act and cannot be delegated — a hypothesis with no owner who
+cares is exactly the invented entry ADR-0018 rejected as option 2, and
+writing one on somebody's behalf produces that rather than avoiding it.
+
+*Reverse the decision to option 1.* Ship the layer, do not use it here, and
+record why the reasoning of 2026-08-19 no longer holds. Legitimate, and it
+costs the argument the ADR made: the format goes to strangers never having
+held a real entry.
+
+*Make the gate able to see this either way.* Whichever of the two above is
+chosen, `tests/grounds-check.sh` currently cannot report the state it is
+guarding. A register that is deliberately absent and one that was forgotten
+look identical to it.
+
+**Decision needed:** which of the first two, and by when. The third is not an
+alternative to them but a consequence of either, and it is the only part of
+this that is ordinary work rather than a judgement.
