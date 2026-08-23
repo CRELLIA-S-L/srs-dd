@@ -211,6 +211,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-200 | 0 | 1 | 1 |
 | FR-VIEW-210 | 0 | 1 | 1 |
 | FR-VIEW-220 | 0 | 1 | 1 |
+| FR-VIEW-230 | 0 | 1 | 1 |
 | IF-CI-010 | 0 | 1 | 1 |
 | IF-CI-020 | 0 | 1 | 1 |
 | IF-GND-020 | 0 | 1 | 1 |
@@ -220,4 +221,3 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-SPEC-020 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-VIEW-230 | 0 | 0 | 0 |

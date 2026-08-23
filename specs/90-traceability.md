@@ -8,9 +8,9 @@ Total requirements: 173.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 1 |
+| `deferred` | 0 |
 | `partial` | 0 |
-| `implemented` | 172 |
+| `implemented` | 173 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -167,7 +167,7 @@ Total requirements: 173.
 | **FR-VIEW-200** The coverage gaps are on the page, not only in the terminal | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-210** What outlived a cancelled requirement is on the page | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-220** The list can be narrowed to what is being looked for | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-230** The page explains its own notation | `deferred` | T | — | — |
+| **FR-VIEW-230** The page explains its own notation | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **IF-CI-010** Exit codes of the installer | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh`<br>`tests/installer-smoke.sh` |
 | **IF-CI-020** Exit codes of the checker | `implemented` | T | `tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
 | **IF-GND-010** The register record is a stable format | `implemented` | I | `grounds/README.md`<br>`tools/srs_grounds.py` | — |

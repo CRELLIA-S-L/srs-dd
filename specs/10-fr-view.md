@@ -593,14 +593,14 @@ written.
 ### FR-VIEW-230 — The page explains its own notation
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 created: 2026-08-20
 ```
 

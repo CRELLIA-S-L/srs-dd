@@ -382,8 +382,12 @@ unobserved since the annotations were introduced.
 Measured rather than reasoned. In a target whose code roots are the default
 `src`, the checker never reads `tools/` and the annotations are inert: a
 fresh install reports no warning about them. In a target whose code roots
-include `tools`, the same install reports **71** warnings of the form
-`annotation references FR-SPEC-010 with an unknown type or area`. And where
+include `tools`, the same install reports warnings of the form
+`annotation references FR-SPEC-010 with an unknown type or area` — **71** on
+the day this was written and **78** on 2026-08-23, counting lines that begin
+with `warning:` rather than lines containing the word, which also catches the
+summary. The number tracks how many annotations the tooling happens to carry
+and grows with it. And where
 such a project also declares an area this framework uses, the annotation
 stops being unknown and resolves to *their* requirement under that number —
 which is the harm the constraint is worded against.
@@ -642,3 +646,43 @@ whichever is chosen, the release command changes with it.
 **Noticed alongside, and smaller:** `AGENTS.md` lists what lives in `tools/`
 and does not mention `srs_grounds.py` at all, though it ships to targets like
 the rest. Whatever is decided above, that line is now wrong.
+
+## AGENTS.md states the annotation rule in a shape that is not true
+
+**Found:** while adding an annotation to `tools/srs_view.py` and stopping to
+check whether the guide forbade it (2026-08-23).
+
+**What diverged:** `AGENTS.md` carries, as the second of "two rules that
+protect other people's repositories": never write `implements:`/`verifies:`
+annotations into `tools/srs_check.py` or `tools/srs_view.py`, because "the
+annotation check would warn, and `--strict` turns warnings into a failed
+pipeline". Both halves of that are off, and in opposite directions.
+
+**Too narrow in what it names.** Seven tools the installer copies carry such
+annotations, not two: `srs_check.py` 29, `srs_view.py` 26, `srs_grounds.py`
+45, `srs_upgrade.py` and `srs_baseline.py` 2 each, `srs_dates.py` and
+`srs_parse.py` 1 each. An agent obeying the rule as written would leave the
+other five alone, and `srs_grounds.py` — the file carrying the most — is not
+mentioned anywhere in that guide at all.
+
+**Too broad in when it bites.** The failure it predicts does not happen in a
+default target: code roots are `src`, the checker never reads `tools/`, and a
+fresh install passes `--strict` with no warnings at all. It happens only
+where a project puts `tools` in its own code roots, and then it happens to
+every one of the seven files.
+
+So the rule forbids something that is already done a hundred times over,
+gives a reason that is false as stated, and is filed under the heading that
+tells an agent these are the two rules that matter most. The effect is the
+one a wrong rule always has: it is read, found not to match the tree, and
+then the whole heading is discounted.
+
+The underlying question is not this one. It is recorded above under *The
+shipped tooling carries this framework's requirement identifiers*, which
+names the constraint it really belongs to (`CON-SPEC-020`) and the three
+ways out. This entry is only about the guide describing it wrongly.
+
+**Decision needed:** none until the entry above is settled, because the
+guide should describe whatever is decided there rather than be corrected
+twice. What must not happen is the guide staying as it is while that one is
+resolved — it is the copy an agent reads first.

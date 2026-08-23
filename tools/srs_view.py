@@ -981,6 +981,8 @@ article h3 .id { font-family: ui-monospace, monospace; }
 .st-withdrawn { color: var(--withdrawn); }
 .badge.new { background: var(--implemented); color: #fff; border-color: transparent; }
 .badge.changed { background: var(--draft); color: #fff; border-color: transparent; }
+.notation { color: var(--muted); font-size: 12px; margin: 0 0 14px; max-width: 70ch; }
+.notation b { color: var(--fg); font-weight: 600; }
 .where { color: var(--muted); font-size: 12px; }
 .statement { margin: 8px 0; }
 .statement .modal { background: var(--mark); padding: 0 3px; border-radius: 3px; }
@@ -1636,6 +1638,27 @@ class Links(object):
         return self.local(path)
 
 
+# implements: FR-VIEW-230
+# The verification letters the page draws, in the words `specs/README.md`
+# gives them, and in its order rather than alphabetical. A letter is not a
+# word, and this page is the one that reaches a reader who has neither that
+# file nor `specs/50-verification.md` to look it up in.
+METHODS = (("T", "test"), ("D", "demonstration"),
+           ("I", "inspection"), ("A", "analysis"))
+METHOD_WORD = dict(METHODS)
+
+
+def notation_legend():
+    # implements: FR-VIEW-230
+    """What every mark on a requirement card stands for."""
+    letters = "".join("<b>%s</b> %s, " % (key, word) for key, word in METHODS)
+    return ('<p class="notation">Each requirement below carries its status, '
+            'and how conformance is checked as a single letter — %s'
+            '<b>?</b> where none is declared. Every other badge spells '
+            'itself: a status says its own name, and a change badge says '
+            'what changed.</p>' % letters)
+
+
 def render_card(entry, model, known, links, diff_state):
     # implements: FR-VIEW-130, INV-SPEC-050
     classes = ["superseded"] if entry["status"] == "superseded" else []
@@ -1684,10 +1707,12 @@ def render_card(entry, model, known, links, diff_state):
                 ' class="%s"' % " ".join(classes) if classes else "")]
     parts.append('<h3><span class="id">%s</span> — %s'
                  '<span class="badge st-%s">%s</span>'
-                 '<span class="badge">%s</span>%s</h3>'
+                 '<span class="badge" title="%s">%s</span>%s</h3>'
                  % (esc(entry["id"]), esc(entry["title"]),
                     esc(entry["status"] or "unknown"),
                     esc(entry["status"] or "unknown"),
+                    esc(METHOD_WORD.get(entry["verification"],
+                                        "no method declared")),
                     esc(entry["verification"] or "?"), badge))
     parts.append('<div class="where"><a href="%s">%s:%d</a></div>'
                  % (esc(links.href(entry["path"], entry["line"])),
@@ -2087,7 +2112,7 @@ requirements · __VERSIONS__</div>
 </aside>
 <main>
   __BANNER__
-  <section id="view-reqs">__DIFF____CARDS__</section>
+  <section id="view-reqs">__NOTATION____DIFF____CARDS__</section>
   <section id="view-dash" hidden>__DASHBOARD__</section>
   <section id="view-graph" hidden>__GRAPH__</section>
   <section id="view-base" hidden>__BASELINES__</section>
@@ -2285,6 +2310,7 @@ def render_page(model, links, diff=None, baselines=None):
             ("__CSS__", CSS + EDGE_HIDE_CSS),
             ("__JS__", JS),
             ("__COUNT__", str(len(entries))),
+            ("__NOTATION__", notation_legend()),
             ("__FILTERS__", "".join(filters)),
             ("__DOCUMENTS__", documents),
             ("__BANNER__", banner),

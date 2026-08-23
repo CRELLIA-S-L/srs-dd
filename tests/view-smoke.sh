@@ -868,6 +868,41 @@ data = open('.srs-site/index.html', 'rb').read()
 assert b'\x00' not in data, 'the page carries NUL bytes'
 PY2
 
+# verifies: FR-VIEW-230
+# The page reaches a reader who has neither specs/README.md nor
+# specs/50-verification.md, so every mark on a card answers for itself or is
+# named where the marks are listed. Asserted over what the page actually
+# draws rather than against a list written here: a mark added to the cards
+# and explained nowhere is how this breaks, and a fixed list still passes.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+found = re.search(r'class="notation">(.*?)</p>', page, re.S)
+assert found, 'the requirement list carries no legend for its marks'
+legend = found.group(1)
+badges = re.findall(r'<span class="(badge[^"]*)"[^>]*>([^<]+)</span>', page)
+assert badges, 'no badge on any card'
+letters = 0
+for cls, body in badges:
+    body = body.strip()
+    if cls == 'badge':                      # the verification method
+        letters += 1
+        assert '<b>%s</b>' % body in legend, \
+            'the page draws the letter %r and the legend does not name it' % body
+    else:                                   # status and change badges
+        assert len(body) > 1, \
+            'the badge %r neither spells itself nor is in the legend' % body
+assert letters, 'no verification letter is drawn, so nothing was checked'
+# And the mark itself answers where the reader's eye already is. Filtering
+# leaves the legend on screen — only cards carry `hidden` — but the list is
+# long, and a letter met two hundred requirements below the legend is a
+# letter the reader would have to scroll back to look up.
+titled = re.findall(r'<span class="badge" title="([^"]*)">', page)
+assert titled and all(t.strip() for t in titled), \
+    'a verification letter carries no title of its own'
+PY2
+echo "view-smoke: every mark on a requirement card is explained"
+
 # A viewer run must not litter the target with bytecode.
 test -z "$(find . -name __pycache__)"
 
