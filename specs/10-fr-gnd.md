@@ -1500,3 +1500,48 @@ carry.
 
 A default exists and is the conventional one, because a project that has not
 thought about this should still get a criterion rather than a refusal to run.
+
+### FR-GND-500 — An agent names only hypotheses that already exist
+
+```yaml
+status: implemented
+verification: I
+derives_from: [INV-GND-030]
+depends_on: [FR-GND-330]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-bet/SKILL.md, grounds/README.md]
+tests: []
+created: 2026-08-23
+```
+
+Where an agent works on the register, the procedure **shall** confine the
+hypotheses it may name to those already recorded, leaving a claim none of them
+carries to a declaration or to nothing.
+
+**Rationale.** The protection INV-GND-030 rests on is not a rule but a price.
+Declaring that a requirement stands on nothing is a line and a sentence.
+Inventing a bet means inventing a hypothesis — a bounded population, a
+quantity, a threshold, a date and a named owner who will be asked about it
+next quarter — and for a person that bill is larger than the honest
+declaration, which is why the honest declaration gets written.
+
+An agent is not sent that bill. The same record costs it nothing, the
+plausible population and the round threshold arrive on demand, and the whole
+asymmetry the layer stands on is settled by whoever is cheapest to write with.
+What comes out passes every check this layer has, because the checks are on
+the shape of a record and the invention is shaped correctly.
+
+The owner field is where it is plainest. `owner` names who answers for
+measuring the hypothesis, and an agent that fills it in has committed a person
+who was never asked. That is not a defect of the field: no field can be
+written by somebody who will not be held to it and still mean what it says.
+
+So the boundary is drawn where the economics stops working rather than where
+the format does. An existing hypothesis was priced by whoever wrote it; a bet
+naming one adds no claim about the world. A `U` declaration adds none either
+— it says the opposite. Everything between the two is a person's act.
+
+Verified by inspection, for the reason every procedure requirement in this
+area is: no suite runs a dialog, and one asserting the wording would be a copy
+of the file rather than a check on it.

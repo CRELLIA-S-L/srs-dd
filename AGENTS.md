@@ -55,6 +55,10 @@ then write the code, then close the loop.
 
 - **Specification rules** — `specs/README.md`.
 - **Check** — `python3 tools/srs_check.py` (`--strict` in CI).
+- **Line width** — stated in `CONTRIBUTING.md` under *Ground rules*, and
+  read it before reformatting anything: what it says about markdown is
+  the opposite of what the files look like they are doing.
+  `tests/line-width.sh` refuses what it forbids (FR-CI-100).
 - **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--html`.
 - **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does;
   `git config core.hooksPath .githooks` wires it into `pre-commit`.

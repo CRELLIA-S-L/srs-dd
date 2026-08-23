@@ -253,3 +253,51 @@ baseline whether or not the specification had moved. It writes no prose: the
 changelog section is written by a person, and its absence is what the
 command refuses on. It commits and tags nothing (CON-SPEC-030) — the dated
 section is what tells it the release was already cut.
+
+### FR-CI-100 — The gate refuses a source line nobody had to write long
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: [tests/line-width.sh]
+tests: [tests/checker-rules.sh]
+created: 2026-08-23
+```
+
+The local gate **shall** refuse a source line wider than 120 columns whose
+width does not come from a string literal on it.
+
+**Rationale.** `CONTRIBUTING.md` has said 120 columns in code and none in
+markdown since before this requirement, and prose is where a rule of this
+kind goes to be ignored — an agent that never opens the file applies whatever
+width it inferred from how the files look, which is how markdown got reflowed
+to a limit the same document explicitly denies. A rule nothing enforces is a
+rule read only by whoever already follows it.
+
+The exemption is the hard half and it is why this is not a linter setting. A
+line that cannot be split without changing what it produces is left alone
+whatever its length: a `printf` whose argument is a whole fixture document, a
+CSS declaration inside a page the viewer emits, a single string literal.
+Those are not defects and marking them up is worse than leaving them — a
+marker inside the CSS would change the bytes the page ships.
+
+So width is measured after the string literals on the line are removed, and
+a line inside a Python triple-quoted block is skipped entirely, being literal
+throughout. That covers the exemption as `CONTRIBUTING.md` lists it and no
+further: an unsplittable run outside a literal — a long URL in a comment — is
+refused, and there is no line like that in this repository today. Widening the
+rule to recognise one costs a heuristic about what a token is, and the price
+is paid only when such a line is actually wanted. What survives is the width somebody chose: a compound command, a
+long call, a chain of conditions — the cases where splitting costs nothing
+and changes nothing. Eight lines in this repository exceed 120 columns today
+and the rule clears all eight; the one it caught was a subshell running three
+commands in a row.
+
+Markdown is not looked at, in this repository or in any target. A line break
+inside a paragraph renders as a space — `tools/srs_view.py` joins them with
+`p.replace("\n", " ")` — so where a line ends is invisible to every reader
+and matters only to `git diff`.

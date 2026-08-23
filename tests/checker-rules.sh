@@ -898,4 +898,31 @@ spec < <(block FR-CORE-010 "Valid, and points at the other" \
 rule "the valid specification passes" 0 "Requirements: 2"
 rule "and passes a strict gate" 0 "Requirements: 2" --strict
 
+# --- verifies: FR-CI-100 — the gate refuses a line nobody had to write
+# long, and leaves alone the one that cannot be split.
+#
+# Run against a target of its own rather than this repository: a fixture
+# asserting "the repository passes" proves only that today's repository
+# passes, and would keep passing if the rule were deleted.
+LAB5=/tmp/srs-width
+rm -rf "$LAB5"; mkdir -p "$LAB5/tools" "$LAB5/tests"
+
+# A compound command, wide because somebody wrote it that way.
+printf 'x() { :; }\n( cd /tmp && echo %s && echo %s && echo %s && echo %s )\n' \
+    "$(printf 'a%.0s' {1..40})" "$(printf 'b%.0s' {1..40})" \
+    "$(printf 'c%.0s' {1..40})" "$(printf 'd%.0s' {1..40})" \
+    > "$LAB5/tests/wide.sh"
+bash tests/line-width.sh "$LAB5" >/dev/null 2>"$LAB5/err" \
+    && { echo "FAIL FR-CI-100 — a splittable 120+ line was accepted"; exit 1; }
+grep -q "columns wide" "$LAB5/err" \
+    || { echo "FAIL FR-CI-100 — refused without saying the width"; exit 1; }
+
+# The same width, all of it inside one literal: left alone, whatever it is.
+rm "$LAB5/tests/wide.sh"
+printf "printf '%s'\n" "$(printf 'z%.0s' {1..200})" > "$LAB5/tests/long.sh"
+bash tests/line-width.sh "$LAB5" >/dev/null 2>&1 \
+    || { echo "FAIL FR-CI-100 — an unsplittable literal was refused"; exit 1; }
+rm -rf "$LAB5"
+passes=$((passes + 2))
+
 echo "checker-rules: $passes fixtures pass"

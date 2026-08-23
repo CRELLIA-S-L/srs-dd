@@ -480,55 +480,110 @@ enough and the specification survives intact. If the store must move, then
 which requirement replaces `NFR-SPEC-020`, and what it promises instead
 about review, history and the gate.
 
-## The framework's own grounds register is empty
+## Four of the register's five kinds have no file
 
 **Found:** while building the reconfirmation criterion (2026-08-22).
+Narrowed on 2026-08-23, when the first records were written.
 
 **What diverged:** ADR-0018 decided, on 2026-08-19, that this repository
 would keep a grounds register of its own — option 3 of three, chosen over
 "ship the layer, do not use it here" on the ground that a format never held
-by a real entry is a format whose first real entry will want a rename. The
-ADR goes as far as naming where to start: that an agent handed the
-specification follows the procedures rather than improvising, that a
-maintainer runs the checker unprompted, that the two-way annotations are
-worth what they cost.
+by a real entry is a format whose first real entry will want a rename.
 
-`grounds/` holds `README.md`, `grounds-config.json` and the generated
-`90-dashboard.md`, and nothing else. There is no `00-ideology.md`, no
-`01-frames.md`, no `02-unclaimed.md`, no `03-bets.md` — not empty files, no
-files. A target installing the layer receives all four as scaffolding; the
-repository that ships them has none.
+**What landed:** `grounds/10-h-authoring.md` now holds `H-010` and `H-020`,
+written and owned by the maintainer, and the dashboard counts them. The
+argument ADR-0018 made is served: the format has held real entries and
+wanted no rename.
 
-Nothing is pretending otherwise: the dashboard states `Records: 0 — 0
-ideology, 0 frame, 0 hypothesis, 0 bet, 0 unclaimed` on its first line. The
-gap is between the decision and the tree, not between the tree and its own
-report.
+**What is still open:** there is no `00-ideology.md`, no `01-frames.md`, no
+`02-unclaimed.md`, no `03-bets.md` — not empty files, no files. A target
+installing the layer receives all four as scaffolding; the repository that
+ships them has one file of its own. The ideology is the loudest absence: the
+standard calls it what the hypotheses are confirmed *for*, so a register
+holding hypotheses and no ideology confirms them for nothing written down.
 
-**What will not notice:** `tests/grounds-check.sh` is the gate on this
-repository's register and it passes. It asserts that the checker accepts the
-register strictly and that the committed dashboard matches a fresh run, and
-both hold of an empty one — vacuously, and forever. The suite that exists to
-guard the register cannot tell the difference between a register that is
-sound and one that is not there.
+**What will not notice:** `tests/grounds-check.sh` asserts that the checker
+accepts the register strictly and that the committed dashboard matches a
+fresh run. Both now hold of a register with two hypotheses in it, which is
+better than holding vacuously of an empty one — but they hold just as well
+of a register missing four kinds. The suite still cannot tell a kind
+deliberately left unwritten from one nobody got to.
+
+**Decision needed:** whether the other four kinds are wanted here at all.
+The two halves are not alike. An ideology and a frame say what this project
+is for and what it will not do, and nobody but the maintainer can say either.
+A bet and a declaration follow from requirements that already exist and are
+written by whoever works the register — `FR-GND-500` bars an agent from
+inventing a hypothesis, not from recording a bet on one. If the kinds are not
+wanted, the gate should say so out loud rather than passing in silence, and
+that part is ordinary work.
+
+## A class III reading is overruled by arithmetic
+
+**Found:** while deciding what the register's first real entries would say
+(2026-08-23).
+
+**What diverged:** `refuted_if` is required of every `H` record —
+`srs_grounds.py:84-85` lists it beside `class`, `population`, `expires`,
+`owner` and `impact` — and FR-GND-140 judges every verdict row against that
+threshold without asking what class the hypothesis is. The two
+class-conditional rules in the file both run the other way: `class-untestable`
+fires for class I alone (`srs_grounds.py:718`), `verdict-unattributed` for
+class III alone (`srs_grounds.py:763`). Nothing exempts class III from the
+arithmetic.
+
+The standard defines class III as "outside the system: interviews,
+observation, judgement". Where the population is small the two obligations
+cannot both be met. At `n = 2`, the one-sided Wilson bound FR-GND-150 computes
+at the default `confidence` of `0.95` reaches 0.575 even when both answers are
+no — so `verdict_owed` returns `supported` for a threshold as generous as
+`proportion < 0.50 at n >= 2`, and for every stricter one as well. Refuting
+needs the threshold to sit above that bound — above three in five of them
+doing the thing — which is not the shape a hypothesis about whether something
+works for people takes. A maintainer who talks to both, concludes it does not
+hold, and writes `refuted` gets an error naming a comparison nobody could have
+won.
+
+That error is arithmetic nobody did, which is what FR-GND-140's own rationale
+was written against — inverted. There the danger was a verdict overruling the
+number; here it is the number overruling the reading the class exists to
+admit. Every threshold below that bound returns the same verdict however far
+apart they are written, and the register records a judgement as its
+opposite.
+
+This repository walked around it rather than into it. ADR-0018 predicted the
+register here would come out mostly class III with named owners and no
+instruments, and it did; the population that was first proposed for `H-010`
+was two people, and at that size the bound above reaches 0.575 — which a
+threshold refutes only by sitting above, and no claim about half of them does.
+What was written instead (2026-08-23) widened the population past this team,
+so `H-010` carries `proportion < 0.50 at n >= 8`, which refutes at 0 or 1 of 8
+and gives real gradations above that. The corner is still there for the next
+class III hypothesis whose population genuinely is small, and widening is not
+always available — a claim about two people is a claim about two people, and
+rewriting it to be about more is a different claim.
 
 **Doors:**
 
-*Write it.* The ADR names three starting hypotheses and predicts the shape:
-mostly `assumed`, class III, named owners, no instruments. This is the
-maintainer's act and cannot be delegated — a hypothesis with no owner who
-cares is exactly the invented entry ADR-0018 rejected as option 2, and
-writing one on somebody's behalf produces that rather than avoiding it.
+*Make `refuted_if` optional for class III.* The narrowest change, and it
+touches the format rather than a rule: IF-GND-010 makes an addition
+compatible and a removal not, and a required key becoming optional is a
+loosening every existing record survives. It costs the guarantee that every
+hypothesis was written falsifiable before it was measured — which is most of
+why the field is required.
 
-*Reverse the decision to option 1.* Ship the layer, do not use it here, and
-record why the reasoning of 2026-08-19 no longer holds. Legitimate, and it
-costs the argument the ADR made: the format goes to strangers never having
-held a real entry.
+*Do not apply the verdict arithmetic to class III.* The threshold stays
+required and stays a declaration of what would count; the checker stops
+compelling a verdict from it where the measurement was a person's reading.
+Keeps falsifiability visible and gives up the guard against a class III
+verdict that flatly contradicts its own numbers.
 
-*Make the gate able to see this either way.* Whichever of the two above is
-chosen, `tests/grounds-check.sh` currently cannot report the state it is
-guarding. A register that is deliberately absent and one that was forgotten
-look identical to it.
+*Leave it, and record that class III with a small population is not supported
+by the register.* Honest, and it means the layer's answer to "we asked both of
+them" is that this is not a hypothesis. Then the first entries here are `U`
+declarations or nothing, and ADR-0018's argument for keeping a register in
+this repository loses its example.
 
-**Decision needed:** which of the first two, and by when. The third is not an
-alternative to them but a consequence of either, and it is the only part of
-this that is ordinary work rather than a judgement.
+**Decision needed:** which of the three. The first two change
+`tools/srs_grounds.py` and at least one requirement; the third changes
+`grounds/README.md` and closes nothing else.

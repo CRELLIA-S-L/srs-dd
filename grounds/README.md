@@ -477,6 +477,19 @@ bounded population, a quantity, a threshold, a date and a named owner — that
 somebody will be asked about next quarter. It is cheaper to be honest, which
 is the only arrangement that survives contact with a deadline.
 
+**That price is charged to people, and an agent is not sent the bill.** The
+same record costs it nothing; a plausible population and a round threshold
+arrive on demand, and what comes out passes every check here, because the
+checks are on the shape of a record and the invention is shaped correctly.
+`owner` is where it is plainest: it names who answers for measuring the claim,
+and an agent that fills it in has committed a person who was never asked.
+
+So an agent working on this register stakes a requirement only on hypotheses
+already in it. Where none of them carries the claim, what it may offer is a
+`U` declaration or nothing — never a new `H`. Both of those add no claim about
+the world; a hypothesis does, and a claim about the world is somebody's to
+make.
+
 ## Configuration
 
 `grounds/grounds-config.json` — its presence is what says this project
@@ -547,3 +560,6 @@ still can, rather than dying on somebody else's configuration.
   need.
 - **Do not let a tool change a record.** Everything in here is authored. The
   dashboard is the one file written by a machine, and the only one.
+- **Do not have an agent write a hypothesis.** It can propose a bet on one
+  that exists, or a declaration that there is none. A population, a threshold
+  and an owner are claims a person makes and answers for.

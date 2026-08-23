@@ -136,6 +136,21 @@ unclaimed arrivals by period, and **what a period is comes from `period` in
 `quarter` where nothing says otherwise. The dashboard names the unit it used
 in that section, so the answer is in front of whoever is reading it.
 
+**What holds the declaration up is a price, and you are not charged it.**
+For a person, inventing a bet means inventing a hypothesis — a bounded
+population, a threshold, a date, and an owner who gets asked about it next
+quarter — and that is dearer than admitting there is nothing. Written by an
+agent the same record costs nothing, arrives well-formed, and passes every
+check the layer has, because the checks are on the shape and the shape is
+right. `owner` is the plainest of it: filling it in commits a person who was
+never asked.
+
+So: **stake only on hypotheses that are already in the register.** Where none
+of them carries the claim, offer a `U` declaration or offer nothing. Never
+write an `H`. If the claim looks worth making, say so to the person and let
+them make it — a hypothesis nobody chose to own is the invented link this
+section is about, wearing better clothes.
+
 ## When a measurement lands
 
 Append a row to the evidence table. Never edit one: a measurement that
@@ -209,3 +224,6 @@ project with a date rather than a deletion.
 - **Do not let an expiry decide anything.** A term running out is not a
   verdict. It says the confirmation is old, and only a measurement can
   say what the status is now.
+- **Do not write a hypothesis on somebody's behalf.** Propose a bet on one
+  that exists, or a declaration that there is none, and leave the claim about
+  the world to whoever will answer for it.

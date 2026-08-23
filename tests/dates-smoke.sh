@@ -87,7 +87,9 @@ verification: T
 The system **shall** never be counted.
 ````
 MD
-( cd "$LAB" && git add -A && GIT_COMMITTER_DATE=2026-07-01T10:00:00   git commit -q -m documented --date=2026-07-01T10:00:00 )
+( cd "$LAB" && git add -A \
+  && GIT_COMMITTER_DATE=2026-07-01T10:00:00 \
+     git commit -q -m documented --date=2026-07-01T10:00:00 )
 ( cd "$LAB" && python3 tools/srs_dates.py ) > /tmp/dates-fence.log 2>&1
 python3 - "$LAB/specs/10-fr-core.md" <<'PY'
 import sys
