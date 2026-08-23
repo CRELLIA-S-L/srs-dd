@@ -587,3 +587,58 @@ this repository loses its example.
 **Decision needed:** which of the three. The first two change
 `tools/srs_grounds.py` and at least one requirement; the third changes
 `grounds/README.md` and closes nothing else.
+
+## The second checker carries a version nothing bumps
+
+**Found:** while sequencing the 0.15.0 release (2026-08-23).
+
+**What diverged:** FR-CI-070 says the release command shall "bump **the
+checker's** version", in the singular, and it was written before there was a
+second one. `tools/srs_release.py` acts on exactly that reading: `CHECKER`
+(line 39) and `TOUCHED` (line 42) name `tools/srs_check.py` and nothing else.
+`tools/srs_grounds.py` declares its own `__version__` at line 44 and prints it
+to the user on every run, and no command, test or rule moves it.
+
+The two agree today at `0.14.0`, which is why nothing has noticed: the last
+release predates the grounds layer. They diverge at the first release after
+it — `srs_check` goes to 0.15.0, `srs_grounds` keeps saying 0.14.0 to
+everyone who runs it.
+
+It is not only this repository's problem. `tools/srs_grounds.py` is installed
+into every target that takes the register, so a project on 0.15.0 would have
+a `grounds/README.md` stamped `SRS-DD-0.15.0` by the installer beside a
+checker announcing 0.14.0 — two numbers for one install, and the wrong one is
+the one a person reads off a command's output.
+
+**What will not notice:** `tests/release-smoke.sh` asserts
+`__version__ = "9.9.9"` in `tools/srs_check.py` at two places and looks at
+the grounds checker nowhere. `CHANGELOG.md` states the contract in the
+singular too — "the same number is embedded in `tools/srs_check.py` as
+`__version__`" — so the format note, the requirement, the command and the
+suite all agree with each other and none of them agrees with the tree.
+
+**Doors:**
+
+*Version both.* `srs_release.py` bumps two files, FR-CI-070's statement goes
+plural, the `CHANGELOG.md` note names both, and `release-smoke.sh` asserts
+both. Honest and the most edits; two numbers that must be kept equal by a
+command rather than by a person.
+
+*Give the number one home.* Both checkers already import `tools/srs_parse.py`
+— that is what ADR-0019 extracted it for — so `__version__` could live there
+and be read by both. One file still gets bumped, and the number stops being
+copied. ADR-0019 refused to let the grounds checker import `srs_check`, and
+this does not reopen that: `srs_parse` has no configuration and exits on
+nothing.
+
+*Carry no version.* Remove `__version__` from `srs_grounds.py` and drop it
+from the summary line. A version nobody maintains lies more loudly than an
+absent one. It costs the register's output its provenance, which is the one
+thing a bug report needs first.
+
+**Decision needed:** which of the three, and it blocks cutting 0.15.0 —
+whichever is chosen, the release command changes with it.
+
+**Noticed alongside, and smaller:** `AGENTS.md` lists what lives in `tools/`
+and does not mention `srs_grounds.py` at all, though it ships to targets like
+the rest. Whatever is decided above, that line is now wrong.
