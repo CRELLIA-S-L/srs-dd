@@ -506,3 +506,59 @@ available while reading, which is where the judgement is being made.
 This is a criterion, not a method of deriving what to judge. How cases come
 out of a statement is the procedure's own business and no requirement
 governs it — a gap this one does not close.
+
+### FR-SKILL-180 — Authoring asks what the requirement stands on
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-GND-500]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-new/SKILL.md]
+tests: []
+created: 2026-08-23
+```
+
+Where the project carries a grounds register, the authoring procedure
+**shall** ask what the new requirement stands on, leaving the answer to a bet
+on a hypothesis already recorded, to a declaration that it rests on none, or
+to nothing.
+
+**Rationale.** The register's join lives in a bet, and until now nothing in
+the authoring dialog mentioned the register at all: the two trees were
+connected by a procedure somebody had to remember to run afterwards
+(`srs-bet`), which is the arrangement under which the connection does not get
+made. Authoring is the one moment when whoever knows why the requirement
+exists is in the room, and it costs a question.
+
+**Asks, and does not require.** INV-GND-030 forbids a rule of the layer from
+demanding that a requirement be named by a bet. This is a rule about a
+procedure rather than about the layer, so a demand made here would keep that
+invariant's letter and lose its point: the invented link it exists to prevent
+would get invented at the one moment somebody is being asked for one.
+"Neither" is a complete answer and the one an author gives most often; what
+the question buys is that it was asked while the answer was still cheap, not
+that it came back positive.
+
+The third answer is the one that needs saying out loud. Where the claim looks
+worth making and no hypothesis carries it, the procedure says so and stops:
+writing that hypothesis belongs to whoever will answer for measuring it, and
+an agent filling in `owner` commits a person who was never asked
+(FR-GND-500).
+
+Scoped to the dialog, and `srs-harvest` is the gap that leaves. It produces
+requirements too and mentions the register nowhere, and a bet recorded after
+the fact — explaining why something already built is standing there — is the
+case `srs-bet` calls worth more rather than less. Whether a procedure that
+proposes requirements in approved batches can ask this question at the same
+cost is not settled here.
+
+Only where the register exists — and the guard is in the text rather than in
+what gets installed. FR-GND-320 can withhold the register procedure from a
+target that declined the layer, because that skill is about nothing else;
+authoring happens in every project, so this one ships everywhere and asks the
+question only where there is a `grounds/` to answer it about. A dialog
+offering to record a bet in a project that has no register would be
+describing machinery it does not have.

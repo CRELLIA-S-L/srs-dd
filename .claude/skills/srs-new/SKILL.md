@@ -72,6 +72,32 @@ Then write the requirement into the file and run
 Do not batch-create requirements silently — each one goes through the
 dialog.
 
+## What it stands on
+
+Only where the project carries a grounds register — a `grounds/` directory
+beside `specs/`. Where there is none, skip this and say nothing about it.
+
+The requirement now exists and can be named, so ask once what it stands on.
+Three answers, and all three are finished answers:
+
+- **A hypothesis already in the register carries it.** Record a bet through
+  `srs-bet`, which reads the hypothesis back against its own numbers first.
+- **It rests on nothing anybody wrote down.** A `U` declaration says so with
+  a reason, and retires itself the moment a real bet appears.
+- **Neither.** The commonest answer and a complete one: nothing obliges a
+  requirement to be named by a bet, and a link invented to fill the shape is
+  worse than an absent one because it looks like knowledge.
+
+**The third answer has a loud version, and it is still the third answer.**
+Where the claim looks worth measuring and no hypothesis carries it, say that
+and stop there — saying a thing is worth measuring is not recording it. A
+hypothesis is written by the person who will answer for measuring it: it needs a bounded population, a threshold, a date and a named
+owner, and filling in that owner commits somebody who was never asked. Offer
+the observation, not the record.
+
+Say which of the three it was. An unasked question and an answer of "neither"
+look identical afterwards, and only one of them was a decision.
+
 ## Where this ends
 
 At the written requirement, and at the architecture decision if the
