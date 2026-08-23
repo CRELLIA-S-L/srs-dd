@@ -201,6 +201,15 @@ and names that ground in advance. A quarter later somebody looks at whether
 anyone went there. Nobody did, and it was not a revision — it was a capture,
 written up as learning.
 
+**Widening the set costs something and narrowing it does not**, which is the
+asymmetry a self-amending rule needs to survive: capture runs through
+widening, one admissible argument admitting the next. The record keeps enough
+history to notice a set that grew, and a growth arriving without an amendment
+naming what it opens is said out loud. What the register cannot do is stop
+the other failure — a set narrowed until nothing can move the ideology at all
+— because the answer to that is a minimum no procedure may amend, and a file
+is a file.
+
 ### `F` — frame
 
 A boundary the project will not cross whatever the evidence says: we do not

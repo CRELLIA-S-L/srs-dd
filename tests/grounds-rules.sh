@@ -8,6 +8,7 @@
 # verifies: CON-GND-020, FR-GND-130, FR-GND-220, FR-GND-240
 # verifies: FR-GND-260, FR-GND-010, IF-GND-030, FR-GND-250
 # verifies: CON-GND-010, FR-GND-190, FR-GND-200, FR-GND-210
+# verifies: FR-GND-510, FR-GND-520
 # verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
 # verifies: FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-450
 # verifies: FR-GND-460, FR-GND-470, FR-GND-230, FR-GND-140
@@ -997,8 +998,9 @@ rm -f "$D"
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.')
 rule "FR-GND-270 no history" 0 "did not run, which is not the same as passing"
 
-# --- verifies: FR-GND-190, FR-GND-200 — the two rules that read the
-# --- register's history. A lab of their own, because they need one.
+# --- verifies: FR-GND-190, FR-GND-200 — two of the rules that read the
+# --- register's history. A lab of their own, because they need one; the
+# --- ideology pair below shares it.
 HLAB=/tmp/srs-grounds-history
 rm -rf "$HLAB"; mkdir -p "$HLAB/tools" "$HLAB/specs" "$HLAB/grounds"
 cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
@@ -1118,6 +1120,55 @@ git clone -q --depth 1 "file://$HLAB" /tmp/srs-grounds-shallow 2>/dev/null
 grep -qF "the clone is shallow" /tmp/srs-shallow.log \
     || { echo "FAIL FR-GND-270 — a shallow clone did not say so"
          cat /tmp/srs-shallow.log; exit 1; }
+passes=$((passes + 1))
+
+# --- verifies: FR-GND-510, FR-GND-520 — growth in what may move an
+# --- ideology, and whether the growth said what it opened.
+ideo_at() {   # ideo_at <admissible arguments> [amendment rows…]
+    { printf '### I-010 — For studios\n\n```yaml\nstatus: active\nadmissible_arguments: [%s]\n```\n\nWe are for studios of five to fifty.\n\n' "$1"
+      shift
+      if [ "$#" -gt 0 ]; then
+          printf '| date | what changed | why | territory it opens |\n|---|---|---|---|\n'
+          for row in "$@"; do printf '%s\n' "$row"; done
+      fi
+    } > "$HLAB/grounds/00-ideology.md"
+}
+
+# Adopted, then widened in the same commit as the amendment that says what
+# the wider set now admits. The price is charged; the disclosure is not.
+ideo_at "a cohort measurement"; commit_lab "ideology adopted"
+ideo_at "a cohort measurement, a frame refusal" \
+    "| 2027-01-12 | a frame refusal admitted | three refusals in a quarter | teams with a delivery manager |"
+commit_lab "widened, and said what it opens"
+history_run
+grep -qF "widened what may move it, admitting a frame refusal" /tmp/srs-history.log \
+    || { echo "FAIL FR-GND-510 — a widened set of admissible arguments was"
+         echo "not reported"; cat /tmp/srs-history.log; exit 1; }
+grep -qF "widened without an amendment naming the territory" /tmp/srs-history.log \
+    && { echo "FAIL FR-GND-520 — a widening that named its territory was"
+         echo "reported as undisclosed"; cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 2))
+
+# Widened again with nothing new said. This is the assertion the rule would
+# pass without: reporting every widening as undisclosed would satisfy the
+# grep above's absence only by accident.
+ideo_at "a cohort measurement, a frame refusal, revenue" \
+    "| 2027-01-12 | a frame refusal admitted | three refusals in a quarter | teams with a delivery manager |"
+commit_lab "widened in silence"
+history_run
+grep -qF "widened without an amendment naming the territory" /tmp/srs-history.log \
+    || { echo "FAIL FR-GND-520 — a widening with no amendment was not"
+         echo "reported"; cat /tmp/srs-history.log; exit 1; }
+passes=$((passes + 1))
+
+# Narrowing is the other move and this pair says nothing about it — by
+# design, and the gap is named in FR-GND-510's rationale.
+ideo_at "a cohort measurement"
+commit_lab "narrowed"
+history_run
+grep -cF "widened what may move it" /tmp/srs-history.log | grep -qx 2 \
+    || { echo "FAIL FR-GND-510 — narrowing changed how many widenings are"
+         echo "reported"; cat /tmp/srs-history.log; exit 1; }
 passes=$((passes + 1))
 
 # --- verifies: IF-GND-020 — the exit codes a gate binds to.

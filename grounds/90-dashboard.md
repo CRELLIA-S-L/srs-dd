@@ -39,11 +39,11 @@ Counted by quarter, which is what `period` says in the register's configuration.
 
 | quarter | arrived unclaimed | areas |
 |---|---|---|
-| 2026-Q3 | 171 | CHK 24, CI 12, GND 60, INIT 17, SKILL 19, SPEC 15, VIEW 24 |
+| 2026-Q3 | 173 | CHK 24, CI 12, GND 62, INIT 17, SKILL 19, SPEC 15, VIEW 24 |
 
 ## Requirements resting on no hypothesis
 
-171 of 171 requirements. Weight is what stands on them: how many
+173 of 173 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -108,6 +108,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-030 | 1 | 1 | 2 |
 | FR-CI-040 | 0 | 2 | 2 |
 | FR-CI-070 | 1 | 1 | 2 |
+| FR-GND-030 | 1 | 1 | 2 |
 | FR-GND-040 | 1 | 1 | 2 |
 | FR-GND-060 | 1 | 1 | 2 |
 | FR-GND-070 | 1 | 1 | 2 |
@@ -125,6 +126,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-350 | 1 | 1 | 2 |
 | FR-GND-410 | 1 | 1 | 2 |
 | FR-GND-480 | 0 | 2 | 2 |
+| FR-GND-510 | 1 | 1 | 2 |
 | FR-INIT-030 | 1 | 1 | 2 |
 | FR-INIT-070 | 1 | 1 | 2 |
 | FR-INIT-090 | 1 | 1 | 2 |
@@ -155,7 +157,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-080 | 0 | 1 | 1 |
 | FR-CI-100 | 0 | 1 | 1 |
 | FR-GND-020 | 0 | 1 | 1 |
-| FR-GND-030 | 0 | 1 | 1 |
 | FR-GND-050 | 0 | 1 | 1 |
 | FR-GND-080 | 0 | 1 | 1 |
 | FR-GND-090 | 0 | 1 | 1 |
@@ -180,6 +181,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-460 | 0 | 1 | 1 |
 | FR-GND-470 | 0 | 1 | 1 |
 | FR-GND-490 | 0 | 1 | 1 |
+| FR-GND-520 | 0 | 1 | 1 |
 | FR-INIT-040 | 0 | 1 | 1 |
 | FR-INIT-050 | 0 | 1 | 1 |
 | FR-INIT-080 | 0 | 1 | 1 |

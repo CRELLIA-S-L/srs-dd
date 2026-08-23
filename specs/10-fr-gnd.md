@@ -1545,3 +1545,84 @@ naming one adds no claim about the world. A `U` declaration adds none either
 Verified by inspection, for the reason every procedure requirement in this
 area is: no suite runs a dialog, and one asserting the wording would be a copy
 of the file rather than a check on it.
+
+### FR-GND-510 — Widening what may move the ideology is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-030]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-23
+```
+
+Where an ideology's admissible arguments gained a member since an earlier
+revision, the grounds checker **shall** report it, naming what was added.
+
+**Rationale.** A rule that governs the conditions of its own revision can
+immunise itself, and the capture runs through widening: the ideology is
+persuaded by an admissible argument to admit one more kind of argument, the
+wider set admits arguments that widen it further, and two steps later revenue
+is back by a chain of correct moves. Every known answer to that is the same
+one — some part of the rule is not revised by the procedure it governs — and
+the cheapest approximation a repository can offer is that widening is not
+free.
+
+Reported rather than refused, and the difference is the whole design. The
+concept prices narrowing cheap and widening expensive; a rule that refused
+would price widening at infinity, which is a different claim and one no
+project asked for. A finding under `rules` costs a warning, and a warning is
+what `--strict` fails on, so a project that wants the price higher sets it
+and one that wants it lower does the same.
+
+Narrowing is silent, and deliberately: the concept prices it cheap, so a rule
+reporting it would be charging for the move the asymmetry exists to make
+free. The gap is elsewhere and it is worth naming, because a later reader
+who finds narrowing unwatched will be tempted to close it here. Narrowing
+carried far enough is the concept's other failure — closure, the set narrowed
+until nothing can move the ideology at all — and the only answer to that is a
+minimum no procedure may amend, which `specs/91-open-issues.md` already
+records as something a repository can make loud and cannot prevent. So this
+rule covers one of the two failures, and reporting narrowings would not cover
+the second; it would only make the first look covered twice.
+
+Read from history for the reason FR-GND-190 is: the ordering exists nowhere
+else. Where history cannot be read the run says so rather than passing.
+
+### FR-GND-520 — A widening names the territory it opens
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-510]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-23
+```
+
+Where an ideology's admissible arguments gained a member in a revision whose
+amendment table gained no row naming a territory, the grounds checker
+**shall** report the widening as undisclosed.
+
+**Rationale.** The criterion the concept gives for telling a revision from a
+capture is Lakatos's: a modification is progressive where it predicts
+something new, degenerating where it only accommodates the anomaly that
+prompted it. Named in advance, the territory is a prediction somebody can go
+and check a quarter later; named afterwards it is whatever happened.
+
+So the disclosure is what makes the criterion applicable at all, and it is
+the only half of it this rule reaches. Whether anyone actually went to the
+named territory is the other half, and the register has no way to say it: a
+later record does not point at the territory that admitted it. That is a
+format question and belongs to a decision, not to this requirement.
+
+The row is required in the revision that widened, not merely somewhere in the
+table. An amendment written later describes a set that had already changed,
+which is the accommodation the criterion is meant to catch.

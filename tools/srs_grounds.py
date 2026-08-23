@@ -117,7 +117,7 @@ RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
          "declaration-superfluous", "threshold-moved", "evidence-dropped",
          "relied-on-untested", "never-measured", "verdict-unattributed",
          "action-beyond-grade", "declined-leftover", "action-without-grade",
-         "class-untestable")
+         "class-untestable", "arguments-widened", "widening-undisclosed")
 SEVERITIES = ("warn", "report", "off")
 
 # implements: FR-GND-230
@@ -475,26 +475,40 @@ def hypotheses_in(text, path):
     return out
 
 
-def check_history(records, cfg, warnings, reports):
-    # implements: FR-GND-190, FR-GND-200, FR-GND-270
-    """The two rules that read the register's history rather than its files.
+def ideologies_in(text, path):
+    """The ideology records of one file's text, by identifier."""
+    out = {}
+    for entry in srs_parse.parse_entries(text, path, [], RE_HEADING):
+        match = RE_ID.match(entry.id)
+        if match and match.group(1) == "I":
+            out[entry.id] = entry
+    return out
 
-    Both are replayed from one walk: the ordering of a threshold against
-    the first measurement recorded under it, and the evidence rows that
-    were once there.
+
+def check_history(records, cfg, warnings, reports):
+    # implements: FR-GND-190, FR-GND-200, FR-GND-270, FR-GND-510, FR-GND-520
+    """The rules that read the register's history rather than its files.
+
+    Replayed from one walk: the ordering of a threshold against the
+    first measurement recorded under it, the evidence rows that were
+    once there, and the growth of what may move an ideology.
     """
     paths = [rel for _full, rel in collect_files()]
     revisions, problem = history_of(paths)
     if problem:
         reports.append(
             "the register's history could not be read (%s); the "
-            "threshold-moved and evidence-dropped rules did not run, which "
-            "is not the same as passing" % problem)
+            "threshold-moved, evidence-dropped, arguments-widened and "
+            "widening-undisclosed rules did not run, which is not the same "
+            "as passing" % problem)
         return
 
     threshold = {}        # id -> (value, revision index, ever changed)
     first_measured = {}   # id -> index of the revision that first showed one
     rows_ever = {}        # id -> {row: index first seen}
+    arguments = {}        # id -> the admissible set as last seen
+    amendments = {}       # id -> {amendment row: index first seen}
+    widened = {}          # id -> [(what was added, whether it was disclosed)]
     for index, texts in enumerate(revisions):
         for path, text in sorted(texts.items()):
             for hid, entry in sorted(hypotheses_in(text, path).items()):
@@ -508,6 +522,25 @@ def check_history(records, cfg, warnings, reports):
                     first_measured[hid] = index
                 for row in rows:
                     rows_ever.setdefault(hid, {}).setdefault(row, index)
+            # implements: FR-GND-510, FR-GND-520
+            for iid, entry in sorted(ideologies_in(text, path).items()):
+                value = entry.fields.get("admissible_arguments")
+                admits = frozenset(value if isinstance(value, list)
+                                   else [value] if value else [])
+                rows = [tuple(r) for r in table_with(entry, "what changed")]
+                # Read before the rows are folded in below: what makes a
+                # widening disclosed is an amendment arriving *with* it, and
+                # one written later describes a set that had already moved.
+                disclosed = any(len(row) >= 4 and row[3].strip()
+                                and row not in amendments.get(iid, {})
+                                for row in rows)
+                added = admits - arguments[iid] if iid in arguments else None
+                if added:
+                    widened.setdefault(iid, []).append(
+                        (sorted(added), disclosed))
+                arguments[iid] = admits
+                for row in rows:
+                    amendments.setdefault(iid, {}).setdefault(row, index)
 
     # A record that is simply gone takes its measurements with it, which is
     # the easiest way to make an inconvenient one disappear and the one the
@@ -519,6 +552,25 @@ def check_history(records, cfg, warnings, reports):
                          "longer in the register at all; an entry is "
                          "retired in a status that says so, never deleted"
                          % (hid, len(rows_ever[hid])))
+
+    # implements: FR-GND-510, FR-GND-520
+    for iid in sorted(widened):
+        if iid not in records:
+            continue
+        rec = records[iid]
+        for added, disclosed in widened[iid]:
+            rule_finding(warnings, reports, cfg, "arguments-widened",
+                         "%s — %s widened what may move it, admitting %s; "
+                         "widening is the move a capture is made of, and "
+                         "this layer prices it rather than refusing it"
+                         % (rec.where, iid, ", ".join(added)))
+            if not disclosed:
+                rule_finding(warnings, reports, cfg, "widening-undisclosed",
+                             "%s — %s widened without an amendment naming "
+                             "the territory it opens; named in advance that "
+                             "is a prediction somebody can go and check, "
+                             "named afterwards it is whatever happened"
+                             % (rec.where, iid))
 
     for hid in sorted(records):
         rec = records[hid]
