@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Specification viewer: terminal queries and a self-contained HTML site.
 
 Standard library only, compatible with Python 3.9. Read-only by
@@ -170,9 +171,9 @@ def build_model(requirements, problems, with_code_scan=True):
 
     # implements: FR-VIEW-040
     # A cancelled requirement's `code` field records what it once pointed
-    # at, not a claim on the file now — the same reading the checker uses
-    # (FR-CHK-210). Counted here, a withdrawal would quietly move its files
-    # out of the gap list, and the two tools would describe one file
+    # at, not a claim on the file now — the same reading the checker
+    # uses. Counted here, a withdrawal would quietly move its files out
+    # of the gap list, and the two tools would describe one file
     # differently in the same run.
     covered = set()
     for entry in entries:
@@ -563,9 +564,9 @@ def print_coverage(model, style):
                 if other and other["status"] == "draft":
                     resting.append((entry["id"], field, target))
     out()
-    # Counted by requirement, which is what FR-VIEW-040 names and what the
-    # page already reported; listed by link, because which field reaches
-    # which draft is what a reader acts on. One requirement resting on two
+    # Counted by requirement, which is what the summary names and what
+    # the page already reported; listed by link, because which field
+    # reaches which draft is what a reader acts on. One requirement resting on two
     # drafts is one in the count and two lines under it — counting the
     # lines instead inflated the number an audit starts from.
     out(style.b("Realized but resting on a draft: %d"
@@ -1002,9 +1003,9 @@ section h2 { font-size: 15px; margin: 22px 0 8px; }
 .scroll { overflow-x: auto; max-width: 100%; }
 .graph text { font-family: ui-monospace, monospace; font-size: 11px;
   fill: var(--fg); }
-/* The status is the node's colour (FR-VIEW-180). `currentColor` picks it
-   up from the st-* class the node already carries; a stroke named here
-   would win against it, which is how the class sat on every node for two
+/* The status is the node's colour. `currentColor` picks it up from
+   the st-* class the node already carries; a stroke named here would
+   win against it, which is how the class sat on every node for two
    releases without colouring anything. */
 .graph .node rect { fill: currentColor; fill-opacity: .13;
   stroke: currentColor; }
@@ -1075,9 +1076,9 @@ footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 12px 20px
 """
 
 # Leaving a kind out is a class on the drawing rather than a style on each
-# edge: the script rebuilds an edge when an area folds, and a style set on
-# the element would not survive that. Generated from LINK_FIELDS so a kind
-# added later cannot arrive unhideable (FR-VIEW-160).
+# edge: the script rebuilds an edge when an area folds, and a style set
+# on the element would not survive that. Generated from LINK_FIELDS so a
+# kind added later cannot arrive unhideable.
 EDGE_HIDE_CSS = "".join(
     "#graph-svg.hide-%s .edge.%s { display: none; }\n" % (field, field)
     for field in LINK_FIELDS)
@@ -1228,9 +1229,9 @@ JS = """
 
     // Collapsing an area is what pulling a node aside used to be: with a
     // lane for an area, what stands in front of the thing being read is a
-    // whole column, and moving one box out of nineteen achieves nothing
-    // (FR-VIEW-110). The members fold onto the lane's header and their
-    // edges are recomputed from where they now sit, so an area keeps
+    // whole column, and moving one box out of nineteen achieves
+    // nothing. The members fold onto the lane's header and their edges
+    // are recomputed from where they now sit, so an area keeps
     // showing what it is attached to while its contents are out of the
     // way. An edge with both ends inside a folded lane has nothing left
     // to say and goes with them.
@@ -1245,7 +1246,7 @@ JS = """
     // The band shrinks with the column: a lane that hid its members but
     // kept its full height would leave an empty stripe where the reader
     // asked for the space back, and "a single block" is what the
-    // requirement says (FR-VIEW-110).
+    // requirement says.
     var LANE_FOLD_H = 44;
     var laneList = Array.prototype.slice.call(gsvg.querySelectorAll('g.lane'));
     function setLane(lane, folded) {
@@ -1274,10 +1275,10 @@ JS = """
       });
     });
 
-    // Narrowing to a root and a radius. A drawing of everything is the one
-    // view a specification of any size cannot use; the tools that solve
-    // this converge on the same answer, a root and a distance from it
-    // (FR-VIEW-150).
+    // Narrowing to a root and a radius. A drawing of everything is the
+    // one view a specification of any size cannot use; the tools that
+    // solve this converge on the same answer, a root and a distance
+    // from it.
     var rootSel = document.getElementById('graph-root');
     var depthSel = document.getElementById('graph-depth');
     var neighbours = {};
@@ -1330,7 +1331,7 @@ JS = """
         // brings them back is worse off than before they folded anything.
         laneList.forEach(function (lane) { setLane(lane, false); });
         // And the kinds of link left out, for the same reason and with the
-        // same trap: a dimmed swatch is easy to miss (FR-VIEW-160).
+        // same trap: a dimmed swatch is easy to miss.
         Array.prototype.forEach.call(
           document.querySelectorAll('.key.kind'), function (key) {
             key.setAttribute('aria-pressed', 'true');
@@ -1507,8 +1508,8 @@ JS = """
     });
   });
 
-  // Leaving a kind of link out of the drawing (FR-VIEW-160). The class goes
-  // on the svg, not on the edges: folding an area rebuilds them.
+  // Leaving a kind of link out of the drawing. The class goes on the
+  // svg, not on the edges: folding an area rebuilds them.
   Array.prototype.forEach.call(
     document.querySelectorAll('.key.kind'), function (key) {
       var kind = key.dataset.kind;
@@ -1779,9 +1780,9 @@ def render_dashboard(model, links):
                       for path in model["orphan_code"])
 
     # implements: FR-VIEW-210
-    # Requirement identifiers go out as `href="#<id>"` so that following one
-    # from here reaches its card like every other view (FR-VIEW-130).
-    # `left` rather than `outlived`: the name belongs to the function that
+    # Requirement identifiers go out as `href="#<id>"` so that following
+    # one from here reaches its card like every other view. `left` rather
+    # than `outlived`: the name belongs to the function that
     # computes this, and a local shadowing it here is how somebody later
     # calls the dict.
     left = model["outlived"]
@@ -1940,8 +1941,8 @@ def build_graph(model):
     """Every link drawn; a lane per area, a row per requirement.
 
     Position is arithmetic — a lane index from the area, a row index from
-    the number — so the drawing comes out identical on every run without a
-    heuristic having to be kept stable for it (FR-VIEW-070, ADR-0012).
+    the number — so the drawing comes out identical on every run without
+    a heuristic having to be kept stable for it.
     """
     known = by_id(model)
     edges = []
@@ -1989,7 +1990,7 @@ def build_graph(model):
                  '<path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>'
                  '</marker></defs>')
     # Lanes first so the band sits behind everything; the header is the
-    # control that folds the column away (FR-VIEW-110).
+    # control that folds the column away.
     for index, lane in enumerate(lanes):
         x = LANE_PAD + index * LANE_STRIDE
         # Two rectangles, not one: the band is the column's backdrop and
@@ -2017,9 +2018,9 @@ def build_graph(model):
         cx, cy = position[child]
         px, py = position[parent]
         # The kind is always on the edge: a form that tells one relation
-        # from another is the requirement (FR-VIEW-160). Nothing marks an
-        # edge as running backwards any more — with a lane for an area and
-        # a row for a number, no direction claims to be forward.
+        # from another is the requirement. Nothing marks an edge as
+        # running backwards any more — with a lane for an area and a row
+        # for a number, no direction claims to be forward.
         parts.append('<path class="edge %s" data-from="%s" data-to="%s" '
                      'd="%s" marker-end="url(#a)"/>'
                      % (field, svg_escape(child), svg_escape(parent),
@@ -2048,11 +2049,12 @@ def build_graph(model):
     # across. The link swatch is a line carrying the very class the edge
     # carries, so the dash pattern cannot drift from the drawing; the
     # status swatch takes its colour from the same st-* class a node does.
-    # Colour is not the only channel (FR-VIEW-180): every key is named, and
-    # a node's tooltip says its status in words.
-    # Pressed means drawn: every kind starts on, and a click subtracts it.
-    # That is the direction FR-VIEW-160 argues for — a link that is drawn
-    # and unwanted is one click away, a link never drawn is invisible.
+    # Colour is not the only channel: every key is named, and a node's
+    # tooltip says its status in words.
+    # Pressed means drawn: every kind starts on, and a click subtracts
+    # it. That is the direction the requirement argues for — a link that
+    # is drawn and unwanted is one click away, a link never drawn is
+    # invisible.
     link_keys = "".join(
         '<span class="key kind" role="button" tabindex="0" '
         'aria-pressed="true" data-kind="%s">'

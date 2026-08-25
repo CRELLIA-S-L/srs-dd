@@ -241,7 +241,7 @@ created: 2026-08-08
 ```
 
 When cutting a release, the release command **shall** date the changelog
-section, bump the checker's version and report what to commit — refusing
+section, bump the framework's version and report what to commit — refusing
 where the section is missing or already dated, or where the specification
 does not pass the checker.
 
@@ -253,6 +253,16 @@ baseline whether or not the specification had moved. It writes no prose: the
 changelog section is written by a person, and its absence is what the
 command refuses on. It commits and tags nothing (CON-SPEC-030) — the dated
 section is what tells it the release was already cut.
+
+It bumps one number, and the statement says whose: the framework's, not
+the checker's. What a release versions is the delivery — the tools and
+the standards one installer writes into a target and one upgrade command
+refreshes — and the same number is stamped into every file that installer
+writes, the grounds standard included. The number lives in
+`tools/srs_parse.py`, the one file both checkers must have beside them,
+and each re-exports it (ADR-0021). It used to live in the specification
+checker, which left the grounds checker announcing a version nothing
+bumped.
 
 ### FR-CI-100 — The gate refuses a source line nobody had to write long
 

@@ -108,6 +108,25 @@ assert adopted.get('rules', {}).get('annotation-absent') == 'off', \
     'adoption did not silence the unclaimed-file rule: %r' % adopted.get('rules')
 PY
 
+# verifies: FR-INIT-180, FR-INIT-190
+# Adopt writes the checker itself — it has to run it before any tooling is
+# installed — so it is the one path into a target that does not go through
+# the copier. It shipped 26 of this framework's annotations and an
+# unreplaced version token until this assertion existed.
+python3 - <<'PY2'
+import json
+import re
+areas = json.load(open('specs/srs-config.json', encoding='utf-8'))['areas']
+RE = re.compile(r'(?:implements|verifies):\s*(?:FR|NFR|IF|INV|CON)-(?:%s)-'
+                % '|'.join(areas))
+text = open('/tmp/srs-adopt/tools/srs_check.py', encoding='utf-8').read()
+leaked = [line for line in text.split(chr(10))
+          if RE.search(line) and 'srs-ignore' not in line]
+assert not leaked, 'adopt shipped our annotations: %s' % leaked[:3]
+assert re.search(r'SRS-DD-\d+\.\d+\.\d+', text.split('\"\"\"')[0]), \
+    'adopt shipped a checker with no version stamp'
+PY2
+
 # The viewer reads a Russian specification without a UTF-8 locale.
 (cd /tmp/srs-adopt && LC_ALL=C python3 tools/srs_view.py --list | cat)
 

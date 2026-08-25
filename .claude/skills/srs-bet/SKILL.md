@@ -34,6 +34,21 @@ Only the last one is measured, and most of the work here is about it.
    outcome, not a score out of five. True and unimportant is an ordinary
    combination, and this is the field that tells them apart.
 6. **Its term and its owner.** A date, and a person rather than a team.
+7. **Which frames does it run into?** Read the frames the register holds
+   before the record is written. A frame is what the product will not do
+   whatever the evidence says, so a hypothesis it refuses does not get
+   admitted and does not get measured — refusing costs nothing here and
+   costs a bet, its requirements and whatever shipped against them later.
+   Where one refuses it, add the row to *that frame's* journal — `date`,
+   `what was refused`, `who asked` — and stop; the hypothesis is not
+   written. Where none does, say so in a clause and go on. Nothing
+   mechanical can do this step: whether a claim falls under a frame is a
+   judgement about meaning, and a frame narrow enough for a checker to
+   match has stopped being a frame.
+
+   The journal is the point. A frame with an empty one for a year is a
+   slogan rather than a rule, and that reading is only worth anything if
+   refusals actually land in it.
 
 Then judge what no checker reaches, and say what you found before the
 text is recorded. Four things, and two of them are where hypotheses
@@ -55,8 +70,8 @@ than about the world.
 is already an answer, and a hypothesis written that way measures whether
 the idea was popular instead of whether the problem was real. Write the
 claim from the person's side — "buyers cannot compare offers across
-suppliers" — and the solutions become alternatives to each other, which
-is what the bet's `served_by_any` is for.
+suppliers" — and the competing solutions stay outside it, where they can
+be compared instead of being settled by the wording.
 
 Where the statement is sound, say that too, in a clause.
 
@@ -90,7 +105,6 @@ hypothesis goes in is the whole content of the record:
 
 - `all_of` — needed together. Refute any one and the ground is gone.
 - `any_of` — alternatives. The strongest carries the requirement.
-- `served_by_any` — competing solutions to the same need.
 
 Two independent sets of alternatives are two bets naming the same
 requirement. The checker will ask whether that was deliberate, because

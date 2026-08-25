@@ -114,6 +114,14 @@ Copy into your repository, by hand:
 - `skeleton/AGENTS.md`, `skeleton/CLAUDE.md` → repository root;
 - `.gitattributes`, and a CI template from `ci/`.
 
+Copied by hand, the tooling arrives as it is written here: with this
+framework's `implements:`/`verifies:` annotations still in it, and with
+`SRS-DD-VERSION` in each header where the installer would have put the
+version. Neither breaks anything while your `code_roots` leave `tools/` out,
+which the default does. Where you do put `tools/` on your code roots, either
+run the installer instead — it removes them — or take those lines out
+yourself.
+
 Then write `specs/srs-config.json` by hand — the keys are documented in the
 Configuration section of `specs/README.md`. Add `framework_url` pointing at
 the repository you copied from, so `tools/srs_upgrade.py` knows where to go

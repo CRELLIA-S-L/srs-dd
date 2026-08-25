@@ -1626,3 +1626,47 @@ format question and belongs to a decision, not to this requirement.
 The row is required in the revision that widened, not merely somewhere in the
 table. An amendment written later describes a set that had already changed,
 which is the accommodation the criterion is meant to catch.
+
+### FR-GND-530 — A hypothesis is put against the frames before it is admitted
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [IF-GND-010]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-bet/SKILL.md]
+tests: []
+created: 2026-08-25
+```
+
+When a hypothesis is written, the procedure doing so **shall** put it against
+the frames the register holds and, where one refuses it, record the refusal
+in that frame's journal instead of admitting the hypothesis.
+
+**Rationale.** A frame is what the product will not do whatever the evidence
+says, and the cheapest moment to refuse is before anything is built on the
+claim — after that, refusing means unwinding a bet, requirements and whatever
+was shipped against them. That is why the concept this layer comes from puts
+frames at the first gate rather than at the last.
+
+Until this, the layer recorded frames and never applied them. Nothing
+connected a frame to a hypothesis or to a bet: `FR-GND-250` states what each
+frame has refused, and no procedure ever wrote a refusal into a journal, so
+the reading it exists to give — an empty journal for a year means a slogan
+rather than a frame — could not distinguish a frame nobody tested from a
+frame nobody has. A register can hold a veto and let straight through the one
+thing the veto names.
+
+It binds a person rather than the checker, and that is not a shortfall to be
+repaired later. Whether a claim about the world falls under "we do not take
+regulatory surface we cannot staff" is a judgement about meaning; a checker
+that tried it would be matching words, and a frame narrow enough to match on
+words is a frame that has already given up what it is for.
+
+The refusal goes into the journal rather than into the hypothesis, because
+the hypothesis is not admitted at all — there is nothing yet to carry a
+status. `declined` is the other refusal and a different one: it means true,
+measured, and deliberately not ours to act on, which happens at the far end
+of the lifecycle rather than at its door.

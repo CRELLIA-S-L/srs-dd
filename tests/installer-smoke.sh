@@ -4,7 +4,7 @@
 #
 # verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 # verifies: FR-GND-480
-# verifies: FR-INIT-170
+# verifies: FR-INIT-170, FR-INIT-180, FR-INIT-190
 set -eo pipefail
 
 # implements: FR-CI-090
@@ -295,16 +295,14 @@ RE = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3}\b' % '|'.join(areas))
 # than what travelled once.
 target = '/tmp/srs-clean'
 mine = {'specs/90-traceability.md'}          # generated from the target's own
-# tools/ is out of scope here and not because it is clean: the shipped
-# Python carries its own `implements:` annotations, which name this
-# framework's requirements. They are inert in a target whose code roots do
-# not include tools/ — the default does not — and 91-open-issues.md carries
-# what is left of that. Prose is what this check is for, and prose is what
-# the installer newly ships.
+# tools/ is in scope. It was excluded while the shipped Python still
+# carried its own `implements:` annotations; the installer now takes them
+# out on the way into a target (FR-INIT-180), so the one place this check
+# was blind to is the one that could have resolved to a stranger's
+# requirement.
 found = []
 for root, dirs, files in os.walk(target):
-    dirs[:] = [d for d in dirs if d != '.git' and
-               os.path.join(root, d) != os.path.join(target, 'tools')]
+    dirs[:] = [d for d in dirs if d != '.git']
     for name in sorted(files):
         path = os.path.join(root, name)
         rel = os.path.relpath(path, target)
@@ -321,6 +319,32 @@ assert not found, ('something the installer shipped cites a requirement of '
                    'this framework, which the target does not have — and may '
                    'have its own requirement under that number: %s' % found)
 PY
+
+# verifies: FR-INIT-180, FR-INIT-190
+# An annotation is removed, not deleted: the line stays a line, so a
+# traceback from a target names what it names here. Asserted per file
+# rather than in total, because one tool losing its length is how this
+# breaks and a sum would hide it.
+python3 - <<'PY3'
+import os
+for name in sorted(os.listdir('/tmp/srs-clean/tools')):
+    if not name.endswith('.py'):
+        continue
+    mine = open(os.path.join('tools', name), encoding='utf-8').read()
+    theirs = open(os.path.join('/tmp/srs-clean/tools', name),
+                  encoding='utf-8').read()
+    assert mine.count(chr(10)) == theirs.count(chr(10)), (
+        '%s: %d lines here, %d in the target — a removed annotation took '
+        'its line with it' % (name, mine.count(chr(10)),
+                              theirs.count(chr(10))))
+    header = theirs.split('"""')[0]
+    assert 'SRS-DD-' in header, '%s: no version stamp in the header' % name
+PY3
+
+# The example annotations are what a target reads the format from, so they
+# survive — and `srs-ignore` is what says they are examples rather than
+# claims.
+grep -q 'implements: FR-CORE-010' /tmp/srs-clean/tools/srs_check.py  # srs-ignore
 
 # --- verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 # --- The grounds register: offered, never imposed, and complete or absent.

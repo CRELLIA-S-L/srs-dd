@@ -32,10 +32,11 @@ if grep -q '"framework_url": "git@' /tmp/srs-upg/specs/srs-config.json; then
     exit 1
 fi
 
-# Make the version transition visible: pretend the project is a release behind.
+# Make the version transition visible: pretend the project is a release
+# behind. Written where the version lives, which is the parser.
 python3 - <<'PY'
 import re
-p = '/tmp/srs-upg/tools/srs_check.py'
+p = '/tmp/srs-upg/tools/srs_parse.py'
 s = open(p, encoding='utf-8').read()
 open(p, 'w', encoding='utf-8').write(
     re.sub(r'__version__ = "[^"]+"', '__version__ = "0.0.1"', s, count=1))

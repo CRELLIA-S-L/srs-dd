@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """The grounds checker: reads the register beside specs/ and reports on it.
 
     python3 tools/srs_grounds.py             check and rewrite 90-dashboard.md
@@ -41,7 +42,9 @@ except ImportError:
         "refresh the tooling.\n")
     sys.exit(2)
 
-__version__ = "0.14.0"
+# Re-exported: the number lives in srs_parse, the one file this checker
+# and the specification checker both must have beside them (ADR-0021).
+__version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GROUNDS = os.path.join(ROOT, "grounds")
@@ -1008,9 +1011,8 @@ def _pick(hyps, names, strongest):
 
 
 def decide(records, req):
+    # implements: FR-GND-070, INV-GND-020
     """The hypothesis that decides a requirement, as (rank, id).
-
-    implements: FR-GND-070, INV-GND-020
 
     Nothing stores what a requirement rests on. It is read off the bets
     every time it is needed, which is what keeps the join in one direction.

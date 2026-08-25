@@ -107,9 +107,17 @@ test -z "$(git status --porcelain)"
 python3 tools/srs_release.py 9.9.9 --date 2026-01-02 > /tmp/rel-run.log
 test "$(git rev-parse HEAD)" = "$clean"
 test -z "$(git tag -l 'v9.9.9')"
-grep -q '__version__ = "9.9.9"' tools/srs_check.py
+grep -q '__version__ = "9.9.9"' tools/srs_parse.py
 grep -q '## \[9.9.9\] — 2026-01-02' CHANGELOG.md
-grep -q "Commit CHANGELOG.md, tools/srs_check.py" /tmp/rel-run.log
+grep -q "Commit CHANGELOG.md, tools/srs_parse.py" /tmp/rel-run.log
+
+# One home and two re-exports: a bump that reaches the file but not
+# the tools reading it announces the old version to everybody who
+# runs them, which is the bug this arrangement replaced (ADR-0021).
+python3 tools/srs_check.py --no-write > /tmp/rel-ver-spec.log 2>&1
+grep -q "(srs_check 9.9.9)" /tmp/rel-ver-spec.log
+python3 tools/srs_grounds.py --no-write > /tmp/rel-ver-gnd.log 2>&1
+grep -q "(srs_grounds 9.9.9)" /tmp/rel-ver-gnd.log
 
 # A release is not a baseline: it freezes nothing and leaves the log and
 # the `spec/v*` namespace alone (INV-SPEC-030).
@@ -142,4 +150,4 @@ rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-bad.log 2>&1 || rc=$?
 test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/rel-bad.log
 absent '## \[9.9.10\] —' CHANGELOG.md
-grep -q '__version__ = "9.9.9"' tools/srs_check.py
+grep -q '__version__ = "9.9.9"' tools/srs_parse.py

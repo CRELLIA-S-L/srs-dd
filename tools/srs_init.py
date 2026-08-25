@@ -66,7 +66,8 @@ import re                                                  # noqa: E402
 import subprocess                                          # noqa: E402
 
 from srs_check import (DEFAULTS, __version__, parse_file,  # noqa: E402
-                       TYPES, RE_AREA_NAME, SKIP_FILES, SKIP_DIRS)
+                       RE_ANNOTATION, TYPES, RE_AREA_NAME, SKIP_FILES,
+                       SKIP_DIRS)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -118,6 +119,10 @@ GROUNDS_SKILLS = ("srs-bet",)
 # project follows the SRS-DD standard" — and a project that wrote that
 # in a file of its own would have it read as ours and overwritten.
 MARKER_TOKEN = "SRS-DD-VERSION"
+# What an annotation becomes on the way out. The line stays a line so
+# that a traceback from a target names the same number as the source
+# here, and the identifier it named does not travel (CON-SPEC-020).
+ANNOTATION_REMOVED = "annotation removed on install"
 MARKER = "SRS-DD-" + __version__
 RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
@@ -277,6 +282,59 @@ def is_inside(path, ancestor):
         probe = parent
 
 
+def outbound(raw, rel):
+    """The bytes a file leaves this repository as.
+
+    Every path that puts one of our files into a target goes through
+    here — the copier below, and adopt, which writes the checker itself
+    because it has to run it before the tooling is installed. A second
+    path that transformed nothing is how a target ended up with a file
+    the framework never meant to ship.
+    """
+    # implements: FR-INIT-190
+    # Stamped byte-level, so a file this does not concern is never
+    # decoded. Threading the version through six `substitute`
+    # dictionaries instead would leave the seventh unstamped and
+    # unrecognizable.
+    if MARKER_TOKEN.encode("utf-8") in raw:
+        raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
+                          MARKER.encode("utf-8"))
+    # implements: FR-INIT-180
+    # The shipped tooling carries this framework's annotations, and they
+    # are what CON-SPEC-020 forbids travelling: in a target declaring an
+    # area this framework also uses, an `implements:` line naming one of
+    # our requirements resolves to *their* requirement under that number.
+    # Stripped here rather than in the source, because the two-way check
+    # those lines exist for is checked in this repository.
+    if rel.endswith(".py") and rel.startswith("tools" + os.sep):
+        raw = strip_annotations(raw.decode("utf-8")).encode("utf-8")
+    return raw
+
+
+def strip_annotations(text):
+    # implements: FR-INIT-180
+    """Takes this framework's traceability annotations out of a file on
+    the way into a target, leaving the line where it was.
+
+    Exactly what the checker would have read as a claim, and nothing
+    else. A line carrying `srs-ignore` is how the standard marks an
+    example rather than a claim, and the two examples in the checker's
+    own comments are where a target reads the annotation format at all;
+    stripping those would ship a file documenting a syntax it no longer
+    shows.
+
+    The line survives so that a traceback from a target names the same
+    number as the source here, which is the first thing a bug report is
+    read against.
+    """
+    lines = text.split("\n")
+    for index, line in enumerate(lines):
+        if "srs-ignore" in line:
+            continue
+        lines[index] = RE_ANNOTATION.sub(ANNOTATION_REMOVED, line)
+    return "\n".join(lines)
+
+
 class Installer(object):
     def __init__(self, target, force, refresh_tooling=False, dry_run=False):
         self.target = target
@@ -352,14 +410,9 @@ class Installer(object):
         src = os.path.join(ROOT, src_rel)
         with open(src, "rb") as handle:
             raw = handle.read()
-        # Stamped here rather than at the call sites: every precious file
-        # arrives through this method, and threading the version through
-        # six `substitute` dictionaries would leave the seventh unstamped
-        # and unrecognizable. Byte-level, so a file this does not concern
-        # is never decoded.
-        if MARKER_TOKEN.encode("utf-8") in raw:
-            raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
-                              MARKER.encode("utf-8"))
+        # Stamped and stripped here rather than at the call sites: every
+        # file the installer writes arrives through this method.
+        raw = outbound(raw, dst_rel)
         if substitute:
             text = raw.decode("utf-8")
             for old, new in substitute.items():
@@ -705,14 +758,25 @@ def run_target_checker(target):
 
 
 def read_target_version(target):
-    path = os.path.join(target, "tools", "srs_check.py")
-    try:
-        with open(path, "r", encoding="utf-8", errors="replace") as handle:
-            text = handle.read()
-    except OSError:
-        return None
-    match = RE_VERSION.search(text)
-    return match.group(1) if match else None
+    """The framework version a target is on, read from its own tooling.
+
+    Two files, in order: the parser is where the number lives from 0.15.0
+    on, and the checker is where it lived before. A project upgrading from
+    0.14.0 or earlier has it only in the second, and reporting it as
+    unversioned would drop the version transition and the upgrade notes —
+    the two things an upgrade exists to show.
+    """
+    for name in ("srs_parse.py", "srs_check.py"):
+        path = os.path.join(target, "tools", name)
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        match = RE_VERSION.search(text)
+        if match:
+            return match.group(1)
+    return None
 
 
 def version_tuple(text):
@@ -1160,6 +1224,11 @@ def run_adopt(args, target, batch, found_areas):
 
         with open(os.path.join(ROOT, "tools", "srs_check.py"), "rb") as src:
             checker_bytes = src.read()
+        # This file becomes the target's checker at the point of no
+        # return below, without passing through the copier, so it is
+        # prepared the same way the copier prepares everything else.
+        checker_bytes = outbound(checker_bytes,
+                                 os.path.join("tools", "srs_check.py"))
         with open(temp_path, "wb") as handle:
             handle.write(checker_bytes)
 

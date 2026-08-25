@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Specification integrity checker and traceability matrix generator.
 
 Standard library only, compatible with Python 3.9. The specification
@@ -35,8 +36,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     import srs_parse                                        # noqa: E402
 except ImportError:
-    # Exit 2, not a traceback: IF-CI-020 reserves 2 for "could not run
-    # at all", and a checker that dies on its own import has not read
+    # Exit 2, not a traceback: 2 is reserved for "could not run at
+    # all", and a checker that dies on its own import has not read
     # anybody's specification. The case is reachable — the tooling can
     # be copied by hand, one file at a time (docs/install.md).
     sys.stderr.write(
@@ -46,7 +47,9 @@ except ImportError:
         "the tooling.\n")
     sys.exit(2)
 
-__version__ = "0.14.0"
+# Re-exported: the number lives in srs_parse, the one file this checker
+# and the grounds checker both must have beside them (ADR-0021).
+__version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPECS = os.path.join(ROOT, "specs")
@@ -185,8 +188,8 @@ SCALAR_FIELDS = ("status", "verification", "superseded_by", "created")
 KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 
 # Of the known keys, the ones a requirement must carry. Everything else is
-# optional, and a key that is neither is not an error (IF-SPEC-010): that is
-# what lets a later version of the format add one without breaking a
+# optional, and a key that is neither is not an error: that is what
+# lets a later version of the format add one without breaking a
 # specification written against an earlier version.
 REQUIRED_FIELDS = ("status", "verification")
 
@@ -448,11 +451,11 @@ def validate(requirements):
             errors.append("%s — no statement" % req.where)
         else:
             # implements: FR-CHK-020
-            # The mechanical half of INV-SPEC-060, which FR-CHK-020 derives
-            # from: two verbs are two requirements and a script can say so.
-            # One verb carrying a list of objects is as compound and is out
-            # of reach here, which is why the invariant is inspected rather
-            # than tested and does not name this file.
+            # The mechanical half of the rule against a compound
+            # statement: two verbs are two requirements, and a script can
+            # say so. One verb carrying a list of objects is as compound
+            # and is out of reach here, which is why the invariant is
+            # inspected rather than tested and does not name this file.
             found = len(RE_MODAL.findall(req.statement))
             if found == 0:
                 errors.append("%s — no bolded modal verb from the lexicon (%s)"
@@ -735,9 +738,9 @@ def check_unclaimed(requirements, claims, warnings, reports):
         if rel in claims["annotated"]:
             # The file said something about itself. If what it said does
             # not resolve — an unknown requirement, a cancelled one —
-            # FR-CHK-080 has already reported it with the line and the
-            # identifier. Adding "and it claims none" would contradict
-            # that report on the same file in the same run.
+            # the annotation check has already reported it with the line
+            # and the identifier. Adding "and it claims none" would
+            # contradict that report on the same file in the same run.
             continue
         rule_finding(warnings, reports, "annotation-absent",
                      "%s — no requirement names this file and it claims "

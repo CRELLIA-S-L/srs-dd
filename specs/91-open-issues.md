@@ -343,10 +343,20 @@ builds (2026-08-20).
 **What diverged:** the concept gives a requirement a `bounded_by` field —
 the frames it falls under — and this layer has no equivalent. The reason it
 was left out is that nothing reads it: the dashboard states what each frame
-has refused from the frame's own journal, and frames are applied when a
-hypothesis is let into the fog, by a person following a procedure rather
-than by a stored link. A field with no reader is what the constitution
-declines by default.
+has refused from the frame's own journal, and a field with no reader is what
+the constitution declines by default.
+
+**And the half of that reason which was not true.** This entry used to say
+frames are applied when a hypothesis is let into the fog, "by a person
+following a procedure rather than by a stored link". Measured 2026-08-25:
+there is no such procedure. `srs-bet` names a frame once, in the list of
+what the register holds, and asks nothing about frames at any step;
+`FR-GND-250` is the only requirement that mentions them, and it describes
+the dashboard. So a frame in this layer is a journal and nothing else — a
+hypothesis a frame forbids can be recorded, staked on and built against, and
+the register says nothing. The concept puts frames at the first gate
+precisely because refusing is cheapest before anything is built on it, and
+that gate is missing rather than manual.
 
 There is a second reason it could not be copied as written. In the concept
 `bounded_by` sits on the requirement, and nothing in this layer writes into
@@ -360,50 +370,20 @@ comparing the concept with the format will find the gap and, finding no
 note, will close it — adding a key that can afterwards be added to but never
 renamed or removed.
 
-**Decision needed:** none until something wants to read it. What would
-change that is a reading nobody can take today — which requirements a frame
-would have refused, or which parts of the system a frame now touches that it
-did not when it was drawn. If such a reading is wanted, the field goes on
-the bet and not on the requirement.
+**The gate half was settled 2026-08-25**, and it was the half that mattered.
+`FR-GND-530` puts a hypothesis against the frames before it is admitted, and
+a frame that refuses one takes a row in its own journal — which is also the
+first procedure that writes into a journal at all, so `FR-GND-250`'s reading
+of an empty one can finally tell a frame nobody tested from a frame nobody
+has. It binds a person, deliberately: whether a claim falls under a frame is
+a judgement about meaning, and a frame a checker could match has stopped
+being a frame.
 
-## The shipped tooling carries this framework's requirement identifiers
-
-**Found:** while widening the leak check to everything the installer
-copies (2026-08-20).
-
-**What diverged:** `CON-SPEC-020` says what the installer copies shall not
-contain requirement identifiers of this framework or annotations naming
-them. Every Python tool it copies contains both: `tools/srs_check.py` alone
-carries some forty `implements:` lines naming `FR-CHK-*`, `IF-SPEC-*` and
-the rest, and the viewer carries as many again. The check that guards the
-constraint has only ever walked `.claude/skills`, so this has been true and
-unobserved since the annotations were introduced.
-
-Measured rather than reasoned. In a target whose code roots are the default
-`src`, the checker never reads `tools/` and the annotations are inert: a
-fresh install reports no warning about them. In a target whose code roots
-include `tools`, the same install reports warnings of the form
-`annotation references FR-SPEC-010 with an unknown type or area` — **71** on
-the day this was written and **78** on 2026-08-23, counting lines that begin
-with `warning:` rather than lines containing the word, which also catches the
-summary. The number tracks how many annotations the tooling happens to carry
-and grows with it. And where
-such a project also declares an area this framework uses, the annotation
-stops being unknown and resolves to *their* requirement under that number —
-which is the harm the constraint is worded against.
-
-**Why it is recorded rather than fixed:** the annotations are the second
-half of the two-way link the framework checks on itself, and stripping them
-from the shipped copies means either shipping different bytes than the
-repository runs — two versions of one file, which is worse — or giving up
-the link. Neither is a change to make while widening a test.
-
-**Decision needed:** append `srs-ignore` to every annotation line in the
-shipped tooling, which the checker already honours and which costs the
-framework's own two-way check nothing; or declare `tools/` out of scope in
-`CON-SPEC-020`'s statement, which is honest but narrows a constraint rather
-than meeting it; or leave it and note in the standard that a project putting
-its code roots on `tools/` will hear about our annotations.
+**Decision needed:** none for now. What remains is the field, and it is still
+not wanted — nothing reads it, and the gate above needs no stored link to do
+its work. If a reading is ever wanted — which requirements a frame would have
+refused, or what a frame now touches that it did not when it was drawn — the
+field goes on the bet and not on the requirement.
 
 ## Whether the specification could live in a database
 
@@ -591,98 +571,3 @@ this repository loses its example.
 **Decision needed:** which of the three. The first two change
 `tools/srs_grounds.py` and at least one requirement; the third changes
 `grounds/README.md` and closes nothing else.
-
-## The second checker carries a version nothing bumps
-
-**Found:** while sequencing the 0.15.0 release (2026-08-23).
-
-**What diverged:** FR-CI-070 says the release command shall "bump **the
-checker's** version", in the singular, and it was written before there was a
-second one. `tools/srs_release.py` acts on exactly that reading: `CHECKER`
-(line 39) and `TOUCHED` (line 42) name `tools/srs_check.py` and nothing else.
-`tools/srs_grounds.py` declares its own `__version__` at line 44 and prints it
-to the user on every run, and no command, test or rule moves it.
-
-The two agree today at `0.14.0`, which is why nothing has noticed: the last
-release predates the grounds layer. They diverge at the first release after
-it — `srs_check` goes to 0.15.0, `srs_grounds` keeps saying 0.14.0 to
-everyone who runs it.
-
-It is not only this repository's problem. `tools/srs_grounds.py` is installed
-into every target that takes the register, so a project on 0.15.0 would have
-a `grounds/README.md` stamped `SRS-DD-0.15.0` by the installer beside a
-checker announcing 0.14.0 — two numbers for one install, and the wrong one is
-the one a person reads off a command's output.
-
-**What will not notice:** `tests/release-smoke.sh` asserts
-`__version__ = "9.9.9"` in `tools/srs_check.py` at two places and looks at
-the grounds checker nowhere. `CHANGELOG.md` states the contract in the
-singular too — "the same number is embedded in `tools/srs_check.py` as
-`__version__`" — so the format note, the requirement, the command and the
-suite all agree with each other and none of them agrees with the tree.
-
-**Doors:**
-
-*Version both.* `srs_release.py` bumps two files, FR-CI-070's statement goes
-plural, the `CHANGELOG.md` note names both, and `release-smoke.sh` asserts
-both. Honest and the most edits; two numbers that must be kept equal by a
-command rather than by a person.
-
-*Give the number one home.* Both checkers already import `tools/srs_parse.py`
-— that is what ADR-0019 extracted it for — so `__version__` could live there
-and be read by both. One file still gets bumped, and the number stops being
-copied. ADR-0019 refused to let the grounds checker import `srs_check`, and
-this does not reopen that: `srs_parse` has no configuration and exits on
-nothing.
-
-*Carry no version.* Remove `__version__` from `srs_grounds.py` and drop it
-from the summary line. A version nobody maintains lies more loudly than an
-absent one. It costs the register's output its provenance, which is the one
-thing a bug report needs first.
-
-**Decision needed:** which of the three, and it blocks cutting 0.15.0 —
-whichever is chosen, the release command changes with it.
-
-**Noticed alongside, and smaller:** `AGENTS.md` lists what lives in `tools/`
-and does not mention `srs_grounds.py` at all, though it ships to targets like
-the rest. Whatever is decided above, that line is now wrong.
-
-## AGENTS.md states the annotation rule in a shape that is not true
-
-**Found:** while adding an annotation to `tools/srs_view.py` and stopping to
-check whether the guide forbade it (2026-08-23).
-
-**What diverged:** `AGENTS.md` carries, as the second of "two rules that
-protect other people's repositories": never write `implements:`/`verifies:`
-annotations into `tools/srs_check.py` or `tools/srs_view.py`, because "the
-annotation check would warn, and `--strict` turns warnings into a failed
-pipeline". Both halves of that are off, and in opposite directions.
-
-**Too narrow in what it names.** Seven tools the installer copies carry such
-annotations, not two: `srs_check.py` 29, `srs_view.py` 26, `srs_grounds.py`
-45, `srs_upgrade.py` and `srs_baseline.py` 2 each, `srs_dates.py` and
-`srs_parse.py` 1 each. An agent obeying the rule as written would leave the
-other five alone, and `srs_grounds.py` — the file carrying the most — is not
-mentioned anywhere in that guide at all.
-
-**Too broad in when it bites.** The failure it predicts does not happen in a
-default target: code roots are `src`, the checker never reads `tools/`, and a
-fresh install passes `--strict` with no warnings at all. It happens only
-where a project puts `tools` in its own code roots, and then it happens to
-every one of the seven files.
-
-So the rule forbids something that is already done a hundred times over,
-gives a reason that is false as stated, and is filed under the heading that
-tells an agent these are the two rules that matter most. The effect is the
-one a wrong rule always has: it is read, found not to match the tree, and
-then the whole heading is discounted.
-
-The underlying question is not this one. It is recorded above under *The
-shipped tooling carries this framework's requirement identifiers*, which
-names the constraint it really belongs to (`CON-SPEC-020`) and the three
-ways out. This entry is only about the guide describing it wrongly.
-
-**Decision needed:** none until the entry above is settled, because the
-guide should describe whatever is decided there rather than be corrected
-twice. What must not happen is the guide staying as it is while that one is
-resolved — it is the copy an agent reads first.

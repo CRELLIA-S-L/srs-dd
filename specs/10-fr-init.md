@@ -418,3 +418,79 @@ noticed a missing field would be the tool taking a decision that belongs to
 whoever owns the specification, and a project that wants no dates at all is
 not a project in error.
 
+
+### FR-INIT-180 — The tooling arrives without this framework's annotations
+
+```yaml
+status: implemented
+verification: T
+derives_from: [CON-SPEC-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-25
+```
+
+When copying its own tooling into a target, the installer **shall** replace
+every traceability annotation that names a requirement of this framework,
+leaving the line where it was and leaving an annotation marked as an example
+alone.
+
+**Rationale.** The shipped Python carries 101 `implements:` and `verifies:`
+lines. They exist for the two-way check this repository runs on itself — the
+requirement's field is the specification's claim, the annotation the file's
+own — and that check is checked here, where the requirements are. In a
+target they are at best inert and at worst wrong: where a project declares
+an area this framework also uses, `implements: FR-CHK-110` stops being an
+unknown identifier and resolves to *their* requirement under that number,
+which is the harm CON-SPEC-020 is worded against.
+
+Removed on the way out rather than in the source, because the alternatives
+each cost something this does not. Marking the lines `srs-ignore` would
+silence them here as well — the exemption is unconditional — and the check
+they exist for would end. Moving the links into a register beside the code
+would make them a second copy of the `code` field written by the same hand
+in the same commit, which is what ADR-0014 rejected and INV-SPEC-020
+forbids: an annotation earns its place by being a different person's claim
+made in the file, and a list is not that.
+
+The line survives the removal. A traceback from a target names the line it
+happened on, and a bug report is read against the source in this repository;
+deleting the lines would shift every number after them and make the two
+disagree by an amount nobody can see.
+
+An annotation carrying `srs-ignore` is left alone, because that is how the
+standard marks an example rather than a claim, and the two examples in the
+checker's own comments are where a target reads the annotation format at
+all.
+
+### FR-INIT-190 — Each copied tool says which release it came from
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-25
+```
+
+The installer **shall** stamp every tool it copies with the framework
+version it was installed from.
+
+**Rationale.** The marker already tells a precious file from a project's
+own; on a tool it answers a different question, which is how old this
+particular file is. A project can copy the tooling by hand, one file at a
+time, and an upgrade that failed halfway leaves some files moved and some
+not — in both cases the version is the first thing anybody needs and there
+was nowhere to read it. Reading it out of the running tool answers only for
+the tool that runs.
+
+One line per file, in the shape the marker already has, rather than one per
+annotation removed: the same number repeated a hundred times in one file is
+not more information than the same number once.

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Write into each requirement the date its identifier first appeared.
 
     python3 tools/srs_dates.py             date what is undated
@@ -75,7 +76,7 @@ def date_file(path, born, dry_run):
 
     Fenced blocks are stepped over whole, at both levels: a file may
     document the format with an example requirement inside a fence, and
-    that example is not a requirement — `FR-CHK-110` is the rule that
+    that example is not a requirement — fence opacity is the rule that
     makes the checker agree, and a tool that edits the same files has to
     agree with it or it edits documentation.
     """

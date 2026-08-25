@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Upgrade SRS-DD in this project — one command, no clone to keep around.
 
     python3 tools/srs_upgrade.py              show the change, then ask
@@ -35,7 +36,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG = os.path.join(ROOT, "specs", "srs-config.json")
 
 # Used when the project's config does not name one — projects installed
-# before FR-INIT-140 existed, and hand-made installations.
+# before a project recorded the framework it came from, and hand-made
+# installations.
 DEFAULT_URL = "https://github.com/CRELLIA-S-L/srs-dd.git"
 
 

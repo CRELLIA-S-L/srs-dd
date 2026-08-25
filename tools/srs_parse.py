@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Reads the physical shape of a record, and nothing about its meaning.
 
 A record is a level-three heading carrying an identifier, a fenced
@@ -31,6 +32,15 @@ Standard library only, compatible with Python 3.9.
 # implements: NFR-SPEC-010, FR-CHK-110
 
 import re
+
+# The framework's version, and not this module's: one number, stamped
+# by the installer into every file it writes and bumped by
+# tools/srs_release.py. It lives here because this is the one file both
+# checkers must have beside them — each exits 2 without it — and
+# ADR-0019 refuses to let the grounds checker import srs_check, which is
+# where the number used to live. Both re-export it, so everything that
+# read it from there reads it still (ADR-0021).
+__version__ = "0.14.0"
 
 RE_ANY_HEADING = re.compile(r"^#{1,6}\s")
 RE_FENCE = re.compile(r"^\s*(`{3,})")

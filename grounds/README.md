@@ -264,6 +264,16 @@ held by whoever writes the statement and by whoever reads it back.
 | `action` | optional | what is being done on its strength |
 | `declined` | optional | `<date> — <reason>`, and only where the status is |
 
+**How the claim is measured is prose, not a key.** The instrument — what is
+observed, on what, over which cohort — belongs in the record's statement,
+and the procedure for writing a hypothesis asks whoever chooses the class to
+check that the declared measurement can produce a number the threshold
+compares against. Nothing checks that mechanically, and that is the trade:
+a required field is paid on every record, this register is deliberately
+short, and a field a procedure runs without is a field it does not need. The
+cost is that two hypotheses can carry the same threshold, be measured by
+entirely different means, and compare as equals.
+
 `impact` is written as a business outcome and not as a score. "About half the
 2027 paid-subscription plan, and nothing else in the plan drives it" is an
 impact; "high" is a label that ranks against other labels and against nothing
@@ -327,7 +337,6 @@ stands on it, and the other direction is computed.
 | `requirement` | required | one requirement identifier |
 | `all_of` | optional | hypotheses that are all needed |
 | `any_of` | optional | hypotheses of which any one suffices |
-| `served_by_any` | optional | competing solutions to the same need |
 | `instrument` | optional | `yes` where the requirement exists to measure |
 
 The two lists are not decoration. `all_of` is a chain — refute any one of
@@ -461,6 +470,21 @@ Rows are appended. A row is never edited and never removed — a measurement
 that turned out to be wrong gets a later row saying so, because a register
 whose inconvenient rows disappear is a register that only ever agrees with
 the present.
+
+**Where a measurement came from is not recorded, and the consequence is
+yours to carry.** Two hypotheses confirmed off the same event stream are not
+two independent confirmations, and nothing here can tell them apart: the
+table has no column for the source, and the reading a bet gives — the
+weakest of what its `all_of` requires — combines what several hypotheses
+give a requirement without asking whether their numbers share a cause. A
+requirement standing on three hypotheses all measured from one stream
+therefore reads exactly as well grounded as one standing on three separate
+readings, and it is not. Whoever reads the dashboard is the one who knows.
+
+This is a stated limit rather than an oversight: a column costs every row of
+every register forever, and no project has yet needed the reading it would
+buy. A key on the hypothesis can be added later, when one does, because the
+format may gain keys and may not lose them.
 
 ## Requirements no hypothesis stands behind
 
