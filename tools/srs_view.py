@@ -24,7 +24,7 @@ duplicate identifiers are reported as a banner rather than a failure;
 judging the specification remains the checker's job.
 """
 
-# implements: NFR-SPEC-010
+# implements: NFR-SPEC-010, CON-SPEC-030
 
 import sys
 

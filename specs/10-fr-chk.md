@@ -383,8 +383,10 @@ it (INV-SPEC-040), so a tag standing alone claims to freeze something no
 reader can look up — this project left three such tags behind before the log
 caught up with them. A warning rather than an error, so that a baseline
 halfway written does not block the work; `--strict`, which the gate runs,
-closes it. Nothing is reported where git or the tags are absent: a project
-that never tags is keeping a perfectly good log.
+closes it. Nothing is reported where the tags are absent: a project that
+never tags is keeping a perfectly good log. A checkout where git cannot
+answer at all is the other case and not this one — FR-CHK-220 says what
+happens there, and why the two are not the same silence.
 
 ### FR-CHK-140 — A requirement verified by test and carrying none is reported
 
@@ -686,3 +688,39 @@ about a file, and there is no requirement to write `exempt` in. A project
 that keeps fixtures and helpers under its test roots tunes this rule in its
 configuration or lives with the list — the same position `baseline-without-row`
 is in, and for the same reason.
+
+### FR-CHK-220 — History that cannot be read is said to be unread
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-130]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-08-25
+```
+
+Where a rule needs the specification's history and that history cannot be
+read, the checker **shall** report that it could not be read rather than
+pass the rule.
+
+**Rationale.** One rule reads history rather than files: the baseline tag
+that no row in the log describes. It meets a wall in a checkout that is not
+a repository, in an environment with no git on the path, and in a shallow
+clone that carries no tags.
+
+Two situations that look identical from inside the rule and are not. A
+repository with no tags answers the question — there is nothing to report,
+and a project that never tags keeps a perfectly good log, which is why
+silence is right there. A checkout where git cannot answer at all leaves the
+question unasked, and silence then reports the same green as a specification
+that was actually checked. The two are told apart by how git exits: no tags
+is a successful run with an empty list, no repository is a failure.
+
+Reported as a note rather than a warning, so a project without git is not
+failed for a dependency this framework does not require (NFR-SPEC-010). It
+is the same rule the grounds layer states for the register's own history,
+made separately because the two checkers share no code (ADR-0019).

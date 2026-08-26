@@ -19,7 +19,7 @@ mandatory one's configuration before it can say anything of its own, and a
 register whose specification is broken still has plenty to report.
 """
 
-# implements: NFR-SPEC-010, CON-GND-030
+# implements: NFR-SPEC-010, CON-GND-030, CON-SPEC-030
 
 import datetime
 import json

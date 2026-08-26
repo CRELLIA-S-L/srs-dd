@@ -8,8 +8,8 @@
 
 CON-SPEC-020 says what the installer copies shall not contain requirement
 identifiers of this framework or annotations naming them. The seven Python
-tools it copies contain 101 such lines, and have since annotations were
-introduced. The check guarding the constraint had only ever walked
+tools it copies contained 101 such lines when this was decided, and have
+carried them since annotations were introduced. The check guarding the constraint had only ever walked
 `.claude/skills`, so nothing said so.
 
 The harm is a ladder and only its top rung matters. A target whose code roots
@@ -79,8 +79,8 @@ target reads the annotation format at all.
 
 The line survives the removal, replaced rather than deleted. A traceback from
 a target names the line it happened on, a bug report is read against the
-source here, and deleting 101 lines would shift every number after them by an
-amount nobody can see.
+source here, and deleting the lines would shift every number after them by
+an amount nobody can see.
 
 ## Consequences
 

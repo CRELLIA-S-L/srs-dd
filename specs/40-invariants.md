@@ -349,7 +349,7 @@ derives_from: [INV-SPEC-040]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_baseline.py, tools/srs_release.py]
+code: [tools/srs_baseline.py, tools/srs_release.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_init.py, tools/srs_upgrade.py, tools/srs_view.py]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
 created: 2026-08-09
 ```
@@ -362,6 +362,14 @@ has no console git set up, and one that silently bypasses the signing and
 identity their application configures. Preparing files leaves the history to
 the tool the project already trusts with it, and makes every command safe to
 run twice.
+
+Every command is named, not only the two that prepare a release or a
+baseline. The temptation to commit belongs to whichever command has just
+written something — the installer that created a project, the dating command
+that touched every requirement, the checker that regenerated the matrix — and
+a constraint listed against two files is a constraint the everyday question
+"what governs this file" never mentions for the other six. `srs_parse.py` is
+absent because it is a library with no entry point: it is not a command.
 
 ### CON-SPEC-010 — The traceability matrix is generated
 

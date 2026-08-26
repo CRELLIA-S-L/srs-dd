@@ -18,7 +18,7 @@ hook or an installer.
 Standard library only, compatible with Python 3.9.
 """
 
-# implements: NFR-SPEC-010, FR-SPEC-020
+# implements: NFR-SPEC-010, FR-SPEC-020, CON-SPEC-030
 
 import os
 import re

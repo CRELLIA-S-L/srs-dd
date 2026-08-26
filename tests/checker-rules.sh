@@ -925,4 +925,44 @@ bash tests/line-width.sh "$LAB5" >/dev/null 2>&1 \
 rm -rf "$LAB5"
 passes=$((passes + 2))
 
+# --- verifies: FR-CHK-220 — the one rule that reads history meets a
+# --- checkout that is not a repository. The lab has no .git, so the only
+# --- thing needed is the log the rule reads first; without it the rule
+# --- returns before git is asked at all, which is why the other fixtures
+# --- never see this note.
+# Two linked requirements, so the run is clean and --strict below has
+# nothing but the note to react to.
+spec < <(block FR-CORE-010 "A requirement" "$META" 'The system **shall** act.'
+         block FR-CORE-020 "What it rests on" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** rest.')
+printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
+    > "$LAB/specs/92-baselines.md"
+rule "FR-CHK-220 unreadable history is said to be unread" 0 \
+     "no readable history"
+
+# A note and not a warning: --strict must not fail for want of git, which
+# this framework does not require of a project.
+( cd "$LAB" && python3 tools/srs_check.py --no-write --strict ) \
+    > /tmp/srs-rules-nogit.log 2>&1
+grep -q "no readable history" /tmp/srs-rules-nogit.log \
+    || { echo "FAIL FR-CHK-220 — --strict lost the note"; exit 1; }
+absent "strict mode" /tmp/srs-rules-nogit.log
+
+# The other half of the same rule, and the half nothing proved: git answers,
+# there are no tags, so there is nothing to say. Told apart from the note
+# above only by how git exits, which is why the note being made
+# unconditional would leave every fixture in this file green.
+#
+# Runs before the log below is taken away: without specs/92-baselines.md the
+# rule returns before git is asked at all, and the fixture would pass for a
+# reason that has nothing to do with what it asserts.
+( cd "$LAB" && git init -q . ) > /dev/null 2>&1
+silent "FR-CHK-220 a repository with no tags stays silent" 0 \
+       "no readable history"
+rm -rf "$LAB/.git"
+
+rm -f "$LAB/specs/92-baselines.md"
+passes=$((passes + 2))
+
 echo "checker-rules: $passes fixtures pass"

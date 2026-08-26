@@ -151,3 +151,81 @@ test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/rel-bad.log
 absent '## \[9.9.10\] —' CHANGELOG.md
 grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+
+# verifies: CON-SPEC-030
+# The statement binds every command this repository ships, not only the two
+# that prepare a release and a baseline, and until now only those two were
+# proved: a `git commit` added to srs_view.py passed the whole gate.
+#
+# Scanned against $FRAMEWORK rather than this clone, so the answer is about
+# the working tree under test whatever the suite has done to the clone by
+# now. Parsed rather than grepped: srs_release.py carries the words
+# "git checkout -- " inside a message, and a regular expression would call
+# that a commit.
+#
+# Exactly the three verbs the statement names — commit, tag, push — and no
+# more. `git add` and `git reset` write no history, and a test refusing them
+# would be asserting something CON-SPEC-030 does not say.
+#
+# What it cannot see: a subcommand assembled a piece at a time
+# (`cmd.append("commit")`). srs_upgrade.py builds its argv that way but
+# names `clone` in the literal, so it stays visible; chasing the general
+# case is dataflow analysis, and it does not pay for itself against the
+# threat the statement describes — somebody adding a commit to a command
+# that has just written something.
+python3 - "$FRAMEWORK" <<'PY2'
+import ast
+import glob
+import os
+import sys
+
+DENY = {"commit", "tag", "push"}
+
+
+def argv(node):
+    """One git argv as a list, holes and all.
+
+    A non-literal element becomes None rather than vanishing: the token
+    after -C is a directory and has to be skipped by position, and where
+    that directory is a variable a list of only the literals would hand
+    back the verb in its place.
+    """
+    def one(element):
+        if isinstance(element, ast.Constant) and isinstance(element.value, str):
+            return element.value
+        return None
+
+    if isinstance(node, (ast.List, ast.Tuple)):
+        return [one(e) for e in node.elts]
+    if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+            and node.func.id == "git"):
+        out = []
+        for arg in node.args:
+            inner = argv(arg)
+            out.extend(inner if inner else [one(arg)])
+        return out
+    return []
+
+
+found = []
+for path in sorted(glob.glob(os.path.join(sys.argv[1], "tools", "*.py"))):
+    with open(path, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), path)
+    for node in ast.walk(tree):
+        toks = argv(node)
+        if not any(toks):
+            continue
+        skip = toks.index("-C") + 1 if "-C" in toks else -1
+        rest = [t for i, t in enumerate(toks)
+                if t and i != skip and t != "git" and not t.startswith("-")]
+        if not rest or rest[0] not in DENY:
+            continue
+        # `tag -l` lists; the checker and the viewer both read that way.
+        if rest[0] == "tag" and "-l" in toks:
+            continue
+        found.append("%s:%d — git %s" % (os.path.basename(path),
+                                         node.lineno, rest[0]))
+
+assert not found, ("a command writes git history, which CON-SPEC-030 "
+                   "forbids: %s" % found)
+PY2

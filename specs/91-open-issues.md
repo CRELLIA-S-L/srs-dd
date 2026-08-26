@@ -85,33 +85,6 @@ renames every published identifier, which INV-SPEC-010 forbids.
 has, and that the step of 10 is a convention the checker does not enforce —
 or decide the standard need not say it, and close this.
 
-## The width of the installer's output belongs to no requirement
-
-**Found:** while reviewing the checker-rules suite (2026-08-10).
-
-**What diverged:** `tests/installer-smoke.sh` asserts that everything a
-fresh install prints fits inside a fixed number of columns, and nothing in
-`specs/` says so. The closest requirement, FR-INIT-150, describes *what* the
-installer prints — the procedures, where the first requirement goes, the
-commands, the upgrade — and is silent about how wide. The assertion arrived
-in 0.8.0 with the first-steps block, which had reached 121 columns; the
-comment beside it is the only record of why.
-
-The number itself was never argued: 79 was taken as the classic terminal
-width and has now been raised to 120 by the maintainer, which is exactly the
-kind of change a requirement is supposed to make visible and a test comment
-cannot.
-
-**Why it is recorded rather than fixed:** extending FR-INIT-150 to name the
-width is an authoring act, and authoring does not ride along with an
-implementation phase (FR-SKILL-090). The suite keeps the assertion at 120
-meanwhile, so the behaviour is guarded even while the rule is homeless.
-
-**Decision needed:** extend FR-INIT-150 to state that the output fits a
-terminal of a stated width, record the width somewhere it can be argued
-with, or drop the assertion if the wrapping does not in fact matter. To be
-taken up when the requirements frozen in baseline 0.12.0 are implemented.
-
 ## A requirement with no links at all is not in the graph
 
 **Found:** while grouping the graph by area (2026-08-11).

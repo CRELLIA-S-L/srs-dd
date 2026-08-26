@@ -64,15 +64,6 @@ for framework_only in srs-init srs-release; do
         exit 1
     fi
 done
-# The first thing a maintainer sees must not wrap: everything the
-# installer prints stays inside 120 columns, except the target path, which
-# is theirs and not ours to shorten. The number is a convention this suite
-# carries alone — no requirement states it; see specs/91-open-issues.md.
-python3 - <<'PY2'
-wide = [l.rstrip('\n') for l in open('/tmp/fresh.log', encoding='utf-8')
-        if len(l.rstrip('\n')) > 120 and not l.startswith('Installing into ')]
-assert not wide, 'installer output wraps: %r' % wide[:2]
-PY2
 
 # The agent procedures come first: the framework exists so that code
 # written with agents still has requirements behind it.
@@ -319,6 +310,41 @@ assert not found, ('something the installer shipped cites a requirement of '
                    'this framework, which the target does not have — and may '
                    'have its own requirement under that number: %s' % found)
 PY
+
+# verifies: FR-INIT-210, FR-INIT-220
+# The width is taken as given and written where an agent will read it. A
+# project that states none gets no key and no bullet — a default invented
+# here would be this framework formatting somebody else's code.
+rm -rf /tmp/srs-width /tmp/srs-width-bad
+python3 tools/srs_init.py /tmp/srs-width --defaults --line-width 100 \
+    > /tmp/width.log 2>&1
+python3 - <<'PY3'
+import json
+cfg = json.load(open('/tmp/srs-width/specs/srs-config.json', encoding='utf-8'))
+assert cfg.get('line_width') == 100, 'line_width not recorded: %r' % cfg.get('line_width')
+guide = open('/tmp/srs-width/AGENTS.md', encoding='utf-8').read()
+assert '100 columns' in guide, 'the agent guide does not name the width'
+assert 'SRS-DD-WIDTH-LINE' not in guide, 'the placeholder travelled'
+PY3
+
+rm -rf /tmp/srs-width-none
+python3 tools/srs_init.py /tmp/srs-width-none --defaults > /tmp/width-none.log 2>&1
+python3 - <<'PY3'
+import json
+cfg = json.load(open('/tmp/srs-width-none/specs/srs-config.json',
+                     encoding='utf-8'))
+assert 'line_width' not in cfg, 'a width was invented: %r' % cfg.get('line_width')
+guide = open('/tmp/srs-width-none/AGENTS.md', encoding='utf-8').read()
+assert 'Line width' not in guide, 'the guide names a width nobody stated'
+assert 'SRS-DD-WIDTH-LINE' not in guide, 'the placeholder travelled'
+PY3
+
+# A width that is not a positive number is refused rather than written.
+rc=0; python3 tools/srs_init.py /tmp/srs-width-bad --defaults --line-width nope \
+    > /tmp/width-bad.log 2>&1 || rc=$?
+test "$rc" -eq 2
+grep -q "positive number of columns" /tmp/width-bad.log
+test ! -e /tmp/srs-width-bad/specs/srs-config.json
 
 # verifies: FR-INIT-180, FR-INIT-190
 # An annotation is removed, not deleted: the line stays a line, so a

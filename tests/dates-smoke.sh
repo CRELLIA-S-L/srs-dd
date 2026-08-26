@@ -9,6 +9,10 @@
 # the history cannot be read.
 set -eo pipefail
 
+# implements: FR-CI-090
+# The lab below runs `git init` and commits into it; a hook hands its own
+# GIT_INDEX_FILE and GIT_DIR down to everything this suite starts, and
+# without this the commits would land in the one being prepared.
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."

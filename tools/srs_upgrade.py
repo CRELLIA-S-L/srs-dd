@@ -22,7 +22,7 @@ Exit codes match the installer: 0 installed · 1 checker errors or partial
 completion · 2 refused before changing anything · 3 rolled back.
 """
 
-# implements: FR-INIT-120, FR-INIT-130, NFR-SPEC-010
+# implements: FR-INIT-120, FR-INIT-130, NFR-SPEC-010, CON-SPEC-030
 
 import argparse
 import json

@@ -47,7 +47,7 @@ after adopt's point of no return (partial completion, see output);
 stale temp file from a previously crashed adopt run).
 """
 
-# implements: NFR-SPEC-010
+# implements: NFR-SPEC-010, CON-SPEC-030
 
 import sys
 
@@ -119,6 +119,11 @@ GROUNDS_SKILLS = ("srs-bet",)
 # project follows the SRS-DD standard" — and a project that wrote that
 # in a file of its own would have it read as ours and overwritten.
 MARKER_TOKEN = "SRS-DD-VERSION"
+# A whole line of the agent guide, so a project that states no width
+# gets no bullet rather than an empty one (FR-INIT-220).
+WIDTH_TOKEN = "<SRS-DD-WIDTH-LINE>\n"
+WIDTH_LINE = ("- **Line width** — this project's code stays inside %d "
+              "columns.\n")
 # What an annotation becomes on the way out. The line stays a line so
 # that a traceback from a target names the same number as the source
 # here, and the identifier it named does not travel (CON-SPEC-020).
@@ -228,6 +233,10 @@ def parse_args():
                              "of it is written")
     parser.add_argument("--ci", choices=("github", "gitlab", "both", "none"),
                         default=None, help="which CI template(s) to install")
+    parser.add_argument("--line-width", dest="line_width", default=None,
+                        help="the line width the project's code follows; "
+                             "found by whoever runs the install, not by "
+                             "this tool")
     parser.add_argument("--name", help="project name")
     parser.add_argument("--areas", help="comma-separated requirement areas")
     parser.add_argument("--code-roots", dest="code_roots",
@@ -309,6 +318,24 @@ def outbound(raw, rel):
     if rel.endswith(".py") and rel.startswith("tools" + os.sep):
         raw = strip_annotations(raw.decode("utf-8")).encode("utf-8")
     return raw
+
+
+def substitutions(name, settings):
+    # implements: FR-INIT-220
+    """What a template's placeholders become on the way into a target.
+
+    Both install paths ask this rather than building their own map: fresh
+    and adopt each write the agent guide, and a marker filled in by one of
+    them and not the other reaches a project as itself.
+    """
+    out = {}
+    if name:
+        out[PLACEHOLDER_NAME] = name
+    # Always answered, never left standing: the line is filled in where the
+    # project stated a width and removed where it did not.
+    out[WIDTH_TOKEN] = (WIDTH_LINE % settings["line_width"]
+                        if settings.get("line_width") else "")
+    return out
 
 
 def strip_annotations(text):
@@ -992,6 +1019,22 @@ def collect_settings(args, batch, area_default):
             "Note: --period sets the grounds dashboard's calendar unit and "
             "this install takes no register, so it has nothing to set.\n")
     settings["period"] = period or "quarter"
+
+    # implements: FR-INIT-210
+    # Taken as given. Which file a project states this in differs by
+    # toolchain, and reading them is the install procedure's job
+    # (FR-SKILL-190) — a heuristic here would be wrong quietly.
+    width = args.line_width
+    if width is not None:
+        try:
+            width = int(width)
+        except ValueError:
+            width = 0
+        if width < 1:
+            sys.stderr.write("--line-width takes a positive number of "
+                             "columns.\n")
+            return None
+    settings["line_width"] = width
     return settings
 
 
@@ -1029,6 +1072,10 @@ def config_json(settings, adopting=False):
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
     config["framework_url"] = settings.get("framework_url") or framework_url()
+    # Absent where the project states none: a width invented here would be
+    # this framework formatting somebody else's code (FR-INIT-210).
+    if settings.get("line_width"):
+        config["line_width"] = settings["line_width"]
     if adopting:
         # A project that arrives with code already written has files under
         # its roots that no requirement names yet, and every one of them
@@ -1048,7 +1095,7 @@ def run_fresh(args, target, batch):
     settings = collect_settings(args, batch, DEFAULTS["areas"])
     if settings is None:
         return 2
-    substitute = {PLACEHOLDER_NAME: name}
+    substitute = substitutions(name, settings)
 
     sys.stdout.write("\nInstalling into %s\n\n" % target)
 
@@ -1183,7 +1230,7 @@ def run_adopt(args, target, batch, found_areas):
         name = args.name or ask("Project name",
                                 os.path.basename(target) or "My Project",
                                 batch)
-    substitute = {PLACEHOLDER_NAME: name} if name else None
+    substitute = substitutions(name, settings)
 
     specs_dir = os.path.join(target, "specs")
     tools_dir = os.path.join(target, "tools")

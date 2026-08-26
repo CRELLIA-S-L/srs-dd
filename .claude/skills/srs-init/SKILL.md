@@ -27,16 +27,29 @@ present). This skill adds the one thing the script cannot do: language.
    requirements have started arriving on no hypothesis. A project shipping
    weekly wants `month`; one shipping twice a year wants `year`. Where they
    have no opinion, `quarter` is the default and saying so is enough.
-2. If the language is not English, generate the lexicon yourself:
+2. **Find the line width the project already follows, and confirm it.**
+   Read rather than guess: `.editorconfig` (`max_line_length`), a
+   formatter's or linter's configuration — `pyproject.toml`, `.prettierrc`,
+   `setup.cfg`, `.eslintrc` — or a sentence in a contributing guide. Say
+   what you found **and which file it came from**, so a wrong reading is
+   visible to the person approving it.
+
+   Where the project states nothing, say that and pass no width. Do not
+   infer one from how the files happen to look, and do not offer this
+   framework's own 120: that number governs this repository and has no
+   standing in somebody else's. The value ends up in their configuration
+   and in their agent guide, so a guess here is one they would be reading
+   back for a long time.
+3. If the language is not English, generate the lexicon yourself:
    - `modal_verbs` — every form of the binding, recommended, and optional
      verbs (genders, numbers, anything that can appear in a statement);
    - `negation_words` — the negation particle(s);
    - `rationale_markers` — the word that opens a rationale paragraph.
-3. **Show the generated lists to the user and get confirmation before
+4. **Show the generated lists to the user and get confirmation before
    installing.** The choice of verbs is normative for their project — do
    not decide silently. Explain which words you assigned to which force
    class (mandatory / recommended / allowed).
-4. Run the installer with **every collected answer as an explicit flag,
+5. Run the installer with **every collected answer as an explicit flag,
    plus `--defaults`** (explicit flags so nothing silently falls back to
    the English defaults and causes a spurious validation failure;
    `--defaults` as a guard for interactive TTYs — on EOF the prompts
@@ -46,7 +59,7 @@ present). This skill adds the one thing the script cannot do: language.
    python3 tools/srs_init.py <target> --defaults --name "<name>" \
      --areas "A,B" --code-roots "src" --test-roots "tests" \
      --extensions ".py,.ts" --ci <choice> \
-     --grounds <yes|no> \
+     --grounds <yes|no> [--line-width <columns>] \
      --modal-verbs "<comma-separated>" --negation-words "<...>" \
      --rationale-markers "<...>"
    ```
@@ -61,12 +74,12 @@ present). This skill adds the one thing the script cannot do: language.
    list — show that list to the user together with the lexicon — and
    then, once they approve, the same command without the flag.
 
-5. After a successful install, rewrite the placeholder requirement in the
+6. After a successful install, rewrite the placeholder requirement in the
    target (`specs/10-fr-<area>.md`) as a grammatical sentence in the
    specification language, then run the target's checker again.
-6. Suggest recording the force class of each chosen verb in the target's
+7. Suggest recording the force class of each chosen verb in the target's
    `specs/00-glossary.md`, as `specs/README.md` recommends.
-7. If the target has real code, offer to mine a specification from it
+8. If the target has real code, offer to mine a specification from it
    with the `srs-harvest` skill.
 
 ## Adopting an existing specification
@@ -83,7 +96,7 @@ When the target already has an SRS-shaped spec (numbered requirements in
    they are your reading of somebody else's specification, and they are the
    middle segment of every identifier that project will ever publish. Show
    the list back and let them correct it, exactly as with the lexicon.
-3. Run the installer as in fresh step 4 (it will detect adopt mode; the
+3. Run the installer as in fresh step 5 (it will detect adopt mode; the
    discovered areas are its default, but pass `--areas` explicitly with
    what you saw). The installer validates the whole spec against the
    proposed configuration **before changing anything**; on failure

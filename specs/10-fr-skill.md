@@ -562,3 +562,40 @@ authoring happens in every project, so this one ships everywhere and asks the
 question only where there is a `grounds/` to answer it about. A dialog
 offering to record a bet in a project that has no register would be
 describing machinery it does not have.
+
+### FR-SKILL-190 — Setup reads the project's line width rather than guessing it
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-040]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-init/SKILL.md]
+tests: []
+created: 2026-08-26
+```
+
+The `srs-init` procedure **shall** have the agent look for a line width the
+project already states, show what it found and where, and pass it to the
+installer only once the maintainer approves it.
+
+**Rationale.** Where a project keeps this is not one place: `.editorconfig`,
+a formatter's configuration, a linter's section in the build file, a line in
+a contributing guide, or nowhere. Reading those is what an agent does well
+and what a script does badly — a script needs a rule per convention, is
+silently wrong on the ones it was never taught, and acquires a branch with
+every tool that becomes fashionable. The agent reads, says what it found and
+where it found it, and a wrong reading is caught by the person who can see
+the file it came from.
+
+Approved rather than applied, on the pattern this procedure already uses for
+the areas and the lexicon: the value ends up in the project's configuration
+and in its agent guides, so a mistake here is one a maintainer would be
+reading back for a long time.
+
+Nothing is invented where nothing is found. A project that has never stated
+a width gets no parameter and no line in its guides, because a default
+inserted here would be this framework deciding how somebody else's code is
+formatted.

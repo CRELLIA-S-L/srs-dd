@@ -108,6 +108,15 @@ assert adopted.get('rules', {}).get('annotation-absent') == 'off', \
     'adoption did not silence the unclaimed-file rule: %r' % adopted.get('rules')
 PY
 
+# verifies: FR-INIT-220
+# Adopt writes the agent guide too, and builds its substitutions on a path
+# of its own — which is how the width marker once travelled into a target
+# as itself. No width was passed here, so the line goes rather than filling.
+grep -q 'SRS-DD-WIDTH-LINE' /tmp/srs-adopt/AGENTS.md \
+    && { echo "FAIL FR-INIT-220 — the width placeholder travelled"; exit 1; }
+grep -q 'Line width' /tmp/srs-adopt/AGENTS.md \
+    && { echo "FAIL FR-INIT-220 — a width nobody stated was named"; exit 1; }
+
 # verifies: FR-INIT-180, FR-INIT-190
 # Adopt writes the checker itself — it has to run it before any tooling is
 # installed — so it is the one path into a target that does not go through

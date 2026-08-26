@@ -21,8 +21,10 @@
 # stopping being computed.
 set -eo pipefail
 
-# The lab below is a git-free tree of its own; a hook's environment would
-# otherwise follow us into it.
+# implements: FR-CI-090
+# The lab below is a tree of its own, and the history fixtures run `git
+# init` and commit inside it; a hook's environment would otherwise follow
+# us there and the commits would land in the one being prepared.
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."

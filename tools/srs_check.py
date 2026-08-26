@@ -18,7 +18,7 @@ no natural language: the modal verbs, negation words, and rationale
 markers it matches all come from the lexicon in the config.
 """
 
-# implements: NFR-SPEC-010, NFR-CHK-010
+# implements: NFR-SPEC-010, NFR-CHK-010, CON-SPEC-030
 
 import json
 import os
@@ -753,8 +753,10 @@ def check_baselines(warnings, reports):
 
     The row is what makes a baseline; a tag is a bookmark on it. One
     without the other is a claim to freeze something no reader can look
-    up. Silent where git or the tags are absent — a project that never
-    tags is keeping a perfectly good log.
+    up. Silent where the tags are absent — a project that never tags is
+    keeping a perfectly good log — and not silent where git could not be
+    asked at all, which is a different thing: the first answers the
+    question, the second leaves it unasked.
     """
     rel = os.path.join("specs", "92-baselines.md")
     try:
@@ -762,11 +764,21 @@ def check_baselines(warnings, reports):
             logged = set(re.findall(r"`(spec/v[^`]+)`", handle.read()))
     except OSError:
         return
+    # implements: FR-CHK-220
+    # An empty list and an unanswerable question are told apart by how git
+    # exits: no tags is a successful run returning nothing, no repository
+    # is a failure. Reporting the second keeps a green run from meaning
+    # "checked" when the rule never ran.
     try:
         listed = subprocess.check_output(
             ["git", "-C", ROOT, "tag", "-l", "spec/v*"],
             stderr=subprocess.DEVNULL).decode("utf-8", "replace").split()
     except (OSError, subprocess.CalledProcessError):
+        # Inside 120 columns with the "note: " prefix: the installer runs
+        # this checker and a suite holds its whole output to that width.
+        reports.append(
+            "%s — no readable history, so baseline tags went uncompared"
+            % rel)
         return
     for tag in sorted(tag for tag in listed if tag not in logged):
         rule_finding(warnings, reports, "baseline-without-row",

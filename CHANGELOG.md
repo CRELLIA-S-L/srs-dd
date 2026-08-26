@@ -69,6 +69,19 @@ checkers, and stamped into every file the installer writes.
   copies, leaving each line in place so line numbers still match. A project
   that declared one of this framework's requirement areas used to receive an
   annotation resolving to its own requirement under that number.
+- An install can record the line width a project's code follows. The setup
+  procedure reads it out of whatever the project already states it in — an
+  `.editorconfig`, a formatter's configuration, a contributing guide — and
+  confirms it before passing it on; the installer writes it to
+  `line_width` in the configuration and names it in the agent guide. A
+  project that states nothing gets no key and no line, and no gate checks
+  source formatting: that is a linter's job, not this framework's.
+- A run that could not read the history says so. One rule compares baseline
+  tags against the log, and outside a repository — or with no git on the
+  path — it could not run at all while the run still reported no errors.
+  The checker now prints a note naming what went unchecked. A repository
+  with no tags stays silent, because that answers the question rather than
+  leaving it unasked.
 - A hypothesis is put against the frames before it is admitted. The layer
   recorded frames and never applied them: nothing connected a frame to a
   hypothesis, so a claim a frame forbids could be recorded, staked on and
@@ -81,6 +94,9 @@ checkers, and stamped into every file the installer writes.
 
 ### Upgrade notes
 
+- The register standard says where the names of its rules come from, the
+  way the specification standard already did: the checker lists them when
+  you name one it does not know.
 - The register standard states two limits it used to leave silent, and both
   are limits rather than changes: how a hypothesis is measured lives in its
   prose and no rule reads it, and where a measurement came from is not

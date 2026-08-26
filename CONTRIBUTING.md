@@ -98,14 +98,20 @@ three break silently:
 - No two sources of truth: if a rule is stated in `specs/README.md`, other
   documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
-- **Line width: 120 columns in code, none in markdown.** Python, shell,
-  YAML and JSON wrap at 120. Markdown does not wrap at anything: a line
-  break inside a paragraph renders as a space — `tools/srs_view.py` joins
-  them with `p.replace("\n", " ")`, which greps — so where a line ends is
-  invisible to every reader and matters only to `git diff`. Wrap prose
-  where it reads well and keep a paragraph's wrapping consistent with
-  itself, so that editing one sentence does not reflow the six lines
-  around it.
+- **Line width: 120 columns in code, none in markdown, none over what the
+  tools print.** Python, shell, YAML and JSON wrap at 120. Markdown does
+  not wrap at anything: a line break inside a paragraph renders as a space
+  — `tools/srs_view.py` joins them with `p.replace("\n", " ")`, which
+  greps — so where a line ends is invisible to every reader and matters
+  only to `git diff`. Wrap prose where it reads well and keep a
+  paragraph's wrapping consistent with itself, so that editing one
+  sentence does not reflow the six lines around it. What a tool prints is
+  a third case and is not bounded at all: a finding is written to be read,
+  and breaking one into fixed lines in the source freezes the wrapping
+  against a terminal nobody has measured, at a width that depends on how
+  long the reader's own paths and identifiers happen to be. Wrapping is
+  the terminal's business. Do not add a suite that asserts a width over a
+  log — FR-CI-100's rationale records why.
 - A line that cannot be split without changing what it produces is left
   alone whatever its length: a single string literal, a `printf` whose
   argument is a whole fixture document, a CI `script:` entry, one CSS

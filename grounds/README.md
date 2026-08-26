@@ -530,7 +530,7 @@ carries the register.
 
 | Key | Default | |
 |---|---|---|
-| `rules` | `{}` | What a finding costs: `warn` (the default, and what `--strict` fails on), `report` (said, never fatal), `off` (not said at all). Keys are rule names |
+| `rules` | `{}` | What a finding costs: `warn` (the default, and what `--strict` fails on), `report` (said, never fatal), `off` (not said at all). Keys are rule names; `srs_grounds.py` lists them when you name one it does not know |
 | `grades` | `{}` | Which actions each grade permits: `{"high": ["release", "quarter"], "low": ["experiment"]}`. A grade absent from the map permits anything, which is what an empty map means for every grade |
 | `period` | `"quarter"` | The unit the dashboard counts arrivals in: `month`, `quarter` or `year` |
 | `confidence` | `0.95` | How sure a measurement has to be before it refutes: `0.9`, `0.95` or `0.99`. Higher keeps doubtful hypotheses alive longer |

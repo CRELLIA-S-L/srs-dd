@@ -142,7 +142,7 @@ derives_from: []
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tools/ci_selftest.sh]
+code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tests/dates-smoke.sh, tests/grounds-rules.sh, tools/ci_selftest.sh]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -303,11 +303,33 @@ refused, and there is no line like that in this repository today. Widening the
 rule to recognise one costs a heuristic about what a token is, and the price
 is paid only when such a line is actually wanted. What survives is the width somebody chose: a compound command, a
 long call, a chain of conditions — the cases where splitting costs nothing
-and changes nothing. Eight lines in this repository exceed 120 columns today
-and the rule clears all eight; the one it caught was a subshell running three
-commands in a row.
+and changes nothing. A handful of lines in this repository exceed 120 columns
+today and the rule clears every one of them; `awk 'length>120' tools/*.py
+tools/*.sh tests/*.sh` is the current list, and reading it beats counting it
+here — a number written down goes stale the next time a fixture is added, and
+this one already had. The line the rule caught was a subshell running three commands
+in a row.
 
 Markdown is not looked at, in this repository or in any target. A line break
 inside a paragraph renders as a space — `tools/srs_view.py` joins them with
 `p.replace("\n", " ")` — so where a line ends is invisible to every reader
 and matters only to `git diff`.
+
+**And neither is what the tools print.** The limit governs code. No rule of
+this framework states a width for the output of the checkers, the viewer or
+the installer, and the absence is a decision rather than an oversight.
+
+It was tried the other way. A requirement was authored saying the installer's
+output had to fit 120 columns, and building it turned up the size of what that
+rule actually commits to: most of what the grounds checker can report runs
+past 120 with an ordinary record, the widest past 230 columns, and the
+specification checker has a share of its own. Satisfying it everywhere means
+breaking a finding into fixed lines inside the source, which is the wrong
+place for the decision twice over. Where a line ends then depends on how long
+the reader's own identifiers and paths happen to be, and it is frozen at
+authoring time against a terminal nobody has measured. Wrapping is the
+terminal's business, and a reader who wants it narrower has `fold`.
+
+Recorded here so the question is not re-derived: an over-long finding is not
+a defect of this framework, and a suite asserting a width over what a tool
+prints is asserting something no requirement says.

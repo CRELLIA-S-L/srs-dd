@@ -12,6 +12,7 @@ references to code.
 - **Specification rules** — `specs/README.md`.
 - **Engineering principles** — `specs/constitution.md` (`ART-*`); they
   apply to every task.
+<SRS-DD-WIDTH-LINE>
 - **Check** — `python3 tools/srs_check.py`.
 - **Read** — `python3 tools/srs_view.py <ID>` for one requirement with
   its links resolved, `--code <path>` for the requirements describing a

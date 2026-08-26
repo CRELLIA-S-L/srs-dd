@@ -438,8 +438,8 @@ every traceability annotation that names a requirement of this framework,
 leaving the line where it was and leaving an annotation marked as an example
 alone.
 
-**Rationale.** The shipped Python carries 101 `implements:` and `verifies:`
-lines. They exist for the two-way check this repository runs on itself — the
+**Rationale.** The shipped Python carries a hundred-odd `implements:` and
+`verifies:` lines. They exist for the two-way check this repository runs on itself — the
 requirement's field is the specification's claim, the annotation the file's
 own — and that check is checked here, where the requirements are. In a
 target they are at best inert and at worst wrong: where a project declares
@@ -494,3 +494,80 @@ the tool that runs.
 One line per file, in the shape the marker already has, rather than one per
 annotation removed: the same number repeated a hundred times in one file is
 not more information than the same number once.
+
+### FR-INIT-210 — The project's line width is asked for, never assumed
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-090]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-08-26
+```
+
+The installer **shall** accept the project's line width as a parameter and
+write it into the target's configuration, without inferring it from the
+project's files.
+
+**Rationale.** This framework has a width of its own — 120 columns, enforced
+by `FR-CI-100` over this repository's sources — and it reaches no project:
+the suite that enforces it does not travel, and neither does the document
+that states it. That is the right arrangement and this requirement does not
+change it. A project's code is written to the project's rules.
+
+What is missing is that the framework installs an agent guide and says
+nothing about those rules, so an agent working there infers a width from how
+the files happen to look. That is the same failure `FR-CI-100` was written
+against, met in somebody else's repository, where we have no business
+enforcing anything and every reason to pass the number along.
+
+Taken as a parameter and not worked out here, for the reason the lexicon is
+taken as a parameter: finding out what a project already follows is reading,
+and reading is what the agent running the install is for. A project states
+its width in whichever file its toolchain reads — `.editorconfig`,
+`pyproject.toml`, a linter's own config, or nowhere at all — and a script
+that went looking would need a heuristic per convention, would be wrong
+quietly when a project used a form it had not been taught, and would grow a
+new branch with every tool that comes into fashion. `FR-SKILL-190` puts the
+reading on the procedure, where a wrong answer is seen by the person
+approving it.
+
+A project that declares nothing anywhere is not a project in error. Then
+there is no parameter and nothing is written.
+
+### FR-INIT-220 — The installed agent guide names the project's width
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-210]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py, skeleton/AGENTS.md]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-26
+```
+
+Where a project has recorded a line width, the shared agent guide the
+installer writes **shall** state it.
+
+**Rationale.** The number is worth recording only if something reads it back,
+and the reader here is an agent rather than a gate. A guide that carries the
+width turns a rule the project stated once into a rule an agent applies
+without being told twice, which is what the guide is for.
+
+One guide and not both. `AGENTS.md` is the shared one and `CLAUDE.md` opens
+by sending its reader there, carrying only what is specific to one agent; a
+width in both would be two places to keep in step and one of them would
+eventually be wrong.
+
+No gate goes with it, deliberately. Checking the width of a project's code is
+a linter's job and most projects already have one; the framework arrives for
+the specification and would be overstepping if it started refusing commits
+over source formatting. Where the width is not recorded, the guide says
+nothing about it rather than naming a default.
