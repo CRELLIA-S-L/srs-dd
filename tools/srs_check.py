@@ -332,25 +332,47 @@ def collect_spec_files():
     return sorted(result, key=lambda pair: pair[1])
 
 
-def find_cycles(requirements, field):
+CYCLE_FIELDS = ("derives_from", "refines")
+
+
+def find_cycles(requirements):
     # implements: FR-CHK-040
-    """Finds loops over a single link kind. Returns a list of cycle paths."""
-    graph = dict((r.id, [t for t in r.links(field)]) for r in requirements)
+    """Loops in the derivation graph, as (cycle path, fields on it).
+
+    One graph over both kinds of link rather than one per kind. A cycle
+    that alternates them — A derives from B, B refines A — is circular in
+    exactly the way the rationale describes, and two separate walks see
+    neither half of it.
+
+    The fields are carried along so the message can still name them: a
+    cycle drawn in one kind reads exactly as it did when there was a walk
+    per kind.
+    """
+    graph = dict((r.id, [(t, field) for field in CYCLE_FIELDS
+                         for t in r.links(field)])
+                 for r in requirements)
     cycles = []
     state = {}   # 0 untouched, 1 in progress, 2 done
     stack = []
+    # The field each step of `stack` was entered by: via[i] joins stack[i]
+    # to stack[i + 1], so a cycle opening at `start` was drawn with
+    # via[start:] and the back-edge that closed it.
+    via = []
 
     def walk(node):
         state[node] = 1
         stack.append(node)
-        for nxt in graph.get(node, []):
+        for nxt, field in graph.get(node, []):
             if nxt not in graph:
                 continue
             if state.get(nxt, 0) == 0:
+                via.append(field)
                 walk(nxt)
+                via.pop()
             elif state.get(nxt) == 1:
                 start = stack.index(nxt)
-                cycles.append(stack[start:] + [nxt])
+                cycles.append((stack[start:] + [nxt],
+                               sorted(set(via[start:] + [field]))))
         stack.pop()
         state[node] = 2
 
@@ -575,9 +597,9 @@ def validate(requirements):
                          "%s — %s is linked to nothing, and nothing links "
                          "to it" % (req.where, req.id), req)
 
-    for field in ("derives_from", "refines"):
-        for cycle in find_cycles(requirements, field):
-            errors.append("cycle in %s links: %s" % (field, " → ".join(cycle)))
+    for cycle, fields in find_cycles(requirements):
+        errors.append("cycle in %s links: %s"
+                      % ("/".join(fields), " → ".join(cycle)))
 
     return by_id, errors, warnings, reports
 
@@ -763,7 +785,13 @@ def check_baselines(warnings, reports):
         with open(os.path.join(ROOT, rel), "r", encoding="utf-8") as handle:
             logged = set(re.findall(r"`(spec/v[^`]+)`", handle.read()))
     except OSError:
-        return
+        # implements: FR-CHK-130
+        # A log that is not there has a row for nothing, which is the
+        # condition this rule reports satisfied for every tag at once.
+        # Returning here answered the most complete form of the defect with
+        # silence — and the rule's whole subject is a tag freezing a state
+        # the log does not describe.
+        logged = set()
     # implements: FR-CHK-220
     # An empty list and an unanswerable question are told apart by how git
     # exits: no tags is a successful run returning nothing, no repository
@@ -891,8 +919,16 @@ def build_traceability(requirements):
 
     lines.append("## Code files outside the specification")
     lines.append("")
+    # implements: FR-CHK-230
+    # A cancelled requirement's `code` field records what it once pointed at,
+    # not a claim on the file now. Counted in, a withdrawal would be the
+    # quietest way to take a file out of this list — the same reading the
+    # unclaimed-file rule takes above and the viewer's gap list takes in
+    # tools/srs_view.py, so that all three answer one question the same way.
     covered = set()
     for req in requirements:
+        if req.meta.get("status") in CANCELLED:
+            continue
         for path in req.meta.get("code", []):
             covered.add(path)
     all_code = collect_code_files()

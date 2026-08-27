@@ -493,6 +493,14 @@ rest on nothing anybody wrote down. That list is a reading of the product,
 not a defect report: it says the system acquired something nobody can now
 say why it has.
 
+It reads the requirements that have not been cancelled. One that was
+withdrawn or superseded rests on no hypothesis and never will, and nothing of
+the system rests on it — counted in, it would sit on this list forever and its
+links would keep adding to somebody else's weight. A bet naming no hypothesis
+at all does not take a requirement off the list either: both of its lists are
+optional, so such a record is well-formed and stands the requirement on
+nothing, which is what the list is for.
+
 **No rule of this layer requires a requirement to be named by a bet, and none
 ever will.** Where a link is mandatory it gets invented, and an invented link
 is worse than an absent one because it looks like knowledge. Every

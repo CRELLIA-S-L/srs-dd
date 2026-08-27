@@ -64,12 +64,21 @@ created: 2026-08-07
 ```
 
 While adopting an existing specification, the installer **shall** validate it
-against the proposed configuration before writing anything and leave the
+against the proposed configuration before installing anything and leave the
 target byte-identical when that validation fails.
 
 **Rationale.** Adoption is the moment of highest risk — a stranger's
 specification, our guess at their lexicon. Anything short of a rollback would
 mean a half-converted repository nobody asked for.
+
+*Before installing*, and the word is exact. The validation runs the target's
+checker against the proposed configuration, so that configuration and a
+temporary copy of the checker are on disk before it can start; both are taken
+back out when it fails, which is what the second half promises and what the
+suite compares. A run killed between the two leaves the temporary checker
+behind, and the installer removes it on the next attempt — the single
+exception to the guarantee, named here because a statement claiming more than
+the design can give is a statement nobody can check code against.
 
 ### FR-INIT-040 — Existing specification files are never modified
 

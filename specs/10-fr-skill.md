@@ -195,7 +195,7 @@ derives_from: []
 depends_on: [FR-CI-070]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs-release/SKILL.md]
+code: [.claude/skills/srs-release/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-08-08
 ```
@@ -214,6 +214,12 @@ knows the rule this project tripped over four times: the first sentence of
 every entry stands alone, because the installer prints that sentence and
 cuts the rest. Framework-only, like `srs-init`: a target releases nothing of
 ours.
+
+That half is kept by the installer, not by this file: `SKILLS` in
+`tools/srs_init.py` lists what travels, and `srs-release` is absent from it.
+Named in `code` for the reason FR-SKILL-060 and FR-SKILL-080 name the same
+file — a field short of where an obligation is realized is green forever, and
+whoever edits that tuple is the one who needs to be told.
 
 ### FR-SKILL-080 — The baseline procedure travels with the project
 
@@ -314,7 +320,8 @@ created: 2026-08-10
 ```
 
 When a change is finished, the check procedure **shall** name the checks the
-requirements it touched call for — the checker, the tests those requirements
+requirements it touched call for — the specification checker, the grounds
+checker where the project carries a register, the tests those requirements
 list, and what a person has to look at where the method is not a test — and
 offer to run them rather than running them unasked.
 
@@ -325,6 +332,12 @@ than a matter of memory. A method of `I` or `D` is where this matters most —
 those never appear in a suite, and the reader is told what to look at or
 learns about it from a bug. Offering rather than running is not politeness
 but ART-030: builds and test runs need the user's word each time.
+
+The statement said "the checker" while there was one. A project carrying a
+grounds register has two, and its gate fails on a dashboard the change left
+stale (`FR-GND-370`) — so a procedure naming only the first hands back work
+that passes everything it named and reddens the pipeline. Naming the second is
+conditional, because a project without a register has no such command to run.
 
 ### FR-SKILL-110 — The specification can be read as a page on request
 

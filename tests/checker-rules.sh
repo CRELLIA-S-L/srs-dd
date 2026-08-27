@@ -140,7 +140,30 @@ spec < <(block FR-CORE-010 "Derives from the other" \
          block FR-CORE-020 "Derives from the first" \
                "${META/derives_from: \[\]/derives_from: [FR-CORE-010]}" \
                'The system **shall** respond.')
-rule "FR-CHK-040 cycle" 1 "cycle in"
+rule "FR-CHK-040 cycle" 1 "cycle in derives_from links"
+
+# --- verifies: FR-CHK-040 — the other kind of link the statement names. The
+# --- rule walked both and only one was ever exercised, so narrowing it to
+# --- `derives_from` would have kept this file green.
+spec < <(block FR-CORE-010 "Refines the other" \
+               "${META/refines: \[\]/refines: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Refines the first" \
+               "${META/refines: \[\]/refines: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+rule "FR-CHK-040 cycle in refines" 1 "cycle in refines links"
+
+# --- verifies: FR-CHK-040 — and a cycle drawn in both at once, which is the
+# --- one two separate walks could not see: A exists because B does, and B is
+# --- a special case of A. The message names both kinds it was drawn in.
+spec < <(block FR-CORE-010 "Derives from the other" \
+               "${META/derives_from: \[\]/derives_from: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Refines the first" \
+               "${META/refines: \[\]/refines: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+rule "FR-CHK-040 cycle across both kinds" 1 \
+     "cycle in derives_from/refines links"
 
 # --- verifies: FR-CHK-055 — a path a requirement names exists.
 spec < <(block FR-CORE-010 "Names a file that is not there" \
@@ -703,6 +726,32 @@ spec < <(block FR-CORE-010 "Withdrawn, and its file stayed" \
 rule "FR-CHK-210 a file only a withdrawn requirement names" 0 \
      "src/dropped.py — no requirement names this file"
 
+# --- verifies: FR-CHK-230 — and the matrix says the same about that file.
+# --- The generated section had no fixture at all: every run in this suite
+# --- passes --no-write, so the one place three tools could disagree was the
+# --- one place nothing looked. Counted from every requirement, the withdrawn
+# --- one above covered src/dropped.py and the matrix called it referenced
+# --- while the rule above called it unclaimed, in the same run.
+( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+    || { echo "FAIL FR-CHK-230 — the checker refused the fixture, so no"
+         echo "matrix was written and the assertions below have nothing to"
+         echo "read"; cat /tmp/srs-rules.log; exit 1; }
+grep -qF -- "- \`src/dropped.py\`" "$LAB/specs/90-traceability.md" \
+    || { echo "FAIL FR-CHK-230 — a file only a cancelled requirement names is"
+         echo "missing from the matrix's list of unreferenced files"
+         sed -n '/Code files outside/,$p' "$LAB/specs/90-traceability.md"
+         exit 1; }
+# Two, because src/app.py from the FR-CHK-200 block above is still here and
+# nothing live names it either. Before the change the withdrawn requirement
+# covered src/dropped.py and this line read "1 of 2".
+grep -qF "No requirement references them: 2 of 2." \
+     "$LAB/specs/90-traceability.md" \
+    || { echo "FAIL FR-CHK-230 — the count is not over the live requirements"
+         sed -n '/Code files outside/,$p' "$LAB/specs/90-traceability.md"
+         exit 1; }
+passes=$((passes + 2))
+rm -f "$LAB/specs/90-traceability.md"
+
 # Superseded is the other way of being over, and the same answer.
 spec < <(block FR-CORE-010 "Replaced, and its file stayed" \
                "$(printf '%s' "${META/status: deferred/status: superseded}" \
@@ -969,6 +1018,22 @@ absent "strict mode" /tmp/srs-rules-nogit.log
 ( cd "$LAB" && git init -q . ) > /dev/null 2>&1
 silent "FR-CHK-220 a repository with no tags stays silent" 0 \
        "no readable history"
+
+# --- verifies: FR-CHK-130 — a log that is not there has a row for nothing,
+# --- which is the condition this rule reports, satisfied for every tag at
+# --- once. It used to return before git was asked, so the most complete form
+# --- of the defect was the one form answered with silence. Runs here because
+# --- it is the one point where git still answers and the log can be taken
+# --- away; the tag needs a commit under it, or HEAD does not resolve.
+rm -f "$LAB/specs/92-baselines.md"
+( cd "$LAB" && git add -A \
+  && git -c user.email=ci@example.com -c user.name=CI commit -qm base \
+  && git tag spec/v0.1.0 ) > /dev/null 2>&1 \
+    || { echo "FAIL FR-CHK-130 — could not put a commit and a tag in the lab,"
+         echo "so the rule below would be asserted against no tag"; exit 1; }
+rule "FR-CHK-130 a tag with no log at all" 0 \
+     "no row for baseline tag spec/v0.1.0"
+rule "FR-CHK-130 and it fails a strict gate" 1 "treated as errors" --strict
 rm -rf "$LAB/.git"
 
 rm -f "$LAB/specs/92-baselines.md"

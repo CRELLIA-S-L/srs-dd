@@ -135,8 +135,11 @@ RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
          "srs_baseline.py", "srs_dates.py")
 
-# Skills shipped to targets. srs-init itself stays framework-only.
-# implements: FR-SKILL-060, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
+# Skills shipped to targets. srs-init itself stays framework-only, and so
+# does srs-release: a target releases nothing of ours (FR-SKILL-070), and
+# this tuple is where that is kept.
+# implements: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100
+# implements: FR-SKILL-110
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
           "srs-baseline", "srs-check", "srs-page")
 

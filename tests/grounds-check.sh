@@ -11,6 +11,11 @@
 # with cmp, and the working tree is left as it was found.
 set -eo pipefail
 
+# implements: FR-CI-090
+# A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
+# prepared, and everything this suite starts inherits them — including the
+# checker it runs inside the copy below, which reads the register's history
+# with git. Cleared here, once, before anything.
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."

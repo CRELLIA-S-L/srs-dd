@@ -17,7 +17,7 @@ self-contained page for whoever will never clone the repository.
 any language · no server, no database, no service · MIT
 
 This repository is its own example: [`specs/`](specs/) describes the checker,
-the viewer and the installer as 180 numbered requirements, and the pipeline
+the viewer and the installer as numbered requirements, and the pipeline
 publishes them as [a page](https://crellia-s-l.github.io/srs-dd/). For what an
 ordinary product looks like after adopting the standard — a small service, a
 superseded requirement kept for the record, tests named from both directions —

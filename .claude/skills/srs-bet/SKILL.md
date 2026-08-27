@@ -75,6 +75,15 @@ be compared instead of being settled by the wording.
 
 Where the statement is sound, say that too, in a clause.
 
+**A rewording goes through all four again.** Narrowing a population, sharpening
+the action, restating the need — each is the sentence being written, and the
+judgement is owed before the new text is recorded exactly as it was before the
+first. This is where it is easiest to skip: the record already exists, so
+nothing feels like authoring, and a claim quietly loses its edge while somebody
+is repairing its wording. What may not be reworded is the threshold once a
+measurement has been taken — see *What not to do*; that one is a new hypothesis
+and the old one is retired.
+
 ## Choosing the class
 
 Ask how the number will actually be obtained, then check that the class

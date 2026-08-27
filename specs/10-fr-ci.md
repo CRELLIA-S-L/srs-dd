@@ -142,7 +142,7 @@ derives_from: []
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tests/dates-smoke.sh, tests/grounds-rules.sh, tools/ci_selftest.sh]
+code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tests/dates-smoke.sh, tests/grounds-rules.sh, tests/grounds-check.sh, tools/ci_selftest.sh]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -174,6 +174,12 @@ targets: it has no target and deliberately works on this repository, staging
 the matrix to compare it against what the checker generates. Running under
 the hook's index is what makes that check ask about the commit being
 prepared rather than the one before it.
+
+`tests/grounds-check.sh` was missing from the field while carrying the same
+clearing as the rest. It reads git and never stages, so it could not have
+caused the failure — but the clearing is the realization, and a field short of
+one file is green forever: `--code` on that suite answered as though no rule
+governed it, which is the question asked before anybody edits one.
 
 Held in two halves, and the split is about cost. Each suite clears the
 environment it inherited; `tools/ci_selftest.sh` compares the index after

@@ -80,11 +80,18 @@ tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
 
-If `derives_from` or `refines` links form a cycle, the checker **shall**
-report it as an error listing the requirements on the cycle.
+If `derives_from` and `refines` links together form a cycle, the checker
+**shall** report it as an error listing the requirements on the cycle.
 
 **Rationale.** The derivation graph answers "why does this exist"; a cycle
 means the answer is circular, and it also breaks the tree view.
+
+One graph over both kinds of link, not one per kind. This said "or" and was
+built as two separate walks, so `A derives_from B` with `B refines A` — A
+exists because B does, and B is a special case of A — was circular in exactly
+the way the sentence above describes and seen by neither walk. The two fields
+draw one graph because they answer one question; the message still names which
+kinds a cycle was drawn in, so a cycle in one of them reads as it always did.
 
 ### FR-CHK-050 — A requirement being realized names where
 
@@ -371,7 +378,7 @@ depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: [tests/installer-smoke.sh]
+tests: [tests/installer-smoke.sh, tests/checker-rules.sh]
 created: 2026-08-08
 ```
 
@@ -387,6 +394,12 @@ closes it. Nothing is reported where the tags are absent: a project that
 never tags is keeping a perfectly good log. A checkout where git cannot
 answer at all is the other case and not this one — FR-CHK-220 says what
 happens there, and why the two are not the same silence.
+
+A log that is not there is a third case and belongs to this rule. It has a
+row for nothing, so the condition above holds for every tag at once — and
+that was answered with silence, because the rule opened the file first and
+returned when it could not. The most complete form of the defect was the one
+form nobody heard about.
 
 ### FR-CHK-140 — A requirement verified by test and carrying none is reported
 
@@ -633,8 +646,10 @@ project carried no annotation at all when the rule was written, so it fires
 once per in-scope pair on the day it ships — well over a hundred of them,
 thirty in a single file. That is a queue of mechanical work, not a defect —
 but a project meeting it mid-adoption must be able to decide when to take
-it, which is what the severity lever is for, and this project does exactly
-that in its own configuration until the queue is worked off.
+it, which is what the severity lever is for. This project lowered the rule in
+its own configuration while the queue lasted, and the queue is worked off:
+the `rules` key is gone from `specs/srs-config.json`, no requirement carries
+an `exempt` line, and the rule runs at its default severity on everything.
 
 ### FR-CHK-210 — A file neither end claims is reported
 
@@ -724,3 +739,38 @@ Reported as a note rather than a warning, so a project without git is not
 failed for a dependency this framework does not require (NFR-SPEC-010). It
 is the same rule the grounds layer states for the register's own history,
 made separately because the two checkers share no code (ADR-0019).
+
+### FR-CHK-230 — The matrix counts the same set the rules do
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [CON-SPEC-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-08-27
+```
+
+The traceability matrix **shall** count a file as referenced only where a
+requirement that has not been cancelled names it.
+
+**Rationale.** Three readings of one question, and the matrix was the only one
+answering it differently. `FR-CHK-210` and `FR-VIEW-040` both say *a
+requirement that has not been cancelled*, and the viewer's own code says why in
+a comment: counted in, a withdrawal would quietly move its files out of the gap
+list, and the two tools would describe one file differently in the same run.
+The matrix said "no requirement references them" and meant any requirement,
+cancelled or not — self-consistent, and the third answer in that run.
+
+Its own number rather than a clause in `CON-SPEC-010`. That statement obliges
+the matrix to be generated and never hand-edited; what a section of it counts
+is a second obligation, and `INV-SPEC-060` is why they do not share a
+sentence.
+
+Scoped to the one reading. The *Incoming links* section keeps every link,
+including those from cancelled requirements, because settling a withdrawal is
+exactly the case that needs them whole — the same reason the viewer computes
+its reverse links over every entry.

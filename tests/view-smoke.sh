@@ -208,6 +208,56 @@ open(path, 'w', encoding='utf-8').write(
     text[:text.index('### FR-CORE-090')].rstrip('\n') + '\n')
 PY2
 rm -f src/dropped.py
+
+# verifies: FR-VIEW-040
+# The other two gap lists the statement names. Only the first and the
+# fourth were read off standard output; the middle two were asserted
+# against the page alone (FR-VIEW-200), and the page's dashboard is not
+# the code that prints this — both blocks of print_coverage could have
+# been deleted and every check here stayed green.
+cat >> specs/10-fr-core.md <<'MD'
+
+### FR-CORE-091 — Approved by nobody, built anyway
+
+```yaml
+status: draft
+verification: T
+code: [src/app.py]
+```
+
+The system **shall** have been written before anyone said it should.
+
+### FR-CORE-092 — Realized on top of it
+
+```yaml
+status: implemented
+verification: T
+depends_on: [FR-CORE-091]
+code: [src/app.py]
+```
+
+The system **shall** stand on a requirement nobody approved.
+MD
+python3 tools/srs_view.py --coverage > /tmp/v-cov3.log
+python3 - <<'PY2'
+log = open('/tmp/v-cov3.log', encoding='utf-8').read()
+for heading, entry in (
+        ('Draft with code — implementation ahead of approval', 'FR-CORE-091'),
+        ('Realized but resting on a draft', 'FR-CORE-092')):
+    assert heading in log, 'the coverage report dropped: %s' % heading
+    section = log[log.index(heading):]
+    section = section[:section.index('\n\n')] if '\n\n' in section else section
+    assert entry in section, (
+        '%s is on the report but empty of what belongs in it' % heading)
+PY2
+# Named files, not new ones: src/app.py is already listed and already
+# annotated, so the orphan proportion the assertion above reads does not move.
+python3 - <<'PY2'
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+open(path, 'w', encoding='utf-8').write(
+    text[:text.index('### FR-CORE-091')].rstrip('\n') + '\n')
+PY2
 python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
 # The same baseline named by version rather than by tag (FR-VIEW-050): a
 # baseline need not have been tagged to be compared against.

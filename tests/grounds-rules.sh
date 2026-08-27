@@ -414,6 +414,25 @@ all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
 requirement: FR-CORE-010' 'Nobody could name a ground for this.')
 rule "FR-GND-100 superfluous" 0 "declares FR-CORE-010 unclaimed, and B-010 names it"
 
+# --- verifies: FR-GND-100, FR-GND-220 — a bet naming no hypothesis at all.
+# --- Both lists are optional, so the record is legal; read as a claim it
+# --- would take the requirement off the one list this layer exists to
+# --- produce and retire the declaration saying so, and every check on the
+# --- shape would still pass. Cheapest possible invented link.
+ground < <(rec B-010 "Names nothing" 'status: active
+requirement: FR-CORE-010' 'FR-CORE-010 rests on, well, nothing.'
+           rec U-010 "Says it rests on nothing" \
+               'status: active
+requirement: FR-CORE-010' 'Nobody could name a ground for this.')
+silent "FR-GND-100 an empty bet retires no declaration" 0 "declares FR-CORE-010 unclaimed"
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+grep -qE "^\| FR-CORE-010 \|" "$LAB/grounds/90-dashboard.md" \
+    || { echo "FAIL FR-GND-220 — a bet staking nothing took the requirement"
+         echo "off the list of what rests on no hypothesis"
+         cat "$LAB/grounds/90-dashboard.md"; exit 1; }
+passes=$((passes + 1))
+rm -f "$LAB/grounds/90-dashboard.md"
+
 # --- verifies: FR-GND-420 — the status says nobody relies on it and a bet
 # --- says otherwise. The direction matters: `untested` is outside the debt
 # --- count and `assumed` is inside it, so the mislabelling always reads as
@@ -451,6 +470,15 @@ passes=$((passes + 1))
 # specific rule has not turned off the general one.
 printf '{"rules": {"never-measured": "off"}}\n' > "$LAB/grounds/grounds-config.json"
 rule "FR-GND-430 silenced, expiry returns" 0 "ran out of term on 2020-01-01"
+
+# --- verifies: FR-GND-060 — and `off` is not the only way to lower a rule.
+# --- Lowered to a report, the specific rule still speaks, so this one used
+# --- to step aside for it — and the expiry FR-GND-060 owes as a warning
+# --- came out as a report, which `--strict` does not fail on. A second
+# --- rule's severity changed by a setting that never named it.
+printf '{"rules": {"never-measured": "report"}}\n' > "$LAB/grounds/grounds-config.json"
+rule "FR-GND-060 a lowered neighbour does not silence it" 1 \
+     "ran out of term on 2020-01-01" --strict
 printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
 
 # --- The same hypothesis measured once, long ago, is the other case: past
@@ -555,6 +583,73 @@ grep -qF "\`assumed\` — 50%." "$LAB/grounds/90-dashboard.md" \
 passes=$((passes + 3))
 rm -f "$LAB/grounds/90-dashboard.md"
 
+# --- verifies: FR-GND-130 — and the denominator is what the sentence names.
+# --- A third requirement carrying a bet that resolves to nothing belongs in
+# --- "of N carrying a bet" and in no row of the table. Counted off the rows
+# --- instead, the share was computed over a set the sentence does not name
+# --- and every fixture above stayed green, because in all of them the two
+# --- sets are the same size.
+ground < <(rec H-010 "Held" "${HYP/status: assumed/status: supported}" 'Studios export.'
+           rec H-020 "Did not" "${HYP/status: assumed/status: refuted}" 'Studios import.'
+           rec B-010 "On the one that held" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
+           rec B-020 "On the one that did not" 'status: active
+requirement: FR-CORE-020
+all_of: [H-020]' 'FR-CORE-020 rests on H-020.'
+           rec B-030 "On nothing at all" 'status: active
+requirement: FR-CORE-030' 'FR-CORE-030 carries a bet that stakes it on nothing.')
+cat > "$LAB/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — The system acts
+
+```yaml
+status: implemented
+verification: T
+code: []
+tests: []
+```
+
+The system **shall** act.
+
+### FR-CORE-020 — And again
+
+```yaml
+status: implemented
+verification: T
+code: []
+tests: []
+```
+
+The system **shall** act again.
+
+### FR-CORE-030 — And a third time
+
+```yaml
+status: implemented
+verification: T
+code: []
+tests: []
+```
+
+The system **shall** act a third time.
+MD
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+D="$LAB/grounds/90-dashboard.md"
+grep -qF "Of 3 requirements carrying a bet, 1 rest on" "$D" \
+    || { echo "FAIL FR-GND-130 — the denominator is the rows, not the bets"
+         cat "$D"; exit 1; }
+grep -qF "\`assumed\` — 33%." "$D" \
+    || { echo "FAIL FR-GND-130 — the share is computed over the wrong set"
+         cat "$D"; exit 1; }
+grep -qF "stakes them on no hypothesis at all" "$D" \
+    || { echo "FAIL FR-GND-130 — a table shorter than its denominator says"
+         echo "nothing about why"; cat "$D"; exit 1; }
+passes=$((passes + 3))
+rm -f "$D"
+cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
+
 # --- verifies: FR-GND-240, FR-GND-260, FR-GND-220 — the readings the
 # --- dashboard exists for. Generated output that nothing reads is output
 # --- that drifts, and each of these is a number somebody would act on.
@@ -581,16 +676,85 @@ passes=$((passes + 1))
 grep -qF "| III | 1 | 2026-02-14 | 2026-08-01 |" "$D" \
     || { echo "FAIL FR-GND-240 — the core's confirmations by class are wrong"
          cat "$D"; exit 1; }
-passes=$((passes + 1))
+# Separately for each class, which is the half a census of whatever happens
+# to be present passes by accident: two of the three are carried by nobody.
+grep -qF "| I | 0 | — | — |" "$D" \
+    || { echo "FAIL FR-GND-240 — a class nothing confirms has no row"
+         cat "$D"; exit 1; }
+grep -qF "| II | 0 | — | — |" "$D" \
+    || { echo "FAIL FR-GND-240 — a class nothing confirms has no row"
+         cat "$D"; exit 1; }
+passes=$((passes + 3))
 
-# Nothing is staked here, so every requirement rests on nothing — which is
-# the honest reading of a register with no bets in it, not an empty list.
-grep -qF "2 of 2 requirements" "$D" \
-    || { echo "FAIL FR-GND-220 — the unclaimed count is wrong"; cat "$D"; exit 1; }
-grep -qE "^\| FR-CORE-010 \| [0-9]+ \| [0-9]+ \| [0-9]+ \|$" "$D" \
-    || { echo "FAIL FR-GND-220 — no weight row for FR-CORE-010"; cat "$D"; exit 1; }
+# Nothing is staked here, so every requirement that has not been cancelled
+# rests on nothing — which is the honest reading of a register with no bets
+# in it, not an empty list. FR-CORE-020 is withdrawn and is outside both
+# numbers: it rests on no hypothesis and never will, nothing of the system
+# rests on it, and left in it would sit on this list forever.
+grep -qF "1 of 1 requirements" "$D" \
+    || { echo "FAIL FR-GND-220 — the unclaimed count is wrong, or a cancelled"
+         echo "requirement is being counted"; cat "$D"; exit 1; }
+absent "| FR-CORE-020 |" "$D"
 passes=$((passes + 2))
 rm -f "$D"
+
+# --- verifies: FR-GND-220 — and the weight is arithmetic, not a shape. The
+# --- fixture above has neither links nor code on either requirement, so
+# --- every column read `0` and a regular expression over digits accepted
+# --- them; the sum could have been deleted and nothing here would have
+# --- moved. A live requirement links to the one under test and it names two
+# --- files, so the row is one exact answer. The link comes from a live
+# --- requirement on purpose: `incoming` is computed over every entry the
+# --- model holds, and the narrowing to what has not been cancelled belongs
+# --- to this dashboard, which is asserted just above.
+cat > "$LAB/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — Carries weight
+
+```yaml
+status: implemented
+verification: T
+code: [src/one.py, src/two.py]
+tests: []
+```
+
+The system **shall** act.
+
+### FR-CORE-020 — Cancelled with nothing to replace it
+
+```yaml
+status: withdrawn
+verification: T
+depends_on: [FR-CORE-010]
+code: []
+tests: []
+```
+
+The system **shall** have done something nobody wants now.
+
+**Rationale.** Withdrawn, and its link must not become somebody's weight.
+
+### FR-CORE-030 — Stands on the first
+
+```yaml
+status: implemented
+verification: T
+depends_on: [FR-CORE-010]
+code: []
+tests: []
+```
+
+The system **shall** depend on the first.
+MD
+ground < <(rec H-010 "Unstaked" "$HYP" 'Studios export weekly.')
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+grep -qF "| FR-CORE-010 | 1 | 2 | 3 |" "$D" \
+    || { echo "FAIL FR-GND-220 — the weight is not incoming plus code files,"
+         echo "or a withdrawn dependant was counted into it"; cat "$D"; exit 1; }
+passes=$((passes + 1))
+rm -f "$D"
+cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
 
 # --- verifies: FR-GND-250 — a frame's whole value is in what it turned
 # --- down, and the second table proves the rule that tables are found by
@@ -910,16 +1074,44 @@ tests: []
 ```
 
 The system **shall** act a third time.
+
+### FR-CORE-040 — Dated, standing on nothing, and cancelled
+
+```yaml
+status: withdrawn
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-08-20
+```
+
+The system **shall** have arrived in the same quarter and then been dropped.
+
+**Rationale.** Counted in, it would make the quarter below read two.
 MD
+# FR-CORE-040 arrived in the same quarter as FR-CORE-020 and was withdrawn.
+# The row below reads one because a cancelled requirement is outside the
+# count: it rests on no hypothesis and never will, and a withdrawal is the
+# case where somebody did say out loud what the rate is looking for.
+# B-020 stakes FR-CORE-020 on nothing: the arrivals half of FR-GND-100's
+# neighbour. Read as a claim it would take FR-CORE-020 out of the quarter
+# it arrived in, and the row below would go with it.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
            rec B-010 "Claims the first" 'status: active
 requirement: FR-CORE-010
-all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
+all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
+           rec B-020 "Claims the second and stakes it on nothing" 'status: active
+requirement: FR-CORE-020' 'FR-CORE-020 carries a bet naming no hypothesis.')
 ( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qE "^\| 2026-Q3 \| 1 \| CORE 1 \|" "$D" \
     || { echo "FAIL FR-GND-230 — the quarter that received one unclaimed"
-         echo "requirement is not stated"; cat "$D"; exit 1; }
+         echo "requirement is not stated, or a bet staking nothing took it"
+         echo "out of the count"; cat "$D"; exit 1; }
 absent "| 2026-Q1 |" "$D"
 grep -qF "carry no \`created\` date and fall in no period" "$D" \
     || { echo "FAIL FR-GND-230 — an undated requirement is silently dropped"

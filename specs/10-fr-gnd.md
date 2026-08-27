@@ -276,8 +276,9 @@ tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
-Where a requirement declared as resting on no hypothesis is named by a bet,
-the grounds checker **shall** report the declaration as superfluous.
+Where a requirement declared as resting on no hypothesis is named by a bet
+that stakes it on one, the grounds checker **shall** report the declaration as
+superfluous.
 
 **Rationale.** An exemption nobody retires is an exemption that outlives its
 reason, and the register would fill with declarations describing a state that
@@ -285,6 +286,11 @@ ended months ago. The pattern is borrowed from linters, where a suppression
 must carry a description and the tool removes it once the rule it suppressed
 stops firing: the machine retires the exemption, not the person who has
 forgotten it exists.
+
+What retires it is a bet that stakes the requirement on something. Both lists
+of a bet are optional, so a record naming neither is legal and stands the
+requirement on nothing — and a declaration retired by one would be replaced by
+a record saying less than it did.
 
 ### FR-GND-110 — What a hypothesis rule costs is the project's to set
 
@@ -611,8 +617,9 @@ tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
-The dashboard **shall** state, for each requirement resting on no hypothesis,
-how much of the system rests on that requirement.
+The dashboard **shall** state, for each requirement that has not been
+cancelled and rests on no hypothesis, how much of the system rests on that
+requirement.
 
 **Rationale.** An unclaimed requirement that twelve others depend on and that
 names eight files is a different reading from a leaf naming one, and treating
@@ -622,6 +629,15 @@ No field is asked of anyone. The weight of a missing hypothesis cannot be
 recorded, because there is no hypothesis to record it on; what is available is
 the requirement's own weight, and it is available already — what depends on
 it and how much code it names.
+
+Cancelled requirements are outside the reading, in the wording the checker and
+the viewer already use (`FR-CHK-210`, `FR-VIEW-040`). One that was withdrawn
+rests on no hypothesis and never will, and nothing of the system rests on it;
+left in, it sits on this list forever and the same run describes the
+specification two ways. Its links do not carry weight either, for the reason
+`FR-CHK-190` gives — but only here, where the weight is computed. The viewer
+still resolves every incoming link, because settling a withdrawal is exactly
+the case that needs them whole.
 
 ### FR-GND-230 — New unclaimed requirements, and where they cluster
 
@@ -637,9 +653,9 @@ tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
-The dashboard **shall** state how many requirements came to rest on no
-hypothesis within each period of the length the register's configuration
-names, and in which areas.
+The dashboard **shall** state how many requirements that have not been
+cancelled came to rest on no hypothesis within each period of the length the
+register's configuration names, and in which areas.
 
 **Rationale.** One unclaimed requirement is noise and is meant to be. Five in
 a quarter, four of them in one area, is the product having become something
@@ -661,6 +677,11 @@ Periods are calendar ones — whole months, quarters or years — and never a
 window measured back from today. This file is committed and compared
 against a fresh run, so a boundary that moved every night would fail the
 gate every morning while saying nothing new.
+
+Cancelled requirements are outside the count, as they are outside
+`FR-GND-220`. The reading is the product having become something nobody said
+out loud; a withdrawal is the case where somebody did, and counting it inflates
+the one signal this exists to produce.
 
 ### FR-GND-240 — The age of the core, by class of confirmation
 

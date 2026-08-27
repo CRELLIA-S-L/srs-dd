@@ -126,7 +126,14 @@ grep -q "already runs .git/hooks/pre-commit" /tmp/hook2.log
 # must not travel into targets as skeleton content.
 printf 'stray\n' > skeleton/specs/stray.html
 rm -rf /tmp/srs-clean
-rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci none >/dev/null || rc=$?
+# With the register, because this target is what the leak check and the
+# annotation check below walk. Installed without it they never saw
+# tools/srs_grounds.py or grounds/README.md, so the whole register payload
+# shipped unexamined — and did ship a citation of this framework's own
+# requirements. Everything about declining the register is asserted on its
+# own target further down.
+rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci none \
+      --grounds yes >/dev/null || rc=$?
 rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html

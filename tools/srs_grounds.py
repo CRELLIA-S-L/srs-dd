@@ -112,6 +112,13 @@ STATUSES = {
 STRENGTH = {"refuted": 0, "declined": 0, "expired": 1, "untested": 2,
             "assumed": 3, "supported": 4}
 DEBT_STATUSES = ("refuted", "expired", "assumed")
+# implements: FR-GND-220, FR-GND-230
+# What the specification calls a cancelled requirement. The readings
+# below range over the requirements that have not been cancelled, which
+# is the reading the viewer's gap list and the specification checker's
+# unclaimed-file rule already take — one file described two ways in one run
+# is worse than either answer.
+CANCELLED = ("withdrawn", "superseded")
 
 # implements: FR-GND-110, IF-GND-030
 # Published names: a name here keeps its meaning forever, and is never given
@@ -681,6 +688,25 @@ def active(rec):
     return rec.fields.get("status") == "active"
 
 
+# implements: FR-GND-100, FR-GND-220, FR-GND-230
+# A bet naming no hypothesis stands its requirement on nothing. The
+# format leaves both lists optional, so the record is legal — and read
+# as a claim it would take the requirement off the one list this layer
+# exists to produce. That is the invented link `grounds/README.md`
+# warns about, in the shape that costs an agent least to write: it
+# arrives well-formed and passes every check on the shape.
+def stakes(rec):
+    """Whether this bet actually stands its requirement on something."""
+    return bool(as_list(rec.fields.get("all_of"))
+                + as_list(rec.fields.get("any_of")))
+
+
+# implements: FR-GND-220, FR-GND-230
+def live(entry):
+    """Whether a requirement of the model has not been cancelled."""
+    return entry.get("status") not in CANCELLED
+
+
 def validate(records, model, model_error, cfg):
     # implements: FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060,
     # implements: FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-390, FR-GND-400,
@@ -886,12 +912,22 @@ def validate(records, model, model_error, cfg):
         """Whether the more specific rule will speak for this record.
 
         Checked against the severity a project chose and not only against
-        the facts: a project that silenced that rule has not silenced this
-        one, and stepping aside for a finding nobody will see would leave
-        the record unreported by either.
+        the facts: stepping aside for a finding nobody will see would leave
+        the record unreported by either rule.
+
+        Compared rather than tested for `off`, because the quiet case is
+        not the only one. A project that lowered `never-measured` to a
+        report lowered that rule and not this one, and the expiry that is
+        owed as a warning would come out as a report instead — a
+        second rule's severity changed by a setting that never named it.
+        Silence is only earned where the other rule speaks at least as
+        loudly as this one would have.
         """
         rec = hyps.get(hid)
-        return (cfg["rules"].get("never-measured", "warn") != "off"
+        loudness = {"warn": 2, "report": 1, "off": 0}
+        other = loudness[cfg["rules"].get("never-measured", "warn")]
+        mine = loudness[cfg["rules"].get("hypothesis-expired", "warn")]
+        return (other >= mine and other > 0
                 and hid in staked and rec is not None
                 and not table_with(rec, "verdict"))
 
@@ -919,6 +955,12 @@ def validate(records, model, model_error, cfg):
 
     # Both ends of every bet.
     by_requirement = {}
+    # implements: FR-GND-100
+    # Kept apart from `by_requirement`: two bets on one requirement is a
+    # fact about the records whatever they name, while a declaration is
+    # only retired by a bet that actually stands the requirement on
+    # something.
+    staking = {}
     for rid in sorted(bets):
         rec = bets[rid]
         for name in as_list(rec.fields.get("all_of")) \
@@ -931,12 +973,14 @@ def validate(records, model, model_error, cfg):
             continue
         if active(rec):
             by_requirement.setdefault(req, []).append(rid)
+            if stakes(rec):
+                staking.setdefault(req, []).append(rid)
         if model is None:
             continue
         target = model.get(req)
         if target is None:
             continue                      # already reported above
-        if target.get("status") in ("withdrawn", "superseded"):
+        if target.get("status") in CANCELLED:
             rule_finding(warnings, reports, cfg, "bet-cancelled",
                          "%s — %s stands on %s, which is %s"
                          % (rec.where, rid, req, target["status"]))
@@ -981,11 +1025,11 @@ def validate(records, model, model_error, cfg):
         if not active(rec):
             continue
         req = rec.fields.get("requirement")
-        if isinstance(req, str) and req in by_requirement:
+        if isinstance(req, str) and req in staking:
             rule_finding(warnings, reports, cfg, "declaration-superfluous",
                          "%s — %s declares %s unclaimed, and %s names it"
                          % (rec.where, rid, req,
-                            ", ".join(sorted(by_requirement[req]))))
+                            ", ".join(sorted(staking[req]))))
 
     check_history(records, cfg, warnings, reports)
 
@@ -1162,16 +1206,29 @@ def build_dashboard(records, model, incoming, cfg):
             status = records[decided[1]].fields["status"]
             weak += 1 if status in DEBT_STATUSES else 0
             rows.append("| %s | %s | %s |" % (req, decided[1], status))
-        if rows:
+        # implements: FR-GND-130
+        # The denominator is what the sentence names — requirements carrying
+        # a bet — and not the rows below it, which are the ones whose bet
+        # resolves. A bet naming no hypothesis carries neither `refuted` nor
+        # `expired` nor `assumed`, so it counts here and not in `weak`: it
+        # rests on nothing, which is a different reading and belongs to the
+        # list below. The two questions differ, and one record answers them
+        # differently.
+        if staked:
             out += ["Of %d requirements carrying a bet, %d rest on "
-                    "hypotheses that are" % (len(rows), weak),
+                    "hypotheses that are" % (len(staked), weak),
                     "`refuted`, `expired` or `assumed` — %.0f%%."
-                    % (100.0 * weak / len(rows)), "",
-                    "| Requirement | Decided by | Status |",
-                    "|---|---|---|"] + rows + [""]
+                    % (100.0 * weak / len(staked)), ""]
+            if len(rows) != len(staked):
+                out += ["%d of them are named by a bet that stakes them on no "
+                        "hypothesis at all" % (len(staked) - len(rows)),
+                        "and so appear in no row below.", ""]
+            if rows:
+                out += ["| Requirement | Decided by | Status |",
+                        "|---|---|---|"] + rows + [""]
         else:
-            out += ["No requirement carries a bet that resolves, so there is",
-                    "nothing to reduce. This is not a reading of zero debt.",
+            out += ["No requirement carries a bet, so there is nothing to",
+                    "reduce. This is not a reading of zero debt.",
                     ""]
 
     # implements: INV-GND-030
@@ -1194,10 +1251,10 @@ def build_dashboard(records, model, incoming, cfg):
                 "reading of none.", ""]
     else:
         claimed = {r.fields.get("requirement") for r in records.values()
-                   if r.kind == "B" and active(r)}
+                   if r.kind == "B" and active(r) and stakes(r)}
         buckets, undated = {}, 0
         for req in sorted(model):
-            if req in claimed:
+            if req in claimed or not live(model[req]):
                 continue
             date = as_date(model[req].get("created"))
             if date is None:
@@ -1229,16 +1286,25 @@ def build_dashboard(records, model, incoming, cfg):
                 "not a list of none.", ""]
     else:
         claimed = {r.fields.get("requirement") for r in records.values()
-                   if r.kind == "B" and active(r)}
+                   if r.kind == "B" and active(r) and stakes(r)}
+        standing = [req for req in sorted(model) if live(model[req])]
         rows = []
-        for req in sorted(model):
+        for req in standing:
             if req in claimed:
                 continue
-            links = len(incoming.get(req, []))
+            # implements: FR-GND-220
+            # Filtered here rather than in the model: the viewer owes every
+            # incoming link to whoever asks it, and the procedure for
+            # withdrawing a requirement reads exactly the links from
+            # cancelled ones to settle what breaks. What does not follow is
+            # that such a link still holds weight — a requirement nobody
+            # kept stands on nothing.
+            links = len([1 for _field, other in incoming.get(req, [])
+                         if other in model and live(model[other])])
             files = len(model[req].get("code", []))
             rows.append((links + files, links, files, req))
         out += ["%d of %d requirements. Weight is what stands on them: how "
-                "many" % (len(rows), len(model)),
+                "many" % (len(rows), len(standing)),
                 "requirements link to them, plus how many files their `code` "
                 "field names.", ""]
         if rows:
