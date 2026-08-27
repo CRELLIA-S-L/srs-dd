@@ -25,6 +25,7 @@ guides:
 | `srs-page` | Rendering the specification as a page, and opening it |
 | `srs-baseline` | Freezing the specification at a milestone |
 | `srs-upgrade` | Picking up a new framework version |
+| `srs-bet` | The grounds register: a hypothesis, a bet, a measurement, a refutation — installed only where the register is |
 | `srs-init`, `srs-release` | Setup and releases — stay in the framework repository, never installed |
 
 ## If your tool wants its own rules file
