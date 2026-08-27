@@ -833,7 +833,7 @@ rm -f "$LAB/haystack.txt"
 passes=$((passes + 3))
 
 # --- verifies: FR-CI-090 — a suite working on a target leaves this
-# --- repository alone. What the six target-making suites do about it is a
+# --- repository alone. What the target-making suites do about it is a
 # --- line clearing the git environment they inherited; this proves that
 # --- line is what stands between a target's `git add` and the index the
 # --- hook handed down. The suites themselves are compared against that
@@ -878,8 +878,17 @@ cmp -s "$LAB4/before" "$LAB4/after" \
 
 # And every suite that makes a target carries that line, or the protection
 # above is a property of this fixture rather than of the suites.
+#
+# Every suite the requirement's `code` field names, which is the list this
+# has to match: `dates-smoke` and `grounds-rules` were missing from it while
+# both run `git init` and `git add -A` in a target of their own, so either
+# could have lost its `unset` line with this suite green. Nothing else would
+# have caught it — tools/ci_selftest.sh compares the index around each
+# suite, and without a hook there is no inherited GIT_INDEX_FILE for the
+# leak to travel through, which is exactly the run CI makes.
 for suite in view-smoke baseline-smoke release-smoke installer-smoke \
-             adopt-smoke upgrade-smoke checker-rules; do
+             adopt-smoke upgrade-smoke checker-rules dates-smoke \
+             grounds-rules; do
     grep -q "^unset GIT_INDEX_FILE" "tests/$suite.sh" \
         || { echo "FAIL FR-CI-090 — tests/$suite.sh does not clear the environment"
              exit 1; }

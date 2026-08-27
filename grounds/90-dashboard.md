@@ -49,6 +49,7 @@ requirements link to them, plus how many files their `code` field names.
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
 | FR-VIEW-060 | 16 | 1 | 17 |
+| FR-SKILL-020 | 0 | 13 | 13 |
 | IF-GND-010 | 10 | 2 | 12 |
 | FR-CI-090 | 0 | 10 | 10 |
 | NFR-SPEC-010 | 1 | 9 | 10 |
@@ -60,7 +61,6 @@ requirements link to them, plus how many files their `code` field names.
 | INV-GND-020 | 5 | 2 | 7 |
 | CON-GND-020 | 5 | 1 | 6 |
 | FR-CI-010 | 3 | 3 | 6 |
-| FR-SKILL-020 | 0 | 6 | 6 |
 | INV-SPEC-030 | 3 | 3 | 6 |
 | INV-SPEC-050 | 3 | 3 | 6 |
 | FR-CHK-030 | 4 | 1 | 5 |

@@ -304,11 +304,30 @@ rule to recognise one costs a heuristic about what a token is, and the price
 is paid only when such a line is actually wanted. What survives is the width somebody chose: a compound command, a
 long call, a chain of conditions — the cases where splitting costs nothing
 and changes nothing. A handful of lines in this repository exceed 120 columns
-today and the rule clears every one of them; `awk 'length>120' tools/*.py
-tools/*.sh tests/*.sh` is the current list, and reading it beats counting it
+today and the rule clears every one of them; `awk 'length>120'` over the
+sources the gate reads is the current list, and reading it beats counting it
 here — a number written down goes stale the next time a fixture is added, and
 this one already had. The line the rule caught was a subshell running three commands
 in a row.
+
+**Which files are sources is the same question asked once more.** A source
+here is what a person writes and could have written narrower, so the answer
+follows from the exemption rather than from a file extension. Python and
+shell qualify, the hooks included — `ci/pre-commit` carries no `.sh` to say
+so and ships into every target as one. YAML qualifies: `ci/*.yml` and the
+workflow are written by hand, and what makes their lines long is shell
+embedded in them, which splits like any other shell.
+
+JSON does not, and the reason is worth recording because the rule does fire
+over it. Structure in JSON is splittable and thirty areas on one line would
+be refused; content is not, since JSON has neither continuation nor
+concatenation, so a long string value is the literal exemption by another
+name. What settles it is neither: both JSON files here are written by
+`tools/srs_init.py`, so a limit over them is a limit on the installer's
+output, which the paragraph below rules out. Where JSON does get a width
+elsewhere it comes from a formatter, and this project runs none — there is
+no `.editorconfig` here and no formatter or linter configuration of any
+kind.
 
 Markdown is not looked at, in this repository or in any target. A line break
 inside a paragraph renders as a space — `tools/srs_view.py` joins them with

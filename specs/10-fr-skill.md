@@ -43,17 +43,42 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, specs/README.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, specs/README.md, grounds/README.md]
 tests: []
 created: 2026-08-07
 ```
 
-The skills **shall** point at `specs/README.md` for the markup rules rather
-than restating what that document defines.
+The skills **shall** point at the standard defining a format rather than
+restating what that standard defines.
 
 **Rationale.** Two copies of the same rule diverge, and the copy an agent
 happens to read wins — which is the failure mode this whole framework exists
 to prevent.
+
+**Named by role, and there is more than one.** This said `specs/README.md`
+while `srs-bet` was already obeying it word for word against
+`grounds/README.md` — "deliberately not restated here: two descriptions of
+the same rules would eventually diverge" — and no requirement covered that
+half. Naming both would have written the register into a rule that holds
+where there is none, so the statement names neither: a standard is whatever
+document defines a format, and a project has as many as it has formats. The
+generality is the point rather than an evasion — a third standard would be
+covered on the day it appears, which is the day somebody would otherwise
+restate it.
+
+Nothing here reaches the register's own machinery. The two files this added
+are shipped sources that exist whether or not this repository runs a
+register — `grounds/README.md` is the canonical copy the installer reads, as
+`specs/README.md` is — and no link into the grounds area was made. A project
+that declined the layer has no `srs-bet` to hold to this and no second
+standard to point at, and the statement is simply quiet about it.
+
+**All of them, because the rule binds all of them.** Six skills define no
+format and satisfied this by having nothing to restate, and the field named
+none of them — so `--code` on those six answered as though no rule governed
+the file, which is the question asked before anybody edits one. An
+incomplete field here is green forever: the checker proves the paths exist
+and never that they are all of them.
 
 What is forbidden is a second definition, not a second mention. This read as
 an absolute ban on saying anything the standard also says, and under that

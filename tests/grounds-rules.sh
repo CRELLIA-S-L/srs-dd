@@ -1173,6 +1173,42 @@ grep -cF "widened what may move it" /tmp/srs-history.log | grep -qx 2 \
          echo "reported"; cat /tmp/srs-history.log; exit 1; }
 passes=$((passes + 1))
 
+# --- verifies: IF-GND-030 — a published rule name keeps its meaning. The
+# --- names go into somebody else's `grounds/grounds-config.json` to say what
+# --- a rule costs, so a rename breaks their file and the checker refuses to
+# --- start, listing what it knows. A promise about the future cannot be
+# --- tested; what can is the past, listed here so a rename has to walk past
+# --- it. Written out rather than read from RULES, which would compare the
+# --- tuple with itself and never fail.
+#
+# Twelve of the fifteen were reachable by nothing before this: `rule` greps
+# the output for a fragment, and every fixture but two greps prose, which a
+# rename leaves untouched. `hypothesis-expired` and `never-measured` are
+# spelled as configuration keys and `class-untestable` is asserted in the
+# output, so those three would have reddened; the rest could be renamed with
+# this suite green.
+( cd "$LAB" && python3 -c "
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import srs_grounds
+
+published = (
+    'bet-cancelled', 'hypothesis-expired', 'bet-duplicated',
+    'declaration-superfluous', 'threshold-moved', 'evidence-dropped',
+    'relied-on-untested', 'never-measured', 'verdict-unattributed',
+    'action-beyond-grade', 'declined-leftover', 'action-without-grade',
+    'class-untestable', 'arguments-widened', 'widening-undisclosed',
+)
+gone = [name for name in published if name not in srs_grounds.RULES]
+if gone:
+    sys.stderr.write('rule names withdrawn or renamed: %s\n' % ', '.join(gone))
+    sys.exit(1)
+" ) > /tmp/srs-grounds.log 2>&1 \
+    || { echo "FAIL IF-GND-030 — a published rule name is gone"
+         cat /tmp/srs-grounds.log; exit 1; }
+passes=$((passes + 1))
+
 # --- verifies: IF-GND-020 — the exit codes a gate binds to.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.')
 rule "IF-GND-020 clean" 0 "Errors: 0"

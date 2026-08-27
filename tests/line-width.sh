@@ -14,6 +14,7 @@ cd "${1:-$(dirname "$0")/..}"
 python3 - <<'PY'
 import glob
 import io
+import os
 import re
 import sys
 
@@ -23,9 +24,19 @@ LIMIT = 120
 QUOTED = re.compile(r"'[^']*'|\"[^\"]*\"")
 TRIPLE = re.compile(r'"""|\'\'\'')
 
+# What a person writes and could have written narrower. The hooks are shell
+# without the extension to say so, and ci/pre-commit is the one that ships
+# into every target. JSON is not here: both files of it in this repository
+# are written by tools/srs_init.py, and the limit does not govern what the
+# tools print (FR-CI-100). Markdown is not here either, for its own reason.
+SOURCES = (glob.glob("tools/*.py") + glob.glob("tools/*.sh")
+           + glob.glob("tests/*.sh") + glob.glob("ci/*.yml")
+           + glob.glob(".github/workflows/*.yml")
+           + [p for p in ("ci/pre-commit", ".githooks/pre-commit")
+              if os.path.exists(p)])
+
 bad = []
-for path in sorted(glob.glob("tools/*.py") + glob.glob("tools/*.sh")
-                   + glob.glob("tests/*.sh")):
+for path in sorted(SOURCES):
     inside = False
     for num, line in enumerate(io.open(path, encoding="utf-8"), 1):
         line = line.rstrip("\n")

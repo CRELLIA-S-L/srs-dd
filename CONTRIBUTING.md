@@ -95,11 +95,17 @@ three break silently:
 - If your change affects the generated matrix, commit the regenerated
   `specs/90-traceability.md` in the same change set — CI compares it
   byte-for-byte.
-- No two sources of truth: if a rule is stated in `specs/README.md`, other
-  documents may point at it but must not restate it.
+- No two sources of truth: if a rule is stated in a standard —
+  `specs/README.md`, and `grounds/README.md` where a register is kept —
+  other documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
 - **Line width: 120 columns in code, none in markdown, none over what the
-  tools print.** Python, shell, YAML and JSON wrap at 120. Markdown does
+  tools print.** Python, shell and YAML wrap at 120 — the hooks included,
+  which are shell without the extension to say so. JSON does not: both
+  files of it here are written by `tools/srs_init.py`, so their width is
+  the installer's output rather than anybody's choice, and JSON offers no
+  continuation and no concatenation, so a long string value cannot be
+  narrowed at all. Markdown does
   not wrap at anything: a line break inside a paragraph renders as a space
   — `tools/srs_view.py` joins them with `p.replace("\n", " ")`, which
   greps — so where a line ends is invisible to every reader and matters

@@ -133,7 +133,7 @@ Total requirements: 180.
 | **FR-INIT-210** The project's line width is asked for, never assumed | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-220** The installed agent guide names the project's width | `implemented` | T | `tools/srs_init.py`<br>`skeleton/AGENTS.md` | `tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh` |
 | **FR-SKILL-010** The everyday loop | `implemented` | I | `.claude/skills/srs/SKILL.md` | — |
-| **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`specs/README.md` | — |
+| **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-page/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md`<br>`specs/README.md`<br>`grounds/README.md` | — |
 | **FR-SKILL-030** Harvesting proposes, the maintainer approves | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
 | **FR-SKILL-040** Setup brings two decisions back to the maintainer | `implemented` | I | `.claude/skills/srs-init/SKILL.md` | — |
 | **FR-SKILL-050** An audit reports, it does not repair | `implemented` | I | `.claude/skills/srs-audit/SKILL.md` | — |
