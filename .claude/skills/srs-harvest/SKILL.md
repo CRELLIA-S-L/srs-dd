@@ -35,6 +35,29 @@ say where to look, and the lexicon defines the modal verbs and the
    the sanctioned exception to the one-at-a-time rule of `srs-new`; the
    judgement and the approval-before-write step are together what make
    it safe.
+
+   **Then check the batch against what is already written**, and report
+   what overlaps. A behaviour the specification already describes gets a
+   second number here and keeps it: numbers are never reused, so the
+   duplicate is permanent and the two copies drift from the day both are
+   approved. Three sweeps, and they are not interchangeable. The area and
+   the paths each return everything already described there, and a
+   duplicate is among them rather than picked out for you. The words of
+   the statement are the only sweep that reaches outside both, which is
+   where the duplicate hides that carries another area's number or names
+   a file the draft does not:
+
+   ```
+   python3 tools/srs_view.py --list --area <AREA>
+   python3 tools/srs_view.py --code <path the draft names>
+   python3 tools/srs_view.py --grep <word from the drafted statement>
+   ```
+
+   Say what each overlap is — the same behaviour under another number,
+   or a neighbour worth a link — and let the maintainer settle it before
+   the batch is written. What the draft would disturb rather than repeat
+   is the other half of the same sweep: what points at the requirements
+   you found is what a new obligation lands on top of.
 4. After writing an approved batch, run `python3 tools/srs_check.py` and
    show the result.
 5. Repeat per area. Track what remains uncovered; finish with a summary

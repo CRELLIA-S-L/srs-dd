@@ -544,3 +544,40 @@ this repository loses its example.
 **Decision needed:** which of the three. The first two change
 `tools/srs_grounds.py` and at least one requirement; the third changes
 `grounds/README.md` and closes nothing else.
+
+## Where a rule binding every procedure physically lives is not settled
+
+**Found:** while deciding how to build FR-SKILL-200 and FR-SKILL-220
+(2026-08-27), both of which bind "a procedure" rather than a named one.
+
+**What diverged:** this repository holds two patterns for the same problem
+and nothing chooses between them.
+
+FR-SKILL-170 — *An observation is reported as a finding only once it is one*
+— is written out in each skill it binds. Its `code` field names `srs`,
+`srs-audit` and `srs-harvest`, and each states the rule in its own idiom:
+`srs` argues the *therefore* test over three paragraphs, `srs-audit` repeats
+it against findings, `srs-harvest` states it about an open-issues entry. Three
+copies, three wordings, one rule.
+
+ART-030 — builds and test runs need the user's word each time — is stated
+once in `specs/constitution.md` and cited from six skills in a line apiece.
+`skeleton/AGENTS.md` carries the same shape under *The three most frequently
+broken rules*: cross-cutting obligations, one line each, the constitution
+cited where the reasoning lives.
+
+The two differ in what they cost and in how they fail. Restating puts the
+rule where the agent is already reading and lets each procedure phrase it
+for its own work; it also means N copies that drift, and it is what
+FR-SKILL-020 forbids for a standard while saying nothing about a
+specification. Citing keeps one copy and one edit; it also means an agent
+that never follows the citation is bound by a sentence it did not read.
+
+**Decision needed:** whether the two patterns are one rule applied to
+different cases — and if so, what distinguishes the cases — or whether one
+of them should absorb the other. Bringing FR-SKILL-170's family onto the
+cite-once pattern is the larger move and touches three skills; declaring the
+split deliberate costs a paragraph in `specs/README.md` and leaves the cost
+where it is. FR-SKILL-200 and FR-SKILL-220 are being built on the cite-once
+pattern meanwhile, which adds two more entries on that side of a split
+nobody has ruled on.

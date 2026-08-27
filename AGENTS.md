@@ -63,6 +63,15 @@ then write the code, then close the loop.
   the opposite of what the files look like they are doing.
   `tests/line-width.sh` refuses what it forbids (FR-CI-100).
 - **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--html`.
+- **Naming a requirement to a person** — give its title and where it is
+  written the first time it appears: `FR-CI-100 — The gate refuses a source
+  line nobody had to write long (specs/10-fr-ci.md:281)`. The identifier
+  alone is a key, not a name, and costs the reader a lookup per mention.
+  Afterwards the number on its own is enough (FR-SKILL-200).
+- **Reading the code behind a change** — take the files from the `code` and
+  `tests` fields of the requirements the change belongs to, not from a
+  search over the repository. Go wider where you must, and say where you
+  went (FR-SKILL-220).
 - **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does;
   `git config core.hooksPath .githooks` wires it into `pre-commit`.
 - **Cut a release** — the `srs-release` procedure; it decides nothing

@@ -43,7 +43,10 @@ re-report what the checker reports.
 6. Report findings grouped by requirement, each with three parts: what the
    spec says, what the code does, where exactly they diverge
    (`file:line`). Distinguish “code is wrong”, “spec is outdated”, and
-   “cannot tell” — do not guess which.
+   “cannot tell” — do not guess which. Name each requirement with its
+   title and location the first time it appears, as `AGENTS.md` asks:
+   a report grouped by bare identifiers is one the reader resolves line
+   by line.
 
    **Each of those three is a consequence, and one of them has to fit.** An
    audit surfaces far more than it finds: a count that reads as stale, a

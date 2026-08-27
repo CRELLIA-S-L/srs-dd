@@ -624,3 +624,165 @@ Nothing is invented where nothing is found. A project that has never stated
 a width gets no parameter and no line in its guides, because a default
 inserted here would be this framework deciding how somebody else's code is
 formatted.
+
+### FR-SKILL-200 — A requirement is named by more than its number
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [IF-SPEC-010]
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs-audit/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+When a procedure first names a requirement in what it reports to a person,
+it **shall** give that requirement's title and where it is written, not the
+identifier alone.
+
+**Rationale.** `FR-CORE-020` is a key, not a name. It is exactly right
+inside a link field, where a machine resolves it and a person is not
+reading; in a paragraph written for somebody it costs them a lookup per
+mention, and a report full of them gets skimmed rather than read. The title
+is one clause and the file and line are clickable in a terminal and in an
+editor, so what the reader owes the report drops to nothing.
+
+**The side effect is worth more than the rule.** Naming a requirement in
+full means resolving it, and an identifier cited without being resolved is
+how a procedure ends up asserting what another procedure does without
+reading it — the failure recorded in `91-open-issues.md` under that name. A
+rule that says "give the title" is the cheapest available form of "open it
+first". It does not make an invented title impossible — a plausible one can
+be written from memory — but the two halves check each other: a title that
+was guessed is contradicted by the file and line standing beside it, and one
+keystroke settles which. A bare identifier offers nothing to contradict.
+
+First mention and no more. The same title repeated down a page is the noise
+this exists to remove, and after the first one the identifier is what the
+reader is now able to read.
+
+Where it is written rather than a URL. `specs/10-fr-ci.md:281` is followed
+by one keystroke wherever the reader already is, and a link that leaves the
+repository is a separate question — for a rendered page, a review comment,
+somebody who will not clone — that this does not settle.
+
+### FR-SKILL-210 — What is already written is read before something new is
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-CHK-050]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+Before a requirement is written or reworded, the procedure doing so
+**shall** resolve which requirements already speak to the same behaviour and
+what links to those, and say what it found.
+
+**Rationale.** The authoring dialog used to ask for links in one line and
+call their candidates "neighboring requirements", which names the answer
+without saying how anyone arrives at it. So the field got filled from
+whatever the agent happened to remember, and the question the step exists
+for — is this already said, and what does it disturb — was not asked at all.
+
+Both directions are needed and they answer different questions. What already
+speaks to the behaviour says whether it is covered; what links to those says
+what a new obligation lands on top of. Either one alone leaves a statement
+that reads as new and is not, or one that is new and quietly contradicts
+what it sits beside.
+
+Behaviour rather than files, because the three doors into a specification do
+not agree on whether there are files to name. A reworded requirement carries
+a `code` field and the lookup is a path away; a harvested one arrives with
+that field already filled from the code it was read out of; and one authored
+through the dialog has an empty field by design, because authoring ends
+before building does. A rule anchored to "the same files" would name a
+lookup with no input at exactly the door where the question is cheapest to
+answer. Which files answer it is the procedure's business: the area, the
+paths the behaviour will touch, the matrix.
+
+Said out loud rather than merely consulted, on the pattern of every other
+judgement in the authoring dialog: a lookup nobody reports is a lookup
+nobody can tell was made.
+
+### FR-SKILL-220 — What to read comes from the specification, not from a search
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-CHK-050]
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+When a procedure needs the code behind a change, it **shall** take the files
+to read from the requirements the change belongs to rather than from a
+search over the codebase, going beyond that set only where it says it did.
+
+**Rationale.** This is the framework's headline claim about cost — the work
+becomes proportional to the neighbourhood of the change rather than to the
+size of the project — and no procedure obliges it. Two of the eleven perform
+the lookup and both do it by choice: `srs` opens with it, `srs-check`
+reaches for it to find what a finished change touched. Nothing holds them to
+it, nothing holds the next procedure to it, and nothing holds an agent
+inside one of them to it — a search over the codebase satisfies every rule
+this framework has, which is how a small change reads a large repository and
+pays for it in time and in tokens.
+
+Written for what is not bound rather than for a procedure caught doing it
+wrong. The ones that read code today either derive the set already or are
+excluded by the condition: harvesting reads the code roots because the code
+is its input rather than the neighbourhood of a change, and the audit's
+sweep of files no requirement names is the declared widening this statement
+allows for.
+
+The escape hatch is in the statement rather than left implied, because the
+set is sometimes genuinely short: behaviour with no requirement behind it is
+exactly what the loop exists to catch, and a procedure that refused to look
+past the `code` fields would never find it. What is forbidden is widening in
+silence — the reader cannot otherwise tell a neighbourhood that was read
+from one that was searched around.
+
+### FR-SKILL-230 — A mined requirement is checked against what is written
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-030]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-harvest/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+Before a mined requirement is shown to the maintainer, the harvesting
+procedure **shall** check it against the requirements already written and
+report the ones it overlaps.
+
+**Rationale.** Harvesting is for a specification that lags its code, and its
+own description offers it for "areas of the spec that lag behind the code" —
+so the ordinary case is mining into a specification that is not empty. The
+procedure mentions existing requirements nowhere. A behaviour already
+described under one number is proposed again under another, the maintainer
+approving a batch has no reason to suspect it, and identifiers are never
+reused: the duplicate is permanent, and the two copies drift from the day
+they are both approved.
+
+Separate from FR-SKILL-210 because the question is a different one. That one
+asks what a new statement disturbs; this asks whether it is new at all, and
+it is asked of a batch produced from code rather than of a sentence somebody
+is writing.

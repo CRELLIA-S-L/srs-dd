@@ -60,10 +60,28 @@ lexicon.
    later — when the requirement is built and somebody has to write a test
    that cannot be written. Here the sentence and the method are on the
    table together, which is the one moment the question costs nothing.
-6. **Links.** Propose candidates from neighboring requirements for each
+6. **What is already written.** Before the links are chosen, resolve which
+   requirements already speak to this behaviour and what points at those,
+   and say what you found — including "nothing", which is an answer.
+
+   ```
+   python3 tools/srs_view.py --list --area <AREA>
+   python3 tools/srs_view.py --grep <word from the statement>
+   python3 tools/srs_view.py --code <path the behaviour touches>
+   python3 tools/srs_view.py <ID>          # incoming links: the blast radius
+   ```
+
+   The area and the words come from steps 2 and 4; the paths come from
+   wherever the behaviour will live, which the author knows before the
+   `code` field does. Two questions are being answered and neither
+   substitutes for the other: whether this is already said somewhere, and
+   what a new obligation lands on top of. Filling the link fields from
+   memory answers the first badly and the second not at all.
+
+7. **Links.** Propose candidates from what step 6 turned up, for each
    link field.
-7. **Initial status.** Per the Lifecycle section of `specs/README.md`.
-8. **Rationale.** Ask why this way, if the answer is not obvious; write it
+8. **Initial status.** Per the Lifecycle section of `specs/README.md`.
+9. **Rationale.** Ask why this way, if the answer is not obvious; write it
    down.
 
 Then write the requirement into the file and run

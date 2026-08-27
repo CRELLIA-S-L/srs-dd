@@ -32,6 +32,11 @@ tool is absent, `grep -rn "<path/to/file>" specs/*.md` and the
 “Requirement → code → verification” table in `specs/90-traceability.md`
 give the same answer by hand.
 
+**Then let that answer decide what you read.** The `code` and `tests` fields
+of the requirements a change belongs to are the files to open; a search over
+the repository is the fallback, taken out loud, when they turn out not to be
+all of them. The rule itself is in `AGENTS.md`.
+
 Found some — read them in full, together with their `derives_from` and
 `depends_on`; `python3 tools/srs_view.py <ID>` prints one requirement
 with every link resolved in both directions. When changing a
@@ -104,7 +109,15 @@ Then:
    before the edit is recorded. This is the easiest place
    to skip it: the requirement already exists, so nothing feels like
    authoring, and a sentence quietly grows a second capability while
-   somebody is repairing the first. Then status per Lifecycle, and
+   somebody is repairing the first.
+
+   A reworded statement also goes through the same lookup a new one does —
+   what else already speaks to this behaviour, and what points at it — and
+   what that turns up is said, not merely consulted. A rewording reaches
+   everything that was standing on the old wording, and the incoming links
+   are where that shows.
+
+   Then status per Lifecycle, and
    `code` and `tests` filled with real paths — **and every file you named
    there says so back**, with `implements:` or `verifies:` (see Annotations
    in `specs/README.md`). The checker reports a file a requirement names
