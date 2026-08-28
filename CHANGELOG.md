@@ -12,7 +12,7 @@ checkers, and stamped into every file the installer writes.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
-## [0.15.0]
+## [0.15.0] — 2026-08-28
 
 ### Added
 

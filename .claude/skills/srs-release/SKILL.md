@@ -59,7 +59,8 @@ notes say.
    notice that the version is not the one you meant.
 
 5. **Hand the commit back.** The command edits `CHANGELOG.md`,
-   `tools/srs_check.py` and the matrix, and stops: it commits nothing and
+   `tools/srs_parse.py` — where the version lives, both checkers
+   re-exporting it — and the matrix, and stops: it commits nothing and
    tags nothing (CON-SPEC-030). Say which files are staged for the
    maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or
    skip.
