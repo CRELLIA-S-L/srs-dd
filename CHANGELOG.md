@@ -2,7 +2,8 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions are framework releases, tagged `vX.Y.Z`; the same number is
-embedded in `tools/srs_check.py` as `__version__`.
+embedded in `tools/srs_parse.py` as `__version__`, re-exported by both
+checkers, and stamped into every file the installer writes.
 
 <!-- Format contract, relied upon by tools/srs_init.py when it reports an
      upgrade: a version section starts with `## [X.Y.Z]`; the lines after
@@ -10,6 +11,157 @@ embedded in `tools/srs_check.py` as `__version__`.
      `### Upgrade notes` is printed in full; `### Added` and `### Changed`
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
+
+## [0.15.0] — 2026-08-28
+
+### Added
+
+- A grounds register records what the requirements stand on. It is optional,
+  and a project that declines it receives none of what follows.
+  `grounds/` holds five kinds of record — an ideology says who the
+  product is for, a frame says what it will not do for anyone, a hypothesis
+  says something about the world that could turn out false, a bet joins a
+  requirement to the hypotheses it rests on, and a declaration says a
+  requirement rests on nothing and why. `tools/srs_grounds.py` checks them
+  and regenerates `grounds/90-dashboard.md`; the `srs-bet` skill is the
+  procedure.
+- A hypothesis is judged against its own arithmetic rather than by eye. The
+  threshold is declared before the first measurement in a fixed grammar,
+  and a verdict that disagrees with what the numbers compel is reported —
+  including a value that crosses the threshold by less than a sample of
+  that size can miss by, which has refuted nothing.
+- The register reads its own history, not only its files. A threshold moved
+  after the first measurement was recorded under it, an evidence row that
+  once existed and no longer does, and a widening of what may move an
+  ideology are each reported from the git history, and a history that
+  cannot be read says so instead of passing in silence.
+- A specification can be dated from its own history. `tools/srs_dates.py`
+  fills the `created` field of every requirement that lacks one, reading
+  the date from the commit that introduced it, and the installer offers
+  this to a project adopting the framework with an undated specification.
+- The rendered page explains its own notation. The verification method is
+  drawn as a single letter and the page now says which letter means what,
+  both in a legend above the list and on the mark itself.
+- Authoring a requirement asks what it stands on. Where the project carries
+  the register, the `srs-new` dialog asks whether a hypothesis already
+  recorded carries the new requirement, whether it rests on none, or
+  neither — and never invents a hypothesis to fill the gap.
+
+### Changed
+
+- The bet's `served_by_any` key is gone before it was ever released. It was
+  declared in the standard and asked for by the procedure, and nothing read
+  it — not the checker, not a requirement, not a test. The format may gain
+  keys and may not lose them, so this was the last release that could take
+  it back.
+
+- The record shape is read by one parser instead of copied. `tools/srs_parse.py`
+  is a new file, and `tools/srs_check.py`, `tools/srs_grounds.py` and
+  `tools/srs_dates.py` all import it; none of the three works without it.
+- The framework's version has one home. It lives in `tools/srs_parse.py`,
+  the one file both checkers must have beside them, and each re-exports it;
+  the release command bumps that file. The grounds checker used to carry a
+  second copy that nothing bumped, which would have announced 0.14.0 from
+  this release onwards.
+- The tooling ships without this framework's identifiers. Its
+  `implements:`/`verifies:` annotations are how this repository checks its
+  requirements against its code, and the installer now removes them as it
+  copies, leaving each line in place so line numbers still match. A project
+  that declared one of this framework's requirement areas used to receive an
+  annotation resolving to its own requirement under that number.
+- An install can record the line width a project's code follows. The setup
+  procedure reads it out of whatever the project already states it in — an
+  `.editorconfig`, a formatter's configuration, a contributing guide — and
+  confirms it before passing it on; the installer writes it to
+  `line_width` in the configuration and names it in the agent guide. A
+  project that states nothing gets no key and no line, and no gate checks
+  source formatting: that is a linter's job, not this framework's.
+- A run that could not read the history says so. One rule compares baseline
+  tags against the log, and outside a repository — or with no git on the
+  path — it could not run at all while the run still reported no errors.
+  The checker now prints a note naming what went unchecked. A repository
+  with no tags stays silent, because that answers the question rather than
+  leaving it unasked.
+- A hypothesis is put against the frames before it is admitted. The layer
+  recorded frames and never applied them: nothing connected a frame to a
+  hypothesis, so a claim a frame forbids could be recorded, staked on and
+  built against in silence, and no procedure ever wrote a refusal into a
+  frame's journal. The `srs-bet` dialog now asks, and a refusal takes a row
+  in that frame's journal.
+- Every copied tool says which release it came from. The version is stamped
+  in the header of each one, so a tree copied by hand or left half-upgraded
+  can be read rather than guessed at.
+- The page compares every field the terminal's `--diff` does. Three of them
+  — `conflicts_with`, `superseded_by` and `exempt` — were compared by the
+  command and missing from the snapshots the page carries, so a pair of
+  baselines differing in one of those alone read as changed in the terminal
+  and unchanged on the page. The snapshots grow by three mostly empty
+  fields and the two answers agree again.
+- The graph's note names what was left out, not only how many. Past the
+  node limit the page said how many nodes went undrawn and nothing about
+  which, while the cut runs down the sorted identifiers and takes whole
+  families at once — on this repository's own page every interface, every
+  invariant and every non-functional requirement. The note now lists each
+  family with its count.
+
+### Fixed
+
+- Freezing a baseline and cutting a release refused on different terms
+  while every document said they refused on the same ones. The baseline
+  command runs the checker plainly and the release runs it strictly, so a
+  project carrying warnings can freeze and cannot ship; the two
+  requirements, the Baselines section of the specification standard and
+  both procedures now say which is which. Neither command changed.
+- Three sentences in the specification standard stated a checker rule
+  narrower than it fires. An empty `code` field is reported for `partial`
+  as well as `implemented`; `superseded_by` is reported on anything but a
+  `superseded` requirement, not only where a replacement is missing; and an
+  annotation pointing at a withdrawn requirement is warned about as one
+  pointing at a superseded requirement is. The rules were already doing all
+  three.
+
+### Upgrade notes
+
+- The register standard says where the names of its rules come from, the
+  way the specification standard already did: the checker lists them when
+  you name one it does not know.
+- The register standard states two limits it used to leave silent, and both
+  are limits rather than changes: how a hypothesis is measured lives in its
+  prose and no rule reads it, and where a measurement came from is not
+  recorded at all — so several hypotheses measured off one stream read as
+  well grounded as several measured separately, and only a person knows the
+  difference.
+
+- Upgrading rewrites more of `tools/` than a version bump would suggest.
+  Every tool loses this framework's `implements:`/`verifies:` comments and
+  gains a version stamp in its header, and the comments that cited a
+  requirement by number now say the same thing in words. No executable line
+  changed, and the removal keeps each annotation's line, so a traceback
+  still names what it named in the framework's own copy of that release.
+- The register is not added by upgrading. `python3 tools/srs_upgrade.py`
+  refreshes the tooling and leaves your project exactly as opted-out as it
+  was; `python3 tools/srs_upgrade.py --grounds yes` adds `grounds/`, its
+  configuration and the `srs-bet` skill. Nothing about the specification
+  changes either way, and no rule of this release requires a requirement to
+  be named by a bet — that absence is the register's most useful reading and
+  is protected rather than filled.
+- `tools/srs_parse.py` must be present. Three of the shipped tools import
+  it — the specification checker, the grounds checker and the dating command
+  — so a project that copies tools by hand, one file at a time, has one more
+  file to copy than in 0.14.0.
+- Where you take the register, its findings are warnings and a `--strict`
+  gate fails on them. Every rule name is a key under `rules` in
+  `grounds/grounds-config.json` and can be lowered to `report` or silenced
+  with `off`, the same way `specs/srs-config.json` tunes the specification
+  checker.
+- The corrected specification standard arrives only with `--force`.
+  `specs/README.md` is one of the files an upgrade leaves alone unless
+  asked, so a project keeps its own copy — including the Baselines
+  paragraph this release corrected — until
+  `python3 tools/srs_upgrade.py --yes --force` refreshes it, and then only
+  where that copy still carries its `SRS-DD-<version>` marker. The skills
+  are refreshed either way, so for one cycle the baseline procedure points
+  at a paragraph the project has not received yet.
 
 ## [0.14.0] — 2026-08-18
 

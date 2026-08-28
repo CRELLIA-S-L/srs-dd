@@ -59,7 +59,8 @@ notes say.
    notice that the version is not the one you meant.
 
 5. **Hand the commit back.** The command edits `CHANGELOG.md`,
-   `tools/srs_check.py` and the matrix, and stops: it commits nothing and
+   `tools/srs_parse.py` — where the version lives, both checkers
+   re-exporting it — and the matrix, and stops: it commits nothing and
    tags nothing (CON-SPEC-030). Say which files are staged for the
    maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or
    skip.
@@ -79,9 +80,11 @@ notes say.
 ## When it refuses
 
 Exit code 2, always before writing anything: no section for that version, a
-section that already carries a date, or a checker that does not pass. The
-baseline command refuses on the same terms, reading the log instead of the
-changelog — a version already logged is one already frozen.
+section that already carries a date, or a checker reporting an error or a
+warning. The baseline command is the one place the two differ: it reads the
+log instead of the changelog — a version already logged is one already
+frozen — and it stops on an error alone, because a specification still being
+worked off can be frozen while it should not be shipped.
 
 Fix the cause and run it again. There is nothing to clean up: neither
 command has touched the history, and running either twice is safe.

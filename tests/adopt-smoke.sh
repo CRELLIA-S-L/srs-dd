@@ -5,6 +5,7 @@
 #
 # verifies: FR-INIT-010, FR-INIT-030, FR-INIT-040, FR-INIT-050
 # verifies: FR-INIT-070, FR-INIT-090, FR-CHK-090, FR-CHK-210, IF-CI-010
+# verifies: FR-GND-480
 #
 # One scenario answers for all of them, which is what an end-to-end suite
 # is: the mode is detected, the lexicon comes from the flags, a wrong one
@@ -37,7 +38,7 @@ find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
 
 # Adopt under --dry-run lists the install and leaves the tree alone.
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --dry-run --areas "APP" \
-    "${LEXICON[@]}" > /tmp/adopt-dry.log
+    --grounds yes --period year "${LEXICON[@]}" > /tmp/adopt-dry.log
 grep -q "specs/srs-config.json" /tmp/adopt-dry.log
 find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/after.dry.sum
 diff /tmp/before.sum /tmp/after.dry.sum
@@ -55,7 +56,13 @@ test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
 
 # Correct lexicon adopts cleanly; skills land, matrix generated.
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" \
-    "${LEXICON[@]}" | tee /tmp/adopt-real.log
+    --grounds yes --period year "${LEXICON[@]}" | tee /tmp/adopt-real.log
+
+# verifies: FR-GND-480 — the adoption path takes the answer too, and the
+# comparison below is what proves the dry run listed the file it writes.
+grep -qF '"period": "year"' /tmp/srs-adopt/grounds/grounds-config.json \
+    || { echo "FAIL FR-GND-480 — adoption did not carry the chosen period"
+         cat /tmp/srs-adopt/grounds/grounds-config.json; exit 1; }
 
 # Adopt is the one mode where --dry-run takes a separate branch, so the
 # two lists are compared entry by entry: a file added to the real path and
@@ -100,6 +107,34 @@ adopted = json.load(open('/tmp/srs-adopt/specs/srs-config.json',
 assert adopted.get('rules', {}).get('annotation-absent') == 'off', \
     'adoption did not silence the unclaimed-file rule: %r' % adopted.get('rules')
 PY
+
+# verifies: FR-INIT-220
+# Adopt writes the agent guide too, and builds its substitutions on a path
+# of its own — which is how the width marker once travelled into a target
+# as itself. No width was passed here, so the line goes rather than filling.
+grep -q 'SRS-DD-WIDTH-LINE' /tmp/srs-adopt/AGENTS.md \
+    && { echo "FAIL FR-INIT-220 — the width placeholder travelled"; exit 1; }
+grep -q 'Line width' /tmp/srs-adopt/AGENTS.md \
+    && { echo "FAIL FR-INIT-220 — a width nobody stated was named"; exit 1; }
+
+# verifies: FR-INIT-180, FR-INIT-190
+# Adopt writes the checker itself — it has to run it before any tooling is
+# installed — so it is the one path into a target that does not go through
+# the copier. It shipped 26 of this framework's annotations and an
+# unreplaced version token until this assertion existed.
+python3 - <<'PY2'
+import json
+import re
+areas = json.load(open('specs/srs-config.json', encoding='utf-8'))['areas']
+RE = re.compile(r'(?:implements|verifies):\s*(?:FR|NFR|IF|INV|CON)-(?:%s)-'
+                % '|'.join(areas))
+text = open('/tmp/srs-adopt/tools/srs_check.py', encoding='utf-8').read()
+leaked = [line for line in text.split(chr(10))
+          if RE.search(line) and 'srs-ignore' not in line]
+assert not leaked, 'adopt shipped our annotations: %s' % leaked[:3]
+assert re.search(r'SRS-DD-\d+\.\d+\.\d+', text.split('\"\"\"')[0]), \
+    'adopt shipped a checker with no version stamp'
+PY2
 
 # The viewer reads a Russian specification without a UTF-8 locale.
 (cd /tmp/srs-adopt && LC_ALL=C python3 tools/srs_view.py --list | cat)

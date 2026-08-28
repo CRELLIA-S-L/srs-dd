@@ -4,7 +4,7 @@
 # --from, so the suite never reaches the network.
 #
 # verifies: FR-INIT-120, FR-INIT-130, FR-INIT-140, FR-INIT-160
-# verifies: FR-SKILL-060
+# verifies: FR-SKILL-060, FR-GND-290, FR-GND-480
 set -eo pipefail
 
 # implements: FR-CI-090
@@ -32,10 +32,11 @@ if grep -q '"framework_url": "git@' /tmp/srs-upg/specs/srs-config.json; then
     exit 1
 fi
 
-# Make the version transition visible: pretend the project is a release behind.
+# Make the version transition visible: pretend the project is a release
+# behind. Written where the version lives, which is the parser.
 python3 - <<'PY'
 import re
-p = '/tmp/srs-upg/tools/srs_check.py'
+p = '/tmp/srs-upg/tools/srs_parse.py'
 s = open(p, encoding='utf-8').read()
 open(p, 'w', encoding='utf-8').write(
     re.sub(r'__version__ = "[^"]+"', '__version__ = "0.0.1"', s, count=1))
@@ -123,3 +124,78 @@ a = const('tools/srs_upgrade.py', 'DEFAULT_URL')
 b = const('tools/srs_init.py', 'DEFAULT_FRAMEWORK_URL')
 assert a == b, 'fallback framework address differs: %s vs %s' % (a, b)
 PY
+
+# --- verifies: FR-GND-290 — a project adds the register with the command it
+# --- has. Reaching for the framework's own installer is the thing this tool
+# --- exists to spare anyone from, so a flag it does not forward is a
+# --- register most projects would never add.
+GU=/tmp/srs-upgrade-grounds
+rm -rf "$GU"
+python3 tools/srs_init.py "$GU" --defaults --areas APP --ci none \
+    --grounds no > /dev/null 2>&1
+[ -e "$GU/grounds" ] && { echo "FAIL — the fixture target already has a"
+                          echo "register, so the next assertion proves nothing"
+                          exit 1; }
+( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" \
+    --grounds yes --period month ) > /tmp/upgrade-grounds.log 2>&1 \
+    || { echo "FAIL FR-GND-290 — the target's own upgrade refused --grounds"
+         tail -5 /tmp/upgrade-grounds.log; exit 1; }
+[ -f "$GU/grounds/grounds-config.json" ] \
+    || { echo "FAIL FR-GND-290 — --grounds yes did not add the register"
+         tail -5 /tmp/upgrade-grounds.log; exit 1; }
+# The register's one setting reaches the target through the command the
+# target actually has, and not only through the framework's own installer.
+grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
+    || { echo "FAIL FR-GND-480 — --period did not reach the new register"
+         cat "$GU/grounds/grounds-config.json"; exit 1; }
+# And a later upgrade leaves that answer alone. This is the whole reason
+# the configuration is written rather than copied from the skeleton: a
+# skeleton file would arrive with every refresh and reset the project's
+# unit to the default without anyone asking.
+( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
+    > /tmp/upgrade-grounds2.log 2>&1 \
+    || { echo "FAIL — the second upgrade failed"
+         tail -5 /tmp/upgrade-grounds2.log; exit 1; }
+grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
+    || { echo "FAIL FR-GND-480 — an upgrade reset the register's period"
+         cat "$GU/grounds/grounds-config.json"; exit 1; }
+
+# What it fetched is removed afterwards, and until now nothing ran that
+# path: every invocation above passes --from, and with --from the upgrader
+# fetches nothing and has no temporary directory to remove, so both
+# `shutil.rmtree` calls could go and this suite stayed green (FR-INIT-120).
+#
+# A `git` of our own, first on PATH, answers `clone` by copying the
+# framework and hands everything else to the real one — no network and no
+# new dependency. TMPDIR points at a directory this suite owns, so "what
+# was fetched is gone" is a question about an empty directory rather than
+# about the name mkdtemp happened to choose.
+FETCH=/tmp/srs-upg-fetch
+rm -rf "$FETCH"
+mkdir -p "$FETCH/bin" "$FETCH/tmp"
+REALGIT=$(command -v git)
+cat > "$FETCH/bin/git" <<STUB
+#!/usr/bin/env bash
+if [ "\$1" = "clone" ]; then
+    for last; do :; done
+    mkdir -p "\$last"
+    tar --exclude ./.git --exclude ./.srs-site --exclude ./public \\
+        -cf - -C "$FRAMEWORK" . | tar -xf - -C "\$last"
+    exit 0
+fi
+exec "$REALGIT" "\$@"
+STUB
+chmod +x "$FETCH/bin/git"
+( cd /tmp/srs-upg && PATH="$FETCH/bin:$PATH" TMPDIR="$FETCH/tmp" \
+    python3 tools/srs_upgrade.py --yes ) > /tmp/upg-fetch.log 2>&1 </dev/null \
+    || { echo "FAIL FR-INIT-120 — the upgrade that fetches its framework failed"
+         tail -5 /tmp/upg-fetch.log; exit 1; }
+grep -q "^Fetching " /tmp/upg-fetch.log \
+    || { echo "FAIL FR-INIT-120 — it never took the fetch path, so the"
+         echo "removal below proves nothing"; exit 1; }
+test -z "$(ls -A "$FETCH/tmp")" \
+    || { echo "FAIL FR-INIT-120 — what it fetched is still on disk:"
+         ls -A "$FETCH/tmp"; exit 1; }
+rm -rf "$FETCH"
+
+echo "upgrade-smoke: a target adds the grounds register with its own command"

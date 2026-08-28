@@ -20,6 +20,13 @@ spec-check:
     - python3 tools/srs_check.py
     - git add -N specs/90-traceability.md
     - git diff --exit-code -- specs/90-traceability.md || { echo "specs/90-traceability.md is stale — run python3 tools/srs_check.py and commit the result"; exit 1; }
+    # Only where the project keeps a grounds register; inert elsewhere.
+    - |
+      if [ -f grounds/grounds-config.json ]; then
+        python3 tools/srs_grounds.py
+        git add -N grounds/90-dashboard.md
+        git diff --exit-code -- grounds/90-dashboard.md || { echo "grounds/90-dashboard.md is stale — run python3 tools/srs_grounds.py and commit the result"; exit 1; }
+      fi
 
 # The readable specification as a build artifact: one self-contained
 # HTML file, no Pages setup required. Delete this job if you do not

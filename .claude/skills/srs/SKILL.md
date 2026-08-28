@@ -32,6 +32,11 @@ tool is absent, `grep -rn "<path/to/file>" specs/*.md` and the
 “Requirement → code → verification” table in `specs/90-traceability.md`
 give the same answer by hand.
 
+**Then let that answer decide what you read.** The `code` and `tests` fields
+of the requirements a change belongs to are the files to open; a search over
+the repository is the fallback, taken out loud, when they turn out not to be
+all of them. The rule itself is in `AGENTS.md`.
+
 Found some — read them in full, together with their `derives_from` and
 `depends_on`; `python3 tools/srs_view.py <ID>` prints one requirement
 with every link resolved in both directions. When changing a
@@ -39,6 +44,21 @@ requirement, the incoming links are the blast radius.
 
 Found nothing — that is not permission to write code silently. It means the
 behavior is not described, and a requirement must be created first.
+
+**Where the project carries a grounds register** — a `grounds/` directory
+beside `specs/` — ask what the requirement is standing on before changing
+it:
+
+```
+python3 tools/srs_grounds.py --blast <path/to/file>
+```
+
+It names the bets on the requirements those files define, and the state of
+the hypotheses under them. A requirement standing on something `refuted` or
+`expired` is not a reason to stop; it is a reason to say so, because
+whatever you are about to build on it inherits the same ground. Where the
+project has no register the command is not there, and this step does not
+apply. The procedure for the register itself is `srs-bet`.
 
 ## Two acts, and they are not the same one
 
@@ -89,7 +109,15 @@ Then:
    before the edit is recorded. This is the easiest place
    to skip it: the requirement already exists, so nothing feels like
    authoring, and a sentence quietly grows a second capability while
-   somebody is repairing the first. Then status per Lifecycle, and
+   somebody is repairing the first.
+
+   A reworded statement also goes through the same lookup a new one does —
+   what else already speaks to this behaviour, and what points at it — and
+   what that turns up is said, not merely consulted. A rewording reaches
+   everything that was standing on the old wording, and the incoming links
+   are where that shows.
+
+   Then status per Lifecycle, and
    `code` and `tests` filled with real paths — **and every file you named
    there says so back**, with `implements:` or `verifies:` (see Annotations
    in `specs/README.md`). The checker reports a file a requirement names

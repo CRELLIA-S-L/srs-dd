@@ -37,6 +37,15 @@ git config user.name CI
 # each time the specification learns to reference something else.
 ( cd "$FRAMEWORK" && tar --exclude ./.git --exclude ./.srs-site \
                        --exclude ./public -cf - . ) | tar -xf -
+
+# The overlay adds and overwrites; it cannot remove. A file the working tree
+# has deleted or renamed survives from the clone and is then judged beside
+# its replacement — two files claiming the same identifiers, and a failure
+# that says nothing about what is under test. So take out whatever this
+# clone carries that the working tree no longer has.
+git ls-files -z | while IFS= read -r -d "" f; do
+    [ -e "$FRAMEWORK/$f" ] || rm -f "$f"
+done
 # Regenerate the matrix: the copies are new to this clone, and the command
 # refuses on a matrix that is not fresh. The output is kept — a suite that
 # discards it reports a dead hook and no reason, which is exactly what the
@@ -98,9 +107,17 @@ test -z "$(git status --porcelain)"
 python3 tools/srs_release.py 9.9.9 --date 2026-01-02 > /tmp/rel-run.log
 test "$(git rev-parse HEAD)" = "$clean"
 test -z "$(git tag -l 'v9.9.9')"
-grep -q '__version__ = "9.9.9"' tools/srs_check.py
+grep -q '__version__ = "9.9.9"' tools/srs_parse.py
 grep -q '## \[9.9.9\] — 2026-01-02' CHANGELOG.md
-grep -q "Commit CHANGELOG.md, tools/srs_check.py" /tmp/rel-run.log
+grep -q "Commit CHANGELOG.md, tools/srs_parse.py" /tmp/rel-run.log
+
+# One home and two re-exports: a bump that reaches the file but not
+# the tools reading it announces the old version to everybody who
+# runs them, which is the bug this arrangement replaced (ADR-0021).
+python3 tools/srs_check.py --no-write > /tmp/rel-ver-spec.log 2>&1
+grep -q "(srs_check 9.9.9)" /tmp/rel-ver-spec.log
+python3 tools/srs_grounds.py --no-write > /tmp/rel-ver-gnd.log 2>&1
+grep -q "(srs_grounds 9.9.9)" /tmp/rel-ver-gnd.log
 
 # A release is not a baseline: it freezes nothing and leaves the log and
 # the `spec/v*` namespace alone (INV-SPEC-030).
@@ -133,4 +150,115 @@ rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-bad.log 2>&1 || rc=$?
 test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/rel-bad.log
 absent '## \[9.9.10\] —' CHANGELOG.md
-grep -q '__version__ = "9.9.9"' tools/srs_check.py
+grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+
+# And a warning stops it too, which is where this parts company with the
+# baseline command: that one refuses on an error and freezes a specification
+# carrying warnings (FR-SPEC-010). Both statements read the same for months
+# while the two commands did not, so this is the fixture that holds them
+# apart — the checker passes, the release does not.
+git checkout -- specs/10-fr-chk.md
+cat >> specs/10-fr-chk.md <<'REQ'
+
+### FR-CHK-991 — A draft that already has code
+
+```yaml
+status: draft
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: []
+```
+
+The checker **shall** be pointed at by a requirement nobody has approved.
+REQ
+python3 tools/srs_check.py --no-write > /tmp/rel-warn-check.log 2>&1
+grep -q "is draft but the code field is not empty" /tmp/rel-warn-check.log
+grep -q "No errors" /tmp/rel-warn-check.log
+rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-warn.log 2>&1 || rc=$?
+test "$rc" -eq 2
+grep -q "checker does not pass" /tmp/rel-warn.log
+absent '## \[9.9.10\] —' CHANGELOG.md
+grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+git checkout -- specs/10-fr-chk.md specs/90-traceability.md
+
+# verifies: CON-SPEC-030
+# The statement binds every command this repository ships, not only the two
+# that prepare a release and a baseline, and until now only those two were
+# proved: a `git commit` added to srs_view.py passed the whole gate.
+#
+# Scanned against $FRAMEWORK rather than this clone, so the answer is about
+# the working tree under test whatever the suite has done to the clone by
+# now. Parsed rather than grepped: srs_release.py carries the words
+# "git checkout -- " inside a message, and a regular expression would call
+# that a commit.
+#
+# Exactly the three verbs the statement names — commit, tag, push — and no
+# more. `git add` and `git reset` write no history, and a test refusing them
+# would be asserting something CON-SPEC-030 does not say.
+#
+# What it cannot see: a subcommand assembled a piece at a time
+# (`cmd.append("commit")`). srs_upgrade.py builds its argv that way but
+# names `clone` in the literal, so it stays visible; chasing the general
+# case is dataflow analysis, and it does not pay for itself against the
+# threat the statement describes — somebody adding a commit to a command
+# that has just written something.
+python3 - "$FRAMEWORK" <<'PY2'
+import ast
+import glob
+import os
+import sys
+
+DENY = {"commit", "tag", "push"}
+
+
+def argv(node):
+    """One git argv as a list, holes and all.
+
+    A non-literal element becomes None rather than vanishing: the token
+    after -C is a directory and has to be skipped by position, and where
+    that directory is a variable a list of only the literals would hand
+    back the verb in its place.
+    """
+    def one(element):
+        if isinstance(element, ast.Constant) and isinstance(element.value, str):
+            return element.value
+        return None
+
+    if isinstance(node, (ast.List, ast.Tuple)):
+        return [one(e) for e in node.elts]
+    if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+            and node.func.id == "git"):
+        out = []
+        for arg in node.args:
+            inner = argv(arg)
+            out.extend(inner if inner else [one(arg)])
+        return out
+    return []
+
+
+found = []
+for path in sorted(glob.glob(os.path.join(sys.argv[1], "tools", "*.py"))):
+    with open(path, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), path)
+    for node in ast.walk(tree):
+        toks = argv(node)
+        if not any(toks):
+            continue
+        skip = toks.index("-C") + 1 if "-C" in toks else -1
+        rest = [t for i, t in enumerate(toks)
+                if t and i != skip and t != "git" and not t.startswith("-")]
+        if not rest or rest[0] not in DENY:
+            continue
+        # `tag -l` lists; the checker and the viewer both read that way.
+        if rest[0] == "tag" and "-l" in toks:
+            continue
+        found.append("%s:%d — git %s" % (os.path.basename(path),
+                                         node.lineno, rest[0]))
+
+assert not found, ("a command writes git history, which CON-SPEC-030 "
+                   "forbids: %s" % found)
+PY2

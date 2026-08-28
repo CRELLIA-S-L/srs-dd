@@ -23,9 +23,10 @@ Three modes, detected automatically:
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
 files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
-hook, specs/README.md) — and only when the existing file carries the
-"SRS-DD-<version>" marker; a file the installer did not install is never
-overwritten. The project's requirements are never touched under any flag.
+hook, specs/README.md, grounds/README.md) — and only when the existing
+file carries the "SRS-DD-<version>" marker; a file the installer did not
+install is never overwritten. The project's requirements are never
+touched under any flag.
 
 `--dry-run` writes nothing in any mode and prints the created /
 refreshed / skipped list the real run would produce, so the change can
@@ -46,7 +47,7 @@ after adopt's point of no return (partial completion, see output);
 stale temp file from a previously crashed adopt run).
 """
 
-# implements: NFR-SPEC-010
+# implements: NFR-SPEC-010, CON-SPEC-030
 
 import sys
 
@@ -65,7 +66,8 @@ import re                                                  # noqa: E402
 import subprocess                                          # noqa: E402
 
 from srs_check import (DEFAULTS, __version__, parse_file,  # noqa: E402
-                       TYPES, RE_AREA_NAME, SKIP_FILES, SKIP_DIRS)
+                       RE_ANNOTATION, TYPES, RE_AREA_NAME, SKIP_FILES,
+                       SKIP_DIRS)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -99,6 +101,15 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 # framework-specific can leak through it.
 SPEC_STANDARD = os.path.join("specs", "README.md")
 
+# The grounds register: optional, and the same single-copy arrangement for
+# its standard. Its presence in a target is read from the configuration
+# file rather than from a setting — what is on disk is the only answer that
+# cannot disagree with itself.
+GROUNDS_STANDARD = os.path.join("grounds", "README.md")
+GROUNDS_CONFIG = os.path.join("grounds", "grounds-config.json")
+GROUNDS_TOOLS = ("srs_grounds.py",)
+GROUNDS_SKILLS = ("srs-bet",)
+
 # implements: FR-INIT-060
 # How the installer tells a file it wrote from one the project wrote.
 # Shipped files carry the token; `copy` stamps the running version into
@@ -108,15 +119,27 @@ SPEC_STANDARD = os.path.join("specs", "README.md")
 # project follows the SRS-DD standard" — and a project that wrote that
 # in a file of its own would have it read as ours and overwritten.
 MARKER_TOKEN = "SRS-DD-VERSION"
+# A whole line of the agent guide, so a project that states no width
+# gets no bullet rather than an empty one (FR-INIT-220).
+WIDTH_TOKEN = "<SRS-DD-WIDTH-LINE>\n"
+WIDTH_LINE = ("- **Line width** — this project's code stays inside %d "
+              "columns.\n")
+# What an annotation becomes on the way out. The line stays a line so
+# that a traceback from a target names the same number as the source
+# here, and the identifier it named does not travel (CON-SPEC-020).
+ANNOTATION_REMOVED = "annotation removed on install"
 MARKER = "SRS-DD-" + __version__
 RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
 # Tooling copied into every target, refreshed by adopt and upgrade.
-TOOLS = ("srs_check.py", "srs_view.py", "srs_upgrade.py",
-         "srs_baseline.py")
+TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
+         "srs_baseline.py", "srs_dates.py")
 
-# Skills shipped to targets. srs-init itself stays framework-only.
-# implements: FR-SKILL-060, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
+# Skills shipped to targets. srs-init itself stays framework-only, and so
+# does srs-release: a target releases nothing of ours (FR-SKILL-070), and
+# this tuple is where that is kept.
+# implements: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100
+# implements: FR-SKILL-110
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
           "srs-baseline", "srs-check", "srs-page")
 
@@ -197,13 +220,26 @@ def parse_args():
                         help="also refresh existing SRS-DD-marked precious "
                              "files (CI config, CLAUDE.md/AGENTS.md, "
                              ".gitattributes, the pre-commit hook, "
-                             "specs/README.md); a file "
+                             "specs/README.md, grounds/README.md); a "
+                             "file "
                              "without the marker is still never touched; "
                              "the checker and skills are "
                              "refreshed without it in adopt/upgrade modes; "
                              "specification content is never overwritten")
+    parser.add_argument("--period", choices=("month", "quarter", "year"),
+                        default=None,
+                        help="the unit the grounds dashboard counts "
+                             "unclaimed arrivals in")
+    parser.add_argument("--grounds", choices=("yes", "no"), default=None,
+                        help="install the grounds register: the hypotheses "
+                             "the requirements rest on. Declined, nothing "
+                             "of it is written")
     parser.add_argument("--ci", choices=("github", "gitlab", "both", "none"),
                         default=None, help="which CI template(s) to install")
+    parser.add_argument("--line-width", dest="line_width", default=None,
+                        help="the line width the project's code follows; "
+                             "found by whoever runs the install, not by "
+                             "this tool")
     parser.add_argument("--name", help="project name")
     parser.add_argument("--areas", help="comma-separated requirement areas")
     parser.add_argument("--code-roots", dest="code_roots",
@@ -256,6 +292,77 @@ def is_inside(path, ancestor):
         if parent == probe:
             return False
         probe = parent
+
+
+def outbound(raw, rel):
+    """The bytes a file leaves this repository as.
+
+    Every path that puts one of our files into a target goes through
+    here — the copier below, and adopt, which writes the checker itself
+    because it has to run it before the tooling is installed. A second
+    path that transformed nothing is how a target ended up with a file
+    the framework never meant to ship.
+    """
+    # implements: FR-INIT-190
+    # Stamped byte-level, so a file this does not concern is never
+    # decoded. Threading the version through six `substitute`
+    # dictionaries instead would leave the seventh unstamped and
+    # unrecognizable.
+    if MARKER_TOKEN.encode("utf-8") in raw:
+        raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
+                          MARKER.encode("utf-8"))
+    # implements: FR-INIT-180
+    # The shipped tooling carries this framework's annotations, and they
+    # are what CON-SPEC-020 forbids travelling: in a target declaring an
+    # area this framework also uses, an `implements:` line naming one of
+    # our requirements resolves to *their* requirement under that number.
+    # Stripped here rather than in the source, because the two-way check
+    # those lines exist for is checked in this repository.
+    if rel.endswith(".py") and rel.startswith("tools" + os.sep):
+        raw = strip_annotations(raw.decode("utf-8")).encode("utf-8")
+    return raw
+
+
+def substitutions(name, settings):
+    # implements: FR-INIT-220
+    """What a template's placeholders become on the way into a target.
+
+    Both install paths ask this rather than building their own map: fresh
+    and adopt each write the agent guide, and a marker filled in by one of
+    them and not the other reaches a project as itself.
+    """
+    out = {}
+    if name:
+        out[PLACEHOLDER_NAME] = name
+    # Always answered, never left standing: the line is filled in where the
+    # project stated a width and removed where it did not.
+    out[WIDTH_TOKEN] = (WIDTH_LINE % settings["line_width"]
+                        if settings.get("line_width") else "")
+    return out
+
+
+def strip_annotations(text):
+    # implements: FR-INIT-180
+    """Takes this framework's traceability annotations out of a file on
+    the way into a target, leaving the line where it was.
+
+    Exactly what the checker would have read as a claim, and nothing
+    else. A line carrying `srs-ignore` is how the standard marks an
+    example rather than a claim, and the two examples in the checker's
+    own comments are where a target reads the annotation format at all;
+    stripping those would ship a file documenting a syntax it no longer
+    shows.
+
+    The line survives so that a traceback from a target names the same
+    number as the source here, which is the first thing a bug report is
+    read against.
+    """
+    lines = text.split("\n")
+    for index, line in enumerate(lines):
+        if "srs-ignore" in line:
+            continue
+        lines[index] = RE_ANNOTATION.sub(ANNOTATION_REMOVED, line)
+    return "\n".join(lines)
 
 
 class Installer(object):
@@ -333,14 +440,9 @@ class Installer(object):
         src = os.path.join(ROOT, src_rel)
         with open(src, "rb") as handle:
             raw = handle.read()
-        # Stamped here rather than at the call sites: every precious file
-        # arrives through this method, and threading the version through
-        # six `substitute` dictionaries would leave the seventh unstamped
-        # and unrecognizable. Byte-level, so a file this does not concern
-        # is never decoded.
-        if MARKER_TOKEN.encode("utf-8") in raw:
-            raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
-                              MARKER.encode("utf-8"))
+        # Stamped and stripped here rather than at the call sites: every
+        # file the installer writes arrives through this method.
+        raw = outbound(raw, dst_rel)
         if substitute:
             text = raw.decode("utf-8")
             for old, new in substitute.items():
@@ -466,6 +568,117 @@ def install_skills(installer, substitute):
             installer.copy(rel, rel, tooling=True, substitute=substitute)
 
 
+def has_grounds(target):
+    # implements: FR-GND-290
+    """Whether this project carries the register."""
+    return os.path.exists(os.path.join(target, GROUNDS_CONFIG))
+
+
+def collect_grounds_skeleton():
+    """(source, destination) pairs of the register skeleton.
+
+    The standard comes from grounds/ for the reason specs/README.md comes
+    from specs/: one canonical copy, kept in the place it describes.
+    """
+    result = []
+    base = os.path.join(ROOT, SKELETON, "grounds")
+    for name in sorted(os.listdir(base)):
+        if name.endswith(SKELETON_SUFFIXES):
+            result.append((os.path.join(SKELETON, "grounds", name),
+                           os.path.join("grounds", name)))
+    # The configuration is written rather than copied: it carries a choice.
+    result = [pair for pair in result if pair[1] != GROUNDS_CONFIG]
+    result.append((GROUNDS_STANDARD, GROUNDS_STANDARD))
+    return sorted(result, key=lambda pair: pair[1])
+
+
+def grounds_config_json(period):
+    """The register's configuration, with the one answer the install takes."""
+    return ('{\n'
+            '  "rules": {},\n'
+            '  "period": "%s"\n'
+            '}\n' % period)
+
+
+def install_grounds(installer, substitute=None, period="quarter"):
+    # implements: FR-GND-280, FR-GND-300, FR-GND-320
+    """The register, its checker and its procedure — all or none of them.
+
+    Declined, this writes nothing at all: a target that said no is
+    byte-for-byte a target that was never asked, which is what makes the
+    choice cheap to make and cheap to reverse.
+    """
+    installer.put(GROUNDS_CONFIG, grounds_config_json(period), tooling=False)
+    for src, dst in collect_grounds_skeleton():
+        standard = dst == GROUNDS_STANDARD
+        installer.copy(src, dst, tooling=standard, precious=standard,
+                       substitute=substitute)
+    for name in GROUNDS_TOOLS:
+        rel = os.path.join("tools", name)
+        installer.copy(rel, rel, tooling=True)
+    for skill in GROUNDS_SKILLS:
+        rel = os.path.join(".claude", "skills", skill, "SKILL.md")
+        if os.path.exists(os.path.join(ROOT, rel)):
+            installer.copy(rel, rel, tooling=True, substitute=substitute)
+
+
+def undated_hint(target):
+    # implements: FR-INIT-170
+    """Says that an undated specification can be dated, and runs nothing.
+
+    The dating command exists for specifications written before the field
+    did, which is every specification a project already has, and nobody
+    looks for a tool they have not heard of. Said and not done: nothing
+    else here writes a requirement block unasked, and a project that wants
+    no dates at all is not a project in error.
+    """
+    specs_dir = os.path.join(target, "specs")
+    if not os.path.isdir(specs_dir):
+        return
+    seen, undated = 0, 0
+    for current, dirs, files in os.walk(specs_dir):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        for name in sorted(files):
+            if not name.endswith(".md") or name in SKIP_FILES:
+                continue
+            full = os.path.join(current, name)
+            for req in parse_file(full, os.path.relpath(full, target), []):
+                if not RE_STRICT_ID.match(req.id):
+                    continue
+                seen += 1
+                if not req.meta.get("created"):
+                    undated += 1
+    if not undated:
+        return
+    sys.stdout.write(
+        "\n%d of %d requirements carry no `created` date. One command "
+        "writes\nthe date each first appeared, read from this repository's "
+        "own history:\n  python3 tools/srs_dates.py --dry-run   to see what "
+        "it would write\n  python3 tools/srs_dates.py             to write "
+        "it\n" % (undated, seen))
+
+
+def run_target_grounds(target):
+    # implements: FR-GND-300
+    """The target's own grounds checker, on what was just installed.
+
+    It writes the dashboard, which a gate compares against a fresh run —
+    a target whose first commit has no dashboard would fail that gate
+    before anybody had written a single record.
+    """
+    checker = os.path.join(target, "tools", "srs_grounds.py")
+    if not os.path.exists(checker):
+        return 0
+    sys.stdout.write("\nRunning the grounds checker in the target:\n")
+    sys.stdout.flush()
+    # Not `--strict`, for the reason the specification checker is not run
+    # strictly either: an expired hypothesis is the most ordinary state a
+    # register can be in and the thing this layer exists to surface, and an
+    # install that reports failure over one is an install nobody believes.
+    # The exit code the installer publishes is for errors.
+    return subprocess.call([sys.executable, checker])
+
+
 def describe_hooks(target):
     """What the target already runs on commit.
 
@@ -575,14 +788,25 @@ def run_target_checker(target):
 
 
 def read_target_version(target):
-    path = os.path.join(target, "tools", "srs_check.py")
-    try:
-        with open(path, "r", encoding="utf-8", errors="replace") as handle:
-            text = handle.read()
-    except OSError:
-        return None
-    match = RE_VERSION.search(text)
-    return match.group(1) if match else None
+    """The framework version a target is on, read from its own tooling.
+
+    Two files, in order: the parser is where the number lives from 0.15.0
+    on, and the checker is where it lived before. A project upgrading from
+    0.14.0 or earlier has it only in the second, and reporting it as
+    unversioned would drop the version transition and the upgrade notes —
+    the two things an upgrade exists to show.
+    """
+    for name in ("srs_parse.py", "srs_check.py"):
+        path = os.path.join(target, "tools", name)
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        match = RE_VERSION.search(text)
+        if match:
+            return match.group(1)
+    return None
 
 
 def version_tuple(text):
@@ -770,6 +994,50 @@ def collect_settings(args, batch, area_default):
         sys.stderr.write("Unknown CI choice %r.\n" % ci_choice)
         return None
     settings["ci"] = ci_choice
+    # implements: FR-GND-280
+    grounds = args.grounds or ("no" if batch else ask(
+        "Keep a grounds register — the hypotheses the requirements rest "
+        "on? (yes/no)", "no", batch))
+    if grounds not in ("yes", "no"):
+        sys.stderr.write("Unknown answer %r for the grounds register.\n"
+                         % grounds)
+        return None
+    settings["grounds"] = grounds == "yes"
+    # implements: FR-GND-480
+    # What counts as "lately" is the project's rhythm, and the dashboard
+    # counts arrivals in it. Asked only where the register is wanted.
+    period = args.period
+    if settings["grounds"] and not period:
+        period = "quarter" if batch else ask(
+            "Count unclaimed arrivals by (month/quarter/year)", "quarter",
+            batch)
+    if period and period not in ("month", "quarter", "year"):
+        sys.stderr.write("Unknown period %r.\n" % period)
+        return None
+    if period and not settings["grounds"]:
+        # The setting belongs to a register, and there is not going to be
+        # one. Said rather than dropped: a flag that does nothing and says
+        # nothing is a flag somebody believes worked.
+        sys.stdout.write(
+            "Note: --period sets the grounds dashboard's calendar unit and "
+            "this install takes no register, so it has nothing to set.\n")
+    settings["period"] = period or "quarter"
+
+    # implements: FR-INIT-210
+    # Taken as given. Which file a project states this in differs by
+    # toolchain, and reading them is the install procedure's job
+    # (FR-SKILL-190) — a heuristic here would be wrong quietly.
+    width = args.line_width
+    if width is not None:
+        try:
+            width = int(width)
+        except ValueError:
+            width = 0
+        if width < 1:
+            sys.stderr.write("--line-width takes a positive number of "
+                             "columns.\n")
+            return None
+    settings["line_width"] = width
     return settings
 
 
@@ -807,6 +1075,10 @@ def config_json(settings, adopting=False):
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
     config["framework_url"] = settings.get("framework_url") or framework_url()
+    # Absent where the project states none: a width invented here would be
+    # this framework formatting somebody else's code (FR-INIT-210).
+    if settings.get("line_width"):
+        config["line_width"] = settings["line_width"]
     if adopting:
         # A project that arrives with code already written has files under
         # its roots that no requirement names yet, and every one of them
@@ -826,7 +1098,7 @@ def run_fresh(args, target, batch):
     settings = collect_settings(args, batch, DEFAULTS["areas"])
     if settings is None:
         return 2
-    substitute = {PLACEHOLDER_NAME: name}
+    substitute = substitutions(name, settings)
 
     sys.stdout.write("\nInstalling into %s\n\n" % target)
 
@@ -847,6 +1119,8 @@ def run_fresh(args, target, batch):
                   placeholder, tooling=False)
 
     install_tools(installer)
+    if settings["grounds"]:
+        install_grounds(installer, substitute, settings["period"])
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
     install_skills(installer, substitute)
@@ -862,6 +1136,10 @@ def run_fresh(args, target, batch):
     sys.stdout.write("\nInstalled with srs_init (framework %s).\n"
                      % __version__)
     result = run_target_checker(target)
+    if result == 0:
+        undated_hint(target)
+    if result == 0 and settings["grounds"]:
+        result = run_target_grounds(target)
     if result == 0:
         sys.stdout.write(
             "\nFirst steps:\n"
@@ -924,6 +1202,8 @@ def install_adopt_files(installer, settings, substitute, target,
             "fit.\n")
 
     install_tools(installer, skip=tools_skip)
+    if settings["grounds"]:
+        install_grounds(installer, substitute, settings["period"])
     install_skills(installer, substitute)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
@@ -953,7 +1233,7 @@ def run_adopt(args, target, batch, found_areas):
         name = args.name or ask("Project name",
                                 os.path.basename(target) or "My Project",
                                 batch)
-    substitute = {PLACEHOLDER_NAME: name} if name else None
+    substitute = substitutions(name, settings)
 
     specs_dir = os.path.join(target, "specs")
     tools_dir = os.path.join(target, "tools")
@@ -994,13 +1274,29 @@ def run_adopt(args, target, batch, found_areas):
 
         with open(os.path.join(ROOT, "tools", "srs_check.py"), "rb") as src:
             checker_bytes = src.read()
+        # This file becomes the target's checker at the point of no
+        # return below, without passing through the copier, so it is
+        # prepared the same way the copier prepares everything else.
+        checker_bytes = outbound(checker_bytes,
+                                 os.path.join("tools", "srs_check.py"))
         with open(temp_path, "wb") as handle:
             handle.write(checker_bytes)
 
         sys.stdout.write("Validating the existing specification against "
                          "the proposed configuration:\n")
         sys.stdout.flush()
-        rc = subprocess.call([sys.executable, temp_path, "--no-write"])
+        # The checker reads the record shape through srs_parse, which it
+        # imports from beside itself — and nothing of ours is in the
+        # target yet, because the tooling is installed only once this
+        # validation has passed. Lend it the framework's copy for the
+        # duration rather than writing a second file the rollback would
+        # have to take back out.
+        env = dict(os.environ)
+        env["PYTHONPATH"] = os.pathsep.join(
+            [os.path.join(ROOT, "tools")]
+            + ([env["PYTHONPATH"]] if env.get("PYTHONPATH") else []))
+        rc = subprocess.call([sys.executable, temp_path, "--no-write"],
+                             env=env)
         if rc != 0:
             sys.stdout.write(
                 "\nValidation failed — nothing was installed. Fix the "
@@ -1059,6 +1355,10 @@ def run_adopt(args, target, batch, found_areas):
 
     result = run_target_checker(target)
     if result == 0:
+        undated_hint(target)
+    if result == 0 and settings["grounds"]:
+        result = run_target_grounds(target)
+    if result == 0:
         sys.stdout.write(
             "\nNext steps: commit the regenerated "
             "specs/90-traceability.md together with the new tooling.\n")
@@ -1089,6 +1389,9 @@ def run_upgrade(args, target):
     sys.stdout.write("\n")
 
     old_version = read_target_version(target)       # before the refresh
+    # implements: FR-INIT-130
+    # The upgrader owns the command; the three things it shows before
+    # anything is written are printed from here.
     show_all = print_version_transition(old_version)
     print_whats_new(old_version, show_all)
     print_upgrade_notes(old_version, show_all)
@@ -1103,6 +1406,33 @@ def run_upgrade(args, target):
     # the first upgrade.
     installer.copy(SPEC_STANDARD, SPEC_STANDARD, tooling=True,
                    precious=True)
+    # implements: FR-GND-290
+    # Refreshed where the register already is; added only when this run
+    # was told to add it. An upgrade is what every project runs, and a
+    # subsystem that arrived through one would arrive at projects that
+    # never declined it because they never heard of it.
+    if has_grounds(target):
+        if args.grounds == "no":
+            sys.stdout.write(
+                "Note: --grounds no does not remove a register that is "
+                "already there; it is refreshed like the rest of the "
+                "tooling. To be rid of it, delete grounds/, "
+                "tools/srs_grounds.py and the srs-bet skill.\n")
+        if args.period:
+            # Same silence the note above exists to break: the register's
+            # configuration is the project's and an upgrade never edits it.
+            sys.stdout.write(
+                "Note: --period sets the dashboard's calendar unit when a "
+                "register is created, and this project already has one. To "
+                "change it, edit `period` in grounds/grounds-config.json.\n")
+        install_grounds(installer)
+    elif args.grounds == "yes":
+        sys.stdout.write("Adding the grounds register, as asked.\n")
+        install_grounds(installer, period=args.period or "quarter")
+    elif args.grounds is None:
+        sys.stdout.write(
+            "This project carries no grounds register. To add one: "
+            "re-run with --grounds yes.\n")
     install_skills(installer, substitute=None)
     if args.ci:
         install_ci(installer, args.ci)
@@ -1113,6 +1443,10 @@ def run_upgrade(args, target):
         return 0
     installer.gitattributes_hint()
     result = run_target_checker(target)
+    if result == 0:
+        undated_hint(target)
+    if result == 0 and has_grounds(target):
+        result = run_target_grounds(target)
     if result == 0 and old_version != __version__:
         sys.stdout.write(
             "\nNext steps: commit the refreshed tooling and the "

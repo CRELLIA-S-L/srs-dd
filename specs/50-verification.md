@@ -21,10 +21,16 @@ repository.
 | `tests/checker-rules.sh` | One fixture per checker rule: the exit code and the message for a broken specification, and the refusals that happen before one is read |
 | `tests/upgrade-smoke.sh` | Upgrading a project from an older framework, the version transition and the notes it prints |
 | `tests/baseline-smoke.sh` | Freezing a baseline in a target and in a clone, including a hand-written row and a history too shallow to hold one |
-| `tests/release-smoke.sh` | Preparing a release: refusals, the dry run, and that nothing is committed or tagged |
+| `tests/release-smoke.sh` | Preparing a release: refusals, the dry run, that nothing is committed or tagged, and that no command this repository ships writes git history |
+| `tests/grounds-rules.sh` | One fixture per rule of the grounds checker, including the three that pass silently when the rule under them is deleted: an unclaimed requirement stays quiet, two bets on one requirement speak, and a lowered rule stops failing without stopping being computed |
+| `tests/grounds-check.sh` | This repository's own register passes strictly, its committed dashboard is what the records say now, and a run leaves every authored record untouched |
+| `tests/dates-smoke.sh` | The one command that writes requirement blocks: the date it writes is the one the history holds and not today's, a second run costs nothing, and where the history cannot be read it refuses rather than inventing one |
 
-All eight run in CI and locally through `tools/ci_selftest.sh`, which
-executes every suite in `tests/` rather than a copy of them.
+All eleven run in CI and locally through `tools/ci_selftest.sh`, which
+executes everything in `tests/` rather than a copy of it. That is twelve
+files: `tests/line-width.sh` lives there too and is not a suite — it proves
+no requirement, it is the gate FR-CI-100 names as its own code, and it runs
+here because this is where the gate already runs.
 
 ## Recorded measurements
 

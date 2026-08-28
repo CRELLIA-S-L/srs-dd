@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Upgrade SRS-DD in this project — one command, no clone to keep around.
 
     python3 tools/srs_upgrade.py              show the change, then ask
     python3 tools/srs_upgrade.py --yes        apply without asking
     python3 tools/srs_upgrade.py --ref v1.2.0 pin a release
     python3 tools/srs_upgrade.py --from ../srs-dd   use a clone you have
+    python3 tools/srs_upgrade.py --grounds yes     add the grounds register
 
 It fetches the framework this project was installed from, runs that
 framework's installer against this project, and removes what it fetched.
@@ -20,7 +22,7 @@ Exit codes match the installer: 0 installed · 1 checker errors or partial
 completion · 2 refused before changing anything · 3 rolled back.
 """
 
-# implements: FR-INIT-120, FR-INIT-130, NFR-SPEC-010
+# implements: FR-INIT-120, FR-INIT-130, NFR-SPEC-010, CON-SPEC-030
 
 import argparse
 import json
@@ -34,7 +36,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG = os.path.join(ROOT, "specs", "srs-config.json")
 
 # Used when the project's config does not name one — projects installed
-# before FR-INIT-140 existed, and hand-made installations.
+# before a project recorded the framework it came from, and hand-made
+# installations.
 DEFAULT_URL = "https://github.com/CRELLIA-S-L/srs-dd.git"
 
 
@@ -76,6 +79,21 @@ def main():
     parser.add_argument("--force", action="store_true",
                         help="also refresh precious files (CI config, agent "
                              "guides, .gitattributes, the hook)")
+    # implements: FR-GND-290, FR-GND-480
+    # Asking has to be possible with the command a project actually has.
+    # Without this the only way to add the register is the framework
+    # clone's own installer, which is the thing this tool exists to spare
+    # anyone from keeping around.
+    parser.add_argument("--period", choices=("month", "quarter", "year"),
+                        default=None,
+                        help="with --grounds yes: the calendar unit the "
+                             "register's dashboard counts arrivals in "
+                             "(default quarter)")
+    parser.add_argument("--grounds", choices=("yes", "no"), default=None,
+                        help="add the grounds register to this project, or "
+                             "say no. Left out, an upgrade refreshes a "
+                             "register that is already here and installs "
+                             "none where there is not")
     args = parser.parse_args()
 
     if not os.path.isdir(os.path.join(ROOT, "specs")):
@@ -115,6 +133,10 @@ def main():
 
     try:
         extra = ["--force"] if args.force else []
+        if args.grounds:
+            extra += ["--grounds", args.grounds]
+        if args.period:
+            extra += ["--period", args.period]
         code = run_installer(clone, extra + ["--dry-run"])
         if code != 0:
             return fail("the framework's installer refused; nothing was "

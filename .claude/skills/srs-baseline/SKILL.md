@@ -69,8 +69,10 @@ commit.
 ## When it refuses
 
 Exit code 2, before writing anything: a version the log already records, or
-a specification the checker rejects. Fix the cause and run it again — there
-is nothing to clean up, and nothing in the history was touched.
+an error from the checker. A warning does not stop it; the Baselines section
+of `specs/README.md` says on what terms, and why. Fix the cause and run it
+again — there is nothing to clean up, and nothing in the history was
+touched.
 
 ## What this procedure does not do
 

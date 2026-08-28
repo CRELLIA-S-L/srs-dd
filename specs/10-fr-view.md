@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a requirement identifier, the viewer **shall** print that
@@ -34,6 +35,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a path, the viewer **shall** list the requirements that name it in
@@ -54,6 +56,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a requirement identifier, the viewer **shall** print what derives
@@ -74,6 +77,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 The viewer **shall** report, on request, realized requirements with no listed
@@ -108,6 +112,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 When given a git revision or the version of a logged baseline, the viewer
@@ -131,6 +136,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 The viewer **shall** render the specification into a single self-contained
@@ -153,6 +159,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 Two renderings of an unchanged specification **shall** produce byte-identical
@@ -172,6 +179,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-07
 ```
 
 The viewer **shall not** modify anything under `specs/` or leave bytecode in
@@ -191,6 +199,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-08
 ```
 
 The rendered page **shall** state the specification's current baseline, the
@@ -214,6 +223,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-08
 ```
 
 The rendered page **shall** let a reader pick any two of the specification's
@@ -239,6 +249,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-08
 ```
 
 The graph on the page **shall** fill the panel it is drawn in and
@@ -277,6 +288,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/baseline-smoke.sh]
+created: 2026-08-08
 ```
 
 When asked for a baseline row, the viewer **shall** print it ready to paste:
@@ -303,6 +315,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 When a requirement is picked from any view of the page — a link in the
@@ -328,6 +341,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 Where opening is asked for, the viewer **shall** open the page it has just
@@ -350,6 +364,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 When a requirement is chosen as the root, the graph **shall** draw only that
@@ -375,6 +390,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-10
 ```
 
 The graph **shall** draw each kind of link between requirements in a form
@@ -409,6 +425,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-11
 ```
 
 The graph **shall** draw a requirement's node in a form that tells its
@@ -427,7 +444,7 @@ A form rather than a colour, and the difference is deliberate. Colour is
 what implements it here and reuses the palette the badges already use, but a
 page read in grey, or by somebody who separates two of those hues poorly,
 still has to work — which is why the status is also in the node's tooltip
-and why the legend names all five.
+and why the legend names every status.
 
 ### FR-VIEW-190 — The dashboard counts every status
 
@@ -440,6 +457,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-12
 ```
 
 The dashboard **shall** state, for every status the standard defines, how
@@ -469,6 +487,7 @@ refines: [FR-VIEW-040]
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-12
 ```
 
 The rendered page **shall** report the coverage gaps FR-VIEW-040 names.
@@ -498,6 +517,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-17
 ```
 
 When listing requirements, the viewer **shall** narrow the list to those
@@ -533,6 +553,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-17
 ```
 
 The rendered page **shall** list what still points at a cancelled
@@ -568,3 +589,49 @@ page that lies quietly when they did not; and the scan it needs is one the
 viewer already performs for a single file, so what this asks for is that
 the rule live in one place and serve both — not that a second copy be
 written.
+
+### FR-VIEW-230 — The page explains its own notation
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-08-20
+```
+
+The rendered page **shall** say what each notation it draws stands for.
+
+**Rationale.** The verification method is drawn as a single letter and
+nothing on the page says what it is a letter of. `T`, `D`, `I` and `A` are
+defined in `specs/50-verification.md` and in the field table of
+`specs/README.md` — two documents the reader this page exists for does not
+have, because the page is what gets sent to somebody who will never clone
+the repository.
+
+Half the page already does this. The graph carries a legend naming every
+link kind and every status (FR-VIEW-160, FR-VIEW-180), and the reader meets
+it after the list of requirements, where the same statuses appear as badges
+with no legend at all. What was reasoned about the drawing holds for the
+badges: a page read in grey, or by somebody who separates two of those hues
+poorly, still has to work.
+
+Each notation rather than a list of them. Naming the badges, the chips and
+the colours in the statement would make it compound — half of them explained
+and the requirement stands satisfied on paper — and would grow it by one
+obligation every time the page gains a mark. That is the mistake FR-VIEW-060
+made and FR-VIEW-210 was written to avoid.
+
+The form is left to whoever builds it. A legend, a tooltip on the mark
+itself, or both are ways of saying the same thing, and which of them a mark
+deserves depends on where it sits; the obligation is that the reader can
+find out, not that a particular widget exists.
+
+What a suite can hold here is the marks that exist when it is written,
+which is the position IF-SPEC-020 is in for rule names. That is enough to
+catch the way this breaks in practice — a mark added to the page and
+explained nowhere.

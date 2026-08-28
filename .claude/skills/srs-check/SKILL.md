@@ -1,6 +1,6 @@
 ---
 name: srs-check
-description: Name and run the checks a finished change calls for — the specification checker, the tests the requirements it touched list in their own fields, and what a person has to look at where the method is not a test. Invoke when the user asks to check, verify or review work before committing, or when a change is finished and nothing has been run yet. Offers; never runs a suite unasked.
+description: Name and run the checks a finished change calls for — the specification checker, the grounds checker where the project keeps a register, the tests the requirements it touched list in their own fields, and what a person has to look at where the method is not a test. Invoke when the user asks to check, verify or review work before committing, or when a change is finished and nothing has been run yet. Offers; never runs a suite unasked.
 ---
 
 # Checking a finished change
@@ -24,6 +24,14 @@ remembered.
 
    - **the checker** — always, for every change to `specs/`:
      `python3 tools/srs_check.py`;
+   - **the grounds checker**, where the project carries a register — a
+     `grounds/` directory beside `specs/`: `python3 tools/srs_grounds.py`.
+     It regenerates `grounds/90-dashboard.md`, and the project's gate fails
+     on a committed copy that no longer matches, so a change that moved a
+     requirement or a record and did not run this hands back work that
+     passes everything else and reddens the pipeline. Where there is no
+     register the command is not there, and this line does not apply — say
+     nothing about it;
    - **the suites** those requirements name in `tests`, and nothing else:
      a change to the viewer does not call for the installer's suite;
    - **what a person has to look at**, where the method is `I` or `D`.

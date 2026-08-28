@@ -37,9 +37,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CHANGELOG = os.path.join(ROOT, "CHANGELOG.md")
 CHECKER = os.path.join(ROOT, "tools", "srs_check.py")
+# The version is bumped where it lives, and that is not the checker:
+# both checkers re-export it from the parser they share (ADR-0021).
+VERSION_HOME = os.path.join(ROOT, "tools", "srs_parse.py")
 MATRIX = os.path.join("specs", "90-traceability.md")
 
-TOUCHED = ["CHANGELOG.md", os.path.join("tools", "srs_check.py"), MATRIX]
+TOUCHED = ["CHANGELOG.md", os.path.join("tools", "srs_parse.py"), MATRIX]
 
 
 def relative(path):
@@ -114,21 +117,21 @@ def main():
         return fail("the checker does not pass; nothing was written\n%s"
                     % checked)
 
-    checker_source = read(CHECKER)
+    version_source = read(VERSION_HOME)
     bumped = re.sub(r'^__version__ = "[^"]+"',
-                    '__version__ = "%s"' % version, checker_source,
+                    '__version__ = "%s"' % version, version_source,
                     count=1, flags=re.M)
     dated = changelog[:heading.start()] \
         + "## [%s] — %s" % (version, date) + changelog[heading.end():]
     plan = ["CHANGELOG.md      dated %s" % date,
-            "tools/srs_check.py __version__ -> %s" % version]
+            "tools/srs_parse.py __version__ -> %s" % version]
     sys.stdout.write("\n".join("  " + line for line in plan) + "\n")
     if args.dry_run:
         sys.stdout.write("\nDry run: nothing was written.\n")
         return 0
 
     write(CHANGELOG, dated)
-    write(CHECKER, bumped)
+    write(VERSION_HOME, bumped)
     checked = run_checker()
     if checked is not None:
         return fail("the checker failed after the edits; they are still in "

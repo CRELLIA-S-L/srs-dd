@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SRS-DD-VERSION — the framework release this file came from
 """Specification integrity checker and traceability matrix generator.
 
 Standard library only, compatible with Python 3.9. The specification
@@ -17,7 +18,7 @@ no natural language: the modal verbs, negation words, and rationale
 markers it matches all come from the lexicon in the config.
 """
 
-# implements: NFR-SPEC-010, NFR-CHK-010
+# implements: NFR-SPEC-010, NFR-CHK-010, CON-SPEC-030
 
 import json
 import os
@@ -25,7 +26,30 @@ import re
 import subprocess
 import sys
 
-__version__ = "0.14.0"
+# The record shape is read by tools/srs_parse.py, which ships beside
+# this file; what stays here is the judgement (ADR-0019). Bytecode is
+# disabled first: this tool runs inside other people's repositories,
+# and a __pycache__ they did not ask for is litter.
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    import srs_parse                                        # noqa: E402
+except ImportError:
+    # Exit 2, not a traceback: 2 is reserved for "could not run at
+    # all", and a checker that dies on its own import has not read
+    # anybody's specification. The case is reachable — the tooling can
+    # be copied by hand, one file at a time (docs/install.md).
+    sys.stderr.write(
+        "tools/srs_parse.py: missing — the checker reads the record shape "
+        "through it, and the two travel together. Copy it beside this file "
+        "from the framework clone, or re-run tools/srs_init.py to refresh "
+        "the tooling.\n")
+    sys.exit(2)
+
+# Re-exported: the number lives in srs_parse, the one file this checker
+# and the grounds checker both must have beside them (ADR-0021).
+__version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPECS = os.path.join(ROOT, "specs")
@@ -160,12 +184,12 @@ VERIFICATIONS = ("T", "D", "I", "A")
 
 LINK_FIELDS = ("derives_from", "refines", "depends_on", "conflicts_with")
 LIST_FIELDS = LINK_FIELDS + ("code", "tests", "exempt")
-SCALAR_FIELDS = ("status", "verification", "superseded_by")
+SCALAR_FIELDS = ("status", "verification", "superseded_by", "created")
 KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 
 # Of the known keys, the ones a requirement must carry. Everything else is
-# optional, and a key that is neither is not an error (IF-SPEC-010): that is
-# what lets a later version of the format add one without breaking a
+# optional, and a key that is neither is not an error: that is what
+# lets a later version of the format add one without breaking a
 # specification written against an earlier version.
 REQUIRED_FIELDS = ("status", "verification")
 
@@ -181,33 +205,17 @@ def _alternation(words):
     return "|".join(re.escape(w) for w in words)
 
 
-RE_ID = re.compile(r"^(%s)-(%s)-(\d{3})$" % ("|".join(TYPES), "|".join(AREAS)))
-# A deliberately broad net: anything ID-shaped is captured (including
-# junk like FR-CORE-010-B) and then judged loudly by RE_ID — a malformed
-# identifier must never be skipped silently.
+# Capture, then judgement, deliberately far apart in strictness.
+# RE_HEADING is a broad net: anything ID-shaped is taken, junk like
+# FR-CORE-010-B included, and RE_ID judges it loudly afterwards — a
+# malformed identifier must never be skipped silently. The net lives
+# here rather than in srs_parse because how a format numbers its
+# entries is the format's own business, and the register beside specs/
+# numbers its entries in two parts (ADR-0019).
 RE_HEADING = re.compile(
     r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
     r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
-RE_ANY_HEADING = re.compile(r"^#{1,6}\s")
-RE_FENCE = re.compile(r"^\s*(`{3,})")
-RE_FENCE_OPEN = re.compile(r"^\s*```+\s*yaml\s*$")
-RE_FENCE_CLOSE = re.compile(r"^\s*```+\s*$")
-
-
-def _fence_len(line):
-    match = RE_FENCE.match(line)
-    return len(match.group(1)) if match else 0
-
-
-RE_FENCE_BARE = re.compile(r"^\s*(`{3,})\s*$")
-
-
-def _closer_len(line):
-    """Length of a bare closing fence; 0 for anything else. Per
-    CommonMark a closer carries no info string, so ```python can open a
-    block but never close one."""
-    match = RE_FENCE_BARE.match(line)
-    return len(match.group(1)) if match else 0
+RE_ID = re.compile(r"^(%s)-(%s)-(\d{3})$" % ("|".join(TYPES), "|".join(AREAS)))
 
 
 # The statement lexicon comes from the config; the patterns are
@@ -262,40 +270,29 @@ class Requirement(object):
         return "%s:%d" % (self.path, self.line)
 
 
-def parse_metadata(lines, path, line_no, errors):
-    """Parses a restricted YAML subset: flat keys, scalars, bracketed lists."""
-    meta = {}
-    for offset, raw in enumerate(lines):
-        text = raw.strip()
-        if not text or text.startswith("#"):
-            continue
-        if ":" not in text:
-            errors.append("%s:%d — metadata line without a colon: %r"
-                          % (path, line_no + offset, text))
-            continue
-        key, _, value = text.partition(":")
-        key = key.strip()
-        value = value.strip()
-        if key in meta:
-            errors.append("%s:%d — duplicate key %r" % (path, line_no + offset, key))
-        if value.startswith("[") and value.endswith("]"):
-            inner = value[1:-1].strip()
-            meta[key] = [v.strip() for v in inner.split(",") if v.strip()] if inner else []
-        else:
-            meta[key] = value
-    return meta
+def _split_body(lines):
+    """Statement and rationale, split at the first rationale marker.
 
-
-def _skip_fence(lines, index):
-    """`index` points at a fence opener; returns the index just past the
-    matching closing fence (or EOF). Per CommonMark, the closer is a
-    backtick run at least as long as the opener."""
-    opener = _fence_len(lines[index])
-    index += 1
+    The split is the caller's and not the parser's: the marker comes
+    from the project lexicon, so where a body divides is a question
+    about language and not about shape. Fenced blocks are passed over
+    while looking for the marker, and dropped from the statement —
+    modal verbs are counted in prose only. The rationale keeps its
+    blocks whole, because readers render them.
+    """
+    statement = []
+    index = 0
     total = len(lines)
-    while index < total and _closer_len(lines[index]) < opener:
+    while index < total:
+        if srs_parse.RE_FENCE.match(lines[index]):
+            index = srs_parse.skip_fence(lines, index)
+            continue
+        if RE_RATIONALE.match(lines[index]):
+            break
+        statement.append(lines[index])
         index += 1
-    return index + 1
+    rationale = lines[index:] if index < total else []
+    return "\n".join(statement).strip(), "\n".join(rationale).strip()
 
 
 def parse_text(text, rel, errors):
@@ -306,99 +303,15 @@ def parse_text(text, rel, errors):
     file — tools/srs_view.py reading a past revision through `git
     show` — goes through the same parser. The parser is
     language-neutral: the lexicon is consulted by validate(), never
-    here.
+    here, and the one lexical question this function does ask — where
+    the rationale begins — it asks of a body srs_parse already found.
     """
-    lines = text.split("\n")
-
     requirements = []
-    index = 0
-    total = len(lines)
-
-    while index < total:
-        # Fenced code blocks may contain example headings and example
-        # statements; they never contribute requirements.
-        if RE_FENCE.match(lines[index]):
-            index = _skip_fence(lines, index)
-            continue
-
-        match = RE_HEADING.match(lines[index])
-        if not match:
-            index += 1
-            continue
-
-        req = Requirement(match.group(1), match.group(2).strip(), rel, index + 1)
-        index += 1
-
-        # Metadata block: the first ```yaml fence before the next heading.
-        meta_lines = []
-        found_fence = False
-        while index < total:
-            if RE_ANY_HEADING.match(lines[index]):
-                break
-            if RE_FENCE_OPEN.match(lines[index]):
-                found_fence = True
-                opener = _fence_len(lines[index])
-                index += 1
-                start = index + 1
-                while index < total \
-                        and not (RE_FENCE_CLOSE.match(lines[index])
-                                 and _fence_len(lines[index]) >= opener) \
-                        and not RE_HEADING.match(lines[index]):
-                    meta_lines.append(lines[index])
-                    index += 1
-                if index < total and RE_FENCE_CLOSE.match(lines[index]) \
-                        and _fence_len(lines[index]) >= opener:
-                    index += 1  # closing fence
-                else:
-                    errors.append("%s — unterminated metadata fence"
-                                  % req.where)
-                req.meta = parse_metadata(meta_lines, rel, start, errors)
-                break
-            if RE_FENCE.match(lines[index]):
-                # Some other fenced block before the metadata — skip it.
-                index = _skip_fence(lines, index)
-                continue
-            index += 1
-
-        if not found_fence:
-            errors.append("%s — no metadata block" % req.where)
-            requirements.append(req)
-            continue
-
-        # Statement: prose up to the rationale or the next heading.
-        # Fenced blocks are skipped — modal verbs are counted in prose only.
-        statement = []
-        while index < total:
-            if RE_FENCE.match(lines[index]):
-                index = _skip_fence(lines, index)
-                continue
-            if RE_ANY_HEADING.match(lines[index]) or RE_RATIONALE.match(lines[index]):
-                break
-            statement.append(lines[index])
-            index += 1
-        req.statement = "\n".join(statement).strip()
-
-        # Rationale: from its marker to the next heading. Fenced blocks
-        # are skipped exactly as above — a `###` line inside an example
-        # block must not end the rationale, or the outer loop would
-        # resume on it and mint a phantom requirement. Unlike the
-        # statement, the block's own lines are kept: readers render them.
-        rationale = []
-        if index < total and RE_RATIONALE.match(lines[index]):
-            while index < total:
-                if RE_FENCE.match(lines[index]):
-                    opener = index
-                    index = _skip_fence(lines, index)
-                    rationale.extend(lines[opener:index])
-                    continue
-                if RE_ANY_HEADING.match(lines[index]):
-                    break
-                rationale.append(lines[index])
-                index += 1
-        req.rationale = "\n".join(rationale).strip()
-
+    for entry in srs_parse.parse_entries(text, rel, errors, RE_HEADING):
+        req = Requirement(entry.id, entry.title, entry.path, entry.line)
+        req.meta = entry.fields
+        req.statement, req.rationale = _split_body(entry.body)
         requirements.append(req)
-
     return requirements
 
 
@@ -419,25 +332,47 @@ def collect_spec_files():
     return sorted(result, key=lambda pair: pair[1])
 
 
-def find_cycles(requirements, field):
+CYCLE_FIELDS = ("derives_from", "refines")
+
+
+def find_cycles(requirements):
     # implements: FR-CHK-040
-    """Finds loops over a single link kind. Returns a list of cycle paths."""
-    graph = dict((r.id, [t for t in r.links(field)]) for r in requirements)
+    """Loops in the derivation graph, as (cycle path, fields on it).
+
+    One graph over both kinds of link rather than one per kind. A cycle
+    that alternates them — A derives from B, B refines A — is circular in
+    exactly the way the rationale describes, and two separate walks see
+    neither half of it.
+
+    The fields are carried along so the message can still name them: a
+    cycle drawn in one kind reads exactly as it did when there was a walk
+    per kind.
+    """
+    graph = dict((r.id, [(t, field) for field in CYCLE_FIELDS
+                         for t in r.links(field)])
+                 for r in requirements)
     cycles = []
     state = {}   # 0 untouched, 1 in progress, 2 done
     stack = []
+    # The field each step of `stack` was entered by: via[i] joins stack[i]
+    # to stack[i + 1], so a cycle opening at `start` was drawn with
+    # via[start:] and the back-edge that closed it.
+    via = []
 
     def walk(node):
         state[node] = 1
         stack.append(node)
-        for nxt in graph.get(node, []):
+        for nxt, field in graph.get(node, []):
             if nxt not in graph:
                 continue
             if state.get(nxt, 0) == 0:
+                via.append(field)
                 walk(nxt)
+                via.pop()
             elif state.get(nxt) == 1:
                 start = stack.index(nxt)
-                cycles.append(stack[start:] + [nxt])
+                cycles.append((stack[start:] + [nxt],
+                               sorted(set(via[start:] + [field]))))
         stack.pop()
         state[node] = 2
 
@@ -538,11 +473,11 @@ def validate(requirements):
             errors.append("%s — no statement" % req.where)
         else:
             # implements: FR-CHK-020
-            # The mechanical half of INV-SPEC-060, which FR-CHK-020 derives
-            # from: two verbs are two requirements and a script can say so.
-            # One verb carrying a list of objects is as compound and is out
-            # of reach here, which is why the invariant is inspected rather
-            # than tested and does not name this file.
+            # The mechanical half of the rule against a compound
+            # statement: two verbs are two requirements, and a script can
+            # say so. One verb carrying a list of objects is as compound
+            # and is out of reach here, which is why the invariant is
+            # inspected rather than tested and does not name this file.
             found = len(RE_MODAL.findall(req.statement))
             if found == 0:
                 errors.append("%s — no bolded modal verb from the lexicon (%s)"
@@ -662,9 +597,9 @@ def validate(requirements):
                          "%s — %s is linked to nothing, and nothing links "
                          "to it" % (req.where, req.id), req)
 
-    for field in ("derives_from", "refines"):
-        for cycle in find_cycles(requirements, field):
-            errors.append("cycle in %s links: %s" % (field, " → ".join(cycle)))
+    for cycle, fields in find_cycles(requirements):
+        errors.append("cycle in %s links: %s"
+                      % ("/".join(fields), " → ".join(cycle)))
 
     return by_id, errors, warnings, reports
 
@@ -825,9 +760,9 @@ def check_unclaimed(requirements, claims, warnings, reports):
         if rel in claims["annotated"]:
             # The file said something about itself. If what it said does
             # not resolve — an unknown requirement, a cancelled one —
-            # FR-CHK-080 has already reported it with the line and the
-            # identifier. Adding "and it claims none" would contradict
-            # that report on the same file in the same run.
+            # the annotation check has already reported it with the line
+            # and the identifier. Adding "and it claims none" would
+            # contradict that report on the same file in the same run.
             continue
         rule_finding(warnings, reports, "annotation-absent",
                      "%s — no requirement names this file and it claims "
@@ -840,20 +775,38 @@ def check_baselines(warnings, reports):
 
     The row is what makes a baseline; a tag is a bookmark on it. One
     without the other is a claim to freeze something no reader can look
-    up. Silent where git or the tags are absent — a project that never
-    tags is keeping a perfectly good log.
+    up. Silent where the tags are absent — a project that never tags is
+    keeping a perfectly good log — and not silent where git could not be
+    asked at all, which is a different thing: the first answers the
+    question, the second leaves it unasked.
     """
     rel = os.path.join("specs", "92-baselines.md")
     try:
         with open(os.path.join(ROOT, rel), "r", encoding="utf-8") as handle:
             logged = set(re.findall(r"`(spec/v[^`]+)`", handle.read()))
     except OSError:
-        return
+        # implements: FR-CHK-130
+        # A log that is not there has a row for nothing, which is the
+        # condition this rule reports satisfied for every tag at once.
+        # Returning here answered the most complete form of the defect with
+        # silence — and the rule's whole subject is a tag freezing a state
+        # the log does not describe.
+        logged = set()
+    # implements: FR-CHK-220
+    # An empty list and an unanswerable question are told apart by how git
+    # exits: no tags is a successful run returning nothing, no repository
+    # is a failure. Reporting the second keeps a green run from meaning
+    # "checked" when the rule never ran.
     try:
         listed = subprocess.check_output(
             ["git", "-C", ROOT, "tag", "-l", "spec/v*"],
             stderr=subprocess.DEVNULL).decode("utf-8", "replace").split()
     except (OSError, subprocess.CalledProcessError):
+        # Inside 120 columns with the "note: " prefix: the installer runs
+        # this checker and a suite holds its whole output to that width.
+        reports.append(
+            "%s — no readable history, so baseline tags went uncompared"
+            % rel)
         return
     for tag in sorted(tag for tag in listed if tag not in logged):
         rule_finding(warnings, reports, "baseline-without-row",
@@ -966,8 +919,16 @@ def build_traceability(requirements):
 
     lines.append("## Code files outside the specification")
     lines.append("")
+    # implements: FR-CHK-230
+    # A cancelled requirement's `code` field records what it once pointed at,
+    # not a claim on the file now. Counted in, a withdrawal would be the
+    # quietest way to take a file out of this list — the same reading the
+    # unclaimed-file rule takes above and the viewer's gap list takes in
+    # tools/srs_view.py, so that all three answer one question the same way.
     covered = set()
     for req in requirements:
+        if req.meta.get("status") in CANCELLED:
+            continue
         for path in req.meta.get("code", []):
             covered.add(path)
     all_code = collect_code_files()

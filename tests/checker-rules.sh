@@ -26,7 +26,7 @@ cd "$(dirname "$0")/.."
 LAB=/tmp/srs-rules
 rm -rf "$LAB"
 mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/src" "$LAB/t"
-cp tools/srs_check.py "$LAB/tools/"
+cp tools/srs_check.py tools/srs_parse.py "$LAB/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {
@@ -140,7 +140,30 @@ spec < <(block FR-CORE-010 "Derives from the other" \
          block FR-CORE-020 "Derives from the first" \
                "${META/derives_from: \[\]/derives_from: [FR-CORE-010]}" \
                'The system **shall** respond.')
-rule "FR-CHK-040 cycle" 1 "cycle in"
+rule "FR-CHK-040 cycle" 1 "cycle in derives_from links"
+
+# --- verifies: FR-CHK-040 — the other kind of link the statement names. The
+# --- rule walked both and only one was ever exercised, so narrowing it to
+# --- `derives_from` would have kept this file green.
+spec < <(block FR-CORE-010 "Refines the other" \
+               "${META/refines: \[\]/refines: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Refines the first" \
+               "${META/refines: \[\]/refines: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+rule "FR-CHK-040 cycle in refines" 1 "cycle in refines links"
+
+# --- verifies: FR-CHK-040 — and a cycle drawn in both at once, which is the
+# --- one two separate walks could not see: A exists because B does, and B is
+# --- a special case of A. The message names both kinds it was drawn in.
+spec < <(block FR-CORE-010 "Derives from the other" \
+               "${META/derives_from: \[\]/derives_from: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Refines the first" \
+               "${META/refines: \[\]/refines: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+rule "FR-CHK-040 cycle across both kinds" 1 \
+     "cycle in derives_from/refines links"
 
 # --- verifies: FR-CHK-055 — a path a requirement names exists.
 spec < <(block FR-CORE-010 "Names a file that is not there" \
@@ -336,6 +359,44 @@ spec < <(block FR-CORE-010 "Documents the format" "$META" \
 The system **shall** never be counted.
 ````')
 rule "FR-CHK-110 opaque fence" 0 "Requirements: 1"
+
+# --- The same rule at the two edges CommonMark draws, neither of which the
+# --- fixture above reaches: a backtick run shorter than the opener does not
+# --- close the block, and a run carrying an info string never closes one at
+# --- all. Both were unguarded — a mutation of the fence walk passed all 96
+# --- fixtures. What catches them is the ghost requirement that surfaces the
+# --- moment a block ends a line too early: it has no metadata block, so the
+# --- count moves and the run turns red together.
+spec < <(block FR-CORE-010 "Opened with four, three inside" "$META" \
+               'The system **shall** act.
+
+````markdown
+The next line is a bare run of three, and closes nothing:
+```
+### FR-CORE-020 — Exposed if a shorter run closed the block
+````')
+rule "FR-CHK-110 short closer" 0 "Requirements: 1"
+
+spec < <(block FR-CORE-010 "An info string opens and never closes" "$META" \
+               'The system **shall** act.
+
+```text
+```python
+### FR-CORE-030 — Exposed if an info string closed the block
+```')
+rule "FR-CHK-110 info-string closer" 0 "Requirements: 1"
+
+# --- The optional `created` date the standard declares. Declaring a key in
+# --- the standard is not enough on its own: the checker keeps its own set,
+# --- and a key missing from it is reported as unknown on every requirement
+# --- that carries one — which is every requirement, once a specification
+# --- has been dated.
+spec < <(block FR-CORE-010 "Dated" "$META
+created: 2026-01-15" 'The system **shall** act.')
+silent "created is a known key" 0 "unknown field"
+
+spec < <(block FR-CORE-010 "Undated" "$META" 'The system **shall** act.')
+silent "created is not demanded" 0 "created"
 
 # --- verifies: FR-CHK-100 — a broken configuration is refused by name, exit 2.
 spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
@@ -579,7 +640,8 @@ config "{$BASE}"
 # --- used to be told that something was wrong and never what.
 LAB2=/tmp/srs-refusal
 rm -rf "$LAB2"; mkdir -p "$LAB2/tools" "$LAB2/specs"
-cp tools/srs_baseline.py tools/srs_view.py tools/srs_check.py "$LAB2/tools/"
+cp tools/srs_baseline.py tools/srs_view.py tools/srs_check.py \
+   tools/srs_parse.py "$LAB2/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB2/specs/"
 printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
     > "$LAB2/specs/92-baselines.md"
@@ -663,6 +725,32 @@ spec < <(block FR-CORE-010 "Withdrawn, and its file stayed" \
                'The system **shall** have done something dropped.')
 rule "FR-CHK-210 a file only a withdrawn requirement names" 0 \
      "src/dropped.py — no requirement names this file"
+
+# --- verifies: FR-CHK-230 — and the matrix says the same about that file.
+# --- The generated section had no fixture at all: every run in this suite
+# --- passes --no-write, so the one place three tools could disagree was the
+# --- one place nothing looked. Counted from every requirement, the withdrawn
+# --- one above covered src/dropped.py and the matrix called it referenced
+# --- while the rule above called it unclaimed, in the same run.
+( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+    || { echo "FAIL FR-CHK-230 — the checker refused the fixture, so no"
+         echo "matrix was written and the assertions below have nothing to"
+         echo "read"; cat /tmp/srs-rules.log; exit 1; }
+grep -qF -- "- \`src/dropped.py\`" "$LAB/specs/90-traceability.md" \
+    || { echo "FAIL FR-CHK-230 — a file only a cancelled requirement names is"
+         echo "missing from the matrix's list of unreferenced files"
+         sed -n '/Code files outside/,$p' "$LAB/specs/90-traceability.md"
+         exit 1; }
+# Two, because src/app.py from the FR-CHK-200 block above is still here and
+# nothing live names it either. Before the change the withdrawn requirement
+# covered src/dropped.py and this line read "1 of 2".
+grep -qF "No requirement references them: 2 of 2." \
+     "$LAB/specs/90-traceability.md" \
+    || { echo "FAIL FR-CHK-230 — the count is not over the live requirements"
+         sed -n '/Code files outside/,$p' "$LAB/specs/90-traceability.md"
+         exit 1; }
+passes=$((passes + 2))
+rm -f "$LAB/specs/90-traceability.md"
 
 # Superseded is the other way of being over, and the same answer.
 spec < <(block FR-CORE-010 "Replaced, and its file stayed" \
@@ -752,7 +840,7 @@ rule "IF-CI-020 unknown flag" 2 "unknown flag(s): --bogus" --bogus
 # always runs inside it.
 LAB3=/tmp/srs-nospecs
 rm -rf "$LAB3"; mkdir -p "$LAB3/tools"
-cp tools/srs_check.py "$LAB3/tools/"
+cp tools/srs_check.py tools/srs_parse.py "$LAB3/tools/"
 rc=0
 ( cd "$LAB3" && python3 tools/srs_check.py --no-write ) \
     > /tmp/srs-rules.log 2>&1 || rc=$?
@@ -794,7 +882,7 @@ rm -f "$LAB/haystack.txt"
 passes=$((passes + 3))
 
 # --- verifies: FR-CI-090 — a suite working on a target leaves this
-# --- repository alone. What the six target-making suites do about it is a
+# --- repository alone. What the target-making suites do about it is a
 # --- line clearing the git environment they inherited; this proves that
 # --- line is what stands between a target's `git add` and the index the
 # --- hook handed down. The suites themselves are compared against that
@@ -839,10 +927,33 @@ cmp -s "$LAB4/before" "$LAB4/after" \
 
 # And every suite that makes a target carries that line, or the protection
 # above is a property of this fixture rather than of the suites.
-for suite in view-smoke baseline-smoke release-smoke installer-smoke \
-             adopt-smoke upgrade-smoke checker-rules; do
-    grep -q "^unset GIT_INDEX_FILE" "tests/$suite.sh" \
-        || { echo "FAIL FR-CI-090 — tests/$suite.sh does not clear the environment"
+#
+# The list comes out of the requirement's own `code` field. Written out
+# here it was nine names while the field held ten, and the tenth —
+# `grounds-check` — could have lost its `unset` with this suite green;
+# before that `dates-smoke` and `grounds-rules` were the missing ones.
+# Nothing else would catch it: tools/ci_selftest.sh compares the index
+# around each suite, and without a hook there is no inherited
+# GIT_INDEX_FILE for the leak to travel through, which is exactly the run
+# CI makes. That file is named by the field too and carries no `unset`,
+# and must not: it is the gate that runs the suites, not a suite working
+# on a target of its own.
+suites=$(python3 - <<'FIELD'
+import re
+text = open('specs/10-fr-ci.md', encoding='utf-8').read()
+block = text[text.index('### FR-CI-090'):]
+field = re.search(r'^code: \[(.*?)\]', block, re.M).group(1)
+for name in (part.strip() for part in field.split(',')):
+    if name.startswith('tests/') and name.endswith('.sh'):
+        print(name)
+FIELD
+)
+test -n "$suites" \
+    || { echo "FAIL FR-CI-090 — the code field of FR-CI-090 names no suite"
+         exit 1; }
+for suite in $suites; do
+    grep -q "^unset GIT_INDEX_FILE" "$suite" \
+        || { echo "FAIL FR-CI-090 — $suite does not clear the environment"
              exit 1; }
 done
 rm -rf "$LAB4"
@@ -858,5 +969,88 @@ spec < <(block FR-CORE-010 "Valid, and points at the other" \
                'The system **shall** respond.')
 rule "the valid specification passes" 0 "Requirements: 2"
 rule "and passes a strict gate" 0 "Requirements: 2" --strict
+
+# --- verifies: FR-CI-100 — the gate refuses a line nobody had to write
+# long, and leaves alone the one that cannot be split.
+#
+# Run against a target of its own rather than this repository: a fixture
+# asserting "the repository passes" proves only that today's repository
+# passes, and would keep passing if the rule were deleted.
+LAB5=/tmp/srs-width
+rm -rf "$LAB5"; mkdir -p "$LAB5/tools" "$LAB5/tests"
+
+# A compound command, wide because somebody wrote it that way.
+printf 'x() { :; }\n( cd /tmp && echo %s && echo %s && echo %s && echo %s )\n' \
+    "$(printf 'a%.0s' {1..40})" "$(printf 'b%.0s' {1..40})" \
+    "$(printf 'c%.0s' {1..40})" "$(printf 'd%.0s' {1..40})" \
+    > "$LAB5/tests/wide.sh"
+bash tests/line-width.sh "$LAB5" >/dev/null 2>"$LAB5/err" \
+    && { echo "FAIL FR-CI-100 — a splittable 120+ line was accepted"; exit 1; }
+grep -q "columns wide" "$LAB5/err" \
+    || { echo "FAIL FR-CI-100 — refused without saying the width"; exit 1; }
+
+# The same width, all of it inside one literal: left alone, whatever it is.
+rm "$LAB5/tests/wide.sh"
+printf "printf '%s'\n" "$(printf 'z%.0s' {1..200})" > "$LAB5/tests/long.sh"
+bash tests/line-width.sh "$LAB5" >/dev/null 2>&1 \
+    || { echo "FAIL FR-CI-100 — an unsplittable literal was refused"; exit 1; }
+rm -rf "$LAB5"
+passes=$((passes + 2))
+
+# --- verifies: FR-CHK-220 — the one rule that reads history meets a
+# --- checkout that is not a repository. The lab has no .git, so the only
+# --- thing needed is the log the rule reads first; without it the rule
+# --- returns before git is asked at all, which is why the other fixtures
+# --- never see this note.
+# Two linked requirements, so the run is clean and --strict below has
+# nothing but the note to react to.
+spec < <(block FR-CORE-010 "A requirement" "$META" 'The system **shall** act.'
+         block FR-CORE-020 "What it rests on" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** rest.')
+printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
+    > "$LAB/specs/92-baselines.md"
+rule "FR-CHK-220 unreadable history is said to be unread" 0 \
+     "no readable history"
+
+# A note and not a warning: --strict must not fail for want of git, which
+# this framework does not require of a project.
+( cd "$LAB" && python3 tools/srs_check.py --no-write --strict ) \
+    > /tmp/srs-rules-nogit.log 2>&1
+grep -q "no readable history" /tmp/srs-rules-nogit.log \
+    || { echo "FAIL FR-CHK-220 — --strict lost the note"; exit 1; }
+absent "strict mode" /tmp/srs-rules-nogit.log
+
+# The other half of the same rule, and the half nothing proved: git answers,
+# there are no tags, so there is nothing to say. Told apart from the note
+# above only by how git exits, which is why the note being made
+# unconditional would leave every fixture in this file green.
+#
+# Runs before the log below is taken away: without specs/92-baselines.md the
+# rule returns before git is asked at all, and the fixture would pass for a
+# reason that has nothing to do with what it asserts.
+( cd "$LAB" && git init -q . ) > /dev/null 2>&1
+silent "FR-CHK-220 a repository with no tags stays silent" 0 \
+       "no readable history"
+
+# --- verifies: FR-CHK-130 — a log that is not there has a row for nothing,
+# --- which is the condition this rule reports, satisfied for every tag at
+# --- once. It used to return before git was asked, so the most complete form
+# --- of the defect was the one form answered with silence. Runs here because
+# --- it is the one point where git still answers and the log can be taken
+# --- away; the tag needs a commit under it, or HEAD does not resolve.
+rm -f "$LAB/specs/92-baselines.md"
+( cd "$LAB" && git add -A \
+  && git -c user.email=ci@example.com -c user.name=CI commit -qm base \
+  && git tag spec/v0.1.0 ) > /dev/null 2>&1 \
+    || { echo "FAIL FR-CHK-130 — could not put a commit and a tag in the lab,"
+         echo "so the rule below would be asserted against no tag"; exit 1; }
+rule "FR-CHK-130 a tag with no log at all" 0 \
+     "no row for baseline tag spec/v0.1.0"
+rule "FR-CHK-130 and it fails a strict gate" 1 "treated as errors" --strict
+rm -rf "$LAB/.git"
+
+rm -f "$LAB/specs/92-baselines.md"
+passes=$((passes + 2))
 
 echo "checker-rules: $passes fixtures pass"

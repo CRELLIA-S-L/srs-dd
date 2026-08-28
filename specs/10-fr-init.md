@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** decide by inspecting the target which mode it is in —
@@ -36,6 +37,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 When installing into a target without a specification, the installer
@@ -58,15 +60,25 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 While adopting an existing specification, the installer **shall** validate it
-against the proposed configuration before writing anything and leave the
+against the proposed configuration before installing anything and leave the
 target byte-identical when that validation fails.
 
 **Rationale.** Adoption is the moment of highest risk — a stranger's
 specification, our guess at their lexicon. Anything short of a rollback would
 mean a half-converted repository nobody asked for.
+
+*Before installing*, and the word is exact. The validation runs the target's
+checker against the proposed configuration, so that configuration and a
+temporary copy of the checker are on disk before it can start; both are taken
+back out when it fails, which is what the second half promises and what the
+suite compares. A run killed between the two leaves the temporary checker
+behind, and the installer removes it on the next attempt — the single
+exception to the guarantee, named here because a statement claiming more than
+the design can give is a statement nobody can check code against.
 
 ### FR-INIT-040 — Existing specification files are never modified
 
@@ -79,6 +91,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 While adopting, the installer **shall** write only the tooling and the
@@ -99,6 +112,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 If the target holds markdown under `specs/` but no requirement the strict
@@ -119,13 +133,14 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 When run against an initialized target, the installer **shall** refresh the
 checker, the viewer and the skills without a flag, while files that may be
 the project's own — CI configuration, the agent guides, `.gitattributes`,
-the hook, the specification standard — are refreshed only with `--force` and
-only when they carry the SRS-DD marker.
+the hook, the specification standard, the grounds standard — are refreshed
+only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Tooling has to move with the framework or targets drift;
 everything a maintainer has edited must not, and the marker is how we tell a
@@ -140,7 +155,10 @@ it is the same document in every project — a claim nothing maintained.
 
 It joins the second list rather than the first because adopt deliberately
 keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing
-without a flag would undo that at the first upgrade. So the characterization
+without a flag would undo that at the first upgrade. `grounds/README.md`
+joined it on the same terms and reaches only the projects that keep a
+register — an upgrade refreshes it where it is and installs it nowhere
+else. So the characterization
 widened: "commonly owns" was true of CI files and agent guides, and the
 standard is not something anyone writes for themselves — it is merely a file
 that may already be theirs.
@@ -162,6 +180,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 Where `--dry-run` is given, the installer **shall** print the created,
@@ -184,6 +203,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 If the target already runs something on commit, the installer **shall**
@@ -204,6 +224,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** accept the modal verbs, negation words and rationale
@@ -225,6 +246,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: []
+created: 2026-08-07
 ```
 
 If the target lies inside this repository, the installer **shall** refuse
@@ -245,6 +267,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, CHANGELOG.md]
 tests: []
+created: 2026-08-07
 ```
 
 When upgrading, the installer **shall** print the version transition and the
@@ -264,6 +287,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_upgrade.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 When run inside an initialized project, the upgrader **shall** fetch the
@@ -284,8 +308,9 @@ derives_from: [FR-INIT-070]
 depends_on: [FR-INIT-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_upgrade.py]
+code: [tools/srs_upgrade.py, tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 Before writing anything into the project, the upgrader **shall** print the
@@ -309,6 +334,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 When installing into a project, the installer **shall** record in
@@ -330,6 +356,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-08
 ```
 
 When a fresh installation finishes, the installer **shall** print what to do
@@ -359,6 +386,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 When an upgrade crosses one or more framework versions, the installer
@@ -369,3 +397,186 @@ beside the upgrade notes and with a pointer to the changelog for the rest.
 Somebody who upgrades across three versions never learns that a new tool or
 a new skill arrived, and so never uses it. One line per entry keeps the jump
 across several versions readable, which the full sections would not be.
+
+### FR-INIT-170 — An undated specification is offered a date
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-SPEC-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-08-21
+```
+
+Where a target's specification carries requirements without a `created`
+date, the installer **shall** say that one command can date them, and run
+nothing.
+
+**Rationale.** The dating command exists for specifications written before
+the field did, which is every specification a project already has. Nobody
+looks for a tool they have not heard of, and an upgrade is the one moment
+the framework has a project's attention.
+
+Said and not done, for the reason nothing else here writes a requirement
+block unasked. An installer that edited a hundred requirements because it
+noticed a missing field would be the tool taking a decision that belongs to
+whoever owns the specification, and a project that wants no dates at all is
+not a project in error.
+
+
+### FR-INIT-180 — The tooling arrives without this framework's annotations
+
+```yaml
+status: implemented
+verification: T
+derives_from: [CON-SPEC-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-25
+```
+
+When copying its own tooling into a target, the installer **shall** replace
+every traceability annotation that names a requirement of this framework,
+leaving the line where it was and leaving an annotation marked as an example
+alone.
+
+**Rationale.** The shipped Python carries a hundred-odd `implements:` and
+`verifies:` lines. They exist for the two-way check this repository runs on itself — the
+requirement's field is the specification's claim, the annotation the file's
+own — and that check is checked here, where the requirements are. In a
+target they are at best inert and at worst wrong: where a project declares
+an area this framework also uses, `implements: FR-CHK-110` stops being an
+unknown identifier and resolves to *their* requirement under that number,
+which is the harm CON-SPEC-020 is worded against.
+
+Removed on the way out rather than in the source, because the alternatives
+each cost something this does not. Marking the lines `srs-ignore` would
+silence them here as well — the exemption is unconditional — and the check
+they exist for would end. Moving the links into a register beside the code
+would make them a second copy of the `code` field written by the same hand
+in the same commit, which is what ADR-0014 rejected and INV-SPEC-020
+forbids: an annotation earns its place by being a different person's claim
+made in the file, and a list is not that.
+
+The line survives the removal. A traceback from a target names the line it
+happened on, and a bug report is read against the source in this repository;
+deleting the lines would shift every number after them and make the two
+disagree by an amount nobody can see.
+
+An annotation carrying `srs-ignore` is left alone, because that is how the
+standard marks an example rather than a claim, and the two examples in the
+checker's own comments are where a target reads the annotation format at
+all.
+
+### FR-INIT-190 — Each copied tool says which release it came from
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-25
+```
+
+The installer **shall** stamp every tool it copies with the framework
+version it was installed from.
+
+**Rationale.** The marker already tells a precious file from a project's
+own; on a tool it answers a different question, which is how old this
+particular file is. A project can copy the tooling by hand, one file at a
+time, and an upgrade that failed halfway leaves some files moved and some
+not — in both cases the version is the first thing anybody needs and there
+was nowhere to read it. Reading it out of the running tool answers only for
+the tool that runs.
+
+One line per file, in the shape the marker already has, rather than one per
+annotation removed: the same number repeated a hundred times in one file is
+not more information than the same number once.
+
+### FR-INIT-210 — The project's line width is asked for, never assumed
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-090]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-08-26
+```
+
+The installer **shall** accept the project's line width as a parameter and
+write it into the target's configuration, without inferring it from the
+project's files.
+
+**Rationale.** This framework has a width of its own — 120 columns, enforced
+by `FR-CI-100` over this repository's sources — and it reaches no project:
+the suite that enforces it does not travel, and neither does the document
+that states it. That is the right arrangement and this requirement does not
+change it. A project's code is written to the project's rules.
+
+What is missing is that the framework installs an agent guide and says
+nothing about those rules, so an agent working there infers a width from how
+the files happen to look. That is the same failure `FR-CI-100` was written
+against, met in somebody else's repository, where we have no business
+enforcing anything and every reason to pass the number along.
+
+Taken as a parameter and not worked out here, for the reason the lexicon is
+taken as a parameter: finding out what a project already follows is reading,
+and reading is what the agent running the install is for. A project states
+its width in whichever file its toolchain reads — `.editorconfig`,
+`pyproject.toml`, a linter's own config, or nowhere at all — and a script
+that went looking would need a heuristic per convention, would be wrong
+quietly when a project used a form it had not been taught, and would grow a
+new branch with every tool that comes into fashion. `FR-SKILL-190` puts the
+reading on the procedure, where a wrong answer is seen by the person
+approving it.
+
+A project that declares nothing anywhere is not a project in error. Then
+there is no parameter and nothing is written.
+
+### FR-INIT-220 — The installed agent guide names the project's width
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-210]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py, skeleton/AGENTS.md]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-08-26
+```
+
+Where a project has recorded a line width, the shared agent guide the
+installer writes **shall** state it.
+
+**Rationale.** The number is worth recording only if something reads it back,
+and the reader here is an agent rather than a gate. A guide that carries the
+width turns a rule the project stated once into a rule an agent applies
+without being told twice, which is what the guide is for.
+
+One guide and not both. `AGENTS.md` is the shared one and `CLAUDE.md` opens
+by sending its reader there, carrying only what is specific to one agent; a
+width in both would be two places to keep in step and one of them would
+eventually be wrong.
+
+No gate goes with it, deliberately. Checking the width of a project's code is
+a linter's job and most projects already have one; the framework arrives for
+the specification and would be overstepping if it started refusing commits
+over source formatting. Where the width is not recorded, the guide says
+nothing about it rather than naming a default.

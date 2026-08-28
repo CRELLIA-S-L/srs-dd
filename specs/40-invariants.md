@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 A published requirement identifier **shall** keep its meaning forever: a
@@ -41,6 +42,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 The specification **shall** record a link between two requirements in one
@@ -73,6 +75,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_baseline.py, tools/srs_release.py, specs/README.md]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
+created: 2026-08-09
 ```
 
 A specification baseline and a release **shall** be cut as separate acts,
@@ -95,6 +98,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py, tools/srs_baseline.py, specs/README.md]
 tests: [tests/baseline-smoke.sh]
+created: 2026-08-09
 ```
 
 The baseline log **shall** define the specification's baselines, a
@@ -120,6 +124,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py, tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-12
 ```
 
 A requirement cancelled with no successor **shall** be retained with the
@@ -168,6 +173,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md]
 tests: []
+created: 2026-08-17
 ```
 
 A requirement **shall** state exactly one obligation.
@@ -218,6 +224,122 @@ shape FR-SKILL-090 warns about — the rule was sharpened first and only then
 noticed to have no number to be cited by. Recorded that way rather than
 backdated.
 
+### INV-GND-010 — Hypothesis identifiers are immutable and never reused
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [grounds/README.md, tools/srs_grounds.py]
+tests: []
+created: 2026-08-20
+```
+
+A published register identifier **shall** keep its meaning forever: a
+cancelled entry is retained in a status that says it was cancelled, and its
+number is never given to anything else.
+
+**Rationale.** `INV-SPEC-010` makes this promise for requirements and gives
+the reason: references outlive what they refer to. Here it matters more, not
+less. A refuted hypothesis is cited in the decision that removed the feature
+standing on it, and a declined one exists precisely so that the same question
+returning in six months is answered from the record. A number handed to
+something else turns both citations into quiet lies.
+
+Stated for the register rather than inherited from the requirement invariant
+because the two registers are separate and nothing makes a promise about one
+apply to the other.
+
+### INV-GND-020 — A bet is recorded in one direction only
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [IF-GND-010]
+refines: []
+conflicts_with: []
+code: [grounds/README.md, tools/srs_grounds.py]
+tests: []
+created: 2026-08-20
+```
+
+The register **shall** record which requirements rest on a hypothesis in the
+bet alone, leaving what a requirement rests on to be computed.
+
+**Rationale.** The same rule `INV-SPEC-020` states for links between
+requirements, and here it is not a preference but the only available shape:
+the subsystem never writes into a requirement file, so the requirement cannot
+carry its half. Computing the reverse is what `srs_view.py --json` already
+does for requirements, and the register does it for bets.
+
+### INV-GND-030 — An unclaimed requirement is a reading, not a defect
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [INV-GND-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-20
+```
+
+A rule of the grounds layer **shall not** require that a requirement be
+named by a bet.
+
+**Rationale.** The load-bearing detector of this subsystem is the requirement
+no hypothesis stands behind. It is the signal that the product acquired
+something nobody can say why it has — and every traceability practice that has
+met this problem destroys the signal by demanding completeness. Where a link
+is mandatory it gets invented, and an invented link is worse than an absent
+one, because it looks like knowledge. The observation reported from the field
+is blunt: once every element traces to a goal, the tracing no longer clarifies
+anything and merely confirms that somebody drew a line.
+
+So the absence is protected rather than forbidden. What may be asked of an
+author is a declaration with a reason — one line saying this requirement rests
+on no hypothesis and why — and the declaration retires itself when a real bet
+appears. What may never be asked is the bet.
+
+Verified by inspection, not by test: this forbids a rule from existing, and
+what a suite can assert is that today's rules do not require a bet, which is
+a reading of the rule set rather than of behaviour. The same position
+`INV-SPEC-010` is in.
+
+### INV-GND-040 — A hypothesis states exactly one claim
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [IF-GND-010]
+refines: []
+conflicts_with: []
+code: [grounds/README.md]
+tests: []
+created: 2026-08-20
+```
+
+A hypothesis **shall** state exactly one claim about the world.
+
+**Rationale.** `INV-SPEC-060` gives the argument for requirements and it
+carries over without change: a compound leaves "it holds" undefined. Here the
+undefined thing is sharper, because a hypothesis carries a single threshold
+and a single verdict. "Studios need time roll-up and will pay for reporting"
+has one `refuted_if`, and a measurement that settles half of it settles
+nothing while the record says `supported`.
+
+Held by whoever writes the statement and by whoever reviews it, as the
+requirement invariant is. No script can tell a second claim from a list of
+cases, and no word list will, for the reason `FR-SKILL-120` gives about the
+qualities no checker reaches.
+
 ### CON-SPEC-030 — The tooling does not write git history
 
 ```yaml
@@ -227,8 +349,9 @@ derives_from: [INV-SPEC-040]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_baseline.py, tools/srs_release.py]
+code: [tools/srs_baseline.py, tools/srs_release.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_init.py, tools/srs_upgrade.py, tools/srs_view.py]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
+created: 2026-08-09
 ```
 
 The framework's commands **shall not** commit, tag, or push; each prepares
@@ -239,6 +362,14 @@ has no console git set up, and one that silently bypasses the signing and
 identity their application configures. Preparing files leaves the history to
 the tool the project already trusts with it, and makes every command safe to
 run twice.
+
+Every command is named, not only the two that prepare a release or a
+baseline. The temptation to commit belongs to whichever command has just
+written something — the installer that created a project, the dating command
+that touched every requirement, the checker that regenerated the matrix — and
+a constraint listed against two files is a constraint the everyday question
+"what governs this file" never mentions for the other six. `srs_parse.py` is
+absent because it is a library with no entry point: it is not a command.
 
 ### CON-SPEC-010 — The traceability matrix is generated
 
@@ -251,6 +382,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, specs/90-traceability.md]
 tests: [tests/spec-check.sh]
+created: 2026-08-07
 ```
 
 The traceability matrix **shall** be produced by the checker and committed as
@@ -271,6 +403,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py, skeleton]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 What the installer copies **shall not** contain requirement identifiers of
@@ -295,3 +428,91 @@ exists belongs in the sentence a stranger reads, not behind a number only
 this repository can resolve. What may be cited is what travels with them:
 the articles of the constitution they receive, and the sections of
 `specs/README.md`, which is the same document in every project.
+
+### CON-GND-010 — The grounds layer writes nowhere else
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-20
+```
+
+The grounds layer's commands **shall not** write to any path outside the
+register.
+
+**Rationale.** The subsystem is optional, and what makes an optional thing
+safe to decline is that declining it costs nothing and removing it leaves no
+trace. A tool that edited requirement files, or a configuration outside its
+own, would make the register something a project cannot back out of.
+
+It also settles the question the join raised: a bet names a requirement, and
+the temptation is to have the tool write that name back into the requirement
+so both ends agree. It may not. The requirement half is computed, never
+stored (`INV-GND-020`), and this is the constraint that keeps it so.
+
+### CON-GND-020 — The dashboard is generated
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py, grounds/90-dashboard.md]
+tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
+created: 2026-08-20
+```
+
+The register's dashboard **shall** be produced by the grounds checker from
+the records and never edited by hand.
+
+**Rationale.** `CON-SPEC-010` makes the same constraint for the traceability
+matrix, and for the same reason: a summary somebody can edit is a summary
+that will be edited into agreement with what its author wishes were true. The
+readings this dashboard carries — how much of the system stands on refuted
+ground, how old the confirmations are — are exactly the numbers somebody
+under pressure would round.
+
+Committed rather than generated on demand, so that a diff shows the readings
+moving and a gate can compare what is committed against what the records say
+now.
+
+### CON-GND-030 — Records are authored, never written
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [CON-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-check.sh]
+created: 2026-08-20
+```
+
+The grounds layer's commands **shall not** modify a record in the register.
+
+**Rationale.** `CON-GND-010` draws the boundary of the register and says
+nothing about what happens inside it, which leaves the tool free to edit the
+entries themselves. That freedom is one the subsystem must not have. Evidence
+is appended and never rewritten; a hypothesis whose term has run out is
+reported and left alone, because expiry is not a verdict and a tool that
+changed the status would be answering a question only a measurement can
+answer.
+
+The instinct is the framework's own: `FR-VIEW-080` forbids the viewer to
+modify anything under `specs/`, and the reason carries over unchanged —
+authored content belongs to whoever authored it, and a tool that improves it
+is a tool nobody can trust with the rest.
+
+The dashboard is not a record. It is generated output living in the register,
+governed by `CON-GND-020`, and writing it is the one thing these commands do
+inside `grounds/`.

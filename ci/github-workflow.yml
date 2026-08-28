@@ -33,6 +33,20 @@ jobs:
             exit 1
           fi
 
+      # Only where the project keeps a grounds register; the step is
+      # inert everywhere else. The dashboard is generated and committed,
+      # so a stale one means the records moved and nobody looked.
+      - name: Grounds register
+        run: |
+          if [ -f grounds/grounds-config.json ]; then
+            python3 tools/srs_grounds.py
+            git add -N grounds/90-dashboard.md
+            if ! git diff --exit-code -- grounds/90-dashboard.md; then
+              echo "grounds/90-dashboard.md is stale — run: python3 tools/srs_grounds.py and commit the result"
+              exit 1
+            fi
+          fi
+
       # The readable specification as one self-contained HTML file,
       # downloadable from the run's Artifacts. Delete these two steps if
       # you do not want it.

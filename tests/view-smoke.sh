@@ -99,6 +99,16 @@ python3 - <<'PY'
 path = 'specs/10-fr-core.md'
 text = open(path, encoding='utf-8').read()
 text = text.replace('status: draft', 'status: deferred')
+# A requirement whose only difference across the two baselines is one field
+# — FR-CORE-020 is implemented, so the replace above leaves it alone. The
+# page carries a snapshot per baseline and folds it in the browser, and a
+# field missing from that snapshot is a change the fold cannot see however
+# right --diff is about it (FR-VIEW-100). conflicts_with is the field that
+# can move on its own: superseded_by drags status with it, and status is
+# compared either way.
+text = text.replace('depends_on: [FR-CORE-030]\ncode: [src/app.py]',
+                    'depends_on: [FR-CORE-030]\n'
+                    'conflicts_with: [FR-CORE-010]\ncode: [src/app.py]')
 # FR-CORE-070 is last in the file and exists to be dropped here; FR-CORE-080
 # arrives in its place. A path in `tests` comes with it, because the code
 # field alone answered every --code query the suite ever made.
@@ -208,6 +218,58 @@ open(path, 'w', encoding='utf-8').write(
     text[:text.index('### FR-CORE-090')].rstrip('\n') + '\n')
 PY2
 rm -f src/dropped.py
+
+# verifies: FR-VIEW-040
+# The second of the four gap lists, read off standard output — and this is
+# the only place it is. The first and the fourth are asserted above; the
+# third has a target of its own further down, where the count and both of
+# its rows are read from the terminal. Every other mention of "Draft with
+# code" in this suite reads the rendered page (FR-VIEW-200), which is a
+# different renderer, so without the block below the one in print_coverage
+# could be deleted with all of them green.
+cat >> specs/10-fr-core.md <<'MD'
+
+### FR-CORE-091 — Approved by nobody, built anyway
+
+```yaml
+status: draft
+verification: T
+code: [src/app.py]
+```
+
+The system **shall** have been written before anyone said it should.
+
+### FR-CORE-092 — Realized on top of it
+
+```yaml
+status: implemented
+verification: T
+depends_on: [FR-CORE-091]
+code: [src/app.py]
+```
+
+The system **shall** stand on a requirement nobody approved.
+MD
+python3 tools/srs_view.py --coverage > /tmp/v-cov3.log
+python3 - <<'PY2'
+log = open('/tmp/v-cov3.log', encoding='utf-8').read()
+for heading, entry in (
+        ('Draft with code — implementation ahead of approval', 'FR-CORE-091'),
+        ('Realized but resting on a draft', 'FR-CORE-092')):
+    assert heading in log, 'the coverage report dropped: %s' % heading
+    section = log[log.index(heading):]
+    section = section[:section.index('\n\n')] if '\n\n' in section else section
+    assert entry in section, (
+        '%s is on the report but empty of what belongs in it' % heading)
+PY2
+# Named files, not new ones: src/app.py is already listed and already
+# annotated, so the orphan proportion the assertion above reads does not move.
+python3 - <<'PY2'
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+open(path, 'w', encoding='utf-8').write(
+    text[:text.index('### FR-CORE-091')].rstrip('\n') + '\n')
+PY2
 python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
 # The same baseline named by version rather than by tag (FR-VIEW-050): a
 # baseline need not have been tagged to be compared against.
@@ -443,9 +505,24 @@ def fold(index):
         state.update(step.get('put', {}))
     return state
 
-FLAT = ['title', 'status', 'verification', 'statement']
-LIST = ['code', 'tests', 'derives_from', 'depends_on', 'refines']
+# The page's own two lists. Kept short here this comparison would agree
+# with a page carrying less than --diff does, so they are read back out of
+# the page as well: a snapshot missing a field, or a script that stopped
+# comparing one, are two ways to lose the same answer and this fixture is
+# a transliteration of the script rather than the script itself.
+FLAT = ['title', 'status', 'verification', 'statement', 'superseded_by']
+LIST = ['code', 'tests', 'derives_from', 'depends_on', 'refines',
+        'conflicts_with', 'exempt']
+for name, mine in (('FLAT_FIELDS', FLAT), ('LIST_FIELDS', LIST)):
+    theirs = re.search(r'var %s = (\[[^;]*\]);' % name, page).group(1)
+    theirs = [f.strip().strip("'") for f in theirs.strip('[]').split(',')]
+    assert sorted(theirs) == sorted(mine), \
+        'the page compares %s, this fixture %s' % (sorted(theirs), sorted(mine))
 a, b = fold(0), fold(1)
+missing = [f for f in FLAT + LIST if f not in a[sorted(a)[0]]]
+assert not missing, \
+    'the page carries no %s per requirement, so its comparison cannot see ' \
+    'a change to one' % missing
 from_page = (sorted(i for i in b if i not in a),
              sorted(i for i in a if i not in b),
              sorted(i for i in set(a) & set(b)
@@ -554,6 +631,19 @@ assert "band.setAttribute('height'" in page and 'lane.dataset.h' in page, \
 # reset handler has to go through the same function the header uses.
 after_reset = page.split("getElementById('graph-reset')")[1][:600]
 assert 'setLane(' in after_reset, 'reset view leaves the folded areas folded'
+# An edge is walkable from either end. Built one way, "the neighbourhood
+# of this requirement" quietly means "what it points at", and a reader
+# who asks about a leaf gets the leaf — with every handler, control and
+# class still present, which is why this counts the two pushes rather
+# than looking for the index at all.
+built = page[page.index('var neighbours = {}'):]
+built = built[:built.index('function narrow(')]
+assert built.count('.push(') == 2, \
+    'the neighbour index is built in one direction again'
+# And a pointer resting on a node is one of the two ways the graph is
+# explored; the wheel and the drag above are the other.
+assert "addEventListener('pointerenter'" in page, \
+    'a node no longer answers a pointer resting on it'
 
 # verifies: FR-VIEW-180
 # The status is the node's colour (FR-VIEW-180). The class alone proves
@@ -623,6 +713,14 @@ for name in ('view-dash', 'view-graph'):
     section = section[:section.index('</section>')]
     assert re.search(r'(href="#|data-id=")FR-CORE-0', section), \
         '%s names no requirement to reach' % name
+# Reaching it is the other half, and the half a filter can take away: the
+# card the link names may be hidden by the search box or a chip, so the
+# jump clears both before scrolling. Without that the reader follows a
+# link from the dashboard and lands on a page that scrolled nowhere.
+jump = page.split('function jump(')[1][:800]
+assert 'card.hidden' in jump and "search.value = ''" in jump \
+        and "setAttribute('aria-pressed', 'false')" in jump, \
+    'a link into a filtered-out card no longer clears what hides it'
 PY2
 
 # Every kind of link is drawn, and told apart by its own class
@@ -648,6 +746,11 @@ PY3
 grep -q 'id="graph-root"' .srs-site/index.html
 grep -q 'id="graph-depth"' .srs-site/index.html
 grep -q 'function narrow(' .srs-site/index.html
+# The control has to reach the walk. A depth read once and then ignored
+# leaves all three settings drawing the same picture, and every token
+# above is still there while it does.
+grep -q 'var limit = depthSel ? +depthSel.value : 2;' .srs-site/index.html
+grep -q 'while (step < limit) {' .srs-site/index.html
 
 # verifies: FR-VIEW-140
 # --open renders and opens in one act (FR-VIEW-140). No browser is a
@@ -868,6 +971,41 @@ data = open('.srs-site/index.html', 'rb').read()
 assert b'\x00' not in data, 'the page carries NUL bytes'
 PY2
 
+# verifies: FR-VIEW-230
+# The page reaches a reader who has neither specs/README.md nor
+# specs/50-verification.md, so every mark on a card answers for itself or is
+# named where the marks are listed. Asserted over what the page actually
+# draws rather than against a list written here: a mark added to the cards
+# and explained nowhere is how this breaks, and a fixed list still passes.
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+found = re.search(r'class="notation">(.*?)</p>', page, re.S)
+assert found, 'the requirement list carries no legend for its marks'
+legend = found.group(1)
+badges = re.findall(r'<span class="(badge[^"]*)"[^>]*>([^<]+)</span>', page)
+assert badges, 'no badge on any card'
+letters = 0
+for cls, body in badges:
+    body = body.strip()
+    if cls == 'badge':                      # the verification method
+        letters += 1
+        assert '<b>%s</b>' % body in legend, \
+            'the page draws the letter %r and the legend does not name it' % body
+    else:                                   # status and change badges
+        assert len(body) > 1, \
+            'the badge %r neither spells itself nor is in the legend' % body
+assert letters, 'no verification letter is drawn, so nothing was checked'
+# And the mark itself answers where the reader's eye already is. Filtering
+# leaves the legend on screen — only cards carry `hidden` — but the list is
+# long, and a letter met two hundred requirements below the legend is a
+# letter the reader would have to scroll back to look up.
+titled = re.findall(r'<span class="badge" title="([^"]*)">', page)
+assert titled and all(t.strip() for t in titled), \
+    'a verification letter carries no title of its own'
+PY2
+echo "view-smoke: every mark on a requirement card is explained"
+
 # A viewer run must not litter the target with bytecode.
 test -z "$(find . -name __pycache__)"
 
@@ -891,3 +1029,32 @@ done
 find specs -type f | sort | xargs cksum > /tmp/v-specs-after
 diff /tmp/v-specs-before /tmp/v-specs-after \
     || { echo "the viewer modified specs/"; exit 1; }
+
+# --- verifies: IF-VIEW-010 — every field of the block, not only the ones
+# --- this viewer has heard of. The format permits a key it declares
+# --- neither required nor optional, so a block legitimately carries keys
+# --- nothing here knows; dropping them published a model that was not the
+# --- block's fields, and the register beside specs/ reads requirements
+# --- through this and nothing else.
+UNK=/tmp/srs-view-unknown
+rm -rf "$UNK"; mkdir -p "$UNK/tools" "$UNK/specs"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$UNK/tools/"
+printf '{"areas": ["CORE"], "rules": {"unknown-key": "off"}}\n' \
+    > "$UNK/specs/srs-config.json"
+{ printf '# c\n\n### FR-CORE-010 — X\n\n'
+  printf '```yaml\nstatus: deferred\nverification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: []\n'
+  printf 'tests: []\ncreated: 2026-08-21\n```\n\n'
+  printf 'The system **shall** act.\n'
+} > "$UNK/specs/10-fr-core.md"
+( cd "$UNK" && python3 tools/srs_view.py --json ) > /tmp/unknown-key.json 2>/dev/null
+python3 - <<'PY'
+import json
+r = json.load(open('/tmp/unknown-key.json'))['requirements'][0]
+assert r.get('created') == '2026-08-21', \
+    'a key the viewer does not know was dropped from the published model'
+assert r['path'] == 'specs/10-fr-core.md' and r['title'] == 'X', \
+    'a block key overwrote a field computed from the heading'
+PY
+echo "view-smoke: an unknown block key reaches the published model"
+

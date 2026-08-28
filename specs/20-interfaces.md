@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
 tests: [tests/adopt-smoke.sh, tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** exit 0 on success, 1 on checker errors in the target
@@ -36,6 +37,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** exit 0 where it found no error and, under `--strict`,
@@ -67,6 +69,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-init/SKILL.md, README.md]
 tests: []
+created: 2026-08-07
 ```
 
 The installation procedure for an agent **shall** remain reachable at the raw
@@ -88,6 +91,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
 tests: [tests/view-smoke.sh]
+created: 2026-08-17
 ```
 
 Where the model is asked for as JSON, the viewer **shall** emit every
@@ -132,6 +136,7 @@ refines: []
 conflicts_with: []
 code: [specs/README.md, tools/srs_check.py]
 tests: []
+created: 2026-08-07
 ```
 
 A requirement **shall** be written as a level-three heading, a fenced `yaml`
@@ -156,6 +161,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 A rule name the checker has published **shall** keep its meaning: it is
@@ -197,3 +203,91 @@ not know has always been tolerated rather than refused, which is what lets a
 later version of the framework add one without breaking a specification
 written against an earlier one. Saying so out loud turns an emergent
 property into a promise: an addition is compatible, a removal is not.
+
+### IF-GND-010 — The register record is a stable format
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [INV-GND-010]
+refines: []
+conflicts_with: []
+code: [grounds/README.md, tools/srs_grounds.py]
+tests: []
+created: 2026-08-20
+```
+
+A register record **shall** be written as a level-three heading, a fenced
+`yaml` metadata block of flat keys with scalar or bracketed-list values, a
+statement, and an optional rationale, whose keys are declared either required
+or optional, a key it declares neither being no error.
+
+**Rationale.** The same promise `IF-SPEC-010` makes for the requirement
+block, made separately because it is a separate format: an addition is
+compatible, a removal or a rename is not, and what lets a later version add a
+key is that an unknown one is tolerated rather than refused.
+
+One statement over every kind of record in the register — hypothesis, bet,
+ideology, frame — rather than one per kind. The obligation is that the rule
+is the same throughout, and splitting it would destroy exactly that claim,
+which is the reading `specs/README.md` gives for a list of exit codes.
+
+The shape deliberately resembles the requirement block so that whoever has
+read `specs/README.md` recognises it. Resemblance is not identity: neither
+format is obliged to track the other's edge cases, and a later reader who
+merges them would be inventing a coupling this subsystem was built to avoid
+(ADR-0015).
+
+### IF-GND-020 — Exit codes of the grounds checker
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-20
+```
+
+The grounds checker **shall** exit 0 where it found no error and, under
+`--strict`, no warning either; 1 on errors — or on warnings under `--strict`
+— and 2 when it could not run at all.
+
+**Rationale.** A gate binds to these numbers, so they are an interface and
+not an implementation detail. The three are one statement for the reason
+`IF-CI-020`'s are: what a caller relies on is that these are all of them.
+
+Its own requirement rather than an extension of `IF-CI-010`. That statement
+gives the installer four codes, and `specs/README.md` names an exit-code list
+as the case where splitting destroys the only claim a caller has. A fifth
+code there would rewrite a promise every installed project already depends
+on, to describe a subsystem most of them do not have.
+
+### IF-GND-030 — A published grounds rule name keeps its meaning
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-08-20
+```
+
+A rule name the grounds checker has published **shall** keep its meaning:
+it is never renamed, and never given to a different rule.
+
+**Rationale.** The names are what a project writes in its own configuration
+to say what a rule costs, so they are a vocabulary somebody else's files are
+written in. `IF-SPEC-020` makes this promise for the specification checker
+and explains why the compatible move is the only move: a rename breaks those
+files in the least helpful way available, and a name quietly reused for a
+different rule is worse, because everything keeps running while the
+exemption now excuses something nobody meant to excuse.

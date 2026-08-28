@@ -15,6 +15,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs` procedure **shall** require naming the requirements a change
@@ -42,16 +43,42 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, specs/README.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, specs/README.md, grounds/README.md]
 tests: []
+created: 2026-08-07
 ```
 
-The skills **shall** point at `specs/README.md` for the markup rules rather
-than restating what that document defines.
+The skills **shall** point at the standard defining a format rather than
+restating what that standard defines.
 
 **Rationale.** Two copies of the same rule diverge, and the copy an agent
 happens to read wins — which is the failure mode this whole framework exists
 to prevent.
+
+**Named by role, and there is more than one.** This said `specs/README.md`
+while `srs-bet` was already obeying it word for word against
+`grounds/README.md` — "deliberately not restated here: two descriptions of
+the same rules would eventually diverge" — and no requirement covered that
+half. Naming both would have written the register into a rule that holds
+where there is none, so the statement names neither: a standard is whatever
+document defines a format, and a project has as many as it has formats. The
+generality is the point rather than an evasion — a third standard would be
+covered on the day it appears, which is the day somebody would otherwise
+restate it.
+
+Nothing here reaches the register's own machinery. The two files this added
+are shipped sources that exist whether or not this repository runs a
+register — `grounds/README.md` is the canonical copy the installer reads, as
+`specs/README.md` is — and no link into the grounds area was made. A project
+that declined the layer has no `srs-bet` to hold to this and no second
+standard to point at, and the statement is simply quiet about it.
+
+**All of them, because the rule binds all of them.** Six skills define no
+format and satisfied this by having nothing to restate, and the field named
+none of them — so `--code` on those six answered as though no rule governed
+the file, which is the question asked before anybody edits one. An
+incomplete field here is green forever: the checker proves the paths exist
+and never that they are all of them.
 
 What is forbidden is a second definition, not a second mention. This read as
 an absolute ban on saying anything the standard also says, and under that
@@ -82,6 +109,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-harvest/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs-harvest` procedure **shall** write requirements only in batches
@@ -102,6 +130,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-init/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs-init` procedure **shall** have the agent show the requirement areas
@@ -124,6 +153,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-audit/SKILL.md]
 tests: []
+created: 2026-08-07
 ```
 
 The `srs-audit` procedure **shall** report drift between the specification
@@ -144,6 +174,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-upgrade/SKILL.md, tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
+created: 2026-08-08
 ```
 
 The skills installed into a project **shall** include the upgrade procedure,
@@ -164,8 +195,9 @@ derives_from: []
 depends_on: [FR-CI-070]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs-release/SKILL.md]
+code: [.claude/skills/srs-release/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-08
 ```
 
 Before cutting a release, the `srs-release` procedure **shall** have the
@@ -183,6 +215,12 @@ every entry stands alone, because the installer prints that sentence and
 cuts the rest. Framework-only, like `srs-init`: a target releases nothing of
 ours.
 
+That half is kept by the installer, not by this file: `SKILLS` in
+`tools/srs_init.py` lists what travels, and `srs-release` is absent from it.
+Named in `code` for the reason FR-SKILL-060 and FR-SKILL-080 name the same
+file — a field short of where an obligation is realized is green forever, and
+whoever edits that tuple is the one who needs to be told.
+
 ### FR-SKILL-080 — The baseline procedure travels with the project
 
 ```yaml
@@ -194,6 +232,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-baseline/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-09
 ```
 
 The skills installed into a project **shall** include the baseline
@@ -217,6 +256,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-baseline/SKILL.md]
 tests: []
+created: 2026-08-11
 ```
 
 Before a baseline row is written, the procedure **shall** show what changed
@@ -247,6 +287,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-10
 ```
 
 When a requirement is authored, the authoring procedure **shall** end at the
@@ -275,10 +316,12 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-check/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-10
 ```
 
 When a change is finished, the check procedure **shall** name the checks the
-requirements it touched call for — the checker, the tests those requirements
+requirements it touched call for — the specification checker, the grounds
+checker where the project carries a register, the tests those requirements
 list, and what a person has to look at where the method is not a test — and
 offer to run them rather than running them unasked.
 
@@ -289,6 +332,12 @@ than a matter of memory. A method of `I` or `D` is where this matters most —
 those never appear in a suite, and the reader is told what to look at or
 learns about it from a bug. Offering rather than running is not politeness
 but ART-030: builds and test runs need the user's word each time.
+
+The statement said "the checker" while there was one. A project carrying a
+grounds register has two, and its gate fails on a dashboard the change left
+stale (`FR-GND-370`) — so a procedure naming only the first hands back work
+that passes everything it named and reddens the pipeline. Naming the second is
+conditional, because a project without a register has no such command to run.
 
 ### FR-SKILL-110 — The specification can be read as a page on request
 
@@ -301,6 +350,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-page/SKILL.md, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-10
 ```
 
 When the specification is to be read rather than grepped, the page procedure
@@ -325,6 +375,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-10
 ```
 
 When a statement is written or reworded, the procedure doing so **shall**
@@ -356,6 +407,7 @@ refines: [FR-SKILL-120]
 conflicts_with: []
 code: [.claude/skills/srs-new/SKILL.md]
 tests: []
+created: 2026-08-11
 ```
 
 When a verification method is chosen, the authoring procedure **shall**
@@ -383,6 +435,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md]
 tests: []
+created: 2026-08-12
 ```
 
 Before a requirement's status becomes `withdrawn`, the procedure doing so
@@ -419,6 +472,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-harvest/SKILL.md]
 tests: []
+created: 2026-08-17
 ```
 
 Before reporting something as a finding, the procedure doing so **shall**
@@ -465,6 +519,7 @@ refines: []
 conflicts_with: []
 code: [.claude/skills/srs-audit/SKILL.md]
 tests: []
+created: 2026-08-12
 ```
 
 When judging whether a listed test proves a statement, the `srs-audit`
@@ -489,3 +544,258 @@ available while reading, which is where the judgement is being made.
 This is a criterion, not a method of deriving what to judge. How cases come
 out of a statement is the procedure's own business and no requirement
 governs it — a gap this one does not close.
+
+### FR-SKILL-180 — Authoring asks what the requirement stands on
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-GND-500]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-new/SKILL.md]
+tests: []
+created: 2026-08-23
+```
+
+Where the project carries a grounds register, the authoring procedure
+**shall** ask what the new requirement stands on, leaving the answer to a bet
+on a hypothesis already recorded, to a declaration that it rests on none, or
+to nothing.
+
+**Rationale.** The register's join lives in a bet, and until now nothing in
+the authoring dialog mentioned the register at all: the two trees were
+connected by a procedure somebody had to remember to run afterwards
+(`srs-bet`), which is the arrangement under which the connection does not get
+made. Authoring is the one moment when whoever knows why the requirement
+exists is in the room, and it costs a question.
+
+**Asks, and does not require.** INV-GND-030 forbids a rule of the layer from
+demanding that a requirement be named by a bet. This is a rule about a
+procedure rather than about the layer, so a demand made here would keep that
+invariant's letter and lose its point: the invented link it exists to prevent
+would get invented at the one moment somebody is being asked for one.
+"Neither" is a complete answer and the one an author gives most often; what
+the question buys is that it was asked while the answer was still cheap, not
+that it came back positive.
+
+The third answer is the one that needs saying out loud. Where the claim looks
+worth making and no hypothesis carries it, the procedure says so and stops:
+writing that hypothesis belongs to whoever will answer for measuring it, and
+an agent filling in `owner` commits a person who was never asked
+(FR-GND-500).
+
+Scoped to the dialog, and `srs-harvest` is the gap that leaves. It produces
+requirements too and mentions the register nowhere, and a bet recorded after
+the fact — explaining why something already built is standing there — is the
+case `srs-bet` calls worth more rather than less. Whether a procedure that
+proposes requirements in approved batches can ask this question at the same
+cost is not settled here.
+
+Only where the register exists — and the guard is in the text rather than in
+what gets installed. FR-GND-320 can withhold the register procedure from a
+target that declined the layer, because that skill is about nothing else;
+authoring happens in every project, so this one ships everywhere and asks the
+question only where there is a `grounds/` to answer it about. A dialog
+offering to record a bet in a project that has no register would be
+describing machinery it does not have.
+
+### FR-SKILL-190 — Setup reads the project's line width rather than guessing it
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-040]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-init/SKILL.md]
+tests: []
+created: 2026-08-26
+```
+
+The `srs-init` procedure **shall** have the agent look for a line width the
+project already states, show what it found and where, and pass it to the
+installer only once the maintainer approves it.
+
+**Rationale.** Where a project keeps this is not one place: `.editorconfig`,
+a formatter's configuration, a linter's section in the build file, a line in
+a contributing guide, or nowhere. Reading those is what an agent does well
+and what a script does badly — a script needs a rule per convention, is
+silently wrong on the ones it was never taught, and acquires a branch with
+every tool that becomes fashionable. The agent reads, says what it found and
+where it found it, and a wrong reading is caught by the person who can see
+the file it came from.
+
+Approved rather than applied, on the pattern this procedure already uses for
+the areas and the lexicon: the value ends up in the project's configuration
+and in its agent guides, so a mistake here is one a maintainer would be
+reading back for a long time.
+
+Nothing is invented where nothing is found. A project that has never stated
+a width gets no parameter and no line in its guides, because a default
+inserted here would be this framework deciding how somebody else's code is
+formatted.
+
+### FR-SKILL-200 — A requirement is named by more than its number
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [IF-SPEC-010]
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs-audit/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+When a procedure first names a requirement in what it reports to a person,
+it **shall** give that requirement's title and where it is written, not the
+identifier alone.
+
+**Rationale.** `FR-CORE-020` is a key, not a name. It is exactly right
+inside a link field, where a machine resolves it and a person is not
+reading; in a paragraph written for somebody it costs them a lookup per
+mention, and a report full of them gets skimmed rather than read. The title
+is one clause and the file and line are clickable in a terminal and in an
+editor, so what the reader owes the report drops to nothing.
+
+**The side effect is worth more than the rule.** Naming a requirement in
+full means resolving it, and an identifier cited without being resolved is
+how a procedure ends up asserting what another procedure does without
+reading it — the failure recorded in `91-open-issues.md` under that name. A
+rule that says "give the title" is the cheapest available form of "open it
+first". It does not make an invented title impossible — a plausible one can
+be written from memory — but the two halves check each other: a title that
+was guessed is contradicted by the file and line standing beside it, and one
+keystroke settles which. A bare identifier offers nothing to contradict.
+
+First mention and no more. The same title repeated down a page is the noise
+this exists to remove, and after the first one the identifier is what the
+reader is now able to read.
+
+Where it is written rather than a URL. `specs/10-fr-ci.md:281` is followed
+by one keystroke wherever the reader already is, and a link that leaves the
+repository is a separate question — for a rendered page, a review comment,
+somebody who will not clone — that this does not settle.
+
+### FR-SKILL-210 — What is already written is read before something new is
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-CHK-050]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+Before a requirement is written or reworded, the procedure doing so
+**shall** resolve which requirements already speak to the same behaviour and
+what links to those, and say what it found.
+
+**Rationale.** The authoring dialog used to ask for links in one line and
+call their candidates "neighboring requirements", which names the answer
+without saying how anyone arrives at it. So the field got filled from
+whatever the agent happened to remember, and the question the step exists
+for — is this already said, and what does it disturb — was not asked at all.
+
+Both directions are needed and they answer different questions. What already
+speaks to the behaviour says whether it is covered; what links to those says
+what a new obligation lands on top of. Either one alone leaves a statement
+that reads as new and is not, or one that is new and quietly contradicts
+what it sits beside.
+
+Behaviour rather than files, because the three doors into a specification do
+not agree on whether there are files to name. A reworded requirement carries
+a `code` field and the lookup is a path away; a harvested one arrives with
+that field already filled from the code it was read out of; and one authored
+through the dialog has an empty field by design, because authoring ends
+before building does. A rule anchored to "the same files" would name a
+lookup with no input at exactly the door where the question is cheapest to
+answer. Which files answer it is the procedure's business: the area, the
+paths the behaviour will touch, the matrix.
+
+Said out loud rather than merely consulted, on the pattern of every other
+judgement in the authoring dialog: a lookup nobody reports is a lookup
+nobody can tell was made.
+
+### FR-SKILL-220 — What to read comes from the specification, not from a search
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-CHK-050]
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+When a procedure needs the code behind a change, it **shall** take the files
+to read from the requirements the change belongs to rather than from a
+search over the codebase, going beyond that set only where it says it did.
+
+**Rationale.** This is the framework's headline claim about cost — the work
+becomes proportional to the neighbourhood of the change rather than to the
+size of the project — and no procedure obliges it. Two of the eleven perform
+the lookup and both do it by choice: `srs` opens with it, `srs-check`
+reaches for it to find what a finished change touched. Nothing holds them to
+it, nothing holds the next procedure to it, and nothing holds an agent
+inside one of them to it — a search over the codebase satisfies every rule
+this framework has, which is how a small change reads a large repository and
+pays for it in time and in tokens.
+
+Written for what is not bound rather than for a procedure caught doing it
+wrong. The ones that read code today either derive the set already or are
+excluded by the condition: harvesting reads the code roots because the code
+is its input rather than the neighbourhood of a change, and the audit's
+sweep of files no requirement names is the declared widening this statement
+allows for.
+
+The escape hatch is in the statement rather than left implied, because the
+set is sometimes genuinely short: behaviour with no requirement behind it is
+exactly what the loop exists to catch, and a procedure that refused to look
+past the `code` fields would never find it. What is forbidden is widening in
+silence — the reader cannot otherwise tell a neighbourhood that was read
+from one that was searched around.
+
+### FR-SKILL-230 — A mined requirement is checked against what is written
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-030]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-harvest/SKILL.md]
+tests: []
+created: 2026-08-27
+```
+
+Before a mined requirement is shown to the maintainer, the harvesting
+procedure **shall** check it against the requirements already written and
+report the ones it overlaps.
+
+**Rationale.** Harvesting is for a specification that lags its code, and its
+own description offers it for "areas of the spec that lag behind the code" —
+so the ordinary case is mining into a specification that is not empty. The
+procedure mentions existing requirements nowhere. A behaviour already
+described under one number is proposed again under another, the maintainer
+approving a batch has no reason to suspect it, and identifiers are never
+reused: the duplicate is permanent, and the two copies drift from the day
+they are both approved.
+
+Separate from FR-SKILL-210 because the question is a different one. That one
+asks what a new statement disturbs; this asks whether it is new at all, and
+it is asked of a batch produced from code rather than of a sentence somebody
+is writing.

@@ -93,14 +93,34 @@ Copy into your repository, by hand:
 
 - `skeleton/specs/` → `specs/` (the starter files), plus `specs/README.md`
   from this repository — the standard itself;
-- `tools/srs_check.py`, `tools/srs_view.py`, `tools/srs_upgrade.py` and
-  `tools/srs_baseline.py` (not `srs_init.py` or `srs_release.py`, which stay
-  in the framework repository);
+- `tools/srs_check.py`, `tools/srs_parse.py`, `tools/srs_view.py`,
+  `tools/srs_upgrade.py` and `tools/srs_baseline.py` — the checker imports
+  the parser from beside itself, so the two travel together (not
+  `srs_init.py` or `srs_release.py`, which stay in the framework
+  repository);
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`,
   `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or
   `srs-release`, which are framework-only);
+- to keep a grounds register as well — the hypotheses the requirements rest
+  on — also `skeleton/grounds/` → `grounds/`, plus `grounds/README.md` from
+  this repository, `tools/srs_grounds.py` and the `srs-bet` skill. All of it
+  or none of it: the checker, the standard and the procedure only make sense
+  together. Declining costs nothing and leaves no trace. The skeleton carries
+  no `grounds/grounds-config.json` and there is none to copy: write it
+  yourself as `{"rules": {}, "period": "quarter"}`, where `period` is the
+  calendar unit the dashboard counts arrivals in — `month`, `quarter` or
+  `year`, a choice about your project's rhythm rather than a default worth
+  inheriting;
 - `skeleton/AGENTS.md`, `skeleton/CLAUDE.md` → repository root;
 - `.gitattributes`, and a CI template from `ci/`.
+
+Copied by hand, the tooling arrives as it is written here: with this
+framework's `implements:`/`verifies:` annotations still in it, and with
+`SRS-DD-VERSION` in each header where the installer would have put the
+version. Neither breaks anything while your `code_roots` leave `tools/` out,
+which the default does. Where you do put `tools/` on your code roots, either
+run the installer instead — it removes them — or take those lines out
+yourself.
 
 Then write `specs/srs-config.json` by hand — the keys are documented in the
 Configuration section of `specs/README.md`. Add `framework_url` pointing at

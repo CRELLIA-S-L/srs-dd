@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml]
 tests: [tests/spec-check.sh]
+created: 2026-08-07
 ```
 
 The specification gate **shall** regenerate the traceability matrix and fail
@@ -33,6 +34,7 @@ refines: []
 conflicts_with: []
 code: [ci/pre-commit, .githooks/pre-commit, tools/ci_selftest.sh]
 tests: []
+created: 2026-08-07
 ```
 
 The installed hook **shall** run the specification gate locally, so a stale
@@ -52,6 +54,7 @@ refines: []
 conflicts_with: []
 code: [tools/ci_selftest.sh]
 tests: []
+created: 2026-08-07
 ```
 
 The self-test **shall** run every suite in `tests/` and validate the YAML of
@@ -78,6 +81,7 @@ refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, .github/workflows/srs.yml]
 tests: []
+created: 2026-08-07
 ```
 
 On the default branch the pipeline **shall** render the specification into a
@@ -98,6 +102,7 @@ refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, ci/github-workflow.yml, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
+created: 2026-08-07
 ```
 
 The installer **shall** offer the CI templates for GitHub and GitLab and
@@ -117,6 +122,7 @@ refines: []
 conflicts_with: []
 code: [.github/workflows/srs.yml]
 tests: []
+created: 2026-08-07
 ```
 
 The pipeline **shall** run the working tree's checker and viewer against the
@@ -136,8 +142,9 @@ derives_from: []
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tools/ci_selftest.sh]
+code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tests/dates-smoke.sh, tests/grounds-rules.sh, tests/grounds-check.sh, tools/ci_selftest.sh]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 While a suite operates on a target it created, it **shall not** alter the
@@ -168,6 +175,12 @@ the matrix to compare it against what the checker generates. Running under
 the hook's index is what makes that check ask about the commit being
 prepared rather than the one before it.
 
+`tests/grounds-check.sh` was missing from the field while carrying the same
+clearing as the rest. It reads git and never stages, so it could not have
+caused the failure — but the clearing is the realization, and a field short of
+one file is green forever: `--code` on that suite answered as though no rule
+governed it, which is the question asked before anybody edits one.
+
 Held in two halves, and the split is about cost. Each suite clears the
 environment it inherited; `tools/ci_selftest.sh` compares the index after
 every suite it runs, which is free because that is where they already run
@@ -189,6 +202,7 @@ refines: []
 conflicts_with: []
 code: [tools/test_lib.sh]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 A suite asserting that something is absent **shall** fail when that thing is
@@ -229,12 +243,13 @@ refines: []
 conflicts_with: []
 code: [tools/srs_release.py]
 tests: [tests/release-smoke.sh]
+created: 2026-08-08
 ```
 
 When cutting a release, the release command **shall** date the changelog
-section, bump the checker's version and report what to commit — refusing
-where the section is missing or already dated, or where the specification
-does not pass the checker.
+section, bump the framework's version and report what to commit — refusing
+where the section is missing or already dated, or where the checker reports
+an error or a warning.
 
 **Rationale.** A release was three files, two tags and an order that had to
 be remembered, and the order is what went wrong twice. One command prepares
@@ -244,3 +259,108 @@ baseline whether or not the specification had moved. It writes no prose: the
 changelog section is written by a person, and its absence is what the
 command refuses on. It commits and tags nothing (CON-SPEC-030) — the dated
 section is what tells it the release was already cut.
+
+A warning stops it, which is where this parts company with the baseline
+command (FR-SPEC-010). A baseline records where a project stands, warnings
+and all; a release hands the tools to somebody else, and every warning is
+one that project inherits without having been in the room when it was
+accepted.
+
+It bumps one number, and the statement says whose: the framework's, not
+the checker's. What a release versions is the delivery — the tools and
+the standards one installer writes into a target and one upgrade command
+refreshes — and the same number is stamped into every file that installer
+writes, the grounds standard included. The number lives in
+`tools/srs_parse.py`, the one file both checkers must have beside them,
+and each re-exports it (ADR-0021). It used to live in the specification
+checker, which left the grounds checker announcing a version nothing
+bumped.
+
+### FR-CI-100 — The gate refuses a source line nobody had to write long
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: [tests/line-width.sh]
+tests: [tests/checker-rules.sh]
+created: 2026-08-23
+```
+
+The local gate **shall** refuse a source line wider than 120 columns whose
+width does not come from a string literal on it.
+
+**Rationale.** `CONTRIBUTING.md` has said 120 columns in code and none in
+markdown since before this requirement, and prose is where a rule of this
+kind goes to be ignored — an agent that never opens the file applies whatever
+width it inferred from how the files look, which is how markdown got reflowed
+to a limit the same document explicitly denies. A rule nothing enforces is a
+rule read only by whoever already follows it.
+
+The exemption is the hard half and it is why this is not a linter setting. A
+line that cannot be split without changing what it produces is left alone
+whatever its length: a `printf` whose argument is a whole fixture document, a
+CSS declaration inside a page the viewer emits, a single string literal.
+Those are not defects and marking them up is worse than leaving them — a
+marker inside the CSS would change the bytes the page ships.
+
+So width is measured after the string literals on the line are removed, and
+a line inside a Python triple-quoted block is skipped entirely, being literal
+throughout. That covers the exemption as `CONTRIBUTING.md` lists it and no
+further: an unsplittable run outside a literal — a long URL in a comment — is
+refused, and there is no line like that in this repository today. Widening the
+rule to recognise one costs a heuristic about what a token is, and the price
+is paid only when such a line is actually wanted. What survives is the width somebody chose: a compound command, a
+long call, a chain of conditions — the cases where splitting costs nothing
+and changes nothing. A handful of lines in this repository exceed 120 columns
+today and the rule clears every one of them; `awk 'length>120'` over the
+sources the gate reads is the current list, and reading it beats counting it
+here — a number written down goes stale the next time a fixture is added, and
+this one already had. The line the rule caught was a subshell running three commands
+in a row.
+
+**Which files are sources is the same question asked once more.** A source
+here is what a person writes and could have written narrower, so the answer
+follows from the exemption rather than from a file extension. Python and
+shell qualify, the hooks included — `ci/pre-commit` carries no `.sh` to say
+so and ships into every target as one. YAML qualifies: `ci/*.yml` and the
+workflow are written by hand, and what makes their lines long is shell
+embedded in them, which splits like any other shell.
+
+JSON does not, and the reason is worth recording because the rule does fire
+over it. Structure in JSON is splittable and thirty areas on one line would
+be refused; content is not, since JSON has neither continuation nor
+concatenation, so a long string value is the literal exemption by another
+name. What settles it is neither: both JSON files here are written by
+`tools/srs_init.py`, so a limit over them is a limit on the installer's
+output, which the paragraph below rules out. Where JSON does get a width
+elsewhere it comes from a formatter, and this project runs none — there is
+no `.editorconfig` here and no formatter or linter configuration of any
+kind.
+
+Markdown is not looked at, in this repository or in any target. A line break
+inside a paragraph renders as a space — `tools/srs_view.py` joins them with
+`p.replace("\n", " ")` — so where a line ends is invisible to every reader
+and matters only to `git diff`.
+
+**And neither is what the tools print.** The limit governs code. No rule of
+this framework states a width for the output of the checkers, the viewer or
+the installer, and the absence is a decision rather than an oversight.
+
+It was tried the other way. A requirement was authored saying the installer's
+output had to fit 120 columns, and building it turned up the size of what that
+rule actually commits to: most of what the grounds checker can report runs
+past 120 with an ordinary record, the widest past 230 columns, and the
+specification checker has a share of its own. Satisfying it everywhere means
+breaking a finding into fixed lines inside the source, which is the wrong
+place for the decision twice over. Where a line ends then depends on how long
+the reader's own identifiers and paths happen to be, and it is frozen at
+authoring time against a terminal nobody has measured. Wrapping is the
+terminal's business, and a reader who wants it narrower has `fold`.
+
+Recorded here so the question is not re-derived: an over-long finding is not
+a defect of this framework, and a suite asserting a width over what a tool
+prints is asserting something no requirement says.

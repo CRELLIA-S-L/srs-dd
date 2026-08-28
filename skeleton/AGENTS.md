@@ -12,6 +12,7 @@ references to code.
 - **Specification rules** — `specs/README.md`.
 - **Engineering principles** — `specs/constitution.md` (`ART-*`); they
   apply to every task.
+<SRS-DD-WIDTH-LINE>
 - **Check** — `python3 tools/srs_check.py`.
 - **Read** — `python3 tools/srs_view.py <ID>` for one requirement with
   its links resolved, `--code <path>` for the requirements describing a
@@ -44,7 +45,7 @@ references to code.
    the code.
 5. Run the checker.
 
-## The three most frequently broken rules
+## The rules most easily broken
 
 1. Changing behavior — first find or create the requirement, then write
    the code.
@@ -52,3 +53,13 @@ references to code.
    hand.
 3. Builds, tests, and every other action that ART-030 of the constitution
    reserves run only with the user's explicit confirmation.
+4. Naming a requirement to a person — give its title and where it is
+   written the first time it appears: `FR-CORE-020 — Autosave on loss of
+   focus (specs/10-fr-core.md:42)`. The identifier alone is a key, not a
+   name, and costs the reader a lookup per mention. Afterwards the number
+   on its own is enough.
+5. Reading the code behind a change — take the files from the `code` and
+   `tests` fields of the requirements the change belongs to
+   (`python3 tools/srs_view.py --code <path>` answers from the other end),
+   not from a search over the repository. Go wider where you must, and say
+   where you went.

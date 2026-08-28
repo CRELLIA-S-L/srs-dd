@@ -60,10 +60,28 @@ lexicon.
    later — when the requirement is built and somebody has to write a test
    that cannot be written. Here the sentence and the method are on the
    table together, which is the one moment the question costs nothing.
-6. **Links.** Propose candidates from neighboring requirements for each
+6. **What is already written.** Before the links are chosen, resolve which
+   requirements already speak to this behaviour and what points at those,
+   and say what you found — including "nothing", which is an answer.
+
+   ```
+   python3 tools/srs_view.py --list --area <AREA>
+   python3 tools/srs_view.py --grep <word from the statement>
+   python3 tools/srs_view.py --code <path the behaviour touches>
+   python3 tools/srs_view.py <ID>          # incoming links: the blast radius
+   ```
+
+   The area and the words come from steps 2 and 4; the paths come from
+   wherever the behaviour will live, which the author knows before the
+   `code` field does. Two questions are being answered and neither
+   substitutes for the other: whether this is already said somewhere, and
+   what a new obligation lands on top of. Filling the link fields from
+   memory answers the first badly and the second not at all.
+
+7. **Links.** Propose candidates from what step 6 turned up, for each
    link field.
-7. **Initial status.** Per the Lifecycle section of `specs/README.md`.
-8. **Rationale.** Ask why this way, if the answer is not obvious; write it
+8. **Initial status.** Per the Lifecycle section of `specs/README.md`.
+9. **Rationale.** Ask why this way, if the answer is not obvious; write it
    down.
 
 Then write the requirement into the file and run
@@ -71,6 +89,32 @@ Then write the requirement into the file and run
 
 Do not batch-create requirements silently — each one goes through the
 dialog.
+
+## What it stands on
+
+Only where the project carries a grounds register — a `grounds/` directory
+beside `specs/`. Where there is none, skip this and say nothing about it.
+
+The requirement now exists and can be named, so ask once what it stands on.
+Three answers, and all three are finished answers:
+
+- **A hypothesis already in the register carries it.** Record a bet through
+  `srs-bet`, which reads the hypothesis back against its own numbers first.
+- **It rests on nothing anybody wrote down.** A `U` declaration says so with
+  a reason, and retires itself the moment a real bet appears.
+- **Neither.** The commonest answer and a complete one: nothing obliges a
+  requirement to be named by a bet, and a link invented to fill the shape is
+  worse than an absent one because it looks like knowledge.
+
+**The third answer has a loud version, and it is still the third answer.**
+Where the claim looks worth measuring and no hypothesis carries it, say that
+and stop there — saying a thing is worth measuring is not recording it. A
+hypothesis is written by the person who will answer for measuring it: it needs a bounded population, a threshold, a date and a named
+owner, and filling in that owner commits somebody who was never asked. Offer
+the observation, not the record.
+
+Say which of the three it was. An unasked question and an answer of "neither"
+look identical afterwards, and only one of them was a decision.
 
 ## Where this ends
 

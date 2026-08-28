@@ -117,6 +117,15 @@ git config user.name CI
 # existed and fails for a reason that has nothing to do with baselines.
 ( cd "$FRAMEWORK" && tar --exclude ./.git --exclude ./.srs-site \
                        --exclude ./public -cf - . ) | tar -xf -
+
+# The overlay adds and overwrites; it cannot remove. A file the working tree
+# has deleted or renamed survives from the clone and is then judged beside
+# its replacement — two files claiming the same identifiers, and a failure
+# that says nothing about what is under test. So take out whatever this
+# clone carries that the working tree no longer has.
+git ls-files -z | while IFS= read -r -d "" f; do
+    [ -e "$FRAMEWORK/$f" ] || rm -f "$f"
+done
 python3 tools/srs_check.py > /tmp/base-precheck.log 2>&1 || {
     echo "the clone does not pass its own checker:"; cat /tmp/base-precheck.log
     exit 1
@@ -176,3 +185,34 @@ test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/base-bad.log
 absent '`spec/v9.9.11`' specs/92-baselines.md
 git checkout -- specs/10-fr-chk.md specs/90-traceability.md
+
+# A warning is not a refusal, and this is the only place that says so. The
+# statement asks the command to stop on an error; the release command stops
+# on a warning too (FR-CI-070), and for years both sentences read the same
+# while the two commands did not. A project part-way through describing
+# itself carries warnings, and a baseline is the record of where it stands.
+cat >> specs/10-fr-chk.md <<'REQ'
+
+### FR-CHK-991 — A draft that already has code
+
+```yaml
+status: draft
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: []
+```
+
+The checker **shall** be pointed at by a requirement nobody has approved.
+REQ
+# Warnings, and no error: the case the two commands answer differently.
+python3 tools/srs_check.py --no-write > /tmp/base-warn-check.log 2>&1
+grep -q "is draft but the code field is not empty" /tmp/base-warn-check.log
+grep -q "No errors" /tmp/base-warn-check.log
+python3 tools/srs_baseline.py 9.9.12 --date 2026-01-04 > /tmp/base-warn.log
+grep -q '`spec/v9.9.12`' specs/92-baselines.md
+git checkout -- specs/92-baselines.md specs/10-fr-chk.md \
+    specs/90-traceability.md

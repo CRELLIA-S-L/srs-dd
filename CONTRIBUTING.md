@@ -95,9 +95,36 @@ three break silently:
 - If your change affects the generated matrix, commit the regenerated
   `specs/90-traceability.md` in the same change set — CI compares it
   byte-for-byte.
-- No two sources of truth: if a rule is stated in `specs/README.md`, other
-  documents may point at it but must not restate it.
+- No two sources of truth: if a rule is stated in a standard —
+  `specs/README.md`, and `grounds/README.md` where a register is kept —
+  other documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
+- **Line width: 120 columns in code, none in markdown, none over what the
+  tools print.** Python, shell and YAML wrap at 120 — the hooks included,
+  which are shell without the extension to say so. JSON does not: both
+  files of it here are written by `tools/srs_init.py`, so their width is
+  the installer's output rather than anybody's choice, and JSON offers no
+  continuation and no concatenation, so a long string value cannot be
+  narrowed at all. Markdown does
+  not wrap at anything: a line break inside a paragraph renders as a space
+  — `tools/srs_view.py` joins them with `p.replace("\n", " ")`, which
+  greps — so where a line ends is invisible to every reader and matters
+  only to `git diff`. Wrap prose where it reads well and keep a
+  paragraph's wrapping consistent with itself, so that editing one
+  sentence does not reflow the six lines around it. What a tool prints is
+  a third case and is not bounded at all: a finding is written to be read,
+  and breaking one into fixed lines in the source freezes the wrapping
+  against a terminal nobody has measured, at a width that depends on how
+  long the reader's own paths and identifiers happen to be. Wrapping is
+  the terminal's business. Do not add a suite that asserts a width over a
+  log — FR-CI-100's rationale records why.
+- A line that cannot be split without changing what it produces is left
+  alone whatever its length: a single string literal, a `printf` whose
+  argument is a whole fixture document, a CI `script:` entry, one CSS
+  declaration. A handful exist and none of them is a defect; the current
+  list is `awk 'length>120' tools/*.py tools/*.sh tests/*.sh`, which is
+  worth reading rather than counting — a count here goes stale the next
+  time a fixture is added, and this one did.
 - A tool that imports another tool sets `sys.dont_write_bytecode = True`
   **before** the import. The loader writes `__pycache__` before a
   module's body runs, so the flag only works in the importer — and a
@@ -118,8 +145,9 @@ python3 tools/srs_release.py X.Y.Z
 It dates the section, bumps `__version__`, regenerates the matrix and
 stops. Commit those three files — that commit is the release — and tag it
 `vX.Y.Z` if you want the bookmark. It refuses before touching anything if
-the section is missing or already dated, or if the checker does not pass;
-nothing it does needs a git client (CON-SPEC-030).
+the section is missing or already dated, or if the checker reports an error
+or a warning; nothing it does needs a git client (CON-SPEC-030). The
+baseline command below stops on an error alone.
 
 It cuts no baseline. Freezing the specification is its own act, with its
 own command and its own number:

@@ -14,6 +14,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If a requirement identifier is repeated or does not match
@@ -34,6 +35,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If the statement of a requirement carries no bolded modal verb from the
@@ -55,6 +57,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If a link field names a requirement that does not exist, or names the
@@ -74,13 +77,21 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
-If `derives_from` or `refines` links form a cycle, the checker **shall**
-report it as an error listing the requirements on the cycle.
+If `derives_from` and `refines` links together form a cycle, the checker
+**shall** report it as an error listing the requirements on the cycle.
 
 **Rationale.** The derivation graph answers "why does this exist"; a cycle
 means the answer is circular, and it also breaks the tree view.
+
+One graph over both kinds of link, not one per kind. This said "or" and was
+built as two separate walks, so `A derives_from B` with `B refines A` — A
+exists because B does, and B is a special case of A — was circular in exactly
+the way the sentence above describes and seen by neither walk. The two fields
+draw one graph because they answer one question; the message still names which
+kinds a cycle was drawn in, so a cycle in one of them reads as it always did.
 
 ### FR-CHK-050 — A requirement being realized names where
 
@@ -93,6 +104,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** report as an error an `implemented` or `partial`
@@ -128,6 +140,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 The checker **shall** report as an error a `code` or `tests` entry that
@@ -155,6 +168,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** report as an error a `superseded` requirement without
@@ -182,6 +196,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 When a requirement has status `draft` and a non-empty `code` field, the
@@ -208,6 +223,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-12
 ```
 
 When an `implemented` or `partial` requirement derives from, depends on or
@@ -239,6 +255,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** cross-check the `implements:` and `verifies:`
@@ -277,6 +294,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/adopt-smoke.sh]
+created: 2026-08-07
 ```
 
 The checker **shall** take the modal verbs, negation words and rationale
@@ -298,6 +316,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 If `specs/srs-config.json` is unreadable, is not a JSON object, or holds a
@@ -316,8 +335,9 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [tools/srs_check.py, tools/srs_parse.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 While parsing a fenced code block, the checker **shall** ignore headings,
@@ -338,6 +358,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
+created: 2026-08-07
 ```
 
 Where `--strict` is given, the checker **shall** exit non-zero when warnings
@@ -357,7 +378,8 @@ depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
-tests: [tests/installer-smoke.sh]
+tests: [tests/installer-smoke.sh, tests/checker-rules.sh]
+created: 2026-08-08
 ```
 
 If the repository holds a `spec/vX.Y.Z` tag that `92-baselines.md` has no row
@@ -368,8 +390,16 @@ it (INV-SPEC-040), so a tag standing alone claims to freeze something no
 reader can look up — this project left three such tags behind before the log
 caught up with them. A warning rather than an error, so that a baseline
 halfway written does not block the work; `--strict`, which the gate runs,
-closes it. Nothing is reported where git or the tags are absent: a project
-that never tags is keeping a perfectly good log.
+closes it. Nothing is reported where the tags are absent: a project that
+never tags is keeping a perfectly good log. A checkout where git cannot
+answer at all is the other case and not this one — FR-CHK-220 says what
+happens there, and why the two are not the same silence.
+
+A log that is not there is a third case and belongs to this rule. It has a
+row for nothing, so the condition above holds for every tag at once — and
+that was answered with silence, because the rule opened the file first and
+returned when it could not. The most complete form of the defect was the one
+form nobody heard about.
 
 ### FR-CHK-140 — A requirement verified by test and carrying none is reported
 
@@ -382,6 +412,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement is `implemented` or `partial`, says it is verified by
@@ -412,6 +443,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement that has not been cancelled neither links to another nor
@@ -445,6 +477,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, tools/srs_view.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 The checker **shall** let a project lower a rule to a report or silence it
@@ -477,6 +510,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement omits a key the format requires, the checker **shall**
@@ -500,6 +534,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-10
 ```
 
 Where a requirement uses a key a later version of the format renamed or
@@ -526,6 +561,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-12
 ```
 
 When a requirement that has not been cancelled derives from, depends on or
@@ -569,6 +605,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
 tests: [tests/checker-rules.sh]
+created: 2026-08-17
 ```
 
 Where an `implemented` or `partial` requirement names in its `code` or
@@ -609,8 +646,10 @@ project carried no annotation at all when the rule was written, so it fires
 once per in-scope pair on the day it ships — well over a hundred of them,
 thirty in a single file. That is a queue of mechanical work, not a defect —
 but a project meeting it mid-adoption must be able to decide when to take
-it, which is what the severity lever is for, and this project does exactly
-that in its own configuration until the queue is worked off.
+it, which is what the severity lever is for. This project lowered the rule in
+its own configuration while the queue lasted, and the queue is worked off:
+the `rules` key is gone from `specs/srs-config.json`, no requirement carries
+an `exempt` line, and the rule runs at its default severity on everything.
 
 ### FR-CHK-210 — A file neither end claims is reported
 
@@ -623,6 +662,7 @@ refines: []
 conflicts_with: []
 code: [tools/srs_check.py, tools/srs_init.py]
 tests: [tests/checker-rules.sh, tests/adopt-smoke.sh, tests/installer-smoke.sh]
+created: 2026-08-17
 ```
 
 Where no requirement that has not been cancelled names a file under the
@@ -663,3 +703,74 @@ about a file, and there is no requirement to write `exempt` in. A project
 that keeps fixtures and helpers under its test roots tunes this rule in its
 configuration or lives with the list — the same position `baseline-without-row`
 is in, and for the same reason.
+
+### FR-CHK-220 — History that cannot be read is said to be unread
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-130]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-08-25
+```
+
+Where a rule needs the specification's history and that history cannot be
+read, the checker **shall** report that it could not be read rather than
+pass the rule.
+
+**Rationale.** One rule reads history rather than files: the baseline tag
+that no row in the log describes. It meets a wall in a checkout that is not
+a repository, in an environment with no git on the path, and in a shallow
+clone that carries no tags.
+
+Two situations that look identical from inside the rule and are not. A
+repository with no tags answers the question — there is nothing to report,
+and a project that never tags keeps a perfectly good log, which is why
+silence is right there. A checkout where git cannot answer at all leaves the
+question unasked, and silence then reports the same green as a specification
+that was actually checked. The two are told apart by how git exits: no tags
+is a successful run with an empty list, no repository is a failure.
+
+Reported as a note rather than a warning, so a project without git is not
+failed for a dependency this framework does not require (NFR-SPEC-010). It
+is the same rule the grounds layer states for the register's own history,
+made separately because the two checkers share no code (ADR-0019).
+
+### FR-CHK-230 — The matrix counts the same set the rules do
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [CON-SPEC-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-08-27
+```
+
+The traceability matrix **shall** count a file as referenced only where a
+requirement that has not been cancelled names it.
+
+**Rationale.** Three readings of one question, and the matrix was the only one
+answering it differently. `FR-CHK-210` and `FR-VIEW-040` both say *a
+requirement that has not been cancelled*, and the viewer's own code says why in
+a comment: counted in, a withdrawal would quietly move its files out of the gap
+list, and the two tools would describe one file differently in the same run.
+The matrix said "no requirement references them" and meant any requirement,
+cancelled or not — self-consistent, and the third answer in that run.
+
+Its own number rather than a clause in `CON-SPEC-010`. That statement obliges
+the matrix to be generated and never hand-edited; what a section of it counts
+is a second obligation, and `INV-SPEC-060` is why they do not share a
+sentence.
+
+Scoped to the one reading. The *Incoming links* section keeps every link,
+including those from cancelled requirements, because settling a withdrawal is
+exactly the case that needs them whole — the same reason the viewer computes
+its reverse links over every entry.
