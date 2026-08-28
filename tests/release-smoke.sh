@@ -152,6 +152,39 @@ grep -q "checker does not pass" /tmp/rel-bad.log
 absent '## \[9.9.10\] —' CHANGELOG.md
 grep -q '__version__ = "9.9.9"' tools/srs_parse.py
 
+# And a warning stops it too, which is where this parts company with the
+# baseline command: that one refuses on an error and freezes a specification
+# carrying warnings (FR-SPEC-010). Both statements read the same for months
+# while the two commands did not, so this is the fixture that holds them
+# apart — the checker passes, the release does not.
+git checkout -- specs/10-fr-chk.md
+cat >> specs/10-fr-chk.md <<'REQ'
+
+### FR-CHK-991 — A draft that already has code
+
+```yaml
+status: draft
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: []
+```
+
+The checker **shall** be pointed at by a requirement nobody has approved.
+REQ
+python3 tools/srs_check.py --no-write > /tmp/rel-warn-check.log 2>&1
+grep -q "is draft but the code field is not empty" /tmp/rel-warn-check.log
+grep -q "No errors" /tmp/rel-warn-check.log
+rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-warn.log 2>&1 || rc=$?
+test "$rc" -eq 2
+grep -q "checker does not pass" /tmp/rel-warn.log
+absent '## \[9.9.10\] —' CHANGELOG.md
+grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+git checkout -- specs/10-fr-chk.md specs/90-traceability.md
+
 # verifies: CON-SPEC-030
 # The statement binds every command this repository ships, not only the two
 # that prepare a release and a baseline, and until now only those two were

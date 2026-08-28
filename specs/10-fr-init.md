@@ -308,7 +308,7 @@ derives_from: [FR-INIT-070]
 depends_on: [FR-INIT-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_upgrade.py]
+code: [tools/srs_upgrade.py, tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```

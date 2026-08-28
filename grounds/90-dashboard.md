@@ -58,8 +58,8 @@ requirements link to them, plus how many files their `code` field names.
 | CON-SPEC-030 | 0 | 8 | 8 |
 | FR-CI-020 | 5 | 3 | 8 |
 | FR-INIT-010 | 7 | 1 | 8 |
+| CON-GND-020 | 5 | 2 | 7 |
 | INV-GND-020 | 5 | 2 | 7 |
-| CON-GND-020 | 5 | 1 | 6 |
 | FR-CI-010 | 3 | 3 | 6 |
 | INV-SPEC-030 | 3 | 3 | 6 |
 | INV-SPEC-050 | 3 | 3 | 6 |
@@ -135,6 +135,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-510 | 1 | 1 | 2 |
 | FR-INIT-030 | 1 | 1 | 2 |
 | FR-INIT-070 | 1 | 1 | 2 |
+| FR-INIT-130 | 0 | 2 | 2 |
 | FR-INIT-140 | 1 | 1 | 2 |
 | FR-INIT-210 | 1 | 1 | 2 |
 | FR-INIT-220 | 0 | 2 | 2 |
@@ -196,7 +197,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-INIT-050 | 0 | 1 | 1 |
 | FR-INIT-080 | 0 | 1 | 1 |
 | FR-INIT-100 | 0 | 1 | 1 |
-| FR-INIT-130 | 0 | 1 | 1 |
 | FR-INIT-150 | 0 | 1 | 1 |
 | FR-INIT-160 | 0 | 1 | 1 |
 | FR-INIT-170 | 0 | 1 | 1 |

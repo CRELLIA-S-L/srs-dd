@@ -19,7 +19,7 @@ Total requirements: 185.
 | Requirement | Status | Method | Code | Tests |
 |---|---|---|---|---|
 | **CON-GND-010** The grounds layer writes nowhere else | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh` |
-| **CON-GND-020** The dashboard is generated | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-rules.sh`<br>`tests/grounds-check.sh` |
+| **CON-GND-020** The dashboard is generated | `implemented` | T | `tools/srs_grounds.py`<br>`grounds/90-dashboard.md` | `tests/grounds-rules.sh`<br>`tests/grounds-check.sh` |
 | **CON-GND-030** Records are authored, never written | `implemented` | T | `tools/srs_grounds.py` | `tests/grounds-check.sh` |
 | **CON-SPEC-010** The traceability matrix is generated | `implemented` | T | `tools/srs_check.py`<br>`specs/90-traceability.md` | `tests/spec-check.sh` |
 | **CON-SPEC-020** Nothing of the framework travels into a target | `implemented` | T | `tools/srs_init.py`<br>`skeleton` | `tests/installer-smoke.sh` |
@@ -124,7 +124,7 @@ Total requirements: 185.
 | **FR-INIT-100** The installer refuses to install into itself | `implemented` | I | `tools/srs_init.py` | — |
 | **FR-INIT-110** Upgrade notes come from the changelog | `implemented` | I | `tools/srs_init.py`<br>`CHANGELOG.md` | — |
 | **FR-INIT-120** Upgrading is one command inside the project | `implemented` | T | `tools/srs_upgrade.py` | `tests/upgrade-smoke.sh` |
-| **FR-INIT-130** The upgrade is shown before it happens | `implemented` | T | `tools/srs_upgrade.py` | `tests/upgrade-smoke.sh` |
+| **FR-INIT-130** The upgrade is shown before it happens | `implemented` | T | `tools/srs_upgrade.py`<br>`tools/srs_init.py` | `tests/upgrade-smoke.sh` |
 | **FR-INIT-140** A project records the framework it came from | `implemented` | T | `tools/srs_init.py` | `tests/upgrade-smoke.sh` |
 | **FR-INIT-150** A fresh install says what to do first | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-160** An upgrade says what arrived, not only what to do | `implemented` | T | `tools/srs_init.py` | `tests/upgrade-smoke.sh` |

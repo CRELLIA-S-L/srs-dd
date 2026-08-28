@@ -258,7 +258,7 @@ The `code`/`tests` fields remain the single source of truth; annotations
 are an optional cross-check, and unannotated files are never reported. The
 checker errors on an annotation referencing a nonexistent requirement in a
 known area, and warns on: an unknown type or area (likely an example), an
-annotation pointing at a `superseded` requirement, and an annotated file
+annotation pointing at a cancelled requirement, and an annotated file
 missing from the requirement's corresponding field. A line containing
 `srs-ignore` is exempt from annotation checking.
 
@@ -273,8 +273,10 @@ python3 tools/srs_baseline.py X.Y.Z
 
 The command writes the row — version, date, and what changed since the
 previous baseline — and stops there. Commit it with whatever git client the
-project uses. `--dry-run` prints the row first; the command refuses on a
-specification the checker rejects, or a version the log already records. By
+project uses. `--dry-run` prints the row first; the command refuses where
+the checker reports an error, or where the log already records that version.
+A warning does not stop it: a project part-way through describing itself
+carries warnings, and a baseline is the record of where it stands. By
 hand it is the same act: `srs_view.py --baseline X.Y.Z` prints the row ready
 to paste.
 
@@ -352,8 +354,9 @@ python3 tools/srs_check.py
 
 The script catches uniqueness and well-formedness of identifiers, dangling
 references, cycles in the derivation links (`derives_from`, `refines`), an
-empty `code` field with status `implemented`, nonexistent paths,
-`superseded` without a replacement, two requirements glued into one
+empty `code` field with status `implemented` or `partial`, nonexistent
+paths, `superseded` without a replacement and a replacement named by
+anything but a `superseded` requirement, two requirements glued into one
 sentence, and annotation drift (see *Annotations*). As a side effect it
 rewrites `90-traceability.md`.
 

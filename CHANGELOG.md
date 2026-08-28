@@ -91,6 +91,34 @@ checkers, and stamped into every file the installer writes.
 - Every copied tool says which release it came from. The version is stamped
   in the header of each one, so a tree copied by hand or left half-upgraded
   can be read rather than guessed at.
+- The page compares every field the terminal's `--diff` does. Three of them
+  — `conflicts_with`, `superseded_by` and `exempt` — were compared by the
+  command and missing from the snapshots the page carries, so a pair of
+  baselines differing in one of those alone read as changed in the terminal
+  and unchanged on the page. The snapshots grow by three mostly empty
+  fields and the two answers agree again.
+- The graph's note names what was left out, not only how many. Past the
+  node limit the page said how many nodes went undrawn and nothing about
+  which, while the cut runs down the sorted identifiers and takes whole
+  families at once — on this repository's own page every interface, every
+  invariant and every non-functional requirement. The note now lists each
+  family with its count.
+
+### Fixed
+
+- Freezing a baseline and cutting a release refused on different terms
+  while every document said they refused on the same ones. The baseline
+  command runs the checker plainly and the release runs it strictly, so a
+  project carrying warnings can freeze and cannot ship; the two
+  requirements, the Baselines section of the specification standard and
+  both procedures now say which is which. Neither command changed.
+- Three sentences in the specification standard stated a checker rule
+  narrower than it fires. An empty `code` field is reported for `partial`
+  as well as `implemented`; `superseded_by` is reported on anything but a
+  `superseded` requirement, not only where a replacement is missing; and an
+  annotation pointing at a withdrawn requirement is warned about as one
+  pointing at a superseded requirement is. The rules were already doing all
+  three.
 
 ### Upgrade notes
 
@@ -126,6 +154,14 @@ checkers, and stamped into every file the installer writes.
   `grounds/grounds-config.json` and can be lowered to `report` or silenced
   with `off`, the same way `specs/srs-config.json` tunes the specification
   checker.
+- The corrected specification standard arrives only with `--force`.
+  `specs/README.md` is one of the files an upgrade leaves alone unless
+  asked, so a project keeps its own copy — including the Baselines
+  paragraph this release corrected — until
+  `python3 tools/srs_upgrade.py --yes --force` refreshes it, and then only
+  where that copy still carries its `SRS-DD-<version>` marker. The skills
+  are refreshed either way, so for one cycle the baseline procedure points
+  at a paragraph the project has not received yet.
 
 ## [0.14.0] — 2026-08-18
 

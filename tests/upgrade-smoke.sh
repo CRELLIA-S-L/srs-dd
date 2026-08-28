@@ -160,4 +160,42 @@ grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
     || { echo "FAIL FR-GND-480 — an upgrade reset the register's period"
          cat "$GU/grounds/grounds-config.json"; exit 1; }
 
+# What it fetched is removed afterwards, and until now nothing ran that
+# path: every invocation above passes --from, and with --from the upgrader
+# fetches nothing and has no temporary directory to remove, so both
+# `shutil.rmtree` calls could go and this suite stayed green (FR-INIT-120).
+#
+# A `git` of our own, first on PATH, answers `clone` by copying the
+# framework and hands everything else to the real one — no network and no
+# new dependency. TMPDIR points at a directory this suite owns, so "what
+# was fetched is gone" is a question about an empty directory rather than
+# about the name mkdtemp happened to choose.
+FETCH=/tmp/srs-upg-fetch
+rm -rf "$FETCH"
+mkdir -p "$FETCH/bin" "$FETCH/tmp"
+REALGIT=$(command -v git)
+cat > "$FETCH/bin/git" <<STUB
+#!/usr/bin/env bash
+if [ "\$1" = "clone" ]; then
+    for last; do :; done
+    mkdir -p "\$last"
+    tar --exclude ./.git --exclude ./.srs-site --exclude ./public \\
+        -cf - -C "$FRAMEWORK" . | tar -xf - -C "\$last"
+    exit 0
+fi
+exec "$REALGIT" "\$@"
+STUB
+chmod +x "$FETCH/bin/git"
+( cd /tmp/srs-upg && PATH="$FETCH/bin:$PATH" TMPDIR="$FETCH/tmp" \
+    python3 tools/srs_upgrade.py --yes ) > /tmp/upg-fetch.log 2>&1 </dev/null \
+    || { echo "FAIL FR-INIT-120 — the upgrade that fetches its framework failed"
+         tail -5 /tmp/upg-fetch.log; exit 1; }
+grep -q "^Fetching " /tmp/upg-fetch.log \
+    || { echo "FAIL FR-INIT-120 — it never took the fetch path, so the"
+         echo "removal below proves nothing"; exit 1; }
+test -z "$(ls -A "$FETCH/tmp")" \
+    || { echo "FAIL FR-INIT-120 — what it fetched is still on disk:"
+         ls -A "$FETCH/tmp"; exit 1; }
+rm -rf "$FETCH"
+
 echo "upgrade-smoke: a target adds the grounds register with its own command"

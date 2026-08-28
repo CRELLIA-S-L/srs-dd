@@ -20,7 +20,7 @@ created: 2026-08-09
 
 When freezing a baseline, the baseline command **shall** write the row into
 the baseline log and report what to commit — refusing where the log already
-has that row, or where the specification does not pass the checker.
+has that row, or where the checker reports an error.
 
 **Rationale.** Reading a diff and reducing it to a row is mechanical work
 that invites a wrong count nobody would notice, and it is the step that gets
@@ -31,6 +31,13 @@ first, the row describes that revision rather than the working tree, so
 writing it late costs nothing. And the command ships, because every project
 baselines its own specification and has no release machinery of ours to lean
 on.
+
+An error and not a warning, which is where this parts company with the
+release command (FR-CI-070). A project part-way through describing itself
+carries warnings it has not worked off yet, and a baseline is the record of
+where it stands — refusing to freeze until the list is empty refuses the
+recording, not the mess. What ships is the stricter question, and it is
+asked by a different command.
 
 ### FR-SPEC-020 — A specification can be dated from its own history
 

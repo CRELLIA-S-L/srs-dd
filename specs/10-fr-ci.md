@@ -248,8 +248,8 @@ created: 2026-08-08
 
 When cutting a release, the release command **shall** date the changelog
 section, bump the framework's version and report what to commit — refusing
-where the section is missing or already dated, or where the specification
-does not pass the checker.
+where the section is missing or already dated, or where the checker reports
+an error or a warning.
 
 **Rationale.** A release was three files, two tags and an order that had to
 be remembered, and the order is what went wrong twice. One command prepares
@@ -259,6 +259,12 @@ baseline whether or not the specification had moved. It writes no prose: the
 changelog section is written by a person, and its absence is what the
 command refuses on. It commits and tags nothing (CON-SPEC-030) — the dated
 section is what tells it the release was already cut.
+
+A warning stops it, which is where this parts company with the baseline
+command (FR-SPEC-010). A baseline records where a project stands, warnings
+and all; a release hands the tools to somebody else, and every warning is
+one that project inherits without having been in the room when it was
+accepted.
 
 It bumps one number, and the statement says whose: the framework's, not
 the checker's. What a release versions is the delivery — the tools and

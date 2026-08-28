@@ -1389,6 +1389,9 @@ def run_upgrade(args, target):
     sys.stdout.write("\n")
 
     old_version = read_target_version(target)       # before the refresh
+    # implements: FR-INIT-130
+    # The upgrader owns the command; the three things it shows before
+    # anything is written are printed from here.
     show_all = print_version_transition(old_version)
     print_whats_new(old_version, show_all)
     print_upgrade_notes(old_version, show_all)

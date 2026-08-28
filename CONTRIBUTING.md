@@ -145,8 +145,9 @@ python3 tools/srs_release.py X.Y.Z
 It dates the section, bumps `__version__`, regenerates the matrix and
 stops. Commit those three files — that commit is the release — and tag it
 `vX.Y.Z` if you want the bookmark. It refuses before touching anything if
-the section is missing or already dated, or if the checker does not pass;
-nothing it does needs a git client (CON-SPEC-030).
+the section is missing or already dated, or if the checker reports an error
+or a warning; nothing it does needs a git client (CON-SPEC-030). The
+baseline command below stops on an error alone.
 
 It cuts no baseline. Freezing the specification is its own act, with its
 own command and its own number:

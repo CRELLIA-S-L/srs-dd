@@ -465,7 +465,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [tools/srs_grounds.py, grounds/90-dashboard.md]
 tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
 created: 2026-08-20
 ```

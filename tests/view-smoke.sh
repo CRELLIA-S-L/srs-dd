@@ -99,6 +99,16 @@ python3 - <<'PY'
 path = 'specs/10-fr-core.md'
 text = open(path, encoding='utf-8').read()
 text = text.replace('status: draft', 'status: deferred')
+# A requirement whose only difference across the two baselines is one field
+# — FR-CORE-020 is implemented, so the replace above leaves it alone. The
+# page carries a snapshot per baseline and folds it in the browser, and a
+# field missing from that snapshot is a change the fold cannot see however
+# right --diff is about it (FR-VIEW-100). conflicts_with is the field that
+# can move on its own: superseded_by drags status with it, and status is
+# compared either way.
+text = text.replace('depends_on: [FR-CORE-030]\ncode: [src/app.py]',
+                    'depends_on: [FR-CORE-030]\n'
+                    'conflicts_with: [FR-CORE-010]\ncode: [src/app.py]')
 # FR-CORE-070 is last in the file and exists to be dropped here; FR-CORE-080
 # arrives in its place. A path in `tests` comes with it, because the code
 # field alone answered every --code query the suite ever made.
@@ -210,11 +220,13 @@ PY2
 rm -f src/dropped.py
 
 # verifies: FR-VIEW-040
-# The other two gap lists the statement names. Only the first and the
-# fourth were read off standard output; the middle two were asserted
-# against the page alone (FR-VIEW-200), and the page's dashboard is not
-# the code that prints this — both blocks of print_coverage could have
-# been deleted and every check here stayed green.
+# The second of the four gap lists, read off standard output — and this is
+# the only place it is. The first and the fourth are asserted above; the
+# third has a target of its own further down, where the count and both of
+# its rows are read from the terminal. Every other mention of "Draft with
+# code" in this suite reads the rendered page (FR-VIEW-200), which is a
+# different renderer, so without the block below the one in print_coverage
+# could be deleted with all of them green.
 cat >> specs/10-fr-core.md <<'MD'
 
 ### FR-CORE-091 — Approved by nobody, built anyway
@@ -493,9 +505,24 @@ def fold(index):
         state.update(step.get('put', {}))
     return state
 
-FLAT = ['title', 'status', 'verification', 'statement']
-LIST = ['code', 'tests', 'derives_from', 'depends_on', 'refines']
+# The page's own two lists. Kept short here this comparison would agree
+# with a page carrying less than --diff does, so they are read back out of
+# the page as well: a snapshot missing a field, or a script that stopped
+# comparing one, are two ways to lose the same answer and this fixture is
+# a transliteration of the script rather than the script itself.
+FLAT = ['title', 'status', 'verification', 'statement', 'superseded_by']
+LIST = ['code', 'tests', 'derives_from', 'depends_on', 'refines',
+        'conflicts_with', 'exempt']
+for name, mine in (('FLAT_FIELDS', FLAT), ('LIST_FIELDS', LIST)):
+    theirs = re.search(r'var %s = (\[[^;]*\]);' % name, page).group(1)
+    theirs = [f.strip().strip("'") for f in theirs.strip('[]').split(',')]
+    assert sorted(theirs) == sorted(mine), \
+        'the page compares %s, this fixture %s' % (sorted(theirs), sorted(mine))
 a, b = fold(0), fold(1)
+missing = [f for f in FLAT + LIST if f not in a[sorted(a)[0]]]
+assert not missing, \
+    'the page carries no %s per requirement, so its comparison cannot see ' \
+    'a change to one' % missing
 from_page = (sorted(i for i in b if i not in a),
              sorted(i for i in a if i not in b),
              sorted(i for i in set(a) & set(b)
@@ -604,6 +631,19 @@ assert "band.setAttribute('height'" in page and 'lane.dataset.h' in page, \
 # reset handler has to go through the same function the header uses.
 after_reset = page.split("getElementById('graph-reset')")[1][:600]
 assert 'setLane(' in after_reset, 'reset view leaves the folded areas folded'
+# An edge is walkable from either end. Built one way, "the neighbourhood
+# of this requirement" quietly means "what it points at", and a reader
+# who asks about a leaf gets the leaf — with every handler, control and
+# class still present, which is why this counts the two pushes rather
+# than looking for the index at all.
+built = page[page.index('var neighbours = {}'):]
+built = built[:built.index('function narrow(')]
+assert built.count('.push(') == 2, \
+    'the neighbour index is built in one direction again'
+# And a pointer resting on a node is one of the two ways the graph is
+# explored; the wheel and the drag above are the other.
+assert "addEventListener('pointerenter'" in page, \
+    'a node no longer answers a pointer resting on it'
 
 # verifies: FR-VIEW-180
 # The status is the node's colour (FR-VIEW-180). The class alone proves
@@ -673,6 +713,14 @@ for name in ('view-dash', 'view-graph'):
     section = section[:section.index('</section>')]
     assert re.search(r'(href="#|data-id=")FR-CORE-0', section), \
         '%s names no requirement to reach' % name
+# Reaching it is the other half, and the half a filter can take away: the
+# card the link names may be hidden by the search box or a chip, so the
+# jump clears both before scrolling. Without that the reader follows a
+# link from the dashboard and lands on a page that scrolled nowhere.
+jump = page.split('function jump(')[1][:800]
+assert 'card.hidden' in jump and "search.value = ''" in jump \
+        and "setAttribute('aria-pressed', 'false')" in jump, \
+    'a link into a filtered-out card no longer clears what hides it'
 PY2
 
 # Every kind of link is drawn, and told apart by its own class
@@ -698,6 +746,11 @@ PY3
 grep -q 'id="graph-root"' .srs-site/index.html
 grep -q 'id="graph-depth"' .srs-site/index.html
 grep -q 'function narrow(' .srs-site/index.html
+# The control has to reach the walk. A depth read once and then ignored
+# leaves all three settings drawing the same picture, and every token
+# above is still there while it does.
+grep -q 'var limit = depthSel ? +depthSel.value : 2;' .srs-site/index.html
+grep -q 'while (step < limit) {' .srs-site/index.html
 
 # verifies: FR-VIEW-140
 # --open renders and opens in one act (FR-VIEW-140). No browser is a

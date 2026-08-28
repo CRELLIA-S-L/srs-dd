@@ -797,6 +797,9 @@ def baseline_snapshots():
                 "derives_from": entry["derives_from"],
                 "depends_on": entry["depends_on"],
                 "refines": entry["refines"],
+                "conflicts_with": entry["conflicts_with"],
+                "superseded_by": entry["superseded_by"],
+                "exempt": entry["exempt"],
                 "statement": fingerprint(entry["statement"]),
             }
         snapshots.append({"tag": "spec/v%s" % version, "version": version,
@@ -1381,8 +1384,10 @@ JS = """
 
   var baseNode = document.getElementById('baselines-data');
   var baselines = baseNode ? JSON.parse(baseNode.textContent || '[]') : [];
-  var LIST_FIELDS = ['code', 'tests', 'derives_from', 'depends_on', 'refines'];
-  var FLAT_FIELDS = ['title', 'status', 'verification', 'statement'];
+  var LIST_FIELDS = ['code', 'tests', 'derives_from', 'depends_on', 'refines',
+                     'conflicts_with', 'exempt'];
+  var FLAT_FIELDS = ['title', 'status', 'verification', 'statement',
+                     'superseded_by'];
 
   function snapshotAt(index) {
     var state = {};
@@ -1952,14 +1957,18 @@ def build_graph(model):
                 if target in known:
                     edges.append((entry["id"], target, field))
     nodes = sorted({rid for edge in edges for rid in edge[:2]})
-    dropped = 0
+    # The identifiers rather than their number: the page has to say what
+    # was left out, and a count says how many. Sorted order means the cut
+    # falls at one place in the alphabet, so whole families go at once —
+    # which is the fact worth carrying out of here.
+    dropped = []
     if len(nodes) > GRAPH_NODE_LIMIT:
-        dropped = len(nodes) - GRAPH_NODE_LIMIT
+        dropped = nodes[GRAPH_NODE_LIMIT:]
         nodes = nodes[:GRAPH_NODE_LIMIT]
         keep = set(nodes)
         edges = [e for e in edges if e[0] in keep and e[1] in keep]
     if not nodes:
-        return "", 0
+        return "", []
 
     area = dict((node, _area_of(node)) for node in nodes)
     present = set(area.values())
@@ -2286,9 +2295,16 @@ def render_page(model, links, diff=None, baselines=None):
     else:
         note = ""
         if dropped:
-            note = ("<p>%d node(s) beyond the first %d are not drawn — the "
-                    "layout stops being readable past that.</p>"
-                    % (dropped, GRAPH_NODE_LIMIT))
+            families = {}
+            for node in dropped:
+                # Everything before the number: the family the reader
+                # would go looking for, not the bare type.
+                families.setdefault(node.rsplit("-", 1)[0], []).append(node)
+            named = ", ".join("%s %d" % (name, len(families[name]))
+                              for name in sorted(families))
+            note = ("<p>%d node(s) beyond the first %d are not drawn — %s — "
+                    "the layout stops being readable past that.</p>"
+                    % (len(dropped), GRAPH_NODE_LIMIT, esc(named)))
         graph = ("<p>A column is an area and a row is a requirement’s "
                  "number, so a line crossing columns is a link that "
                  "leaves its area. A column folds away when its name "
