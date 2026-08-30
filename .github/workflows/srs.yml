@@ -101,7 +101,18 @@ jobs:
         run: |
           git clone --depth 1 \
             https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener.git /tmp/srs-example
-          cp tools/srs_check.py tools/srs_view.py /tmp/srs-example/tools/
+          # Which files travel is the installer's list, read from the
+          # installer itself. A hand-written pair here went stale when the
+          # checker was split from its parser, and the job then failed on
+          # the missing file instead of on the question it exists to ask.
+          # Assigned before the loop, not substituted inside it: a
+          # substitution that fails inside `for` is exempt from set -e
+          # and would leave the list empty, which is this failure all
+          # over again — nothing copied, and the missing file blamed.
+          travels=$(python3 -Bc "import sys; sys.path.insert(0, 'tools'); import srs_init; print(*srs_init.TOOLS)")
+          for f in $travels; do
+            cp "tools/$f" /tmp/srs-example/tools/
+          done
           cd /tmp/srs-example
           python3 tools/srs_check.py --strict
           python3 tools/srs_view.py --html /tmp/example-site/index.html

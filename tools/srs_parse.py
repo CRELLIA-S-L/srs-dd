@@ -40,7 +40,7 @@ import re
 # ADR-0019 refuses to let the grounds checker import srs_check, which is
 # where the number used to live. Both re-export it, so everything that
 # read it from there reads it still (ADR-0021).
-__version__ = "0.15.0"
+__version__ = "0.15.1"
 
 RE_ANY_HEADING = re.compile(r"^#{1,6}\s")
 RE_FENCE = re.compile(r"^\s*(`{3,})")

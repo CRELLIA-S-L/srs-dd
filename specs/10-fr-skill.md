@@ -677,7 +677,7 @@ First mention and no more. The same title repeated down a page is the noise
 this exists to remove, and after the first one the identifier is what the
 reader is now able to read.
 
-Where it is written rather than a URL. `specs/10-fr-ci.md:281` is followed
+Where it is written rather than a URL. `specs/10-fr-ci.md:279` is followed
 by one keystroke wherever the reader already is, and a link that leaves the
 repository is a separate question — for a rendered page, a review comment,
 somebody who will not clone — that this does not settle.

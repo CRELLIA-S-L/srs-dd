@@ -54,10 +54,11 @@ references to code.
 3. Builds, tests, and every other action that ART-030 of the constitution
    reserves run only with the user's explicit confirmation.
 4. Naming a requirement to a person — give its title and where it is
-   written the first time it appears: `FR-CORE-020 — Autosave on loss of
-   focus (specs/10-fr-core.md:42)`. The identifier alone is a key, not a
-   name, and costs the reader a lookup per mention. Afterwards the number
-   on its own is enough.
+   written the first time it appears: `FR-<AREA>-<NNN> — <its own title>
+   (specs/<file>.md:<line>)`, filled in from this project's own
+   specification. The identifier alone is a key, not a name, and costs
+   the reader a lookup per mention. Afterwards the number on its own is
+   enough.
 5. Reading the code behind a change — take the files from the `code` and
    `tests` fields of the requirements the change belongs to
    (`python3 tools/srs_view.py --code <path>` answers from the other end),

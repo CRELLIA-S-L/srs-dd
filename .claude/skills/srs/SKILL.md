@@ -96,8 +96,8 @@ Then:
 
 1. **Check the requirement still says what you are about to build.** If it
    does not, you are authoring, not building — stop and go to `srs-new`.
-2. **Plans reference numbers.** The work plan says `FR-CORE-050`, not "fix
-   the storage layer". The plan must not conflict with
+2. **Plans reference numbers.** The work plan says `FR-<AREA>-<NNN>`, not
+   "fix the storage layer". The plan must not conflict with
    `specs/constitution.md`; cite its articles (`ART-*`) the same way.
 3. **Code.**
 4. **Close the loop.** Re-read the statement of every requirement this

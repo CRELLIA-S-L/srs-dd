@@ -406,9 +406,9 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-What the installer copies **shall not** contain requirement identifiers of
-this framework, annotations naming them, or paths that exist only in this
-repository.
+What the installer copies **shall not** cite a requirement identifier,
+carry an annotation naming one, or name a path that exists only in this
+repository; which area an identifier is in makes no difference.
 
 **Rationale.** ART-070 of the constitution in one sentence: what we ship has
 to be about their project, not ours.
@@ -428,6 +428,16 @@ exists belongs in the sentence a stranger reads, not behind a number only
 this repository can resolve. What may be cited is what travels with them:
 the articles of the constitution they receive, and the sections of
 `specs/README.md`, which is the same document in every project.
+
+Cite rather than contain, and whichever area rather than ours. Both halves
+of that were read the other way once, by an agent working from this
+sentence. The standards that travel carry identifiers inside the record
+examples that show the format, and a template carries one in a field
+waiting to be filled; neither asks anybody to look a number up, and a
+sentence in a procedure does. Nor does it help to ask whose number it is:
+`FR-CORE-020` belongs to no project here, and under the area a fresh
+install offers first it resolves in the reader's own specification more
+readily than one of ours ever would.
 
 ### CON-GND-010 — The grounds layer writes nowhere else
 

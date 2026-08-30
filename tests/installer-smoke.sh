@@ -126,13 +126,15 @@ grep -q "already runs .git/hooks/pre-commit" /tmp/hook2.log
 # must not travel into targets as skeleton content.
 printf 'stray\n' > skeleton/specs/stray.html
 rm -rf /tmp/srs-clean
-# With the register, because this target is what the leak check and the
-# annotation check below walk. Installed without it they never saw
-# tools/srs_grounds.py or grounds/README.md, so the whole register payload
-# shipped unexamined — and did ship a citation of this framework's own
-# requirements. Everything about declining the register is asserted on its
-# own target further down.
-rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci none \
+# With the register and with both pipelines, because this target is what the
+# leak check and the annotation check below walk, and they see only what is
+# installed. Without the register they never saw tools/srs_grounds.py or
+# grounds/README.md, so the whole register payload shipped unexamined — and
+# did ship a citation of this framework's own requirements. Without a CI
+# config the same hole stood open at ci/: those templates become a target's
+# pipeline and hook, and nothing looked at them on the way. Declining either
+# is asserted on targets of its own further down.
+rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci both \
       --grounds yes >/dev/null || rc=$?
 rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
@@ -281,12 +283,24 @@ PY
 # ours, because what matters is what a stranger receives.
 python3 - <<'PY'
 import json, os, re
-# Identifiers in *this framework's* areas, which is what CON-SPEC-020
-# forbids. An example in a template — `FR-CORE-050` under the default area
-# this project does not declare — is a shape to fill in, not a citation:
-# nobody is being asked to look it up.
+# Two reaches, because two things leak differently. Anywhere in the target:
+# identifiers in this framework's own areas. In the files that instruct —
+# the guides and the skills — any area at all, because what makes a number
+# harmful is that the reader can look it up, and `FR-CORE-020` under the
+# area a fresh install offers first is the likeliest of all to resolve in
+# their specification, to something else. The distinction that survives is
+# not whose area it is but what the line does: a field in a template is a
+# shape to fill in, a sentence in a procedure is a citation.
 areas = json.load(open('specs/srs-config.json', encoding='utf-8'))['areas']
 RE = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3}\b' % '|'.join(areas))
+ANY = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-[A-Z]+-\d{3}\b')
+
+def instructs(rel):
+    # The standards that travel are not procedures: their identifiers sit
+    # inside the record examples that show the format, and specs/README.md
+    # is the same document in every project (CON-SPEC-020's rationale).
+    return (rel in ('AGENTS.md', 'CLAUDE.md')
+            or (rel.startswith('.claude/skills/') and rel.endswith('SKILL.md')))
 # The whole installed target, not the skills alone. Skills were the only
 # prose the installer shipped when this was written; the register's
 # standard is prose too, and the check has to follow what travels rather
@@ -310,12 +324,13 @@ for root, dirs, files in os.walk(target):
             lines = list(enumerate(open(path, encoding='utf-8'), 1))
         except (OSError, UnicodeDecodeError):
             continue
+        pattern = ANY if instructs(rel) else RE
         for lineno, line in lines:
-            for rid in RE.findall(line):
+            for rid in pattern.findall(line):
                 found.append('%s:%d %s' % (rel, lineno, rid))
-assert not found, ('something the installer shipped cites a requirement of '
-                   'this framework, which the target does not have — and may '
-                   'have its own requirement under that number: %s' % found)
+assert not found, ('something the installer shipped names a requirement the '
+                   'target does not have — and may have its own requirement '
+                   'under that number: %s' % found)
 PY
 
 # verifies: FR-INIT-210, FR-INIT-220

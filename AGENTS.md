@@ -65,7 +65,7 @@ then write the code, then close the loop.
 - **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--html`.
 - **Naming a requirement to a person** — give its title and where it is
   written the first time it appears: `FR-CI-100 — The gate refuses a source
-  line nobody had to write long (specs/10-fr-ci.md:281)`. The identifier
+  line nobody had to write long (specs/10-fr-ci.md:279)`. The identifier
   alone is a key, not a name, and costs the reader a lookup per mention.
   Afterwards the number on its own is enough (FR-SKILL-200).
 - **Reading the code behind a change** — take the files from the `code` and

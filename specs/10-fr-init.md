@@ -443,9 +443,8 @@ created: 2026-08-25
 ```
 
 When copying its own tooling into a target, the installer **shall** replace
-every traceability annotation that names a requirement of this framework,
-leaving the line where it was and leaving an annotation marked as an example
-alone.
+every traceability annotation, leaving the line where it was and leaving an
+annotation marked as an example alone.
 
 **Rationale.** The shipped Python carries a hundred-odd `implements:` and
 `verifies:` lines. They exist for the two-way check this repository runs on itself — the
@@ -455,6 +454,10 @@ target they are at best inert and at worst wrong: where a project declares
 an area this framework also uses, `implements: FR-CHK-110` stops being an
 unknown identifier and resolves to *their* requirement under that number,
 which is the harm CON-SPEC-020 is worded against.
+
+Every annotation, not only one naming a requirement of ours. CON-SPEC-020
+stopped sorting by whose number it is, and the removal never sorted either: it takes out exactly what a checker would have read as a claim,
+whatever area the claim names.
 
 Removed on the way out rather than in the source, because the alternatives
 each cost something this does not. Marking the lines `srs-ignore` would

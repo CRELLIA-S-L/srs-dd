@@ -12,6 +12,36 @@ checkers, and stamped into every file the installer writes.
      are printed one line per `- ` entry, so keep every entry's first
      sentence self-contained. Keep that shape. -->
 
+## [0.15.1] — 2026-08-31
+
+### Changed
+
+- The guides and procedures the framework ships cite no requirement number.
+  Where one was illustrated with a number the shape `FR-<AREA>-<NNN>` stands
+  instead: a project whose first area is `CORE` — the one a fresh install
+  offers — could look `FR-CORE-020` up and find a requirement of its own
+  under a title the guide never meant.
+- `CON-SPEC-020` no longer qualifies what may not travel by area. What it
+  forbids is a citation of any requirement identifier, not only one of this
+  framework's, and it says cite rather than contain; `FR-INIT-180` drops the
+  same qualifier, which is what the installer's annotation removal always
+  did.
+
+### Fixed
+
+- The advisory job that reads the example project takes its list of files
+  to copy from the installer instead of a hand-written pair. That pair went
+  stale when the checker was split from its parser, and the job had been
+  failing on the missing file rather than on the specification it exists to
+  read.
+- The check that guards the payload reaches any area in the guides and
+  skills it walks, and walks a target installed with both CI templates and
+  the grounds register — neither was examined before, and the templates
+  become a project's pipeline and hook.
+- `CONTRIBUTING.md` no longer says a leaked identifier fails a stranger's
+  checker, which it does not, and no longer tells contributors to keep
+  annotations out of the shipped tooling, which `ADR-0022` reversed.
+
 ## [0.15.0] — 2026-08-28
 
 ### Added

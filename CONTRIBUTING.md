@@ -41,17 +41,25 @@ ART-070 of `specs/constitution.md` makes non-negotiable:
   identical everywhere and therefore kept as a single canonical copy.
 - `skeleton/` — **the payload.** Starter specification files and the
   target-facing `AGENTS.md`/`CLAUDE.md`, copied into projects by
-  `tools/srs_init.py`. A requirement identifier of ours landing here would
-  reach every project installed afterwards and fail its checker on the
-  first run.
+  `tools/srs_init.py`. A requirement of ours landing here fails a stranger's
+  checker on their first install, pointing at files that do not exist in
+  their project. An identifier merely cited in the prose fails nothing,
+  which is what makes it worse: in a project that declares that area it
+  resolves, to their requirement, saying something else (CON-SPEC-020).
 
-For the same reason `tools/srs_check.py`, `tools/srs_view.py` and
-`tools/srs_upgrade.py` — the files that travel — never carry
-`implements:`/`verifies:` annotations:
-in a target our requirement areas are unknown, the annotation check warns,
-and `--strict` turns that warning into a failed pipeline. Link them from the
-requirement's `code` field instead. `tools/srs_init.py`, `tools/ci_selftest.sh`,
-`tests/` and `ci/` stay here and may be annotated freely.
+The tooling that travels — `srs_check.py`, `srs_parse.py`, `srs_view.py`,
+`srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, and `srs_grounds.py`
+where a project keeps a register — is annotated here like everything else
+and arrives without it: the installer replaces every `implements:`/
+`verifies:` line as it copies, leaving the line where it was (FR-INIT-180,
+ADR-0022). So annotate them freely: those lines are half of a two-way check,
+and it runs here, where the requirements are. What not to do is quiet one
+with `srs-ignore`, whose exemption is unconditional and would silence it
+here as well. `tools/srs_init.py`, `tools/ci_selftest.sh` and `tests/` never
+leave this repository. `ci/` does leave it — those templates become the
+target's pipeline and pre-commit hook — and the removal covers `tools/*.py`
+only, so an annotation written into one would ship as it stands; the payload
+check in `tests/installer-smoke.sh` is what catches that.
 
 ## Kinds of change
 
