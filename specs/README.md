@@ -1,14 +1,13 @@
 # Specification
 <!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
-This describes what the system is obliged to do. It is the single normative
-document on how the specification is maintained: if a rule here contradicts
-something elsewhere, this file wins.
+This describes what the system is obliged to do.
+It is the single normative document on how the specification is maintained: if a rule here contradicts something elsewhere, this file wins.
 
-The form is an SRS per **ISO/IEC/IEEE 29148**. From the standard we take the
-section structure, requirement attributes, the sentence-construction formula,
-and traceability. Phrase patterns for typical cases come from **EARS**. The
-decision log follows **MADR**.
+The form is an SRS per **ISO/IEC/IEEE 29148**.
+From the standard we take the section structure, requirement attributes, the sentence-construction formula, and traceability.
+Phrase patterns for typical cases come from **EARS**.
+The decision log follows **MADR**.
 
 ## Map
 
@@ -30,32 +29,26 @@ decision log follows **MADR**.
 | `archive/` | Absorbed documents. Not normative, kept for history |
 | `srs-config.json` | Project settings — see *Configuration* |
 
-The file names are a convention: the checker scans every `.md` file in
-`specs/` except the service files above. Split the `10-fr-*` files by area as
-your system grows.
+The file names are a convention: the checker scans every `.md` file in `specs/` except the service files above.
+Split the `10-fr-*` files by area as your system grows.
 
 ## Identifier
 
 `<TYPE>-<AREA>-<NNN>`, e.g. `FR-CORE-020`.
 
-**Types:** `FR` functional · `NFR` non-functional · `IF` interface ·
-`INV` invariant · `CON` constraint.
+**Types:** `FR` functional · `NFR` non-functional · `IF` interface · `INV` invariant · `CON` constraint.
 
 **Areas** partition the system by subject matter and are project-specific.
 They are declared in `srs-config.json` — see *Configuration*.
 
-Numbers go in steps of 10 within an area, so there is room to insert a
-neighbor later.
+Numbers go in steps of 10 within an area, so there is room to insert a neighbor later.
 
-**An identifier is immutable and never reused.** A cancelled requirement is
-not deleted: it gets status `superseded` and a pointer to its replacement.
-The freed number stays dead forever — otherwise a reference from an old
-discussion will one day lead to the wrong place.
+**An identifier is immutable and never reused.** A cancelled requirement is not deleted: it gets status `superseded` and a pointer to its replacement.
+The freed number stays dead forever — otherwise a reference from an old discussion will one day lead to the wrong place.
 
 ## Binding force
 
-There is no separate priority field: the force is carried by the modal verb,
-and the verb is set in bold.
+There is no separate priority field: the force is carried by the modal verb, and the verb is set in bold.
 
 | Verb | Meaning |
 |---|---|
@@ -64,21 +57,16 @@ and the verb is set in bold.
 | **should** | Recommended. A deviation must be justified in review |
 | **may** | Allowed, but not required |
 
-**shall** and **must** carry identical force; pick one form for your project
-and use it consistently. Exactly one verb per requirement. Two verbs mean
-two requirements — split them.
+**shall** and **must** carry identical force; pick one form for your project and use it consistently.
+Exactly one verb per requirement.
+Two verbs mean two requirements — split them.
 
-The verbs are not hard-coded: they come from the lexicon in
-`srs-config.json` (see *Configuration*), so a specification may be written
-in any language. The table above shows the default English lexicon; the
-three force classes — mandatory, recommended, allowed — are invariant, and
-which of your words carries which force is your project's documented
-convention.
+The verbs are not hard-coded: they come from the lexicon in `srs-config.json` (see *Configuration*), so a specification may be written in any language.
+The table above shows the default English lexicon; the three force classes — mandatory, recommended, allowed — are invariant, and which of your words carries which force is your project's documented convention.
 
 ## Requirement block
 
-A level-three heading, then a metadata block, then the statement, then the
-rationale.
+A level-three heading, then a metadata block, then the statement, then the rationale.
 
 ````markdown
 ### FR-CORE-020 — Autosave on loss of focus
@@ -118,32 +106,24 @@ undo history noisy.
 | `exempt` | no | list of rule names | Rules this requirement is excused from — see *Configuration* |
 | `created` | no | `YYYY-MM-DD` | When the requirement first appeared. Written by hand when authoring, or once for a whole specification by `tools/srs_dates.py` |
 
-A required key that is absent is an error naming the key. An optional one
-may be left out entirely; the checker reads it as empty. **A key that is
-neither is not an error** — it is reported as unknown, and only a project
-running `--strict` fails on it. That is deliberate: it is what lets a later
-version of the format add a key without breaking a specification written
-against an earlier one. Removing or renaming a key is the change that is
-not compatible, and the checker names the version that did it.
+A required key that is absent is an error naming the key.
+An optional one may be left out entirely; the checker reads it as empty. **A key that is neither is not an error** — it is reported as unknown, and only a project running `--strict` fails on it.
+That is deliberate: it is what lets a later version of the format add a key without breaking a specification written against an earlier one.
+Removing or renaming a key is the change that is not compatible, and the checker names the version that did it.
 
 Paths are relative to the repository root, no leading slash:
 `src/core/autosave.ts`.
 
-The metadata format is deliberately cut down: flat keys, values are a scalar
-or a bracketed list. No nesting, no multi-line values. That way it is read by
-a human, by a standard-library script, and by a future tool like StrictDoc if
-it ever comes to that.
+The metadata format is deliberately cut down: flat keys, values are a scalar or a bracketed list.
+No nesting, no multi-line values.
+That way it is read by a human, by a standard-library script, and by a future tool like StrictDoc if it ever comes to that.
 
 ### Links
 
-Only forward links are stored. Reverse ones (`refined_by`, `required_by`) are
-computed by the script into `90-traceability.md` — recording a link on both
-ends means desynchronizing it one day.
+Only forward links are stored.
+Reverse ones (`refined_by`, `required_by`) are computed by the script into `90-traceability.md` — recording a link on both ends means desynchronizing it one day.
 
-The difference between `derives_from` and `refines`: the first is the
-vertical of abstraction (“this requirement exists because that one does”),
-the second is a special case (“the same thing, but more precise for one
-branch”).
+The difference between `derives_from` and `refines`: the first is the vertical of abstraction (“this requirement exists because that one does”), the second is a special case (“the same thing, but more precise for one branch”).
 
 ## Lifecycle
 
@@ -151,33 +131,22 @@ branch”).
 
 Any of those states may instead end at `withdrawn`.
 
-- `draft` — recorded but not yet approved. Only the maintainer flips it to
-  `deferred`.
+- `draft` — recorded but not yet approved.
+  Only the maintainer flips it to `deferred`.
 - `deferred` — approved, awaiting implementation.
-- `partial` / `implemented` — being realized; both require a filled `code`
-  field, since they differ by how much is built and not by whether anything
-  is.
+- `partial` / `implemented` — being realized; both require a filled `code` field, since they differ by how much is built and not by whether anything is.
 - `superseded` — cancelled with a successor (see *Identifier*).
-- `withdrawn` — cancelled with nothing to replace it, and therefore
-  carrying no `superseded_by`. The requirement stays where it is and its
-  number stays dead (see *Identifier*), the same as for `superseded`; what
-  differs is that nothing took its place, and the rationale is where that
-  is explained.
+- `withdrawn` — cancelled with nothing to replace it, and therefore carrying no `superseded_by`.
+  The requirement stays where it is and its number stays dead (see *Identifier*), the same as for `superseded`; what differs is that nothing took its place, and the rationale is where that is explained.
 
-Initial status: `deferred` when the maintainer asked for the change
-themselves — approval is implicit in the request; `draft` when the
-requirement is proposed by anyone else (an agent decomposing a task, an
-audit finding). Writing code against a `draft` is implementation ahead of
-approval; the checker warns about it. For behavior that already exists
-and is being recorded after the fact (e.g. a harvested spec), the
-maintainer approves a `draft` straight into `implemented` or `partial`,
-skipping `deferred`.
+Initial status: `deferred` when the maintainer asked for the change themselves — approval is implicit in the request; `draft` when the requirement is proposed by anyone else (an agent decomposing a task, an audit finding).
+Writing code against a `draft` is implementation ahead of approval; the checker warns about it.
+For behavior that already exists and is being recorded after the fact (e.g. a harvested spec), the maintainer approves a `draft` straight into `implemented` or `partial`, skipping `deferred`.
 
 ## How to phrase
 
-The standard gives a skeleton: `[condition] [subject] [action] [object]
-[constraint of action]`. Ready-made patterns (shown with the default
-English lexicon — substitute your project's verbs):
+The standard gives a skeleton: `[condition] [subject] [action] [object] [constraint of action]`.
+Ready-made patterns (shown with the default English lexicon — substitute your project's verbs):
 
 | Case | Pattern |
 |---|---|
@@ -193,53 +162,42 @@ A requirement is obliged to be:
 - **singular** — one capability, one verb;
 - **verifiable** — the statement makes it plain how to confirm it holds;
 - **unambiguous** — no “fast”, “convenient”, “if possible”;
-- **about what, not how** — implementation lives in code, only behavior
-  lives here.
+- **about what, not how** — implementation lives in code, only behavior lives here.
 
-Singular is the one that gets misread, because the checker enforces the
-easy half of it. One bolded verb is a rule a script can apply, and two
-verbs are two requirements — but a single verb carrying a list of objects
-is just as compound and nothing catches it. “The viewer **shall** render
-the specification into a page — search, filters, a dashboard and a graph —
-that requests nothing over the network” is one verb and five obligations,
-and there is no answer to what “it passes” would mean for it: three of the
-five can be built and verified while the statement stands satisfied on
-paper. Where you find one, split — a requirement per obligation, each with
-its own number, its own links and its own `tests`.
+Singular is the one that gets misread, because the checker enforces the easy half of it.
+One bolded verb is a rule a script can apply, and two verbs are two requirements — but a single verb carrying a list of objects is just as compound and nothing catches it. “The viewer **shall** render the specification into a page — search, filters, a dashboard and a graph — that requests nothing over the network” is one verb and five obligations, and there is no answer to what “it passes” would mean for it: three of the five can be built and verified while the statement stands satisfied on paper.
+Where you find one, split — a requirement per obligation, each with its own number, its own links and its own `tests`.
 
-A list on its own is not the tell, and treating it as one would split most
-of a healthy specification. “Report a link that does not resolve or that
-names its own requirement” is one act over two cases; so is a list of exit
-codes, where splitting would destroy the only claim a caller relies on —
-that these are all of them. Ask instead whether the items are separable:
-could each be built and called done while the others were missing, with a
-reader unable to tell? That is the compound one.
+A list on its own is not the tell, and treating it as one would split most of a healthy specification. “Report a link that does not resolve or that names its own requirement” is one act over two cases; so is a list of exit codes, where splitting would destroy the only claim a caller relies on — that these are all of them.
+Ask instead whether the items are separable:
+could each be built and called done while the others were missing, with a reader unable to tell?
+That is the compound one.
 
-A rationale is written whenever the decision is not obvious. It answers “why
-this way”, and six months later it is the only thing that saves you from
-redoing the debate in circles.
+A rationale is written whenever the decision is not obvious.
+It answers “why this way”, and six months later it is the only thing that saves you from redoing the debate in circles.
 
 ## Workflow
 
 A new task goes like this:
 
-1. **Requirement before code.** Write down what must change, with the
-   initial status chosen per *Lifecycle*. If a task changes behavior, it has
-   a requirement — otherwise there is no way to tell when it is finished.
-2. **Plans reference numbers.** A work plan says “`FR-DATA-050`,
-   `FR-DATA-060`”, not “fix the storage layer”.
-3. **Code.** Implement.
-4. **Close the loop.** Status to `implemented`, fill in `code` and `tests`.
-5. **Check.** Run the script.
+1. **Requirement before code.**
+   Write down what must change, with the initial status chosen per *Lifecycle*.
+   If a task changes behavior, it has a requirement — otherwise there is no way to tell when it is finished.
+2. **Plans reference requirements.**
+   A work plan says “`FR-DATA-050`, `FR-DATA-060`”, not “fix the storage layer”.
+   A plan is read by a person like any other report, so the first mention of each one is named in full; the form is in the agent guide, `AGENTS.md`, and the tooling prints it.
+3. **Code.**
+   Implement.
+4. **Close the loop.**
+   Status to `implemented`, fill in `code` and `tests`.
+5. **Check.**
+   Run the script.
 
-When changing existing behavior, first find the requirements that describe
-it: search by the `code` field or through `90-traceability.md`. If there is
-no requirement — create it first rather than writing code silently.
+When changing existing behavior, first find the requirements that describe it: search by the `code` field or through `90-traceability.md`.
+If there is no requirement — create it first rather than writing code silently.
 
-An architecture decision (choosing a storage engine, rejecting an approach,
-working around a platform limitation) is recorded separately in `adr/`. A
-requirement says “what”; a decision says “why this path and not the
-neighboring one”.
+An architecture decision (choosing a storage engine, rejecting an approach, working around a platform limitation) is recorded separately in `adr/`.
+A requirement says “what”; a decision says “why this path and not the neighboring one”.
 
 ## Annotations
 
@@ -250,70 +208,50 @@ Source and test files may carry traceability annotations in comments:
 // verifies: FR-CORE-020, FR-DATA-030
 ```
 
-`implements:` maps to the requirement's `code` field, `verifies:` to its
-`tests` field — by keyword, regardless of where the file lives. Multiple
-IDs are separated by commas.
+`implements:` maps to the requirement's `code` field, `verifies:` to its `tests` field — by keyword, regardless of where the file lives.
+Multiple IDs are separated by commas.
 
-The `code`/`tests` fields remain the single source of truth; annotations
-are an optional cross-check, and unannotated files are never reported. The
-checker errors on an annotation referencing a nonexistent requirement in a
-known area, and warns on: an unknown type or area (likely an example), an
-annotation pointing at a cancelled requirement, and an annotated file
-missing from the requirement's corresponding field. A line containing
-`srs-ignore` is exempt from annotation checking.
+The `code`/`tests` fields remain the single source of truth; annotations are an optional cross-check, and unannotated files are never reported.
+The checker errors on an annotation referencing a nonexistent requirement in a known area, and warns on: an unknown type or area (likely an example), an annotation pointing at a cancelled requirement, and an annotated file missing from the requirement's corresponding field.
+A line containing `srs-ignore` is exempt from annotation checking.
 
 ## Baselines
 
-A baseline freezes the specification at a milestone. It is a row in
-`92-baselines.md`, and the commit that adds that row is the baseline:
+A baseline freezes the specification at a milestone.
+It is a row in `92-baselines.md`, and the commit that adds that row is the baseline:
 
 ```
 python3 tools/srs_baseline.py X.Y.Z
 ```
 
-The command writes the row — version, date, and what changed since the
-previous baseline — and stops there. Commit it with whatever git client the
-project uses. `--dry-run` prints the row first; the command refuses where
-the checker reports an error, or where the log already records that version.
-A warning does not stop it: a project part-way through describing itself
-carries warnings, and a baseline is the record of where it stands. By
-hand it is the same act: `srs_view.py --baseline X.Y.Z` prints the row ready
-to paste.
+The command writes the row — version, date, and what changed since the previous baseline — and stops there.
+Commit it with whatever git client the project uses.
+`--dry-run` prints the row first; the command refuses where the checker reports an error, or where the log already records that version.
+A warning does not stop it: a project part-way through describing itself carries warnings, and a baseline is the record of where it stands.
+By hand it is the same act: `srs_view.py --baseline X.Y.Z` prints the row ready to paste.
 
-**Numbering.** A baseline numbers the specification, not the product. Raise
-the last part for wording, status, links and field changes; the middle part
-when requirements were added; the first when one was removed or superseded,
-or restated so that something conforming to the previous baseline no longer
-conforms. It is independent of any release number the project also keeps.
+**Numbering.** A baseline numbers the specification, not the product.
+Raise the last part for wording, status, links and field changes; the middle part when requirements were added; the first when one was removed or superseded, or restated so that something conforming to the previous baseline no longer conforms.
+It is independent of any release number the project also keeps.
 
-While the first part is still zero the specification is finding its shape,
-and a change that would raise it raises the middle part instead; what
-stopped conforming is then said in the row's own words rather than by the
-number. The first baseline to carry a one is a claim that the shape has
-settled — worth making deliberately, and not by arithmetic.
+While the first part is still zero the specification is finding its shape, and a change that would raise it raises the middle part instead; what stopped conforming is then said in the row's own words rather than by the number.
+The first baseline to carry a one is a claim that the shape has settled — worth making deliberately, and not by arithmetic.
 
-**The tag is optional.** `spec/vX.Y.Z` on that commit is a bookmark: it
-makes the baseline easy to name in git and in `srs_view.py --diff`, and
-nothing depends on it. Where there is none, the baseline is located by the
-commit that added its row. Make one where your git client makes it easy,
-skip it where it does not — the log is the record either way.
+**The tag is optional.** `spec/vX.Y.Z` on that commit is a bookmark: it makes the baseline easy to name in git and in `srs_view.py --diff`, and nothing depends on it.
+Where there is none, the baseline is located by the commit that added its row.
+Make one where your git client makes it easy, skip it where it does not — the log is the record either way.
 
-Where a tag was made first, the row describes that revision rather than the
-working tree, so writing it afterwards costs nothing in accuracy.
+Where a tag was made first, the row describes that revision rather than the working tree, so writing it afterwards costs nothing in accuracy.
 
-The `spec/v*` namespace is reserved for specification baselines; do not use
-it for release tags. The checker reports a `spec/v*` tag the log has no row
-for — under `--strict` a failed build — because a tag claiming to freeze
-something the log does not record is a claim no reader can check.
+The `spec/v*` namespace is reserved for specification baselines; do not use it for release tags.
+The checker reports a `spec/v*` tag the log has no row for — under `--strict` a failed build — because a tag claiming to freeze something the log does not record is a claim no reader can check.
 
-**A baseline is not a release.** It freezes what the system must do; a
-release ships what it does. Neither implies the other, they are numbered
-independently, and the same number in both places asserts nothing.
+**A baseline is not a release.** It freezes what the system must do; a release ships what it does.
+Neither implies the other, they are numbered independently, and the same number in both places asserts nothing.
 
 ## Configuration
 
-All project settings live in `specs/srs-config.json`; any key absent from
-the file falls back to the checker's default.
+All project settings live in `specs/srs-config.json`; any key absent from the file falls back to the checker's default.
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -329,12 +267,9 @@ the file falls back to the checker's default.
 | `negation_words` | `["not"]` | Words allowed before or after the verb inside the bold |
 | `rationale_markers` | `["Rationale"]` | Words that open the rationale paragraph |
 
-The last three keys form the **lexicon** — the only place where the
-framework touches the natural language of the specification. The tooling
-knows no language: it builds its patterns from these lists, so the
-specification may be written in any language while service tokens
-(identifiers, statuses, field names) stay as they are. A Russian project,
-for illustration, would set:
+The last three keys form the **lexicon** — the only place where the framework touches the natural language of the specification.
+The tooling knows no language: it builds its patterns from these lists, so the specification may be written in any language while service tokens (identifiers, statuses, field names) stay as they are.
+A Russian project, for illustration, would set:
 
 ```json
 "modal_verbs": ["должен", "должна", "должно", "должны",
@@ -343,8 +278,7 @@ for illustration, would set:
 "rationale_markers": ["Обоснование"]
 ```
 
-Which of your words carries which binding force (mandatory / recommended /
-allowed) is your project's convention — record it in `00-glossary.md`.
+Which of your words carries which binding force (mandatory / recommended / allowed) is your project's convention — record it in `00-glossary.md`.
 
 ## Checking
 
@@ -352,28 +286,17 @@ allowed) is your project's convention — record it in `00-glossary.md`.
 python3 tools/srs_check.py
 ```
 
-The script catches uniqueness and well-formedness of identifiers, dangling
-references, cycles in the derivation links (`derives_from`, `refines`), an
-empty `code` field with status `implemented` or `partial`, nonexistent
-paths, `superseded` without a replacement and a replacement named by
-anything but a `superseded` requirement, two requirements glued into one
-sentence, and annotation drift (see *Annotations*). As a side effect it
-rewrites `90-traceability.md`.
+The script catches uniqueness and well-formedness of identifiers, dangling references, cycles in the derivation links (`derives_from`, `refines`), an empty `code` field with status `implemented` or `partial`, nonexistent paths, `superseded` without a replacement and a replacement named by anything but a `superseded` requirement, two requirements glued into one sentence, and annotation drift (see *Annotations*).
+As a side effect it rewrites `90-traceability.md`.
 
-The `--no-write` flag — check only, generate nothing. The `--strict` flag
-turns warnings into a failing exit code — for CI, when warnings must not
-accumulate.
+The `--no-write` flag — check only, generate nothing.
+The `--strict` flag turns warnings into a failing exit code — for CI, when warnings must not accumulate.
 
-Reading the same specification — one requirement with its links
-resolved, the requirements covering a file, a page for a reviewer who
-does not grep — is `tools/srs_view.py`; it validates nothing and writes
-nothing into `specs/`. Its modes are listed by `srs_view.py --help`.
+Reading the same specification — one requirement with its links resolved, the requirements covering a file, a page for a reviewer who does not grep — is `tools/srs_view.py`; it validates nothing and writes nothing into `specs/`.
+Its modes are listed by `srs_view.py --help`.
 
-Parser notes: fenced code blocks are opaque — headings, modal verbs, and
-rationale markers inside them are ignored. Backtick fences follow the
-CommonMark length rule (a block opened with N backticks closes only on a
-run of at least N); tilde fences (`~~~`) are not recognized — use
-backticks in specification files.
+Parser notes: fenced code blocks are opaque — headings, modal verbs, and rationale markers inside them are ignored.
+Backtick fences follow the CommonMark length rule (a block opened with N backticks closes only on a run of at least N); tilde fences (`~~~`) are not recognized — use backticks in specification files.
 
 ## What not to do
 
@@ -381,5 +304,4 @@ backticks in specification files.
 - Do not reuse the number of a cancelled requirement.
 - Do not describe implementation details in a requirement — behavior only.
 - Do not create a requirement without a way to verify it.
-- Do not keep two sources of truth: if something is described here, other
-  documents must not restate it.
+- Do not keep two sources of truth: if something is described here, other documents must not restate it.

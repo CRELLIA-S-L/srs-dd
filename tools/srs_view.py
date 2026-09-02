@@ -441,6 +441,20 @@ def emphasize(text, style):
                    for index, piece in enumerate(pieces))
 
 
+def citation(entry):
+    # implements: FR-VIEW-240
+    """The form a requirement is named in outside the specification.
+
+    Assembled here and nowhere else: the identifier, the title, the file
+    and the status, in the order they are read. No line number — it is
+    right for the minute it is written and wrong after the next edit above
+    it, and the card below prints the current one for whoever wants to
+    open the file.
+    """
+    return "%s — %s (%s, %s)" % (entry["id"], entry["title"], entry["path"],
+                                 entry["status"] or "?")
+
+
 def print_card(entry, model, style):
     # implements: FR-VIEW-010
     known = by_id(model)
@@ -2449,6 +2463,9 @@ def parse_args(argv):
     parser.add_argument("--json", nargs="?", const="-", metavar="PATH",
                         help="write the model as JSON (default stdout); with "
                              "--diff it carries the comparison too")
+    parser.add_argument("--cite", nargs="+", metavar="ID",
+                        help="print each requirement as a citation ready to "
+                             "paste: identifier, title, file and status")
     parser.add_argument("--repo-url", dest="repo_url", metavar="URL",
                         help="blob-URL prefix for links to code, overriding "
                              "repo_url in specs/srs-config.json; in CI the "
@@ -2474,6 +2491,16 @@ def main(argv=None):
     model = load_current()
     if args.repo_url:
         model["repo_url"] = args.repo_url.rstrip("/")
+    if args.cite:
+        known = by_id(model)
+        missing = [rid for rid in args.cite if rid not in known]
+        for rid in args.cite:
+            if rid in known:
+                sys.stdout.write("%s\n" % citation(known[rid]))
+        for rid in missing:
+            sys.stderr.write("no requirement %s\n" % rid)
+        return 1 if missing else 0
+
     if args.baseline:
         try:
             sys.stdout.write("%s\n" % baseline_row(args.baseline, args.date))

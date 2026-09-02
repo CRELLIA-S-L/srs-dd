@@ -1,8 +1,8 @@
 # Baselines
 
-A baseline freezes the specification at a milestone. Each row here is one,
-frozen by the commit that added it; a `spec/vX.Y.Z` tag on that commit is an
-optional bookmark. The procedure is in the Baselines section of `README.md`.
+A baseline freezes the specification at a milestone.
+Each row here is one, frozen by the commit that added it; a `spec/vX.Y.Z` tag on that commit is an optional bookmark.
+The procedure is in the Baselines section of `README.md`.
 
 | Version | Date | Tag | What changed |
 |---|---|---|---|

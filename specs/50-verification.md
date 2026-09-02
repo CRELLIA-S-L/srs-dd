@@ -1,7 +1,6 @@
 # Verification
 
-How the methods in the `verification` field are carried out in this
-repository.
+How the methods in the `verification` field are carried out in this repository.
 
 | Method | What it means here |
 |---|---|
@@ -26,11 +25,8 @@ repository.
 | `tests/grounds-check.sh` | This repository's own register passes strictly, its committed dashboard is what the records say now, and a run leaves every authored record untouched |
 | `tests/dates-smoke.sh` | The one command that writes requirement blocks: the date it writes is the one the history holds and not today's, a second run costs nothing, and where the history cannot be read it refuses rather than inventing one |
 
-All eleven run in CI and locally through `tools/ci_selftest.sh`, which
-executes everything in `tests/` rather than a copy of it. That is twelve
-files: `tests/line-width.sh` lives there too and is not a suite — it proves
-no requirement, it is the gate FR-CI-100 names as its own code, and it runs
-here because this is where the gate already runs.
+All eleven run in CI and locally through `tools/ci_selftest.sh`, which executes everything in `tests/` rather than a copy of it.
+That is twelve files: `tests/line-width.sh` lives there too and is not a suite — it proves no requirement, it is the gate FR-CI-100 names as its own code, and it runs here because this is where the gate already runs.
 
 ## Recorded measurements
 
@@ -40,27 +36,17 @@ here because this is where the gate already runs.
 | NFR-CHK-010 | 52 ms by the same method, after five rules were added — the required-key and retired-key checks, the two reports on tests and links, and the routing that gives every rule a severity | 2026-08-11 |
 | NFR-CHK-010 | A generated specification of 500 requirements validates in 45 ms wall clock, interpreter startup included (`--no-write`, Python 3.14, Apple silicon) | 2026-08-06 |
 
-Newest first, as in the baseline log. A measurement is not replaced when it
-is retaken: the older row is what the newer one is a change from.
+Newest first, as in the baseline log.
+A measurement is not replaced when it is retaken: the older row is what the newer one is a change from.
 
 ## Known gaps
 
-The checker's rules are no longer among them: `checker-rules.sh` carries a
-fixture per rule, and an audit that asked of every fixture "which change to
-the code would redden it" closed what remained — the clauses a rule states
-and a single fixture never reached. Two gaps outlived that question, and for
-opposite reasons: one cannot be reached without a dependency this project
-does not have, the other cannot be reached without staging the failure the
-fixture would then be asserting.
+The checker's rules are no longer among them: `checker-rules.sh` carries a fixture per rule, and an audit that asked of every fixture "which change to the code would redden it" closed what remained — the clauses a rule states and a single fixture never reached.
+Two gaps outlived that question, and for opposite reasons: one cannot be reached without a dependency this project does not have, the other cannot be reached without staging the failure the fixture would then be asserting.
 
-**What the page does in a browser.** Gestures, and the following of a link,
-are asserted as markup and handlers: their presence is proved, their working
-is not. The suites run no browser, because none is a dependency of this
-project. Recorded in `91-open-issues.md`, where the decision is stated as
-open — accept inspection as the method here, or take on a headless browser.
+**What the page does in a browser.** Gestures, and the following of a link, are asserted as markup and handlers: their presence is proved, their working is not.
+The suites run no browser, because none is a dependency of this project.
+Recorded in `91-open-issues.md`, where the decision is stated as open — accept inspection as the method here, or take on a headless browser.
 
-**Adopt past its point of no return.** A step failing after the checker is
-in place reports partial completion and exits 1; reaching it needs a fault
-injected into the installer, and a fixture for that would assert the
-injection rather than the behaviour. The exit code itself is covered from
-the other direction — an upgrade returning the target checker's verdict.
+**Adopt past its point of no return.** A step failing after the checker is in place reports partial completion and exits 1; reaching it needs a fault injected into the installer, and a fixture for that would assert the injection rather than the behaviour.
+The exit code itself is covered from the other direction — an upgrade returning the target checker's verdict.

@@ -1,7 +1,7 @@
 # Glossary
 
-Terms as this project uses them. Where a word is also an SRS term of art, the
-meaning here is the one that binds.
+Terms as this project uses them.
+Where a word is also an SRS term of art, the meaning here is the one that binds.
 
 | Term | Meaning |
 |---|---|
@@ -24,7 +24,5 @@ meaning here is the one that binds.
 | Bet | The record joining one requirement to the hypotheses it rests on. Stored in that direction only; the other is computed |
 | Core / fog | The core is the ideologies plus the hypotheses confirmed *and* admitted; the fog is every other hypothesis. The dashboard reads the boundary between them |
 
-**Binding force** is carried by the modal verb, per the table in the
-standard: mandatory (**shall**, **must**), recommended (**should**), allowed
-(**may**). The three classes are invariant across languages; which word
-belongs to which class is the lexicon's business.
+**Binding force** is carried by the modal verb, per the table in the standard: mandatory (**shall**, **must**), recommended (**should**), allowed (**may**).
+The three classes are invariant across languages; which word belongs to which class is the lexicon's business.

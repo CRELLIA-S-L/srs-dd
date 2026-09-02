@@ -1058,3 +1058,49 @@ assert r['path'] == 'specs/10-fr-core.md' and r['title'] == 'X', \
 PY
 echo "view-smoke: an unknown block key reaches the published model"
 
+# --- verifies: FR-VIEW-240 — the citation is printed, not typed. Its own
+# --- project, like the fixture above: the form has to be asserted character
+# --- for character, and a lab whose statuses are known is the only place
+# --- that can be done. A cancelled requirement is here because the status
+# --- is in the citation for the plan that names one.
+CITE=/tmp/srs-view-cite
+rm -rf "$CITE"; mkdir -p "$CITE/tools" "$CITE/specs"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$CITE/tools/"
+printf '{"areas": ["CORE"]}\n' > "$CITE/specs/srs-config.json"
+{ printf '# c\n\n### FR-CORE-010 — A live one\n\n'
+  printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: [src/a.py]\n'
+  printf 'tests: [t/a.sh]\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** act.\n\n'
+  printf '### FR-CORE-020 — A cancelled one\n\n'
+  printf '```yaml\nstatus: superseded\nsuperseded_by: FR-CORE-010\n'
+  printf 'verification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: []\n'
+  printf 'tests: []\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** have acted.\n'
+} > "$CITE/specs/10-fr-core.md"
+
+( cd "$CITE" && python3 tools/srs_view.py --cite FR-CORE-010 FR-CORE-020 ) \
+    > /tmp/srs-cite.out
+cat > /tmp/srs-cite.want <<'WANT'
+FR-CORE-010 — A live one (specs/10-fr-core.md, implemented)
+FR-CORE-020 — A cancelled one (specs/10-fr-core.md, superseded)
+WANT
+diff -u /tmp/srs-cite.want /tmp/srs-cite.out \
+    || { echo "--cite printed something other than the form AGENTS.md asks"
+         echo "for, or did not keep the order of its arguments"; exit 1; }
+echo "view-smoke: --cite prints both requirements ready to paste"
+
+# An identifier that resolves to nothing is refused the way the single
+# requirement view refuses it: a line on stderr and a non-zero exit, so that
+# a plan built from a citation cannot be built from a silent blank.
+rc=0
+( cd "$CITE" && python3 tools/srs_view.py --cite FR-CORE-010 FR-CORE-990 ) \
+    > /tmp/srs-cite-bad.out 2>/tmp/srs-cite-bad.err || rc=$?
+[ "$rc" = 1 ] \
+    || { echo "an unknown identifier left --cite with exit $rc"; exit 1; }
+grep -q "no requirement FR-CORE-990" /tmp/srs-cite-bad.err \
+    || { echo "--cite said nothing about what it could not resolve"; exit 1; }
+grep -q "FR-CORE-010 — A live one" /tmp/srs-cite-bad.out \
+    || { echo "--cite dropped the requirements it could resolve"; exit 1; }
+echo "view-smoke: --cite refuses an identifier the specification does not carry"
