@@ -290,6 +290,34 @@ The skills installed into a project **shall** include the architecture procedure
 **Rationale.** The format is half of what a layer is; the other half is the procedure that decides what an element is and records the choice.
 Shipped without it, a project gets a checker for a description nobody was told how to write.
 
+### FR-ARCH-160 — What carries a file is read before the file is changed
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-ARCH-110]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-09-02
+```
+
+Where a project carries an architecture layer, the procedure about to change a file **shall** name the element that carries it and what that element answers for.
+
+**Rationale.** A boundary is invisible from inside the file being edited.
+The change that matters is the one that quietly moves a responsibility from one part to another — a helper that grows a second caller, a module that starts reaching across — and nothing in the file says which part it belongs to or what that part was cut to do.
+The element says both, and reading it costs a look at the generated map — at the path, or at the directory that owns it.
+
+This is the same move the register already asks for in the same procedure: before changing a requirement, read what it stands on.
+Here it is before changing a file, read what carries it.
+Both exist because the layer is worth nothing if it is written once and never opened again, and both apply only where the project keeps the layer.
+
+No command is added for it.
+The map already states, for every element, the files it carries, and a path is found in it the way any path is found in a text file.
+A dedicated query would be a second way to ask a question the map answers, and this framework builds nothing for a requirement that does not exist yet.
+
 ### FR-ARCH-200 — A dependency the model does not declare is reported
 
 ```yaml

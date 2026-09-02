@@ -44,6 +44,19 @@ A requirement standing on something `refuted` or `expired` is not a reason to st
 Where the project has no register the command is not there, and this step does not apply.
 The procedure for the register itself is `srs-bet`.
 
+**Where the project carries an architecture layer** — an `arch/` directory beside `specs/` — ask what carries the file before changing it:
+
+```
+grep -n <path/to/file> arch/90-map.md      # or the directory above it
+```
+
+A directory in an element's `carries` owns everything under it, so a file inside one is found by that directory rather than by its own name — `.claude/skills` answers for every skill in it.
+The row names the element the file belongs to, what else that element carries and which requirements it holds.
+Read it for the same reason the register is read: a boundary is invisible from inside the file, and the change worth noticing is the one that moves a responsibility from one part to another.
+A change that makes a part carry something its statement does not describe is a change to the layer as well, and that is said rather than left for the checker to find.
+Where the project has no layer the directory is not there, and this step does not apply.
+The procedure for the layer itself is `srs-arch`.
+
 ## Two acts, and they are not the same one
 
 Writing a requirement and building it are separate acts.
