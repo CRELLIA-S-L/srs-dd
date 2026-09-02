@@ -79,7 +79,7 @@ No CDN, no network, opens straight from `file://`.
 - **Already have code and no spec?**
   `srs-harvest` reads it area by area and proposes draft requirements in batches you approve, never writing a status or inventing a test that does not exist.
 - **Nothing to install.**
-  Six dependency-free Python scripts land in your repository — seven if you keep a grounds register.
+  Six dependency-free Python scripts land in your repository — seven with a grounds register, eight with an architecture layer.
   No server, no database, no toolchain, no account.
 - **Agent-agnostic, and optional.**
   `AGENTS.md` is read natively by Cursor, Codex, Gemini CLI and Copilot; the skills are plain Markdown any agent can follow; a team working entirely by hand loses nothing.
@@ -91,6 +91,7 @@ It does not record why anyone thought those were the right things to build — t
 Delete a requirement's rationale and a strict run reports nothing at all.
 
 The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest part of this framework: 63 of its 180 requirements.
+The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries, and a checker that reports a file the specification claims and no part owns.
 It holds three kinds of ground, and one record that joins them to the specification.
 
 - A **hypothesis** is a claim about the world that could turn out false — who needs the thing, what they will pay for, what they do today instead.

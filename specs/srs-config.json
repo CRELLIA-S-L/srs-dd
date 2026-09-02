@@ -6,7 +6,8 @@
     "INIT",
     "SKILL",
     "CI",
-    "GND"
+    "GND",
+    "ARCH"
   ],
   "code_roots": [
     "tools"

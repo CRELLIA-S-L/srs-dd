@@ -212,3 +212,61 @@ it is never renamed, and never given to a different rule.
 
 **Rationale.** The names are what a project writes in its own configuration to say what a rule costs, so they are a vocabulary somebody else's files are written in.
 `IF-SPEC-020` makes this promise for the specification checker and explains why the compatible move is the only move: a rename breaks those files in the least helpful way available, and a name quietly reused for a different rule is worse, because everything keeps running while the exemption now excuses something nobody meant to excuse.
+
+### IF-ARCH-010 — The element record is a stable format
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [arch/README.md]
+tests: []
+created: 2026-09-02
+```
+
+An element record **shall** be written as a level-three heading, a fenced `yaml` metadata block of flat keys with scalar or bracketed-list values, a statement, and an optional rationale, whose keys are added over time but never renamed or removed once published.
+
+**Rationale.** The shape deliberately resembles a requirement and a register record, so that whoever has read one standard can read this one.
+It is not the same format, and none of the three is obliged to follow another's edge cases — the promise here is only that a layer written against an earlier version keeps parsing.
+A key may be added because a later version will want one; a rename has no such escape, which is why it does not happen.
+
+### IF-ARCH-020 — Exit codes of the architecture checker
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-02
+```
+
+The architecture checker **shall** exit `0` when it found nothing to report, `1` when it reported an error or, under `--strict`, a warning, and `2` when it could not read what it was asked to read.
+
+**Rationale.** A pipeline branches on the number, not on the prose, and the three cases differ in what the reader has to do: nothing, fix the layer, fix the setup.
+The same three the specification checker and the grounds checker already publish.
+
+### IF-ARCH-030 — A published architecture rule name keeps its meaning
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-02
+```
+
+A rule name the architecture checker has published **shall** keep its meaning: it is never renamed, and never given to a different rule.
+
+**Rationale.** `FR-ARCH-090` lets a project write those names into its own configuration, which makes them a vocabulary somebody else's file is written in.
+A rename breaks that file in the least helpful way available — the checker refuses to start and says nothing about what the old name became — and a name quietly reused for another rule is worse, because everything keeps running while the exemption now excuses something nobody meant.

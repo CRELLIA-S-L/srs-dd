@@ -8,6 +8,7 @@
     python3 tools/srs_upgrade.py --ref v1.2.0 pin a release
     python3 tools/srs_upgrade.py --from ../srs-dd   use a clone you have
     python3 tools/srs_upgrade.py --grounds yes     add the grounds register
+    python3 tools/srs_upgrade.py --arch yes        add the architecture layer
 
 It fetches the framework this project was installed from, runs that
 framework's installer against this project, and removes what it fetched.
@@ -94,6 +95,12 @@ def main():
                              "say no. Left out, an upgrade refreshes a "
                              "register that is already here and installs "
                              "none where there is not")
+    parser.add_argument("--arch", choices=("yes", "no"), default=None,
+                        help="add the architecture layer to this project, or "
+                             "say no. The same promise the register makes: "
+                             "left out, an upgrade refreshes a layer that is "
+                             "already here and installs none where there is "
+                             "not")
     args = parser.parse_args()
 
     if not os.path.isdir(os.path.join(ROOT, "specs")):
@@ -137,6 +144,9 @@ def main():
             extra += ["--grounds", args.grounds]
         if args.period:
             extra += ["--period", args.period]
+        # implements: FR-ARCH-130
+        if args.arch:
+            extra += ["--arch", args.arch]
         code = run_installer(clone, extra + ["--dry-run"])
         if code != 0:
             return fail("the framework's installer refused; nothing was "

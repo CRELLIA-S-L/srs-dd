@@ -1,0 +1,345 @@
+#!/usr/bin/env python3
+#
+# SRS-DD-VERSION — the framework release this file came from
+"""The architecture layer's checker: reads arch/, holds it to the specification, writes the map.
+
+    python3 tools/srs_arch.py              read, report, regenerate arch/90-map.md
+    python3 tools/srs_arch.py --no-write   report only
+    python3 tools/srs_arch.py --strict     treat warnings as errors
+
+The requirement model is read by running tools/srs_view.py as a subprocess and parsing what it
+publishes, which the framework promises to keep stable, so this file never learns the requirement
+format. The layer's own records go through tools/srs_parse.py, the one reader both formats share.
+
+Nothing here writes outside arch/: declining the layer, or deleting it, has to cost nothing.
+"""
+# implements: FR-ARCH-010, IF-ARCH-020, CON-ARCH-010
+import json
+import os
+import re
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    import srs_parse                                        # noqa: E402
+except ImportError:
+    sys.stderr.write(
+        "tools/srs_parse.py: missing — the architecture checker reads the record shape through "
+        "it, and the two travel together. Copy it beside this file from the framework clone, or "
+        "re-run tools/srs_init.py to refresh the tooling.\n")
+    sys.exit(2)
+
+# Re-exported: the number lives in srs_parse, the one file every checker must have beside it
+# (ADR-0021).
+__version__ = srs_parse.__version__
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ARCH = os.path.join(ROOT, "arch")
+CONFIG = os.path.join(ARCH, "arch-config.json")
+MAP = os.path.join(ARCH, "90-map.md")
+MAP_REL = os.path.join("arch", "90-map.md")
+VIEWER = os.path.join(ROOT, "tools", "srs_view.py")
+
+# Files in arch/ that hold no records.
+SKIP_FILES = {"README.md", "90-map.md"}
+
+# Loose enough to catch a heading that meant to be a record and failed, so that
+# the identifier rule can say so instead of passing it over in silence.
+RE_HEADING = re.compile(r"^###\s+([A-Za-z][A-Za-z0-9]*-\d+(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
+RE_ID = re.compile(r"^E-\d{3}$")
+
+REQUIRED_KEYS = ("status", "carries", "requirements")
+STATUSES = ("proposed", "built", "superseded", "withdrawn")
+CANCELLED = ("superseded", "withdrawn")
+REALIZED = ("implemented", "partial")
+
+# implements: IF-ARCH-030
+# Published names: a project writes them into arch/arch-config.json, so one is never renamed and
+# never given to a different rule.
+RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty")
+
+# `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
+SEVERITIES = ("warn", "report", "off")
+
+
+def fail_setup(message):
+    """Something the layer could not be read through at all — exit 2, never 1."""
+    sys.stderr.write("%s\n" % message)
+    return 2
+
+
+def load_config():
+    # implements: FR-ARCH-090
+    """What each rule costs, as the project set it. A missing file means every default."""
+    cfg = {"rules": {}}
+    if not os.path.exists(CONFIG):
+        return cfg, None
+    try:
+        with open(CONFIG, encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except (OSError, ValueError) as exc:
+        return None, "arch/arch-config.json: %s" % exc
+    rules = raw.get("rules", {})
+    if not isinstance(rules, dict):
+        return None, "arch/arch-config.json: `rules` must be an object"
+    for name, severity in rules.items():
+        if name not in RULES:
+            return None, ("arch/arch-config.json: unknown rule %r — this checker publishes %s"
+                          % (name, ", ".join(RULES)))
+        if severity not in SEVERITIES:
+            return None, ("arch/arch-config.json: rule %r is %r, expected %s"
+                          % (name, severity, "/".join(SEVERITIES)))
+    cfg["rules"] = rules
+    return cfg, None
+
+
+def rule_finding(warnings, reports, cfg, rule, text):
+    # implements: FR-ARCH-090
+    """Route one rule's finding by what the project decided it costs."""
+    severity = cfg["rules"].get(rule, "warn")
+    if severity == "off":
+        return
+    (warnings if severity == "warn" else reports).append(text)
+
+
+def read_model():
+    # implements: FR-ARCH-010
+    """The requirement model, through the viewer's published JSON.
+
+    A subprocess rather than an import: the viewer is a command with a promised output, and
+    borrowing its internals would tie this checker to a shape nothing guarantees.
+    """
+    if not os.path.exists(VIEWER):
+        return None, "tools/srs_view.py is not here — the architecture checker reads the " \
+                     "requirement model through it"
+    try:
+        done = subprocess.run([sys.executable, VIEWER, "--json"], stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+    except OSError as exc:
+        return None, "could not run tools/srs_view.py: %s" % exc
+    if done.returncode != 0:
+        return None, "tools/srs_view.py exited %d: %s" % (
+            done.returncode, done.stderr.decode("utf-8", "replace").strip())
+    try:
+        return json.loads(done.stdout.decode("utf-8")), None
+    except ValueError as exc:
+        return None, "tools/srs_view.py produced unreadable JSON: %s" % exc
+
+
+def collect_files():
+    # implements: FR-ARCH-010
+    """Every record file in the layer, subdirectories included."""
+    out = []
+    if not os.path.isdir(ARCH):
+        return out
+    for current, dirs, files in os.walk(ARCH):
+        dirs.sort()
+        for name in sorted(files):
+            if not name.endswith(".md") or name in SKIP_FILES:
+                continue
+            full = os.path.join(current, name)
+            out.append((full, os.path.relpath(full, ROOT)))
+    return sorted(out, key=lambda pair: pair[1])
+
+
+def read_records(errors):
+    # implements: FR-ARCH-010
+    """Every element the layer holds, in the order the files present them."""
+    records = []
+    for full, rel in collect_files():
+        try:
+            with open(full, encoding="utf-8") as handle:
+                text = handle.read()
+        except (OSError, UnicodeDecodeError) as exc:
+            errors.append("%s — cannot read the file: %s" % (rel, exc))
+            continue
+        for entry in srs_parse.parse_entries(text, rel, errors, RE_HEADING):
+            records.append(entry)
+    return records
+
+
+def as_list(value):
+    """A bracketed list as the parser left it, or a single value as a list of one."""
+    if isinstance(value, list):
+        return value
+    if value is None or value == "":
+        return []
+    return [value]
+
+
+def check_records(records, model, errors, warnings, reports, cfg):
+    # implements: FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
+    """Everything decidable from one element and the requirement model."""
+    seen = {}
+    by_id = {r["id"]: r for r in model["requirements"]}
+    for record in records:
+        if not RE_ID.match(record.id):
+            errors.append("%s — identifier does not match E-<NNN>" % record.where)
+            continue
+        if record.id in seen:
+            errors.append("%s — %s is already used at %s" % (record.where, record.id,
+                                                             seen[record.id]))
+            continue
+        seen[record.id] = record.where
+
+        for key in REQUIRED_KEYS:
+            if key not in record.fields:
+                errors.append("%s — required key %r is missing" % (record.where, key))
+        status = record.fields.get("status")
+        if status is not None and status not in STATUSES:
+            errors.append("%s — status %r is not one of %s"
+                          % (record.where, status, ", ".join(STATUSES)))
+
+        cancelled = status in CANCELLED
+        named = as_list(record.fields.get("requirements"))
+        for rid in named:
+            requirement = by_id.get(rid)
+            if requirement is None:
+                errors.append("%s — %s names %s, which the specification does not carry"
+                              % (record.where, record.id, rid))
+                continue
+            if requirement.get("status") in CANCELLED:
+                rule_finding(warnings, reports, cfg, "element-cancelled",
+                             "%s — %s carries %s, which is %s"
+                             % (record.where, record.id, rid, requirement["status"]))
+        # A dissolved part has nothing left to answer for, and saying so
+        # every run is how a report teaches its reader to skim it.
+        if "requirements" in record.fields and not named and not cancelled:
+            rule_finding(warnings, reports, cfg, "element-empty",
+                         "%s — %s carries no requirement, so nothing says what it is for"
+                         % (record.where, record.id))
+
+
+def check_ownership(records, model, warnings, reports, cfg):
+    # implements: FR-ARCH-060, FR-ARCH-070
+    """The two directions of the same decay: a file no part owns, a requirement no part carries.
+
+    Both are computed from what the specification already publishes, so neither needs the language
+    of a file read.
+    """
+    carried = set()
+    claimed = set()
+    for record in records:
+        if not RE_ID.match(record.id):
+            continue
+        if record.fields.get("status") in CANCELLED:
+            continue
+        for path in as_list(record.fields.get("carries")):
+            carried.add(path.rstrip("/"))
+        claimed.update(as_list(record.fields.get("requirements")))
+
+    for requirement in model["requirements"]:
+        if requirement.get("status") not in REALIZED:
+            continue
+        if requirement["id"] not in claimed:
+            rule_finding(warnings, reports, cfg, "requirement-uncarried",
+                         "%s — %s is %s and no element carries it"
+                         % (requirement["path"], requirement["id"], requirement["status"]))
+        for path in (requirement.get("code") or []):
+            if owner_of(path, carried) is None:
+                rule_finding(warnings, reports, cfg, "carrier-unclaimed",
+                             "%s — named by %s and carried by no element"
+                             % (path, requirement["id"]))
+
+
+def owner_of(path, carried):
+    # implements: FR-ARCH-060
+    """The carrier that covers a path: the path itself, or a directory above it.
+
+    A directory in `carries` owns what is under it, so a part is described once rather than
+    re-listed every time a file is added beside its siblings.
+    """
+    if path in carried:
+        return path
+    parts = path.split("/")
+    for depth in range(len(parts) - 1, 0, -1):
+        prefix = "/".join(parts[:depth])
+        if prefix in carried:
+            return prefix
+    return None
+
+
+def render_map(records, model):
+    # implements: FR-ARCH-110, CON-ARCH-020
+    """The map, generated from the records and never edited by hand."""
+    by_id = {r["id"]: r for r in model["requirements"]}
+    out = ["# The map", "",
+           "**Generated by `tools/srs_arch.py`. Do not edit by hand — "
+           "run the command and commit the result.**", "",
+           "What each part of this project is, what it carries and what state it is in.", "",
+           "| Element | Status | Carries | Requirements |", "|---|---|---|---|"]
+    for record in sorted(records, key=lambda r: r.id):
+        if not RE_ID.match(record.id):
+            continue
+        carries = ", ".join("`%s`" % p for p in as_list(record.fields.get("carries"))) or "—"
+        named = as_list(record.fields.get("requirements"))
+        shown = ", ".join("**%s**" % rid for rid in named) or "—"
+        live = sum(1 for rid in named if by_id.get(rid, {}).get("status") in REALIZED)
+        out.append("| **%s** %s | `%s` | %s | %s (%d realized) |"
+                   % (record.id, record.title, record.fields.get("status") or "?",
+                      carries, shown, live))
+    out.append("")
+    out.append("%d elements, carrying %d of the %d requirements this specification holds."
+               % (len([r for r in records if RE_ID.match(r.id)]),
+                  len({rid for r in records for rid in as_list(r.fields.get("requirements"))}),
+                  len(model["requirements"])))
+    out.append("")
+    return "\n".join(out)
+
+
+def main(argv=None):
+    # implements: FR-ARCH-100, IF-ARCH-020
+    args = list(sys.argv[1:] if argv is None else argv)
+    unknown = sorted(set(args) - {"--no-write", "--strict"})
+    if unknown:
+        return fail_setup("unknown flag(s): %s\nusage: srs_arch.py [--no-write] [--strict]"
+                          % " ".join(unknown))
+    strict = "--strict" in args
+    write = "--no-write" not in args
+
+    if not os.path.isdir(ARCH):
+        return fail_setup("arch/ directory not found: %s\nThe architecture layer is optional; "
+                          "install it with tools/srs_init.py --arch yes." % ARCH)
+
+    cfg, problem = load_config()
+    if problem:
+        return fail_setup(problem)
+    model, problem = read_model()
+    if problem:
+        return fail_setup(problem)
+
+    errors, warnings, reports = [], [], []
+    records = read_records(errors)
+    check_records(records, model, errors, warnings, reports, cfg)
+    check_ownership(records, model, warnings, reports, cfg)
+
+    for text in warnings:
+        sys.stdout.write("warning: %s\n" % text)
+    for text in reports:
+        sys.stdout.write("note: %s\n" % text)
+    for text in errors:
+        sys.stdout.write("error: %s\n" % text)
+
+    if errors:
+        sys.stdout.write("\nElements: %d. Errors: %d. (srs_arch %s)\n"
+                         % (len(records), len(errors), __version__))
+        return 1
+
+    if write:
+        with open(MAP, "w", encoding="utf-8") as handle:
+            handle.write(render_map(records, model))
+
+    sys.stdout.write("Elements: %d. Errors: 0. Warnings: %d.%s (srs_arch %s)\n"
+                     % (len(records), len(warnings),
+                        " Map rewritten: %s." % MAP_REL if write else "", __version__))
+    if strict and warnings:
+        sys.stdout.write("strict mode: %d warning(s) treated as errors.\n" % len(warnings))
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

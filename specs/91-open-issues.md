@@ -345,3 +345,26 @@ Citing keeps one copy and one edit; it also means an agent that never follows th
 **Decision needed:** whether the two patterns are one rule applied to different cases — and if so, what distinguishes the cases — or whether one of them should absorb the other.
 Bringing FR-SKILL-170's family onto the cite-once pattern is the larger move and touches three skills; declaring the split deliberate costs a paragraph in `specs/README.md` and leaves the cost where it is.
 FR-SKILL-200 and FR-SKILL-220 are being built on the cite-once pattern meanwhile, which adds two more entries on that side of a split nobody has ruled on.
+
+## A named file that is not there is reported by nobody
+
+**Found:** while building the architecture layer (2026-09-02), on a fixture written to test something else.
+
+**What diverged:** a path that no longer exists can be named by a requirement and by an element, and both checkers stay silent.
+
+The fixture: a requirement carrying `code: [src/a.py, src/gone.py]` where only the first file exists, and an element carrying `carries: [src, src/vanished.py]` where only the directory does.
+`tools/srs_check.py` reported the ordinary findings about that requirement — a missing test, a missing annotation — and said nothing about `src/gone.py`.
+`tools/srs_arch.py` reported nothing at all.
+
+Neither is a bug in either checker: no requirement asks for the reading.
+`FR-CHK-200` holds the *other* direction — a file a requirement names must name it back — and it is scoped to the files the checker reads for annotations, so a path that is not there is not a file it reads.
+`FR-ARCH-060` holds the ownership direction and answers the question "is this file carried", which a vanished file is not asked.
+
+The case is ordinary rather than exotic: a file is renamed or deleted, the requirement's `code` field keeps the old path, and the specification goes on claiming that something is realized somewhere it is not.
+The traceability matrix then publishes the dead path, and `srs_view.py --code <path>` answers about a file nobody has.
+
+**Decision needed:** whether a named path that does not exist is a finding, and if so whose.
+Three answers are available and they are not the same.
+The specification checker could report it, which reaches every project and every field naming a path — `code`, `tests`, and the two the register uses.
+The architecture layer could report it for its own `carries` only, which is narrower and leaves the specification's own fields unwatched.
+Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the specification, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.

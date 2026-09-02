@@ -55,6 +55,21 @@ To change it afterwards, edit the file.
 To be rid of it, delete `grounds/`, `tools/srs_grounds.py` and the `srs-bet` skill.
 Nothing else refers to them.
 
+## The architecture layer
+
+The same promise, kept the same way: an upgrade refreshes the layer's standard, checker and procedure where the project already keeps one, and installs none of it where it does not.
+
+To add one to a project that has none:
+
+```
+python3 path/to/srs-dd/tools/srs_init.py path/to/your-project --arch yes
+```
+
+The layer has one setting, `rules` in `arch/arch-config.json`, and the install asks about none of it: every rule starts at its default and a project lowers what it wants lowered while it is still describing its parts.
+
+To be rid of it, delete `arch/`, `tools/srs_arch.py` and the `srs-arch` skill.
+Nothing else refers to them.
+
 ## The long way
 
 The command above is a wrapper around what the framework's installer has always done, and that path still works when you keep a clone yourself:

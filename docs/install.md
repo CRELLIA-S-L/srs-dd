@@ -76,6 +76,8 @@ Copy into your repository, by hand:
 - `skeleton/specs/` → `specs/` (the starter files), plus `specs/README.md` from this repository — the standard itself;
 - `tools/srs_check.py`, `tools/srs_parse.py`, `tools/srs_view.py`, `tools/srs_upgrade.py` and `tools/srs_baseline.py` — the checker imports the parser from beside itself, so the two travel together (not `srs_init.py` or `srs_release.py`, which stay in the framework repository);
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or `srs-release`, which are framework-only);
+- to keep an architecture layer as well — what the parts are and what each carries — also `skeleton/arch/` → `arch/`, plus `arch/README.md` from this repository, `tools/srs_arch.py` and the `srs-arch` skill.
+  The skeleton carries no `arch/arch-config.json` either: write it as `{"rules": {}}`.
 - to keep a grounds register as well — the hypotheses the requirements rest on — also `skeleton/grounds/` → `grounds/`, plus `grounds/README.md` from this repository, `tools/srs_grounds.py` and the `srs-bet` skill.
   All of it or none of it: the checker, the standard and the procedure only make sense together.
   Declining costs nothing and leaves no trace.

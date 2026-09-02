@@ -123,7 +123,7 @@ derives_from: []
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tests/dates-smoke.sh, tests/grounds-rules.sh, tests/grounds-check.sh, tools/ci_selftest.sh]
+code: [tests/view-smoke.sh, tests/baseline-smoke.sh, tests/release-smoke.sh, tests/installer-smoke.sh, tests/adopt-smoke.sh, tests/upgrade-smoke.sh, tests/checker-rules.sh, tests/dates-smoke.sh, tests/arch-check.sh, tests/arch-rules.sh, tests/grounds-rules.sh, tests/grounds-check.sh, tools/ci_selftest.sh]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```

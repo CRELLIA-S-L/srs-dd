@@ -435,3 +435,60 @@ The instinct is the framework's own: `FR-VIEW-080` forbids the viewer to modify 
 
 The dashboard is not a record.
 It is generated output living in the register, governed by `CON-GND-020`, and writing it is the one thing these commands do inside `grounds/`.
+
+### INV-ARCH-010 — An element is recorded in one direction only
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [arch/README.md]
+tests: []
+created: 2026-09-02
+```
+
+The architecture layer **shall** record which requirements a part carries in the element alone, leaving what carries a requirement to be computed.
+
+**Rationale.** The same rule the register keeps for bets, held for the same reason: a link written on both ends is a link that eventually disagrees with itself, and only one of the two copies is ever updated.
+It also keeps the layer optional in the way that matters — a requirement file says nothing about elements, so removing `arch/` removes the layer and leaves the specification exactly as it was.
+
+### CON-ARCH-010 — The architecture layer writes nowhere else
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-02
+```
+
+The architecture layer's commands **shall not** write to any path outside the layer.
+
+**Rationale.** What makes an optional thing safe to decline is that declining it costs nothing and removing it leaves no trace.
+A tool that edited requirement files, or a configuration outside its own, would make the layer something a project cannot back out of — and this one reads the requirement model precisely so that it never has a reason to write there.
+
+### CON-ARCH-020 — The map is generated
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-110]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-check.sh]
+created: 2026-09-02
+```
+
+The layer's map **shall** be produced by the architecture checker from the elements and never edited by hand.
+
+**Rationale.** A hand-kept map is a second copy of what the records already say, and the copy that gets edited is never the one that gets read.
+Generated, it is also diffable: a committed map that no longer matches what the records produce is a change somebody made without looking at the parts.

@@ -135,7 +135,7 @@ rm -rf /tmp/srs-clean
 # pipeline and hook, and nothing looked at them on the way. Declining either
 # is asserted on targets of its own further down.
 rc=0; python3 tools/srs_init.py /tmp/srs-clean --defaults --ci both \
-      --grounds yes >/dev/null || rc=$?
+      --grounds yes --arch yes >/dev/null || rc=$?
 rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html
@@ -573,3 +573,60 @@ grep -qF "carry no \`created\` date" /tmp/grounds-fresh.log \
 absent "created:" "$GT/specs/10-fr-app.md"
 
 echo "installer-smoke: the grounds register is offered, complete and quiet"
+
+# --- verifies: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150 — the architecture
+# --- layer is offered, arrives whole, and what arrives passes its own gate.
+AT=/tmp/srs-arch-target
+rm -rf "$AT"
+python3 tools/srs_init.py "$AT" --defaults --name "Arch target" \
+    --areas APP --ci none --arch yes > /tmp/arch-fresh.log 2>&1
+for f in arch/README.md arch/arch-config.json arch/00-elements.md \
+         tools/srs_arch.py .claude/skills/srs-arch/SKILL.md; do
+    [ -f "$AT/$f" ] || { echo "FAIL FR-ARCH-120 — the layer arrived without $f"
+                         exit 1; }
+done
+( cd "$AT" && python3 tools/srs_arch.py --no-write --strict ) \
+    > /tmp/arch-strict.log 2>&1 \
+    || { echo "FAIL FR-ARCH-140 — a fresh layer does not pass its own checker"
+         cat /tmp/arch-strict.log; exit 1; }
+[ -f "$AT/arch/90-map.md" ] \
+    || { echo "FAIL FR-ARCH-140 — the install left no map, and a gate compares"
+         echo "the committed one against a fresh run"; exit 1; }
+
+# --- Declined, it leaves no trace at all.
+rm -rf /tmp/srs-noarch
+python3 tools/srs_init.py /tmp/srs-noarch --defaults --areas APP \
+    --ci none --arch no > /dev/null 2>&1
+for f in arch tools/srs_arch.py .claude/skills/srs-arch; do
+    [ -e "/tmp/srs-noarch/$f" ] \
+        && { echo "FAIL FR-ARCH-120 — --arch no still installed $f"; exit 1; }
+done
+
+# --- verifies: FR-ARCH-130 — an upgrade adds it only when asked, and says
+# --- how to ask.
+python3 tools/srs_init.py /tmp/srs-noarch --defaults \
+    > /tmp/arch-upgrade.log 2>&1
+[ -e /tmp/srs-noarch/arch ] \
+    && { echo "FAIL FR-ARCH-130 — an upgrade added the layer unasked"; exit 1; }
+grep -qF -- "--arch yes" /tmp/arch-upgrade.log \
+    || { echo "FAIL FR-ARCH-130 — the upgrade did not say how to add the layer"
+         cat /tmp/arch-upgrade.log; exit 1; }
+python3 tools/srs_init.py /tmp/srs-noarch --defaults --arch yes \
+    > /dev/null 2>&1
+[ -f /tmp/srs-noarch/arch/arch-config.json ] \
+    || { echo "FAIL FR-ARCH-130 — --arch yes did not add the layer"; exit 1; }
+
+# --- An element file a project wrote is never overwritten by an upgrade.
+printf '\n### E-010 — Theirs\n\n```yaml\nstatus: proposed\ncarries: []\nrequirements: []\n```\n\nTheirs.\n' \
+    >> "$AT/arch/00-elements.md"
+before=$(cksum < "$AT/arch/00-elements.md")
+python3 tools/srs_init.py "$AT" --defaults > /dev/null 2>&1
+[ "$(cksum < "$AT/arch/00-elements.md")" = "$before" ] \
+    || { echo "FAIL — an upgrade overwrote an element file the project wrote"
+         exit 1; }
+python3 tools/srs_init.py "$AT" --defaults --arch no > /tmp/arch-no.log 2>&1
+grep -qF "does not remove a layer that is already there" /tmp/arch-no.log \
+    || { echo "FAIL — --arch no was silently ignored on a target that has one"
+         exit 1; }
+
+echo "installer-smoke: the architecture layer is offered, complete and quiet"

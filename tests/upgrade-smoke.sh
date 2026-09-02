@@ -160,6 +160,24 @@ grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
     || { echo "FAIL FR-GND-480 — an upgrade reset the register's period"
          cat "$GU/grounds/grounds-config.json"; exit 1; }
 
+# --- verifies: FR-ARCH-130 — the same promise for the architecture layer,
+# --- through the target's own upgrade command rather than the installer.
+[ -e "$GU/arch" ] && { echo "FAIL — the fixture target already has a layer"
+                       exit 1; }
+( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
+    > /tmp/upgrade-noarch.log 2>&1 \
+    || { echo "FAIL — the upgrade failed"; tail -5 /tmp/upgrade-noarch.log
+         exit 1; }
+[ -e "$GU/arch" ] && { echo "FAIL FR-ARCH-130 — an upgrade added the layer"
+                       echo "to a project that never asked for it"; exit 1; }
+( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" --arch yes ) \
+    > /tmp/upgrade-arch.log 2>&1 \
+    || { echo "FAIL FR-ARCH-130 — the target's own upgrade refused --arch yes"
+         tail -5 /tmp/upgrade-arch.log; exit 1; }
+[ -f "$GU/arch/arch-config.json" ] \
+    || { echo "FAIL FR-ARCH-130 — --arch yes did not add the layer"
+         tail -5 /tmp/upgrade-arch.log; exit 1; }
+
 # What it fetched is removed afterwards, and until now nothing ran that
 # path: every invocation above passes --from, and with --from the upgrader
 # fetches nothing and has no temporary directory to remove, so both

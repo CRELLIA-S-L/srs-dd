@@ -21,6 +21,7 @@ An agent without a skill system reads them directly as workflow guides:
 | `srs-baseline` | Freezing the specification at a milestone |
 | `srs-upgrade` | Picking up a new framework version |
 | `srs-bet` | The grounds register: a hypothesis, a bet, a measurement, a refutation — installed only where the register is |
+| `srs-arch` | The architecture layer: what the parts are, what each carries, and where that description and the specification disagree — installed only where the layer is |
 | `srs-init`, `srs-release` | Setup and releases — stay in the framework repository, never installed |
 
 ## If your tool wants its own rules file

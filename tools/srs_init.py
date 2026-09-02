@@ -110,6 +110,13 @@ GROUNDS_CONFIG = os.path.join("grounds", "grounds-config.json")
 GROUNDS_TOOLS = ("srs_grounds.py",)
 GROUNDS_SKILLS = ("srs-bet",)
 
+# The architecture layer: optional in the same way, its presence read from
+# its own configuration file for the same reason (ADR-0023).
+ARCH_STANDARD = os.path.join("arch", "README.md")
+ARCH_CONFIG = os.path.join("arch", "arch-config.json")
+ARCH_TOOLS = ("srs_arch.py",)
+ARCH_SKILLS = ("srs-arch",)
+
 # implements: FR-INIT-060
 # How the installer tells a file it wrote from one the project wrote.
 # Shipped files carry the token; `copy` stamps the running version into
@@ -230,6 +237,9 @@ def parse_args():
                         default=None,
                         help="the unit the grounds dashboard counts "
                              "unclaimed arrivals in")
+    parser.add_argument("--arch", choices=("yes", "no"), default=None,
+                        help="install the architecture layer: the parts the "
+                             "system is made of and what each one carries")
     parser.add_argument("--grounds", choices=("yes", "no"), default=None,
                         help="install the grounds register: the hypotheses "
                              "the requirements rest on. Declined, nothing "
@@ -658,6 +668,75 @@ def undated_hint(target):
         "it\n" % (undated, seen))
 
 
+def has_arch(target):
+    # implements: FR-ARCH-130
+    """Whether this project carries the architecture layer."""
+    return os.path.exists(os.path.join(target, ARCH_CONFIG))
+
+
+def collect_arch_skeleton():
+    """(source, destination) pairs of the layer skeleton.
+
+    The standard comes from arch/ for the reason specs/README.md comes from
+    specs/: one canonical copy, kept in the place it describes.
+    """
+    result = []
+    base = os.path.join(ROOT, SKELETON, "arch")
+    if os.path.isdir(base):
+        for name in sorted(os.listdir(base)):
+            if name.endswith(SKELETON_SUFFIXES):
+                result.append((os.path.join(SKELETON, "arch", name),
+                               os.path.join("arch", name)))
+    result.append((ARCH_STANDARD, ARCH_STANDARD))
+    return sorted(result, key=lambda pair: pair[1])
+
+
+def arch_config_json():
+    """The layer's configuration. Every rule at its default; a project
+    lowers what it wants lowered while it is still describing its parts."""
+    return '{\n  "rules": {}\n}\n'
+
+
+def install_arch(installer, substitute=None):
+    # implements: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150
+    """The layer, its checker and its procedure — all or none of them.
+
+    Declined, this writes nothing at all: a target that said no is
+    byte-for-byte a target that was never asked.
+    """
+    installer.put(ARCH_CONFIG, arch_config_json(), tooling=False)
+    for src, dst in collect_arch_skeleton():
+        standard = dst == ARCH_STANDARD
+        installer.copy(src, dst, tooling=standard, precious=standard,
+                       substitute=substitute)
+    for name in ARCH_TOOLS:
+        rel = os.path.join("tools", name)
+        installer.copy(rel, rel, tooling=True)
+    for skill in ARCH_SKILLS:
+        rel = os.path.join(".claude", "skills", skill, "SKILL.md")
+        if os.path.exists(os.path.join(ROOT, rel)):
+            installer.copy(rel, rel, tooling=True, substitute=substitute)
+
+
+def run_target_arch(target):
+    # implements: FR-ARCH-140
+    """The target's own architecture checker, on what was just installed.
+
+    It writes the map, which a gate compares against a fresh run — a target
+    whose first commit has no map would fail that gate before anybody had
+    written a single element. Not `--strict`, for the reason the grounds
+    checker is not run strictly either: a project that has just installed
+    the layer owns no parts yet, and every carrier is unclaimed until it
+    does.
+    """
+    checker = os.path.join(target, "tools", "srs_arch.py")
+    if not os.path.exists(checker):
+        return 0
+    sys.stdout.write("\nRunning the architecture checker in the target:\n")
+    sys.stdout.flush()
+    return subprocess.call([sys.executable, checker])
+
+
 def run_target_grounds(target):
     # implements: FR-GND-300
     """The target's own grounds checker, on what was just installed.
@@ -1003,6 +1082,15 @@ def collect_settings(args, batch, area_default):
                          % grounds)
         return None
     settings["grounds"] = grounds == "yes"
+    # implements: FR-ARCH-120
+    arch = args.arch or ("no" if batch else ask(
+        "Keep an architecture layer — the parts the system is made of? "
+        "(yes/no)", "no", batch))
+    if arch not in ("yes", "no"):
+        sys.stderr.write("Unknown answer %r for the architecture layer.\n"
+                         % arch)
+        return None
+    settings["arch"] = arch == "yes"
     # implements: FR-GND-480
     # What counts as "lately" is the project's rhythm, and the dashboard
     # counts arrivals in it. Asked only where the register is wanted.
@@ -1121,6 +1209,8 @@ def run_fresh(args, target, batch):
     install_tools(installer)
     if settings["grounds"]:
         install_grounds(installer, substitute, settings["period"])
+    if settings["arch"]:
+        install_arch(installer, substitute)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
     install_skills(installer, substitute)
@@ -1140,6 +1230,8 @@ def run_fresh(args, target, batch):
         undated_hint(target)
     if result == 0 and settings["grounds"]:
         result = run_target_grounds(target)
+    if result == 0 and settings["arch"]:
+        result = run_target_arch(target)
     if result == 0:
         sys.stdout.write(
             "\nFirst steps:\n"
@@ -1204,6 +1296,8 @@ def install_adopt_files(installer, settings, substitute, target,
     install_tools(installer, skip=tools_skip)
     if settings["grounds"]:
         install_grounds(installer, substitute, settings["period"])
+    if settings["arch"]:
+        install_arch(installer, substitute)
     install_skills(installer, substitute)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,
                    precious=True)
@@ -1358,6 +1452,8 @@ def run_adopt(args, target, batch, found_areas):
         undated_hint(target)
     if result == 0 and settings["grounds"]:
         result = run_target_grounds(target)
+    if result == 0 and settings["arch"]:
+        result = run_target_arch(target)
     if result == 0:
         sys.stdout.write(
             "\nNext steps: commit the regenerated "
@@ -1433,6 +1529,24 @@ def run_upgrade(args, target):
         sys.stdout.write(
             "This project carries no grounds register. To add one: "
             "re-run with --grounds yes.\n")
+    # implements: FR-ARCH-130
+    # The same promise for the architecture layer: refreshed where it is,
+    # added only when this run was told to add it.
+    if has_arch(target):
+        if args.arch == "no":
+            sys.stdout.write(
+                "Note: --arch no does not remove a layer that is already "
+                "there; it is refreshed like the rest of the tooling. To be "
+                "rid of it, delete arch/, tools/srs_arch.py and the srs-arch "
+                "skill.\n")
+        install_arch(installer)
+    elif args.arch == "yes":
+        sys.stdout.write("Adding the architecture layer, as asked.\n")
+        install_arch(installer)
+    elif args.arch is None:
+        sys.stdout.write(
+            "This project carries no architecture layer. To add one: "
+            "re-run with --arch yes.\n")
     install_skills(installer, substitute=None)
     if args.ci:
         install_ci(installer, args.ci)
@@ -1447,6 +1561,8 @@ def run_upgrade(args, target):
         undated_hint(target)
     if result == 0 and has_grounds(target):
         result = run_target_grounds(target)
+    if result == 0 and has_arch(target):
+        result = run_target_arch(target)
     if result == 0 and old_version != __version__:
         sys.stdout.write(
             "\nNext steps: commit the refreshed tooling and the "

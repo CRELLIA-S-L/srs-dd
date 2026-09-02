@@ -1,6 +1,6 @@
 ---
 name: srs-check
-description: Name and run the checks a finished change calls for — the specification checker, the grounds checker where the project keeps a register, the tests the requirements it touched list in their own fields, and what a person has to look at where the method is not a test. Invoke when the user asks to check, verify or review work before committing, or when a change is finished and nothing has been run yet. Offers; never runs a suite unasked.
+description: Name and run the checks a finished change calls for — the specification checker, the grounds checker where the project keeps a register, the architecture checker where it keeps the layer, the tests the requirements it touched list in their own fields, and what a person has to look at where the method is not a test. Invoke when the user asks to check, verify or review work before committing, or when a change is finished and nothing has been run yet. Offers; never runs a suite unasked.
 ---
 
 # Checking a finished change
@@ -25,6 +25,8 @@ Every requirement carries a `verification` method and the paths that verify it, 
 
    - **the checker** — always, for every change to `specs/`:
      `python3 tools/srs_check.py`;
+   - **the architecture checker**, where the project carries the layer — an `arch/` directory beside `specs/`: `python3 tools/srs_arch.py`.
+     It regenerates `arch/90-map.md` on the same terms as the dashboard below, and a change that moved a file between parts is exactly what it reports.
    - **the grounds checker**, where the project carries a register — a `grounds/` directory beside `specs/`: `python3 tools/srs_grounds.py`.
      It regenerates `grounds/90-dashboard.md`, and the project's gate fails on a committed copy that no longer matches, so a change that moved a requirement or a record and did not run this hands back work that passes everything else and reddens the pipeline.
      Where there is no register the command is not there, and this line does not apply — say nothing about it;

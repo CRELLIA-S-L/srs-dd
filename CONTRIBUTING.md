@@ -33,7 +33,7 @@ Two directories are easy to confuse, and the difference is the one rule ART-070 
   A requirement of ours landing here fails a stranger's checker on their first install, pointing at files that do not exist in their project.
   An identifier merely cited in the prose fails nothing, which is what makes it worse: in a project that declares that area it resolves, to their requirement, saying something else (CON-SPEC-020).
 
-The tooling that travels — `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, and `srs_grounds.py` where a project keeps a register — is annotated here like everything else and arrives without it: the installer replaces every `implements:`/ `verifies:` line as it copies, leaving the line where it was (FR-INIT-180, ADR-0022).
+The tooling that travels — `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_grounds.py` where a project keeps a register, and `srs_arch.py` where it keeps an architecture layer — is annotated here like everything else and arrives without it: the installer replaces every `implements:`/ `verifies:` line as it copies, leaving the line where it was (FR-INIT-180, ADR-0022).
 So annotate them freely: those lines are half of a two-way check, and it runs here, where the requirements are.
 What not to do is quiet one with `srs-ignore`, whose exemption is unconditional and would silence it here as well.
 `tools/srs_init.py`, `tools/ci_selftest.sh` and `tests/` never leave this repository.
@@ -66,7 +66,7 @@ Three things outside this repository depend on what is inside it, and all three 
 - An `### Upgrade notes` entry stands on its own.
   The installer prints that section and nothing around it, so "see the list above", "the fix described earlier" and their kind reach the reader as dangling references — spell the thing out instead.
 - If your change affects the generated matrix, commit the regenerated `specs/90-traceability.md` in the same change set — CI compares it byte-for-byte.
-- No two sources of truth: if a rule is stated in a standard — `specs/README.md`, `grounds/README.md` where a register is kept, and `AGENTS.md` for the form of a reference to a requirement — other documents may point at it but must not restate it.
+- No two sources of truth: if a rule is stated in a standard — `specs/README.md`, `grounds/README.md` where a register is kept, `arch/README.md` where an architecture layer is kept, and `AGENTS.md` for the form of a reference to a requirement — other documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
 - **Line width: 120 columns in code, none in markdown, none over what the tools print.**
   Python, shell and YAML wrap at 120 — the hooks included, which are shell without the extension to say so.
