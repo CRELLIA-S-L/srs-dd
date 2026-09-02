@@ -14,6 +14,7 @@ format. The layer's own records go through tools/srs_parse.py, the one reader bo
 Nothing here writes outside arch/: declining the layer, or deleting it, has to cost nothing.
 """
 # implements: FR-ARCH-010, IF-ARCH-020, CON-ARCH-010
+import ast
 import json
 import os
 import re
@@ -59,7 +60,8 @@ REALIZED = ("implemented", "partial")
 # implements: IF-ARCH-030
 # Published names: a project writes them into arch/arch-config.json, so one is never renamed and
 # never given to a different rule.
-RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty")
+RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
+         "dependency-undeclared")
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
 SEVERITIES = ("warn", "report", "off")
@@ -262,6 +264,110 @@ def owner_of(path, carried):
     return None
 
 
+def python_modules(records):
+    # implements: FR-ARCH-200
+    """Every Python file the layer carries, as path -> element, plus the names that resolve.
+
+    Two maps rather than one, because a bare module name is not unique: `a/util.py` and
+    `b/util.py` both answer to `util`, and a dictionary keyed by the name would report the import
+    against whichever file was read last. A name only one carried file answers to resolves; the
+    rest are left alone, which is the same rule the unresolvable import gets.
+    """
+    by_path = {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        for path in as_list(record.fields.get("carries")):
+            full = os.path.join(ROOT, path)
+            if os.path.isfile(full) and path.endswith(".py"):
+                by_path[path] = record.id
+            elif os.path.isdir(full):
+                for current, dirs, files in os.walk(full):
+                    dirs[:] = [d for d in dirs if not d.startswith(".")]
+                    for name in sorted(files):
+                        if name.endswith(".py"):
+                            rel = os.path.relpath(os.path.join(current, name), ROOT)
+                            by_path[rel] = record.id
+    by_name = {}
+    for path in sorted(by_path):
+        by_name.setdefault(os.path.basename(path)[:-3], []).append(path)
+    # A name two carried files answer to resolves to neither: reporting it against whichever file
+    # was read last is how this rule would name an element the importer never touched.
+    unique = {name: paths[0] for name, paths in by_name.items() if len(paths) == 1}
+    return by_path, unique
+
+
+def imports_of(path):
+    # implements: FR-ARCH-200
+    """The module names one file imports, as written."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            tree = ast.parse(handle.read())
+    except (OSError, UnicodeDecodeError, SyntaxError):
+        return []
+    names = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.append(node.module)
+    return [name.split(".")[0] for name in names]
+
+
+def check_conformance(records, warnings, reports, cfg):
+    # implements: FR-ARCH-200
+    """The declared model against the one the code has.
+
+    One direction only, as the requirement states it: an edge the code has and the model does not.
+    The other direction — a declared edge nothing in the code walks — is a different reading and
+    has no rule here.
+    """
+    by_path, unique = python_modules(records)
+    declared = {}
+    for record in records:
+        if RE_ID.match(record.id):
+            declared[record.id] = set(as_list(record.fields.get("depends_on")))
+    seen = set()
+    for path in sorted(by_path):
+        element = by_path[path]
+        for name in imports_of(os.path.join(ROOT, path)):
+            target_path = unique.get(name)
+            if target_path is None:
+                continue
+            target = by_path[target_path]
+            if target == element or target in declared.get(element, set()):
+                continue
+            if (element, target) in seen:
+                continue
+            seen.add((element, target))
+            rule_finding(warnings, reports, cfg, "dependency-undeclared",
+                         "%s — imports %s, carried by %s, and %s does not declare it"
+                         % (path, name, target, element))
+
+
+def print_drivers(model, limit=10):
+    # implements: FR-ARCH-210
+    """The requirements that lead, by what makes a requirement drive structure.
+
+    Incoming links first — over this repository the ones that took part in an architecture
+    decision carry three times as many — and the type as the tie-break, because an interface or
+    an invariant constrains structure by construction. Candidates for a person to accept: the
+    trade-off nobody wrote down is not in the model to be found.
+    """
+    incoming = model.get("incoming", {})
+    weight = {"IF": 0, "INV": 1, "CON": 2, "NFR": 3, "FR": 4}
+    ranked = sorted(model["requirements"],
+                    key=lambda r: (-len(incoming.get(r["id"], [])),
+                                   weight.get(r["id"].split("-")[0], 9), r["id"]))
+    sys.stdout.write("Architectural drivers, most constrained first. "
+                     "A design is worked against a few of these, not all of them.\n\n")
+    for entry in ranked[:limit]:
+        sys.stdout.write("%s — %s (%s, %s)\n    %d incoming, type %s\n"
+                         % (entry["id"], entry["title"], entry["path"], entry["status"],
+                            len(incoming.get(entry["id"], [])), entry["id"].split("-")[0]))
+    return 0
+
+
 def render_map(records, model):
     # implements: FR-ARCH-110, CON-ARCH-020
     """The map, generated from the records and never edited by hand."""
@@ -293,9 +399,10 @@ def render_map(records, model):
 def main(argv=None):
     # implements: FR-ARCH-100, IF-ARCH-020
     args = list(sys.argv[1:] if argv is None else argv)
-    unknown = sorted(set(args) - {"--no-write", "--strict"})
+    unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers"})
     if unknown:
-        return fail_setup("unknown flag(s): %s\nusage: srs_arch.py [--no-write] [--strict]"
+        return fail_setup("unknown flag(s): %s\n"
+                          "usage: srs_arch.py [--no-write] [--strict] [--drivers]"
                           % " ".join(unknown))
     strict = "--strict" in args
     write = "--no-write" not in args
@@ -311,10 +418,14 @@ def main(argv=None):
     if problem:
         return fail_setup(problem)
 
+    if "--drivers" in args:
+        return print_drivers(model)
+
     errors, warnings, reports = [], [], []
     records = read_records(errors)
     check_records(records, model, errors, warnings, reports, cfg)
     check_ownership(records, model, warnings, reports, cfg)
+    check_conformance(records, warnings, reports, cfg)
 
     for text in warnings:
         sys.stdout.write("warning: %s\n" % text)

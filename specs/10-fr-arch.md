@@ -293,14 +293,14 @@ Shipped without it, a project gets a checker for a description nobody was told h
 ### FR-ARCH-200 — A dependency the model does not declare is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 
@@ -314,14 +314,14 @@ Conceptual links between requirements are not call edges, and no rule can turn o
 ### FR-ARCH-210 — The drivers are computed, not chosen by taste
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 

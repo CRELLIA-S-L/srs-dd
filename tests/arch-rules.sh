@@ -4,7 +4,7 @@
 #
 # verifies: FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
-# verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010
+# verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
 #
 # Two of these pass silently if the rule underneath them is deleted, and they
 # are why this file exists rather than a smoke test: a lowered rule must stop
@@ -378,6 +378,146 @@ rule "IF-ARCH-020 unknown flag" 2 "unknown flag(s): --nope" --nope
 mv "$LAB/tools/srs_view.py" "$LAB/tools/srs_view.hidden"
 rule "IF-ARCH-020 no viewer to read the model through" 2 "tools/srs_view.py is not here"
 mv "$LAB/tools/srs_view.hidden" "$LAB/tools/srs_view.py"
+
+# --- verifies: FR-ARCH-200 — a dependency the code has and the model does not.
+# --- Its own source files, because the ownership fixtures above carry no imports.
+printf 'import b\n' > "$LAB/src/a.py"
+printf 'x = 1\n' > "$LAB/src/b.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Imports the second.
+
+### E-020 — The second
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Imported.
+MD
+rule "FR-ARCH-200 undeclared dependency" 0 "and E-010 does not declare it"
+
+# --- Declared, the same code is silent: the model and the imports agree.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+```
+
+Imports the second, and says so.
+
+### E-020 — The second
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Imported.
+MD
+silent "FR-ARCH-200 a declared dependency is silent" 0 "does not declare it"
+
+# --- An import that resolves to no carried file is not reported: the rule
+# --- speaks only about what it can prove.
+printf 'import json\nimport b\n' > "$LAB/src/a.py"
+silent "FR-ARCH-200 an unresolvable import is left alone" 0 "imports json"
+printf 'import b\n' > "$LAB/src/a.py"
+
+# --- A module name two elements answer to is resolved beside the importer,
+# --- not by whichever file was read last. Without this the rule reports an
+# --- import against an element the file never touched.
+# The importing element's own directory sorts after the other one on purpose: a
+# resolver that picks any single file for an ambiguous name picks the wrong one
+# here, and the silence below would come from luck rather than from the rule.
+mkdir -p "$LAB/alpha" "$LAB/zeta"
+printf 'import util\n' > "$LAB/zeta/main.py"
+printf 'x = 1\n' > "$LAB/zeta/util.py"
+printf 'y = 2\n' > "$LAB/alpha/util.py"
+elements <<'MD'
+# Elements
+
+### E-010 — One
+
+```yaml
+status: built
+carries: [zeta, src]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Has a util of its own.
+
+### E-020 — Two
+
+```yaml
+status: built
+carries: [alpha]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Has a util of its own too.
+MD
+silent "FR-ARCH-200 a name two elements answer to is left unresolved" 0 \
+       "imports util"
+
+# --- And a genuine cross-element import is still reported.
+printf 'z = 3\n' > "$LAB/alpha/other.py"
+printf 'import util\nimport other\n' > "$LAB/zeta/main.py"
+rule "FR-ARCH-200 a real cross-element import still speaks" 0 \
+     "imports other, carried by E-020, and E-010 does not declare it"
+rm -rf "$LAB/alpha" "$LAB/zeta"
+
+# --- verifies: FR-ARCH-210 — the drivers are ranked, not chosen by taste.
+cat >> "$LAB/specs/10-fr-core.md" <<'MD'
+
+### FR-CORE-040 — Leans on the first
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CORE-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-02
+```
+
+The system **shall** lean.
+MD
+( cd "$LAB" && python3 tools/srs_arch.py --drivers ) > /tmp/srs-arch-drivers.log 2>&1 \
+    || { echo "FAIL FR-ARCH-210 — --drivers exited non-zero"
+         cat /tmp/srs-arch-drivers.log; exit 1; }
+head -3 /tmp/srs-arch-drivers.log | grep -qF "FR-CORE-010" \
+    || { echo "FAIL FR-ARCH-210 — the most linked requirement does not lead"
+         cat /tmp/srs-arch-drivers.log; exit 1; }
+grep -qF "1 incoming" /tmp/srs-arch-drivers.log \
+    || { echo "FAIL FR-ARCH-210 — the ranking does not say what it counted"
+         cat /tmp/srs-arch-drivers.log; exit 1; }
+passes=$((passes + 1))
 
 # --- verifies: CON-ARCH-010 — a run writes inside the layer and nowhere else.
 elements <<'MD'

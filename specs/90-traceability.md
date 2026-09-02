@@ -8,9 +8,9 @@ Total requirements: 210.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 2 |
+| `deferred` | 0 |
 | `partial` | 0 |
-| `implemented` | 208 |
+| `implemented` | 210 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -41,8 +41,8 @@ Total requirements: 210.
 | **FR-ARCH-130** The layer is added deliberately, never silently | `implemented` | T | `tools/srs_init.py`<br>`tools/srs_upgrade.py` | `tests/installer-smoke.sh`<br>`tests/upgrade-smoke.sh` |
 | **FR-ARCH-140** A fresh layer is one its own checker accepts | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-ARCH-150** The architecture procedure travels with the project | `implemented` | T | `tools/srs_init.py`<br>`.claude/skills/srs-arch/SKILL.md` | `tests/installer-smoke.sh` |
-| **FR-ARCH-200** A dependency the model does not declare is reported | `deferred` | T | — | — |
-| **FR-ARCH-210** The drivers are computed, not chosen by taste | `deferred` | T | — | — |
+| **FR-ARCH-200** A dependency the model does not declare is reported | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
+| **FR-ARCH-210** The drivers are computed, not chosen by taste | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |

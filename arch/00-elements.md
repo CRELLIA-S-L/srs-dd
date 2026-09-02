@@ -51,7 +51,7 @@ Upgrade lives with install because the two share the rules about what is preciou
 status: built
 carries: [tools/srs_baseline.py, tools/srs_release.py, tools/srs_dates.py, CHANGELOG.md]
 requirements: [CON-SPEC-030, FR-CI-070, FR-INIT-110, FR-SPEC-010, FR-SPEC-020, INV-SPEC-030, INV-SPEC-040, NFR-SPEC-010]
-depends_on: [E-020]
+depends_on: [E-010, E-020]
 ```
 
 Freezes the specification at a milestone, cuts a release of the framework, and dates a specification from its own history.
@@ -64,7 +64,7 @@ Freezes the specification at a milestone, cuts a release of the framework, and d
 status: built
 carries: [tools/srs_grounds.py, grounds/README.md, grounds/90-dashboard.md]
 requirements: [CON-GND-010, CON-GND-020, CON-GND-030, CON-SPEC-030, FR-GND-010, FR-GND-020, FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060, FR-GND-070, FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-110, FR-GND-120, FR-GND-130, FR-GND-140, FR-GND-150, FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-190, FR-GND-200, FR-GND-210, FR-GND-220, FR-GND-230, FR-GND-240, FR-GND-250, FR-GND-260, FR-GND-270, FR-GND-310, FR-GND-390, FR-GND-400, FR-GND-410, FR-GND-420, FR-GND-430, FR-GND-450, FR-GND-460, FR-GND-470, FR-GND-490, FR-GND-500, FR-GND-510, FR-GND-520, FR-SKILL-020, IF-GND-010, IF-GND-020, IF-GND-030, INV-GND-010, INV-GND-020, INV-GND-030, INV-GND-040, NFR-SPEC-010]
-depends_on: [E-020]
+depends_on: [E-010, E-020]
 ```
 
 The optional register of what the requirements rest on: hypotheses, bets, measurements and the dashboard computed from them.
@@ -76,8 +76,8 @@ The optional register of what the requirements rest on: hypotheses, bets, measur
 ```yaml
 status: built
 carries: [tools/srs_arch.py, arch/README.md]
-requirements: [CON-ARCH-010, CON-ARCH-020, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, INV-ARCH-010]
-depends_on: [E-020]
+requirements: [CON-ARCH-010, CON-ARCH-020, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, INV-ARCH-010]
+depends_on: [E-010, E-020]
 ```
 
 This layer: which parts the system is made of, what each carries, and the disagreements between that description and the specification.
