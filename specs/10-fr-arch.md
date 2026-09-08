@@ -112,12 +112,21 @@ tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 
-Where a requirement names a file that no element carries, the architecture checker **shall** report it as a warning naming the file.
+Where an `implemented` or `partial` requirement names a file in its `code` field and no element carries it, the architecture checker **shall** report it as a warning naming the file.
 
 **Rationale.** This is the half of the description that decays without anybody noticing: a file is added to a requirement's `code` field by whoever is changing behaviour, and no part of the system claims it.
 The reading is three-sided — the specification says the file realizes a requirement, the element says which part the file belongs to, and the disagreement is between them rather than inside either.
 Requirements name more than code here: the standard, the procedures, the CI templates and the payload all appear in `code` fields, so an element set that covers only source files makes this rule fire on half the repository.
 That is a fact about how coarsely the parts are cut, not a reason to narrow the rule.
+
+The `code` field and not `tests`, and the statement says so rather than leaving it to be discovered from the source.
+A test file is named by a requirement too, and whether a suite belongs to the part it exercises or to the gate that runs them all is a question about how a system is cut, not a gap in this rule.
+Answering it costs every project an assignment for every suite it has; where that is wanted it is a requirement of its own, not a widening of this one.
+
+Realized and not merely written, which the statement said nothing about while the code filtered on it from the first commit.
+The rule shares a loop with `FR-ARCH-070`, whose own sentence names the filter, so the omission here was an inheritance rather than a decision — and an inheritance nothing could report, because a rule narrower than its sentence fires correctly on everything anybody tried.
+What it gives up is a `draft` or `deferred` requirement whose `code` field already names a file no element carries.
+That belongs to the checker `FR-CHK-070` already speaks for: implementation ahead of approval is one finding, and a second voice from the layer would say the same thing about the same file.
 
 ### FR-ARCH-070 — A realized requirement no element carries is reported
 
@@ -317,6 +326,30 @@ Both exist because the layer is worth nothing if it is written once and never op
 No command is added for it.
 The map already states, for every element, the files it carries, and a path is found in it the way any path is found in a text file.
 A dedicated query would be a second way to ask a question the map answers, and this framework builds nothing for a requirement that does not exist yet.
+
+### FR-ARCH-170 — The map is compared, not trusted
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [CON-ARCH-020]
+refines: []
+conflicts_with: []
+code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml]
+tests: [tests/arch-check.sh, tests/installer-smoke.sh]
+created: 2026-09-08
+```
+
+Where a project carries an architecture layer, its gate **shall** regenerate the map and fail when the committed copy differs from it.
+
+**Rationale.** `CON-ARCH-020` says the map is generated and never edited by hand; this is what makes that true rather than hoped for.
+Generated output that nothing compares is output somebody will eventually edit, and what this one carries — which part answers for a file, which requirements a part holds — is exactly what an edit would quietly change.
+
+This repository already has the comparison: `tests/arch-check.sh` regenerates the map into a copy and fails on a difference.
+A project that installed the layer had nothing of the kind, so the obligation `CON-ARCH-020` states held here and nowhere else — and the map is committed in every project that keeps the layer, which is what made the gap invisible.
+
+It lives in this area rather than among the requirements about gates for the reason `FR-GND-370` gives for the register: what it is about is the layer's own integrity, and the gate is where that happens rather than what it concerns.
 
 ### FR-ARCH-200 — A dependency the model does not declare is reported
 

@@ -39,7 +39,7 @@ It means the behavior is not described, and a requirement must be created first.
 python3 tools/srs_grounds.py --blast <path/to/file>
 ```
 
-It names the bets on the requirements those files define, and the state of the hypotheses under them.
+It names the bets on the requirements those files belong to — the ones written there, and the ones naming the file in their `code` or `tests` fields — and the state of the hypotheses under them.
 A requirement standing on something `refuted` or `expired` is not a reason to stop; it is a reason to say so, because whatever you are about to build on it inherits the same ground.
 Where the project has no register the command is not there, and this step does not apply.
 The procedure for the register itself is `srs-bet`.

@@ -47,6 +47,20 @@ jobs:
             fi
           fi
 
+      # Only where the project keeps an architecture layer; the step is
+      # inert everywhere else. The map is generated and committed, so a
+      # stale one means the parts moved and nobody looked.
+      - name: Architecture layer
+        run: |
+          if [ -f arch/arch-config.json ]; then
+            python3 tools/srs_arch.py
+            git add -N arch/90-map.md
+            if ! git diff --exit-code -- arch/90-map.md; then
+              echo "arch/90-map.md is stale — run: python3 tools/srs_arch.py and commit the result"
+              exit 1
+            fi
+          fi
+
       # The readable specification as one self-contained HTML file,
       # downloadable from the run's Artifacts. Delete these two steps if
       # you do not want it.

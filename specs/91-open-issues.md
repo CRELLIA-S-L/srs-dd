@@ -346,25 +346,36 @@ Citing keeps one copy and one edit; it also means an agent that never follows th
 Bringing FR-SKILL-170's family onto the cite-once pattern is the larger move and touches three skills; declaring the split deliberate costs a paragraph in `specs/README.md` and leaves the cost where it is.
 FR-SKILL-200 and FR-SKILL-220 are being built on the cite-once pattern meanwhile, which adds two more entries on that side of a split nobody has ruled on.
 
-## A named file that is not there is reported by nobody
+**2026-09-08.** An audit finished `FR-SKILL-200`'s set: `srs-release` was the ninth procedure that names requirements to a person, and the only one carrying no line.
+It adds no entry to either side — the rule was already on the cite-once side, and this completes it rather than choosing again.
+
+It also does not bear on the split, and that is worth recording so nobody tries it as evidence.
+The one thing that came out of it looks like an argument at first: `srs-release` names identifiers in two places and the rule binds only one of them — the diff shown to the maintainer, not the changelog section, where the format is parsed by the installer and a citation would carry a status into a record nobody re-dates.
+An exception, in other words, and the cite-once pattern is supposed to be the one where an exception is stated where the rule lives and inherited everywhere.
+It was not: the sentence is in `srs-release` and `AGENTS.md` says nothing about it, because the exception belongs to the only procedure that writes a changelog and would sit there under either pattern.
+A case that distinguishes the two would be an exception several procedures share.
+
+## An element can carry a path that is not there
 
 **Found:** while building the architecture layer (2026-09-02), on a fixture written to test something else.
+**Corrected:** 2026-09-08 — half of what this entry claimed was already false when it was written, and the correction is below.
 
-**What diverged:** a path that no longer exists can be named by a requirement and by an element, and both checkers stay silent.
-
-The fixture: a requirement carrying `code: [src/a.py, src/gone.py]` where only the first file exists, and an element carrying `carries: [src, src/vanished.py]` where only the directory does.
-`tools/srs_check.py` reported the ordinary findings about that requirement — a missing test, a missing annotation — and said nothing about `src/gone.py`.
-`tools/srs_arch.py` reported nothing at all.
-
-Neither is a bug in either checker: no requirement asks for the reading.
-`FR-CHK-200` holds the *other* direction — a file a requirement names must name it back — and it is scoped to the files the checker reads for annotations, so a path that is not there is not a file it reads.
+**What diverged:** an element's `carries` may name a path that does not exist, and the architecture checker stays silent.
+The fixture: an element carrying `carries: [src, src/vanished.py]` where only the directory does.
+`tools/srs_arch.py` reported nothing at all, which is not a bug in it — no requirement asks for the reading.
 `FR-ARCH-060` holds the ownership direction and answers the question "is this file carried", which a vanished file is not asked.
 
-The case is ordinary rather than exotic: a file is renamed or deleted, the requirement's `code` field keeps the old path, and the specification goes on claiming that something is realized somewhere it is not.
-The traceability matrix then publishes the dead path, and `srs_view.py --code <path>` answers about a file nobody has.
+**What this entry got wrong.** It said the same of the specification checker, and that was never true.
+`FR-CHK-055` reports a `code` or `tests` entry naming an absent path as an **error**, and has since baseline 0.14.0 — two weeks before this entry was written.
+Run against a requirement carrying `code: [src/a.py, src/gone.py]`, `tools/srs_check.py` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
+The entry was written from the architecture layer's fixture outward, and the claim about the other checker was inferred rather than run; the requirement that answers it is one line in `10-fr-chk.md`, the file the entry had already opened to cite `FR-CHK-200`.
+That is the failure mode *A procedure states what another procedure does without reading it* names above, arriving in the register the entry itself lives in.
 
-**Decision needed:** whether a named path that does not exist is a finding, and if so whose.
-Three answers are available and they are not the same.
-The specification checker could report it, which reaches every project and every field naming a path — `code`, `tests`, and the two the register uses.
-The architecture layer could report it for its own `carries` only, which is narrower and leaves the specification's own fields unwatched.
-Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the specification, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.
+The remaining case is ordinary rather than exotic: a file is renamed or deleted, the element's `carries` keeps the old path, and the map goes on publishing a part that owns something nobody has.
+The specification's own side of it is covered and fails the build; the layer's side is silent.
+
+**Decision needed:** whether a path an element names and nobody has is a finding.
+Two answers, the third having been built already.
+The architecture layer could report it for `carries`, which makes the layer say about its own field what `FR-CHK-055` already says about the specification's — the symmetric answer, and the cheap one.
+Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the description, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.
+That second answer is harder to hold now than it was: the specification checker already reads the disk for exactly this, so the cost it warns about is one this project has already accepted once.

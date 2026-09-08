@@ -17,7 +17,8 @@ What this procedure is for is the two things the command will not decide: which 
    python3 tools/srs_view.py --diff <newest version in specs/92-baselines.md>
    ```
 
-   The first says what was done since the last release, the second what it did to the specification — requirements added, removed, or reworded.
+   The first says what was done since the last release, the second what it did to the specification — requirements added, removed, or reworded, each named as `AGENTS.md` asks at its first mention, which `python3 tools/srs_view.py --cite <ID>…` prints.
+   The maintainer settles a version number off this list in the next step, and a bare number is a lookup per line before they can judge anything (FR-SKILL-200).
    Read the baseline out of the log rather than out of `git describe`: the log is what records a baseline, and a tag for it may never have been made (INV-SPEC-040).
    Where release tags exist, filter for them — `v*` — because an unfiltered `git describe` answers with whichever namespace came last.
 
@@ -33,7 +34,9 @@ What this procedure is for is the two things the command will not decide: which 
    The shape of that section is a contract the installer parses: it is stated in the comment at the top of `CHANGELOG.md`, and the ground rules in `CONTRIBUTING.md` say what an upgrade note owes its reader.
    Read both before writing — an entry that ignores them still passes the checker and reaches the reader in pieces, because an upgrade prints one sentence per entry and the notes section alone.
 
-   Name the requirement identifiers the release implements.
+   Name the requirement identifiers the release implements — bare, and not as the citation `AGENTS.md` asks for everywhere else.
+   Two reasons, and both are about this file rather than about the rule: an upgrade prints each entry on one line, so a citation inside the first sentence breaks what the reader of an upgrade sees; and a citation carries a status, which is a value that moves, while a changelog entry is a record of what a release did and nobody will ever go back and re-date it.
+   Put them in a trailing parenthesis, as the entries already there do.
    Show the draft to the maintainer before committing it.
 
 4. **Prepare it.**

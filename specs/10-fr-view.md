@@ -94,9 +94,12 @@ tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
 
-When given a git revision or the version of a logged baseline, the viewer **shall** print how the specification changed since it: requirements added, removed, and the fields that differ.
+When given a git revision or the version of a logged baseline, the viewer **shall** print how the specification changed since it: requirements added, removed, and the fields that differ, a statement counting as different by its words rather than by where its lines end.
 
 **Rationale.** A baseline is only useful if the difference from it can be read; a raw `git diff` of the specification is dominated by reflow.
+
+Which is why the words are compared rather than the characters, and that half was learned the hard way: the release that reflowed every paragraph in this repository produced a baseline row naming 176 requirements as changed when one of them had changed, and the row is what every later reader compares against.
+A line break inside a paragraph renders as a space, so a statement that reads identically is identical for this purpose whatever `git diff` says.
 A version is accepted because a baseline need not have a tag to name it by (INV-SPEC-040), and asking a reader to find the commit themselves would put the tag back in the middle of the process.
 
 ### FR-VIEW-060 — A page that opens from the filesystem

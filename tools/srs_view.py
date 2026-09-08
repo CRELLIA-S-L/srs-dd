@@ -849,6 +849,17 @@ DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
                "code", "tests", "exempt") + LINK_FIELDS
 
 
+def statement_words(text):
+    # implements: FR-VIEW-050
+    """A statement as its words, so that where its lines end is not a difference.
+
+    A line break inside a markdown paragraph renders as a space and is invisible to every reader;
+    only `git diff` sees it. Comparing the raw text made a reflow of the specification report every
+    statement in it as changed, which is the reading this command exists to spare its reader.
+    """
+    return " ".join((text or "").split())
+
+
 def compute_diff(old_model, new_model):
     """Working tree against the revision — not HEAD against it."""
     old = by_id(old_model)
@@ -862,7 +873,7 @@ def compute_diff(old_model, new_model):
             if old[rid][field] != new[rid][field]:
                 fields.append((field, old[rid][field], new[rid][field]))
         statement = []
-        if old[rid]["statement"] != new[rid]["statement"]:
+        if statement_words(old[rid]["statement"]) != statement_words(new[rid]["statement"]):
             statement = list(difflib.unified_diff(
                 old[rid]["statement"].split("\n"),
                 new[rid]["statement"].split("\n"),

@@ -90,7 +90,7 @@ A specification records what the system must do.
 It does not record why anyone thought those were the right things to build — that reasoning lives in rationale prose, which no rule checks.
 Delete a requirement's rationale and a strict run reports nothing at all.
 
-The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest part of this framework: 63 of its 180 requirements.
+The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest part of this framework: 63 of its 213 requirements.
 The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries, and a checker that reports a file the specification claims and no part owns.
 It holds three kinds of ground, and one record that joins them to the specification.
 
@@ -120,7 +120,7 @@ git clone https://github.com/CRELLIA-S-L/srs-dd.git
 python3 srs-dd/tools/srs_init.py path/to/your-project
 ```
 
-It asks for the project name, requirement areas, code and test roots, source extensions, a CI template, the lexicon, and whether to keep a grounds register — and if you keep one, the period its dashboard counts arrivals by.
+It asks for the project name, requirement areas, code and test roots, source extensions, a CI template, the lexicon, whether to keep a grounds register — and if you keep one, the period its dashboard counts arrivals by — and whether to keep an architecture layer.
 Then it lays out `specs/`, writes the config, generates a placeholder requirement and runs the checker in your repository.
 `--defaults` answers everything; `--dry-run` writes nothing and prints the exact created / refreshed / skipped list first.
 
@@ -231,8 +231,9 @@ Where a project keeps a register, `python3 tools/srs_grounds.py --blast <path>` 
 | `specs/` | This framework's own specification — it uses itself. Also `91-open-issues.md` (questions nobody has settled), `92-baselines.md` (the frozen milestones) and `adr/` (the decisions) |
 | `skeleton/` | What the installer copies into your project |
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_init.py`, `srs_release.py` (stay here) |
-| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), and `srs-init`, `srs-release` (framework-only) |
+| `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
+| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py` (stay here) |
+| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any language](docs/multilingual.md) |

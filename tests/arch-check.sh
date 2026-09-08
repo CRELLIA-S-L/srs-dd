@@ -2,7 +2,7 @@
 # The gate for this repository's own architecture layer: it passes its
 # checker strictly, and the committed map is what the elements say now.
 #
-# verifies: FR-ARCH-010, FR-ARCH-100, FR-ARCH-110, CON-ARCH-020
+# verifies: FR-ARCH-010, FR-ARCH-100, FR-ARCH-110, FR-ARCH-170, CON-ARCH-020
 #
 # The comparison is done without `git add`, for the reason grounds-check
 # gives: tools/ci_selftest.sh exempts exactly one suite from its index

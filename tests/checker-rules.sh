@@ -405,6 +405,26 @@ printf '{"areas": "CORE"}\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 bad type" 2 "areas must be a list of non-empty strings"
 printf '{"areas": ["core"]}\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 bad area" 2 "must match"
+# A list of non-empty strings that holds none is still a list of non-empty
+# strings, so the check above passes it. The rule fires on three keys and
+# had a fixture for one, which is the shape this whole file exists to
+# refuse: a list exercised at a single entry is a list that can lose the
+# others without anybody hearing. Each of the three is something the
+# checker cannot work without — the identifier grammar is built from the
+# areas, and a statement is recognized by its modal verb and its rationale
+# marker — so an empty one matches nothing anybody could write.
+for key in areas modal_verbs rationale_markers; do
+    python3 - "$LAB/specs/srs-config.json" "$key" <<'PY2'
+import json
+import sys
+cfg = {"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"],
+       "code_extensions": [".py"]}
+cfg[sys.argv[2]] = []
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    handle.write(json.dumps(cfg) + "\n")
+PY2
+    rule "FR-CHK-100 empty $key" 2 "$key must not be empty"
+done
 printf 'not json at all\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 unparsable" 2 "invalid JSON"
 # Valid JSON of the wrong shape: every key lookup below would fail on it, so

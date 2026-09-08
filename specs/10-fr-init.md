@@ -111,7 +111,7 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When run against an initialized target, the installer **shall** refresh the checker, the viewer and the skills without a flag, while files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard — are refreshed only with `--force` and only when they carry the SRS-DD marker.
+When run against an initialized target, the installer **shall** refresh the checker, the viewer and the skills without a flag, while files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — are refreshed only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Tooling has to move with the framework or targets drift;
 everything a maintainer has edited must not, and the marker is how we tell a file we installed from one they wrote.
@@ -121,7 +121,12 @@ That is worse than a stale CI file, because `CON-SPEC-020` lets a shipped proced
 
 It joins the second list rather than the first because adopt deliberately keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing without a flag would undo that at the first upgrade.
 `grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
+`arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
+The code had it right from the layer's first commit — the same flag the grounds standard travels under — so what lagged was the enumeration, and an enumeration that lags is invisible: every path it names exists, and nothing reports the one it does not.
 So the characterization widened: "commonly owns" was true of CI files and agent guides, and the standard is not something anyone writes for themselves — it is merely a file that may already be theirs.
+
+The agent guides were in this list and behaved unlike the other six: an upgrade left them alone with the flag and without it, because they are filled in rather than copied and the answers had not been kept.
+`FR-INIT-200` keeps the name, `FR-INIT-210` already kept the width, and the seven now mean one thing.
 
 The marker carries the framework version — `SRS-DD-0.14.0`, matched as a pattern — because the bare name appears in ordinary prose.
 A project that adopted the framework and wrote "we follow the SRS-DD standard" in its own `specs/README.md` would otherwise be told its document is ours and have it replaced.
@@ -391,6 +396,33 @@ A project can copy the tooling by hand, one file at a time, and an upgrade that 
 Reading it out of the running tool answers only for the tool that runs.
 
 One line per file, in the shape the marker already has, rather than one per annotation removed: the same number repeated a hundred times in one file is not more information than the same number once.
+
+### FR-INIT-200 — A project records the name it was installed under
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-08
+```
+
+The installer **shall** record the project's name in the target's configuration, so that a later run can rewrite the agent guides without asking for it again.
+
+**Rationale.** `AGENTS.md` and `CLAUDE.md` are the only payload files that are filled in rather than copied: each template carries the project's name, and `AGENTS.md` also carries the line `FR-INIT-220` writes about its width — answers a person gives at install.
+An upgrade does not ask those questions, so until the answers were kept there was nothing to fill the template with — and the installer's response was to leave the guides alone entirely, with `--force` and without it.
+
+That left `FR-INIT-060` promising a refresh nothing performed, and the guide's own header saying `--force` would overwrite it.
+Keeping the name is what makes both true; the width was already kept, by `FR-INIT-210`, for a different reason and to the same effect.
+
+Recorded rather than derived: the directory a project sits in is not its name, and a guess written into the file a project's agents read every session is a guess nobody asked for.
+Where an older configuration carries no name — every project installed before this — the directory is the fallback, because a guide refreshed under a slightly wrong title is better than a guide that stops being refreshed at all.
+The same for an answer the file carries but nothing can use: both of these are interpolated into text, so a name that is not a string and a width that is not a whole number each end in a traceback rather than a message, out of a tool whose whole job is to run inside somebody else's repository.
+Each falls back and the run says which answer it disbelieved.
 
 ### FR-INIT-210 — The project's line width is asked for, never assumed
 

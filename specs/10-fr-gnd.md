@@ -845,8 +845,8 @@ Where a project carries a grounds register, its gate **shall** regenerate the da
 **Rationale.** `CON-GND-020` says the dashboard is generated and never edited by hand; this is what makes that true rather than hoped for.
 Generated output that nothing compares is output somebody will eventually edit, and the readings it carries — how much of the system stands on refuted ground, how old the confirmations are — are exactly the numbers worth editing.
 
-Realized in part: this repository's own gate regenerates the dashboard and compares it, and a project that installs the register has no gate doing so until the layer is shipped with one.
-That is the half this status records.
+Both gates do it: this repository's own pipeline through `tests/grounds-check.sh`, and a target's through the step the shipped templates carry, which is inert in a project that keeps no register.
+An upgrade does not deliver that step on its own — the CI template is a file a project may have edited, and `FR-INIT-060` refreshes it only with `--force`.
 
 `FR-CI-010` states the same obligation for the traceability matrix and lives in the area about gates.
 This one lives here instead, because what it is about is the register's own integrity; the gate is where it happens, not what it concerns.

@@ -36,8 +36,9 @@ There is no clone to keep around and no address to look up.
 
 ## What it does and does not touch
 
-Refreshed without asking: the checker, the viewer, the upgrader itself and the skills.
-Left alone: the CI configuration, `AGENTS.md`/`CLAUDE.md`, `.gitattributes`, the pre-commit hook — files a project usually edits.
+Refreshed without asking: the checker, the viewer, the upgrader itself, the commands that freeze a baseline and date requirements from the history, the checker of any optional layer the project keeps, and the skills.
+Left alone: the CI configuration, `AGENTS.md`/`CLAUDE.md`, `.gitattributes`, the pre-commit hook, and the standards — `specs/README.md`, plus the standard of any optional layer the project keeps.
+All of them are files that may already be the project's own, which is why none is replaced without being asked for.
 To refresh those too, add `--force`; it only replaces files that carry the `SRS-DD` marker, so anything hand-written stays.
 
 The specification is never touched.

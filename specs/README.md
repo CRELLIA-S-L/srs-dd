@@ -176,6 +176,19 @@ That is the compound one.
 A rationale is written whenever the decision is not obvious.
 It answers “why this way”, and six months later it is the only thing that saves you from redoing the debate in circles.
 
+## Line breaks
+
+A line in markdown breaks where the meaning breaks and nowhere else.
+
+Width is not a meaning.
+A break inside a paragraph renders as a space — `tools/srs_view.py` joins them with `p.replace("\n", " ")` — so a break placed to keep a line short says nothing to any reader and shows up only in `git diff`, while the renderer and the terminal do the wrapping nobody asked the author to do in advance.
+
+Inside a sentence, never: a line that ends mid-sentence was ended by a ruler rather than by the text.
+Where the meaning does break — between sentences, between list items, between rows of a table, at the edge of a fenced block — the break is the author's, and this says nothing about it.
+A paragraph on one line and a paragraph broken sentence by sentence are both right for the same reason.
+
+Generated files answer to whatever generates them rather than to this, and a project's code answers to whatever width that project keeps.
+
 ## Workflow
 
 A new task goes like this:

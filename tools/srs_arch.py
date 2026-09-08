@@ -14,6 +14,7 @@ format. The layer's own records go through tools/srs_parse.py, the one reader bo
 Nothing here writes outside arch/: declining the layer, or deleting it, has to cost nothing.
 """
 # implements: FR-ARCH-010, IF-ARCH-020, CON-ARCH-010
+# implements: NFR-SPEC-010, CON-SPEC-030
 import ast
 import json
 import os

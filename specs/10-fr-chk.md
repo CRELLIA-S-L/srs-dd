@@ -251,9 +251,14 @@ tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
 
-If `specs/srs-config.json` is unreadable, is not a JSON object, or holds a key whose value is not a list of non-empty strings, the checker **shall** exit with status 2 after naming the offending key.
+If `specs/srs-config.json` is unreadable, is not a JSON object, holds a key whose value is not a list of non-empty strings, leaves empty a list the checker cannot work without, or names an area no identifier could carry, the checker **shall** exit with status 2 after naming the offending key.
 
 **Rationale.** A configuration mistake would otherwise surface as a regex compilation traceback, which tells the user nothing about what to fix.
+
+Two further readings reach that same traceback, and the condition named neither.
+A list the checker cannot work without — the areas, the modal verbs, the rationale markers — is not saved by being a list of non-empty strings when it holds none: the identifier grammar is built from the areas, and an empty one matches nothing.
+An area no identifier could carry fails further away still, in the grammar rather than in the configuration the reader would go and fix.
+The suite already asserted the second of them, which is the shape worth naming: a test proving what the statement does not say is a statement that has fallen behind its own suite, and nothing reports that either.
 
 ### FR-CHK-110 — Code blocks are opaque
 

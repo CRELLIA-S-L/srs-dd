@@ -75,11 +75,11 @@ git -C <framework-clone> pull
 python3 <framework-clone>/tools/srs_init.py <target> --defaults
 ```
 
-The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling (`srs_check.py`, `srs_view.py`) and the skills refresh automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes) only with `--force`.
+The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling and the skills refresh automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes, and the standards) only with `--force`.
 Add `--dry-run` first when the user wants to see the file list before anything moves.
 Remind them to commit the refreshed tooling and the regenerated matrix.
 
-After the installer finishes, offer to merge the agent docs — the one upgrade the script deliberately never performs:
+After the installer finishes, offer to merge the agent docs. `--force` refreshes them like any other precious file, but it *replaces* — the project's own additions go with it, and those files are where a project writes what its agents must know. A merge is the reason to do this by hand rather than by flag:
 
 1. Diff the target's `CLAUDE.md` and `AGENTS.md` against the shipped templates in `skeleton/` — **not** against the ones in the framework repository's root, which describe that repository rather than a target.
    The templates carry `<Your Project Name>` where the target has its real name; account for that substitution.

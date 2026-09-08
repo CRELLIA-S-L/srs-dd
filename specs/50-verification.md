@@ -14,7 +14,7 @@ How the methods in the `verification` field are carried out in this repository.
 | Suite | Covers |
 |---|---|
 | `tests/spec-check.sh` | This repository's own specification passes strictly, and the committed matrix matches what the checker generates now |
-| `tests/installer-smoke.sh` | Fresh install, upgrade, dry-run honesty, precious files and what `--force` does to them, the exit code of a target the checker rejects, hook coexistence, payload isolation |
+| `tests/installer-smoke.sh` | Fresh install, upgrade, dry-run honesty, each of the seven kinds of precious file and what `--force` does to it, the exit code of a target the checker rejects, hook coexistence, the map check the installed pipeline carries, the bets the hook names on a commit that changes only code, payload isolation |
 | `tests/adopt-smoke.sh` | Adoption of a non-English specification, transactional rollback, dry-run/real parity, refusal on markdown without requirements |
 | `tests/view-smoke.sh` | Every viewer query mode, the browser it opens the page in, and the page: content, search and filters, the dashboard's census and gap lists, escaping, no CDN, determinism, no bytecode left behind |
 | `tests/checker-rules.sh` | One fixture per checker rule: the exit code and the message for a broken specification, and the refusals that happen before one is read |
@@ -23,10 +23,12 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/release-smoke.sh` | Preparing a release: refusals, the dry run, that nothing is committed or tagged, and that no command this repository ships writes git history |
 | `tests/grounds-rules.sh` | One fixture per rule of the grounds checker, including the three that pass silently when the rule under them is deleted: an unclaimed requirement stays quiet, two bets on one requirement speak, and a lowered rule stops failing without stopping being computed |
 | `tests/grounds-check.sh` | This repository's own register passes strictly, its committed dashboard is what the records say now, and a run leaves every authored record untouched |
+| `tests/arch-rules.sh` | One fixture per rule of the architecture checker, including the ones that assert the checker stays quiet — the `silent` calls in it, which pass for the wrong reason if the rule under them is deleted and are marked where they stand rather than listed here |
+| `tests/arch-check.sh` | This repository's own layer passes strictly, its committed map is what the elements say now, and a run rewrites the map and nothing else in the layer |
 | `tests/dates-smoke.sh` | The one command that writes requirement blocks: the date it writes is the one the history holds and not today's, a second run costs nothing, and where the history cannot be read it refuses rather than inventing one |
 
-All eleven run in CI and locally through `tools/ci_selftest.sh`, which executes everything in `tests/` rather than a copy of it.
-That is twelve files: `tests/line-width.sh` lives there too and is not a suite — it proves no requirement, it is the gate FR-CI-100 names as its own code, and it runs here because this is where the gate already runs.
+All thirteen run in CI and locally through `tools/ci_selftest.sh`, which executes everything in `tests/` rather than a copy of it.
+That is fourteen files: `tests/line-width.sh` lives there too and is not a suite — it proves no requirement, it is the gate FR-CI-100 names as its own code, and it runs here because this is where the gate already runs.
 
 ## Recorded measurements
 

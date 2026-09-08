@@ -20,7 +20,8 @@ What it will not decide is the number that row carries, and it deliberately stop
    ```
 
    A version, not a tag: a baseline need not have one.
-   Show the user what comes back — requirements added, removed, reworded.
+   Show the user what comes back — requirements added, removed, reworded, each named as `AGENTS.md` asks at its first mention, which `python3 tools/srs_view.py --cite <ID>…` prints.
+   A column of bare numbers is the one thing this list must not be: it is the last look before the freeze.
    This is what the baseline is about to freeze, and it is the last moment to notice something in it that was not meant to be frozen yet.
 
 2. **Offer an audit of what is about to be frozen.**

@@ -8,6 +8,43 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.16.0] — 2026-09-04
+
+### Added
+
+- The architecture layer is an optional register in `arch/`. Its records name the parts the system is cut into, the files each one carries and the requirements it holds; it is a sibling of `specs/` with its own standard, configuration and checker, and `ADR-0023` records why it is not a sixth requirement type and not an external model.
+- `tools/srs_arch.py` reads that layer against the specification. It reports a file a requirement names and no element carries, a realized requirement no element carries, an element that answers to nothing, and an import crossing into another element the model does not declare; it regenerates `arch/90-map.md` on the same terms the grounds dashboard is regenerated.
+- `srs_arch.py --drivers` ranks the requirements that drive structure. Incoming links decide the order and the type breaks ties, and it prints the few that lead as candidates for a person to accept.
+- `srs_init.py --arch yes|no` installs the layer or declines it. `srs_upgrade.py --arch yes` adds it to a project that has none, and an upgrade refreshes the layer only where it already is.
+- `srs_view.py --cite <ID>…` prints a citation ready to paste. It gives the identifier, the title, the file and the status, for several identifiers in one call.
+- The `srs-arch` skill travels with the layer. The `srs` procedure gains a step beside the one it has for the grounds register: before changing a file, read which element carries it.
+- A project's gate compares its architecture map. The CI templates regenerate `arch/90-map.md` and fail when the committed copy differs from it, on the same terms the grounds dashboard is already compared, and the step is inert in a project that keeps no layer; until now the map was generated and committed in every target and looked at again by nobody (`FR-ARCH-170`).
+- Twenty-eight requirements in all, none removed. They are the `ARCH` area, `FR-VIEW-240`, `INV-SPEC-070` and `FR-INIT-200`.
+
+### Changed
+
+- A citation of a requirement carries its title, its file and its status. The line number is out of it, because a line moves with the next edit above it while the file and the status keep, and `srs_view.py --cite` prints the whole thing rather than leaving it to be typed (`FR-SKILL-200`).
+- `specs/README.md` no longer tells a plan to name requirements by number. That instruction sat closer to the writing than the rule asking for the full name, so the rule lost every time; the `srs` procedure changed with it.
+- Markdown written by hand is no longer wrapped to a width. A line breaks where the meaning breaks and never inside a sentence, because the renderer does the wrapping (`INV-SPEC-070`), and the specification, the guides and the standards were reflowed accordingly.
+- A statement counts as different by its words, not by where its lines end. Comparing the raw text made that reflow report every statement as changed, which is the reading `srs_view.py --diff` exists to spare its reader (`FR-VIEW-050`).
+- Three requirements now name every file they govern. `NFR-SPEC-010`, `CON-SPEC-030` and `FR-SKILL-020` quantify over all tools, all commands and all skills, and their `code` fields had stopped at the files that existed when each sentence was written — so asking what governed the architecture checker, its procedure or its standard answered as though no such rule reached them.
+- Two statements name the architecture layer where the code already did. `FR-INIT-060` counts its standard among the files an upgrade replaces only with `--force`, and `FR-SKILL-100` names its checker among the checks a finished change calls for.
+- `FR-CHK-100` names two configuration faults it always refused. An empty list where the checker needs one, and an area name no identifier could carry, both exited 2 already; the suite asserted the second of them, which made it a test proving what the specification did not say.
+- The citation rule reaches every procedure that reports requirements. `srs-new`, `srs-harvest`, `srs-baseline`, `srs-bet`, `srs-arch` and `srs-release` now name what they found the way `AGENTS.md` asks; the rule bound them all along, and only the three carrying a reminder obeyed it. In `srs-release` it binds the difference shown to the maintainer and not the changelog section, where a citation would break the one-line print of an upgrade and record a status that moves (`FR-SKILL-200`).
+- The overview, the standards and the landing page say what ships now. Each enumerated the parts of the system and had fallen behind the layer, the two suites it added and the requirement count; the overview names its commands rather than counting them.
+- An upgrade refreshes the agent guides under `--force`. They were listed among the files it replaces with that flag and were replaced by nothing, because a guide is filled in rather than copied and an upgrade had no answers to fill it with; `specs/srs-config.json` now records the project's name beside the width it already kept, and a project installed before that falls back to its directory (`FR-INIT-200`).
+- The pre-commit report names the bets on every file a commit changes. A requirement owns the files its `code` and `tests` fields name, and somebody changing one of those is exactly who the report was written for; it spoke only when a specification file moved, which is not the commit that matters (`FR-GND-310`).
+- `FR-ARCH-060` says which requirements its rule speaks for. It reports a file no element carries for a requirement that is `implemented` or `partial`, which is what the checker filtered on from its first commit while the sentence left it out — and a rule narrower than its sentence fires correctly on everything anybody tries.
+- The upgrade procedure says which standards it leaves alone. Its list of untouched files was written before the standards became precious in 0.14.0, so a maintainer who had edited one was never told that `--force` would replace it.
+
+### Upgrade notes
+
+- Your `AGENTS.md` and `CLAUDE.md` are now replaced by `--force`, and were not before. The flag always said so and the installer always declined; if you have edited either, run the upgrade without the flag first and read what it lists as skipped, and use the guided merge the `srs-init` skill offers rather than the flag. That is also how to take the new form of a citation, which changed in the guides this release ships.
+- The map check does not reach a project that already has the layer. The CI template is a file a project may have edited, so an upgrade refreshes it only with `--force` (`FR-INIT-060`); to take the check, re-run the installer with `--force`, or copy the `arch/arch-config.json` block out of `ci/github-workflow.yml` or `ci/gitlab-ci.yml` by hand.
+- The architecture layer is not added by an upgrade. To install it, run the upgrade with `--arch yes`; to be rid of one, delete `arch/`, `tools/srs_arch.py` and the `srs-arch` skill, and nothing else refers to them.
+- A project that installs the layer starts with no elements and a map of none, which its own checker accepts. The ownership rule reports every file a requirement names until elements are written, so `arch/arch-config.json` is where that rule is lowered while the parts are being described.
+- Markdown line width is this framework's own rule and reaches no target. Nothing reflows a project's files, and no gate looks at markdown in a target or here.
+
 ## [0.15.1] — 2026-08-31
 
 ### Changed

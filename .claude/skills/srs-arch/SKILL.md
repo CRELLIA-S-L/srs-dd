@@ -24,7 +24,8 @@ Three findings matter and they are not the same finding:
 - **a realized requirement no element carries** — something is built and no part answers for it.
 - **an element carrying no requirement** — a part that answers to nothing, which is either a part nobody needed or a requirement nobody wrote.
 
-Say which of the readings it is before proposing an edit.
+Say which of the readings it is before proposing an edit, naming the requirement in it as `AGENTS.md` asks the first time it appears, from `--cite`.
+Two of the three findings are about a requirement, and which reading it is depends on what that requirement actually says.
 The checker cannot choose between them, which is why all three are warnings.
 
 ## Naming a part

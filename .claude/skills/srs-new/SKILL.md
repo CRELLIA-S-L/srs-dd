@@ -46,6 +46,7 @@ Read `specs/srs-config.json` for the areas and the lexicon.
    Here the sentence and the method are on the table together, which is the one moment the question costs nothing.
 6. **What is already written.**
    Before the links are chosen, resolve which requirements already speak to this behaviour and what points at those, and say what you found — including "nothing", which is an answer.
+   Whatever it turns up is named as `AGENTS.md` asks the first time it appears, from `python3 tools/srs_view.py --cite <ID>…`: a requirement you are about to link to is one you had to open anyway, and the citation is what shows you did.
 
    ```
    python3 tools/srs_view.py --list --area <AREA>

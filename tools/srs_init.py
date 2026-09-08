@@ -866,6 +866,53 @@ def run_target_checker(target):
     return subprocess.call([sys.executable, checker])
 
 
+def read_target_config(target):
+    # implements: FR-INIT-200
+    """The target's own configuration, for the answers its install took.
+
+    Unreadable is not a failure here: everything taken from it has a
+    fallback, and the checker runs at the end of this same command and
+    will say so properly.
+    """
+    path = os.path.join(target, "specs", "srs-config.json")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def guide_answers(target):
+    # implements: FR-INIT-060, FR-INIT-200
+    """(name, settings) for filling the agent guides on an upgrade.
+
+    Both values come out of a file a maintainer edits by hand, and both
+    are about to be interpolated into text — a name that is not a string
+    and a width that is not a number each end in a traceback out of
+    `str.replace` and `%d`. Neither is worth refusing an upgrade over:
+    the rest of it is fine and each has an honest fallback, so the run
+    says what it disbelieved and carries on.
+    """
+    cfg = read_target_config(target)
+    name = cfg.get("project_name")
+    if name is not None and not isinstance(name, str):
+        sys.stdout.write("Note: `project_name` in specs/srs-config.json is "
+                         "not a string; the directory name is used for the "
+                         "agent guides instead.\n")
+        name = None
+    width = cfg.get("line_width")
+    if width is not None and (isinstance(width, bool)
+                              or not isinstance(width, int)):
+        sys.stdout.write("Note: `line_width` in specs/srs-config.json is not "
+                         "a whole number; the agent guides state no width.\n")
+        width = None
+    # A guide titled after the directory beats one nothing refreshes at all,
+    # which is what a project installed before the name was recorded gets.
+    return (name or os.path.basename(os.path.abspath(target)),
+            {"line_width": width})
+
+
 def read_target_version(target):
     """The framework version a target is on, read from its own tooling.
 
@@ -1157,12 +1204,17 @@ def framework_url():
     return url or DEFAULT_FRAMEWORK_URL
 
 
-def config_json(settings, adopting=False):
-    # implements: FR-INIT-140, FR-CHK-210
+def config_json(settings, adopting=False, name=None):
+    # implements: FR-INIT-140, FR-INIT-200, FR-CHK-210
     config = dict((key, settings[key]) for key in
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
     config["framework_url"] = settings.get("framework_url") or framework_url()
+    # The agent guides are filled in from this rather than copied, and an
+    # upgrade does not ask again (FR-INIT-200). Absent where adoption found
+    # the guides already written and never asked for a name.
+    if name:
+        config["project_name"] = name
     # Absent where the project states none: a width invented here would be
     # this framework formatting somebody else's code (FR-INIT-210).
     if settings.get("line_width"):
@@ -1194,7 +1246,7 @@ def run_fresh(args, target, batch):
         installer.copy(src, dst, tooling=False, substitute=substitute)
 
     installer.put(os.path.join("specs", "srs-config.json"),
-                  config_json(settings), tooling=False)
+                  config_json(settings, name=name), tooling=False)
 
     area = settings["areas"][0]
     placeholder = PLACEHOLDER_REQ % {
@@ -1363,7 +1415,7 @@ def run_adopt(args, target, batch, found_areas):
         if created_tools:
             os.makedirs(tools_dir)
         with open(config_path, "w", encoding="utf-8") as handle:
-            handle.write(config_json(settings, adopting=True))
+            handle.write(config_json(settings, adopting=True, name=name))
         wrote_config = True
 
         with open(os.path.join(ROOT, "tools", "srs_check.py"), "rb") as src:
@@ -1468,8 +1520,6 @@ def run_upgrade(args, target):
                           dry_run=args.dry_run)
     sys.stdout.write("Initialized target detected — upgrade mode: "
                      "refreshing the tooling and the skills.\n")
-    sys.stdout.write("CLAUDE.md and AGENTS.md are not refreshed by "
-                     "upgrades; merge changes manually if needed.\n")
     ignored = [flag for flag, value in (
         ("--mode", args.mode), ("--name", args.name),
         ("--areas", args.areas), ("--code-roots", args.code_roots),
@@ -1548,6 +1598,14 @@ def run_upgrade(args, target):
             "This project carries no architecture layer. To add one: "
             "re-run with --arch yes.\n")
     install_skills(installer, substitute=None)
+    # implements: FR-INIT-060, FR-INIT-200
+    # Precious like the rest of that list, and now actually refreshed under
+    # --force: the guides are filled in rather than copied, so this needs
+    # the answers the install took — the name from the configuration, the
+    # width beside it (FR-INIT-210). A project installed before the name
+    # was recorded falls back to its directory, because a guide under a
+    # slightly wrong title beats one nothing refreshes at all.
+    install_agent_docs(installer, substitutions(*guide_answers(target)))
     if args.ci:
         install_ci(installer, args.ci)
     install_hook(installer)

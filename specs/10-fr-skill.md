@@ -32,7 +32,7 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, specs/README.md, grounds/README.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, specs/README.md, grounds/README.md, arch/README.md]
 tests: []
 created: 2026-08-07
 ```
@@ -237,7 +237,7 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-10
 ```
 
-When a change is finished, the check procedure **shall** name the checks the requirements it touched call for — the specification checker, the grounds checker where the project carries a register, the tests those requirements list, and what a person has to look at where the method is not a test — and offer to run them rather than running them unasked.
+When a change is finished, the check procedure **shall** name the checks the requirements it touched call for — the specification checker, the grounds checker where the project carries a register, the architecture checker where it carries the layer, the tests those requirements list, and what a person has to look at where the method is not a test — and offer to run them rather than running them unasked.
 
 **Rationale.** The specification already answers this and nobody reads it for the purpose: every requirement carries a `verification` method and the paths that verify it, so which checks a change calls for is derivable rather than a matter of memory.
 A method of `I` or `D` is where this matters most — those never appear in a suite, and the reader is told what to look at or learns about it from a bug.
@@ -246,6 +246,8 @@ Offering rather than running is not politeness but ART-030: builds and test runs
 The statement said "the checker" while there was one.
 A project carrying a grounds register has two, and its gate fails on a dashboard the change left stale (`FR-GND-370`) — so a procedure naming only the first hands back work that passes everything it named and reddens the pipeline.
 Naming the second is conditional, because a project without a register has no such command to run.
+The third arrived with the architecture layer and on the same terms: it regenerates a map the gate compares, so a change that moved a file between parts and did not run it fails exactly where the register's does.
+The procedure named it before this sentence did, which is the direction that stays invisible — a check the code offers and no statement asks for is reported by nothing.
 
 ### FR-SKILL-110 — The specification can be read as a page on request
 
@@ -469,7 +471,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [AGENTS.md, skeleton/AGENTS.md, specs/README.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md]
+code: [AGENTS.md, skeleton/AGENTS.md, specs/README.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-release/SKILL.md]
 tests: []
 created: 2026-08-27
 ```

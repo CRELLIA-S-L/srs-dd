@@ -2,8 +2,14 @@
 
 ## Product perspective
 
-Three scripts and a directory of markdown.
-The checker validates the specification and generates the traceability matrix; the viewer projects the same data for reading; the installer moves the payload from this repository into somebody else's.
+A directory of markdown, and the commands that hold it to the code.
+The checker validates the specification and generates the traceability matrix; the viewer projects the same data for reading and publishes it as JSON; the installer moves the payload from this repository into somebody else's, and the upgrader fetches a newer framework for a project already carrying one.
+Freezing a baseline, dating requirements from the history and preparing a release are three more commands, and each stops before the commit.
+They are named rather than counted: a number here is one more thing to keep true, and the count of scripts this sentence used to open with stayed in it long after it stopped being right.
+
+Two layers are optional, and a project that declines one is byte-for-byte a project that was never asked: the grounds register, which records what the requirements rest on, and the architecture layer, which records what the system is made of.
+Each has its own standard, its own configuration and its own checker, and a requirement never points into either: the join is written on the layer's side alone, so deleting a layer leaves the specification exactly as it was.
+
 The agent procedures are instructions, not code, and the CI templates are what makes the rules binding in a project that adopts them.
 
 The framework repository is itself an SRS-DD project: this specification describes the tooling in the same form the tooling enforces.

@@ -177,74 +177,165 @@ assert 'annotation-absent' not in fresh.get('rules', {}), \
     'a fresh install silenced a rule it has no reason to: %r' % fresh.get('rules')
 PY2
 
-# A precious file is refreshed only with --force, and only when it is one of
-# ours (FR-INIT-060). Neither half had a fixture: the assertion above holds
-# that a CI file still exists, which stays true whether or not the installer
-# rewrote it, and --force appeared in no suite at all. .gitattributes rather
-# than the CI config, because an upgrade visits the CI templates only when
-# --ci is passed and this one it always writes.
-rm -rf /tmp/srs-precious
-python3 tools/srs_init.py /tmp/srs-precious --defaults --ci none >/dev/null
-printf 'theirs\n' >> /tmp/srs-precious/.gitattributes
-cksum < /tmp/srs-precious/.gitattributes > /tmp/precious.before
+# FR-INIT-060 names seven kinds of file that an upgrade replaces only with
+# --force and only when they carry our marker. Two of them had fixtures and
+# five did not, which is the shape the rule itself is about: a sentence
+# quantifying over a list, a suite exercising one entry, and nothing that
+# can tell the difference. Dropping `precious=` from the architecture
+# standard left the whole gate green.
+#
+# So the list is walked rather than sampled, and it is written here in the
+# order the statement names it.
+PT=/tmp/srs-precious
+rm -rf "$PT" /tmp/srs-pristine
+python3 tools/srs_init.py "$PT" --defaults --name "Acme Widgets" \
+    --line-width 100 --ci github --grounds yes --arch yes >/dev/null
+cp -R "$PT" /tmp/srs-pristine
 
-# No flag: kept as it stands, and the summary says what would refresh it.
-python3 tools/srs_init.py /tmp/srs-precious --defaults > /tmp/precious-keep.log
-grep -qF ".gitattributes (use --force to refresh)" /tmp/precious-keep.log
-cksum < /tmp/srs-precious/.gitattributes > /tmp/precious.after
-diff /tmp/precious.before /tmp/precious.after
+# precious <path> [extra upgrade flags…]
+# Three phases, because the rule has three outcomes and a fixture for one of
+# them proves neither of the others: kept without the flag, replaced with it,
+# and left alone either way when the file at that path is not ours.
+precious() {
+    local rel=$1; shift
+    cp "/tmp/srs-pristine/$rel" "$PT/$rel"
+    printf 'theirs, edited\n' >> "$PT/$rel"
 
-# With the flag: refreshed, because the file still carries our marker.
-python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
-    > /tmp/precious-force.log
-# Refreshed, not removed: grep on a file that is gone answers "no match"
-# just as loudly as grep on a file that was rewritten, so what the file
-# holds afterwards is asserted rather than only what it lost.
-grep -q "SRS-DD" /tmp/srs-precious/.gitattributes
-if grep -q "theirs" /tmp/srs-precious/.gitattributes; then
-    echo "--force did not refresh a precious file of ours"
-    exit 1
-fi
+    python3 tools/srs_init.py "$PT" --defaults "$@" > /tmp/prec-keep.log
+    grep -qF "$rel (use --force to refresh)" /tmp/prec-keep.log \
+        || { echo "FAIL FR-INIT-060 — $rel: an upgrade did not report it as"
+             echo "kept behind --force"; cat /tmp/prec-keep.log; exit 1; }
+    grep -qF 'theirs, edited' "$PT/$rel" \
+        || { echo "FAIL FR-INIT-060 — $rel was refreshed without --force"
+             exit 1; }
 
-# A file of theirs sitting at the same path is never clobbered, flag or no
-# flag: the marker is how the installer tells its own file from a stranger's,
-# and getting this wrong is how a tool eats somebody's configuration.
-printf 'not ours at all\n' > /tmp/srs-precious/.gitattributes
-python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
-    > /tmp/precious-mine.log
-grep -qF "no SRS-DD marker" /tmp/precious-mine.log
-grep -q "not ours at all" /tmp/srs-precious/.gitattributes
+    # Refreshed, not removed: grep on a file that is gone answers "no match"
+    # as loudly as grep on one that was rewritten, so what the file holds
+    # afterwards is asserted and not only what it lost.
+    python3 tools/srs_init.py "$PT" --defaults --force "$@" > /tmp/prec-force.log
+    absent 'theirs, edited' "$PT/$rel"
+    grep -q "SRS-DD" "$PT/$rel" \
+        || { echo "FAIL FR-INIT-060 — $rel lost our marker under --force"
+             exit 1; }
 
-# The standard is precious too, and that is the half of FR-INIT-060 that
-# was missing until 0.14.0: it was installed once and never moved again,
-# so a project set up at 0.7.0 ran the current tooling against a standard
-# 112 lines out of date. It joins the precious files rather than the
-# tooling because adopt leaves a project its own on purpose (FR-INIT-040).
-printf 'ours, edited\n' >> /tmp/srs-precious/specs/README.md
-python3 tools/srs_init.py /tmp/srs-precious --defaults > /tmp/std-keep.log
-grep -qF "specs/README.md (use --force to refresh)" /tmp/std-keep.log
-grep -q "ours, edited" /tmp/srs-precious/specs/README.md
+    # A file of theirs at the same path is never clobbered, flag or no flag:
+    # the marker is how the installer tells its own file from a stranger's,
+    # and getting this wrong is how a tool eats somebody's configuration.
+    printf '# Ours, and no marker in it\n' > "$PT/$rel"
+    python3 tools/srs_init.py "$PT" --defaults --force "$@" > /tmp/prec-mine.log
+    grep -qF "$rel (no SRS-DD marker" /tmp/prec-mine.log \
+        || { echo "FAIL FR-INIT-060 — $rel: a stranger's file was not reported"
+             echo "as skipped"; cat /tmp/prec-mine.log; exit 1; }
+    grep -qF 'Ours, and no marker in it' "$PT/$rel" \
+        || { echo "FAIL FR-INIT-060 — $rel: --force overwrote a file that is"
+             echo "not ours"; exit 1; }
+    cp "/tmp/srs-pristine/$rel" "$PT/$rel"
+}
 
-python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
-    > /tmp/std-force.log
-if grep -q "ours, edited" /tmp/srs-precious/specs/README.md; then
-    echo "--force did not refresh the standard"
-    exit 1
-fi
-grep -qE "SRS-DD-[0-9]+\.[0-9]+\.[0-9]+" /tmp/srs-precious/specs/README.md
+# The CI template carries its own flag because an upgrade visits it only
+# when --ci is passed; everything else below is visited on every run.
+precious .github/workflows/srs.yml --ci github
+precious .gitattributes
+precious .githooks/pre-commit
+# The standard was the half missing until 0.14.0: installed once and never
+# moved again, so a project set up at 0.7.0 ran current tooling against a
+# standard 112 lines out of date. It is precious rather than tooling because
+# adopt leaves a project its own on purpose (FR-INIT-040), and each optional
+# layer's standard travels on exactly those terms.
+precious specs/README.md
+precious grounds/README.md
+precious arch/README.md
+precious AGENTS.md
+precious CLAUDE.md
 
-# The version is what makes the marker a marker, and the standard is where
-# that matters: skeleton/AGENTS.md teaches the sentence "the project follows
-# the SRS-DD standard", so a project that adopted the framework and wrote a
-# standard of its own is likely to carry the bare name. Matched loosely, its
-# document would be read as ours and replaced — undoing exactly what adopt
-# preserved.
-printf '# Our own notes\n\nWe follow the SRS-DD standard.\n' \
-    > /tmp/srs-precious/specs/README.md
-python3 tools/srs_init.py /tmp/srs-precious --defaults --force \
-    > /tmp/std-mine.log
-grep -qF "specs/README.md (no SRS-DD marker" /tmp/std-mine.log
-grep -q "Our own notes" /tmp/srs-precious/specs/README.md
+# --- verifies: FR-INIT-200 — the guides are the one payload file that is
+# --- filled in rather than copied, so refreshing one needs the answers the
+# --- install took. Until the name was recorded there was nothing to fill
+# --- the template with, and the installer refreshed them under no flag at
+# --- all — while FR-INIT-060 listed them among the files --force replaces
+# --- and the guide's own header said --force would overwrite it.
+grep -q '"project_name": "Acme Widgets"' "$PT/specs/srs-config.json" \
+    || { echo "FAIL FR-INIT-200 — the install did not record the project name"
+         exit 1; }
+
+# The generic phases above prove the guide was rewritten; they cannot tell a
+# rewrite that filled the blanks from one that shipped the template as it
+# stands. That is what this asserts, and it is the whole difficulty.
+printf 'theirs, edited\n' >> "$PT/AGENTS.md"
+python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-guides.log
+absent 'theirs, edited' "$PT/AGENTS.md"
+absent '<Your Project Name>' "$PT/AGENTS.md"
+absent '<SRS-DD-WIDTH-LINE>' "$PT/AGENTS.md"
+grep -qF 'Acme Widgets' "$PT/AGENTS.md" \
+    || { echo "FAIL FR-INIT-200 — the refreshed guide lost the project name"
+         exit 1; }
+grep -qF '100 columns' "$PT/AGENTS.md" \
+    || { echo "FAIL FR-INIT-200 — the refreshed guide lost the line width"
+         exit 1; }
+
+# An answer the configuration carries but nothing can use: both values are
+# interpolated into text, so a name that is not a string dies in
+# `str.replace` and a width that is not a whole number dies in `%d`. The
+# tool runs inside somebody else's repository, and the file it reads them
+# from is one a maintainer edits by hand.
+# badvalue <key> <json literal> — the configuration says something the
+# installer cannot use, and the run says so instead of dying.
+badvalue() {
+    KEY="$1" VAL="$2" python3 - "$PT/specs/srs-config.json" <<'PY2'
+import json
+import os
+import sys
+path = sys.argv[1]
+with open(path, encoding='utf-8') as handle:
+    data = json.load(handle)
+data[os.environ['KEY']] = json.loads(os.environ['VAL'])
+with open(path, 'w', encoding='utf-8') as handle:
+    json.dump(data, handle, indent=2)
+PY2
+    local rc=0
+    python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-bad.log 2>&1 \
+        || rc=$?
+    [ "$rc" = 0 ] || { echo "FAIL FR-INIT-200 — $1 of the wrong type stopped the"
+                       echo "upgrade"; tail -5 /tmp/prec-bad.log; exit 1; }
+    grep -qF "in specs/srs-config.json is not" /tmp/prec-bad.log \
+        || { echo "FAIL FR-INIT-200 — $1 of the wrong type was used, or dropped"
+             echo "in silence"; cat /tmp/prec-bad.log; exit 1; }
+    absent '<Your Project Name>' "$PT/AGENTS.md"
+    absent '<SRS-DD-WIDTH-LINE>' "$PT/AGENTS.md"
+    cp /tmp/srs-pristine/specs/srs-config.json "$PT/specs/srs-config.json"
+}
+
+badvalue project_name 123
+badvalue line_width '"100"'
+badvalue line_width true
+
+# A project installed before the name was recorded still gets its guides
+# back: the directory stands in, because a guide under a slightly wrong
+# title beats one that stopped being refreshed at all.
+python3 - "$PT/specs/srs-config.json" <<'PY2'
+import json
+import sys
+path = sys.argv[1]
+with open(path, encoding='utf-8') as handle:
+    data = json.load(handle)
+data.pop('project_name', None)
+with open(path, 'w', encoding='utf-8') as handle:
+    json.dump(data, handle, indent=2)
+PY2
+printf 'theirs, edited\n' >> "$PT/AGENTS.md"
+python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-noname.log
+absent 'theirs, edited' "$PT/AGENTS.md"
+absent '<Your Project Name>' "$PT/AGENTS.md"
+grep -qF 'srs-precious' "$PT/AGENTS.md" \
+    || { echo "FAIL FR-INIT-200 — with no recorded name the directory did not"
+         echo "stand in"; exit 1; }
+# Put the target back as it was installed, the way the two helpers above do:
+# the fixtures below share it, and one left deliberately degraded is a trap
+# for whoever writes the next one.
+cp /tmp/srs-pristine/specs/srs-config.json "$PT/specs/srs-config.json"
+python3 tools/srs_init.py "$PT" --defaults --force > /dev/null
+
+echo "installer-smoke: all seven precious kinds behave as FR-INIT-060 says"
 
 # verifies: IF-CI-010
 # The installer's exit codes are a contract. The adopt suite
@@ -487,6 +578,46 @@ grep -qF "FR-APP-010 — B-010 rests on H-010 (refuted)" /tmp/grounds-hook.log \
     || { echo "FAIL FR-GND-310 — the hook said nothing about the bet"
          cat /tmp/grounds-hook.log; exit 1; }
 
+# --- And the commit this report exists for: one that changes code and no
+# --- specification. The fixture above stages everything, so it cannot tell
+# --- the two readings apart — it passes whether the hook matches the file a
+# --- requirement is written in or the files it names. Until this shipped,
+# --- the second was unimplemented and the commit below got no report at all.
+( cd "$GT" && git -c user.email=ci@example.com -c user.name=CI \
+              commit -qm "the state before" )
+mkdir -p "$GT/src"
+printf 'x = 1\n' > "$GT/src/thing.py"
+python3 - "$GT/specs/10-fr-app.md" <<'PY2'
+import sys
+path = sys.argv[1]
+text = open(path, encoding='utf-8').read()
+assert text.count('code: []') == 1, text
+open(path, 'w', encoding='utf-8').write(
+    text.replace('code: []', 'code: [src/thing.py]', 1))
+PY2
+# The matrix moves with the specification, and the hook fails on a stale one
+# before it ever reaches the register — so it is regenerated and staged here.
+# The requirement's own file is deliberately left unstaged: it is what makes
+# this fixture able to fail.
+( cd "$GT" && python3 tools/srs_check.py >/dev/null \
+  && git add src/thing.py specs/90-traceability.md )
+( cd "$GT" && git diff --cached --name-only ) > /tmp/grounds-staged.log
+absent 'specs/10-fr-app.md' /tmp/grounds-staged.log
+grep -qF 'src/thing.py' /tmp/grounds-staged.log \
+    || { echo "FAIL FR-GND-310 — the code file was not staged, so the next"
+         echo "assertion would prove nothing"; exit 1; }
+
+rc=0
+( cd "$GT" && sh .githooks/pre-commit ) > /tmp/grounds-code-hook.log 2>&1 || rc=$?
+[ "$rc" = 0 ] || { echo "FAIL FR-GND-310 — the hook failed a commit that only"
+                   echo "touched code"; cat /tmp/grounds-code-hook.log; exit 1; }
+grep -qF "FR-APP-010 — B-010 rests on H-010 (refuted)" /tmp/grounds-code-hook.log \
+    || { echo "FAIL FR-GND-310 — a commit changing only code got no report,"
+         echo "which is the moment the report exists for"
+         cat /tmp/grounds-code-hook.log; exit 1; }
+( cd "$GT" && git checkout -- specs/10-fr-app.md specs/90-traceability.md \
+  && git rm -q --cached src/thing.py >/dev/null && rm -f src/thing.py )
+
 # A register that warns is the ordinary case — an expired hypothesis is
 # what this layer exists to surface — and an install that reported failure
 # over one would be an install nobody believes. The exit code is for errors.
@@ -579,7 +710,7 @@ echo "installer-smoke: the grounds register is offered, complete and quiet"
 AT=/tmp/srs-arch-target
 rm -rf "$AT"
 python3 tools/srs_init.py "$AT" --defaults --name "Arch target" \
-    --areas APP --ci none --arch yes > /tmp/arch-fresh.log 2>&1
+    --areas APP --ci github --arch yes > /tmp/arch-fresh.log 2>&1
 for f in arch/README.md arch/arch-config.json arch/00-elements.md \
          tools/srs_arch.py .claude/skills/srs-arch/SKILL.md; do
     [ -f "$AT/$f" ] || { echo "FAIL FR-ARCH-120 — the layer arrived without $f"
@@ -592,6 +723,27 @@ done
 [ -f "$AT/arch/90-map.md" ] \
     || { echo "FAIL FR-ARCH-140 — the install left no map, and a gate compares"
          echo "the committed one against a fresh run"; exit 1; }
+
+# --- verifies: FR-ARCH-170 — the gate a target installs compares the map.
+# --- Until this shipped, a project's map was generated, committed and never
+# --- looked at again: `tests/arch-check.sh` proves the comparison for this
+# --- repository and says nothing about the template that travels.
+grep -qF "python3 tools/srs_arch.py" "$AT/.github/workflows/srs.yml" \
+    || { echo "FAIL FR-ARCH-170 — the installed pipeline does not regenerate"
+         echo "the map"; exit 1; }
+grep -qF "arch/90-map.md is stale" "$AT/.github/workflows/srs.yml" \
+    || { echo "FAIL FR-ARCH-170 — the installed pipeline does not fail on a"
+         echo "stale map"; exit 1; }
+
+# --- And the same template reaches a project that keeps no layer, where the
+# --- step is inert: it is guarded by the layer's configuration file, so it
+# --- costs a project that declined the layer nothing but a passing `if`.
+grep -qF "arch/arch-config.json" "$AT/.github/workflows/srs.yml" \
+    || { echo "FAIL FR-ARCH-170 — the step is not guarded by the layer's"
+         echo "configuration, so it would run where there is no layer"; exit 1; }
+grep -qF "arch/90-map.md is stale" /tmp/srs-target/.github/workflows/srs.yml \
+    || { echo "FAIL FR-ARCH-170 — a project without the layer got a different"
+         echo "template"; exit 1; }
 
 # --- Declined, it leaves no trace at all.
 rm -rf /tmp/srs-noarch

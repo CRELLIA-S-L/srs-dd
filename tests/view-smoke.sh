@@ -280,6 +280,43 @@ grep -q "status .*draft -> deferred" /tmp/v-diff.log
 grep -q "^  + FR-CORE-080" /tmp/v-diff.log
 grep -q "^  - FR-CORE-070" /tmp/v-diff.log
 
+# --- verifies: FR-VIEW-050 — a statement counts as different by its words,
+# --- not by where its lines end. Without this the release that reflowed every
+# --- paragraph in the framework wrote a baseline row naming 176 requirements
+# --- as changed, one of which had changed.
+python3 - <<'PY2'
+import re
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+head, sep, rest = text.partition('### FR-CORE-010')
+block, sep2, tail = rest.partition('### FR-CORE-0')
+# The statement is the first paragraph after the metadata block; break one of
+# its spaces into a line ending and change nothing else.
+before, fence, body = block.partition('```\n\n')
+line, nl, remainder = body.partition('\n')
+assert ' ' in line[20:], line
+cut = line.index(' ', 20)
+open(path, 'w', encoding='utf-8').write(
+    head + sep + before + fence + line[:cut] + '\n' + line[cut + 1:] + nl
+    + remainder + sep2 + tail)
+PY2
+python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-reflow.log
+absent "~ FR-CORE-010" /tmp/v-diff-reflow.log
+
+# And a word that actually changed is still reported.
+python3 - <<'PY2'
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+head, sep, rest = text.partition('### FR-CORE-010')
+open(path, 'w', encoding='utf-8').write(
+    head + sep + rest.replace('**shall**', '**shall** promptly', 1))
+PY2
+python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-word.log
+grep -q "~ FR-CORE-010" /tmp/v-diff-word.log \
+    || { echo "view-smoke: a changed word is no longer reported as a change"
+         exit 1; }
+echo "view-smoke: a reflowed statement is not a change, a changed word is"
+
 # verifies: IF-VIEW-010
 # The model is what two suites parse — this one, and the payload-isolation
 # check that guards CON-SPEC-020 — so what it promises is asserted rather

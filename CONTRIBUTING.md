@@ -71,9 +71,7 @@ Three things outside this repository depend on what is inside it, and all three 
 - **Line width: 120 columns in code, none in markdown, none over what the tools print.**
   Python, shell and YAML wrap at 120 — the hooks included, which are shell without the extension to say so.
   JSON does not: both files of it here are written by `tools/srs_init.py`, so their width is the installer's output rather than anybody's choice, and JSON offers no continuation and no concatenation, so a long string value cannot be narrowed at all.
-  Markdown does not wrap at anything: a line break inside a paragraph renders as a space — `tools/srs_view.py` joins them with `p.replace("\n", " ")`, which greps — so where a line ends is invisible to every reader and matters only to `git diff`.
-  So do not wrap it to a width at all: a line breaks where the meaning breaks — between sentences, between list items — and never inside a sentence (INV-SPEC-070).
-  A paragraph on one line and a paragraph broken sentence by sentence are both right; a line ended because it was getting long is not.
+  Markdown is not bounded at all, and where its lines may break is stated once, in the Line breaks section of `specs/README.md` (INV-SPEC-070): not by width, never inside a sentence.
   What a tool prints is a third case and is not bounded at all: a finding is written to be read, and breaking one into fixed lines in the source freezes the wrapping against a terminal nobody has measured, at a width that depends on how long the reader's own paths and identifiers happen to be.
   Wrapping is the terminal's business.
   Do not add a suite that asserts a width over a log — FR-CI-100's rationale records why.
