@@ -565,14 +565,14 @@ There is no block renderer here — the one function that turns specification te
 ### FR-VIEW-270 — A search reaches the prose as well
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
@@ -599,14 +599,14 @@ Read whole it is sound; read by the line it is not, and a search reads by the li
 ### FR-VIEW-280 — A search says what it left out
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-VIEW-270]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
@@ -625,20 +625,20 @@ Which, rather than that: naming the missing thing is what lets the reader ask ag
 ### FR-VIEW-290 — A path searched for is answered by the mode for paths
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-VIEW-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
 Where the text searched for names a path the project carries, the viewer **shall** also name the mode that answers about a path.
 
-**Rationale.** A path is not in what the search reads: it lives in the `code` and `tests` fields, and a hit happens only where the text being searched mentions the path in passing — searching for `tools/srs_arch.py` returns nothing while the mode beside it returns nineteen.
+**Rationale.** A path is not in what the search reads: it lives in the `code` and `tests` fields, and a hit happens only where the text being searched mentions the path in passing — searching for `tools/srs_arch.py` finds this sentence and nothing else, while the mode beside it returns nineteen requirements.
 Silence is the wrong answer twice over — it is indistinguishable from "the project does not mention this file", and it arrives at the reader least able to tell the difference, since a reader who knew the mode would have used it.
 
 Also, never instead: a needle can be a path and a word at once — `tools` is a directory here and a word in a dozen rationales — and a hint that replaced the results would answer a question nobody asked while dropping the one they did.

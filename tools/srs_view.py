@@ -12,6 +12,7 @@ is a projection of the same data for people to read.
     srs_view.py --areas            what the specification is divided into
     srs_view.py FR-CORE-020        one requirement in full
     srs_view.py --list [filters]   filtered list (see --help)
+    srs_view.py --grep <text>      requirements and prose holding it
     srs_view.py --code src/a.py    which requirements describe this file
     srs_view.py --tree FR-CORE-010 what derives from it (--up for ancestors)
     srs_view.py --coverage         gaps: no tests, code outside the spec, …
@@ -72,6 +73,28 @@ INCOMING_LABEL = {
     "conflicts_with": "conflicted by",
     "superseded_by": "supersedes",
 }
+
+# implements: FR-VIEW-270
+# What a text search skips beyond what the page skips. The standard is the
+# framework's own document and the same in every project that took it from
+# here; the three that record rather than state answer an ordinary word
+# with lines the requirement above them already answered; and the open
+# issues hold sentences they have since retracted, which a search would
+# return one line at a time.
+PROSE_EXCLUDED = ("README.md", "90-traceability.md", "91-open-issues.md",
+                  "92-baselines.md")
+
+# implements: FR-VIEW-280
+# What the standard's map names as prose, used only to say which of them a
+# project does not have. The search itself takes whatever is there, so a
+# project's own prose file is read without being listed here.
+PROSE_EXPECTED = ("00-glossary.md", "01-introduction.md", "02-overview.md",
+                  "50-verification.md", "constitution.md")
+
+# implements: FR-VIEW-280
+# Past this the answer stops being read. Same reading as the graph limit
+# below: what is dropped is stated rather than silently cut.
+PROSE_HIT_LIMIT = 40
 
 # Beyond this the layered graph stops being readable; what is dropped is
 # always stated on the page rather than silently cut.
@@ -279,6 +302,56 @@ def collect_documents(entries):
     return result
 
 
+def collect_prose(entries):
+    """What a text search reads, and what the map names and the project
+    does not have.
+
+    Filtered from the documents the page offers rather than walked again:
+    the two sets differ by four files and nothing else, and a second walk
+    is a second thing to keep true.
+    The page and the search differ deliberately — a link costs nothing
+    when it is the wrong document, and a line out of its document is what
+    misleads.
+    """
+    # implements: FR-VIEW-270
+    # Compared as whole paths, not as names: an index of decisions is
+    # commonly `adr/README.md`, and it is not the standard. Dropped by its
+    # basename it would be dropped in silence, which is the one thing the
+    # neighbouring obligation exists to prevent.
+    excluded = set(_repo_relative(os.path.join(SPECS, name))
+                   for name in PROSE_EXCLUDED)
+    present = [path for path in collect_documents(entries)
+               if path not in excluded]
+    missing = [name for name in PROSE_EXPECTED
+               if not os.path.exists(os.path.join(SPECS, name))]
+    return present, missing
+
+
+def grep_prose(needle, paths):
+    """Every line of the prose holding the text, as (path, line, text).
+
+    By the line, because a line of markdown written by hand breaks where
+    the meaning breaks — which is what lets a glossary table and a
+    page of prose come back in the same shape.
+    Tolerant of an odd byte for the reason read_annotations is: one file
+    the encoding trips over must not take the whole answer with it.
+    """
+    # implements: FR-VIEW-270
+    needle = needle.lower()
+    hits = []
+    for path in paths:
+        try:
+            handle = open(os.path.join(ROOT, path), "r",
+                          encoding="utf-8", errors="replace")
+        except IOError:
+            continue
+        with handle:
+            for lineno, line in enumerate(handle, 1):
+                if needle in line.lower():
+                    hits.append((path, lineno, line.strip()))
+    return hits
+
+
 def load_current():
     problems = []
     requirements = []
@@ -440,6 +513,70 @@ def print_areas(model, style):
     out("%s %s   %s" % (style.b(str(len(areas))),
                         "area" if len(areas) == 1 else "areas",
                         style.d(" · ".join(parts))))
+
+
+def prose_path_hint(needle):
+    """The text searched for, where it names a path the project carries.
+
+    A path is not in what the search reads — it lives in the `code` and
+    `tests` fields — so searching for one answers nothing while the mode
+    beside it answers exactly.
+    """
+    # implements: FR-VIEW-290
+    candidate = needle.strip()
+    if not candidate:
+        return None
+    # From the repository first, then from wherever the reader is standing
+    # — and both translated the way the mode for paths translates them, so
+    # what comes back is the path as the specification would write it.
+    # Refused where it lands outside: a file in whatever directory the
+    # reader happens to stand in, an absolute path anywhere on the machine,
+    # or a climb through `..` is not a path this project carries, and the
+    # mode named would answer nothing.
+    for probe in (os.path.join(ROOT, candidate.replace("/", os.sep)),
+                  candidate):
+        if not os.path.exists(probe):
+            continue
+        inside = _repo_relative(probe)
+        if inside:
+            return inside
+    return None
+
+
+def print_prose(model, args, style):
+    """The prose half of a text search, and what it left out.
+
+    After the requirements rather than before: the cheap answer is read
+    first, and a line of prose is as long as its meaning.
+    """
+    # implements: FR-VIEW-270, FR-VIEW-280, FR-VIEW-290
+    if not args.grep:
+        return
+    narrowed = [name for name in ("area", "status", "type", "verification",
+                                  "code")
+                if getattr(args, name, None)]
+    hint = prose_path_hint(args.grep)
+    present, missing = collect_prose(model["requirements"])
+
+    if narrowed:
+        # A filter is a statement that the question is about requirements.
+        # Said out loud, because a reader never told concludes the prose
+        # is not searched at all and stops asking.
+        out(style.d("prose not searched: --%s asks about requirements"
+                    % narrowed[0]))
+    else:
+        hits = grep_prose(args.grep, present)
+        for path, lineno, text in hits[:PROSE_HIT_LIMIT]:
+            out("%s  %s" % (style.b("%s:%d" % (path, lineno)), text))
+        if len(hits) > PROSE_HIT_LIMIT:
+            out(style.d("%d more line(s) in the prose are not shown"
+                        % (len(hits) - PROSE_HIT_LIMIT)))
+        if missing:
+            out(style.d("not searched, the project has no %s"
+                        % ", ".join(missing)))
+    if hint:
+        out(style.d("%s is a path — `--code %s` answers about it"
+                    % (hint, hint)))
 
 
 def print_line(entry, style):
@@ -2492,7 +2629,8 @@ def parse_args(argv):
     parser.add_argument("--type", help="filter by type (FR, NFR, IF, …)")
     parser.add_argument("--verification", help="filter by method (T, D, I, A)")
     parser.add_argument("--grep",
-                        help="filter by text in id/title/statement/rationale")
+                        help="text in id/title/statement/rationale, "
+                             "and in the prose beside them")
     parser.add_argument("--code", metavar="PATH",
                         help="requirements describing this file or directory, "
                              "by code/tests fields and by the file's own "
@@ -2656,6 +2794,7 @@ def main(argv=None):
         print_counts(model, style)
         out()
     print_list(entries, style)
+    print_prose(model, args, style)
     return 0
 
 

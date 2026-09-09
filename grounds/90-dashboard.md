@@ -164,6 +164,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-120 | 1 | 1 | 2 |
 | FR-VIEW-140 | 1 | 1 | 2 |
 | FR-VIEW-250 | 1 | 1 | 2 |
+| FR-VIEW-270 | 1 | 1 | 2 |
 | IF-GND-030 | 1 | 1 | 2 |
 | IF-SKILL-010 | 0 | 2 | 2 |
 | IF-VIEW-010 | 1 | 1 | 2 |
@@ -254,7 +255,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-230 | 0 | 1 | 1 |
 | FR-VIEW-240 | 0 | 1 | 1 |
 | FR-VIEW-260 | 0 | 1 | 1 |
-| FR-VIEW-270 | 1 | 0 | 1 |
+| FR-VIEW-280 | 0 | 1 | 1 |
+| FR-VIEW-290 | 0 | 1 | 1 |
 | IF-ARCH-020 | 0 | 1 | 1 |
 | IF-ARCH-030 | 0 | 1 | 1 |
 | IF-CI-010 | 0 | 1 | 1 |
@@ -265,5 +267,3 @@ requirements link to them, plus how many files their `code` field names.
 | INV-GND-040 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-VIEW-280 | 0 | 0 | 0 |
-| FR-VIEW-290 | 0 | 0 | 0 |

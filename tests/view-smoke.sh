@@ -152,6 +152,98 @@ absent "FR-CORE-030" /tmp/v-areas.log
 python3 tools/srs_view.py --coverage > /tmp/v-areas-sum.log
 grep -qE "CORE +[0-9]+" /tmp/v-areas-sum.log
 echo "view-smoke: the areas are named with what each holds"
+
+# --- verifies: FR-VIEW-270 — a search reaches the prose as well.
+# The term is appended because the skeleton ships the glossary as a
+# template with no terms in it: a fixture asserting a word only the
+# glossary carries has to put one there first.
+printf '| Zarquon | A word no requirement uses |\n' >> specs/00-glossary.md
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose.log
+grep -q "specs/00-glossary.md:" /tmp/v-prose.log
+
+# The three registers the requirement excludes, and nothing else here
+# would notice if they stopped being excluded: the matrix answers an
+# ordinary word with lines the requirement above each already answered,
+# and the open issues hold sentences they have since retracted, which a
+# search returns one line at a time. The word is planted first and the
+# planting asserted, so the absence below is an absence and not an empty
+# file.
+for reg in 90-traceability 91-open-issues 92-baselines; do
+    cp "specs/$reg.md" "/tmp/v-$reg.md"
+    printf '\nQuuxword appears only here.\n' >> "specs/$reg.md"
+done
+grep -q Quuxword specs/91-open-issues.md
+python3 tools/srs_view.py --grep Quuxword > /tmp/v-registers.log
+absent Quuxword /tmp/v-registers.log
+for reg in 90-traceability 91-open-issues 92-baselines; do
+    mv "/tmp/v-$reg.md" "specs/$reg.md"
+done
+
+# --- verifies: FR-VIEW-280 — a search says what it left out.
+# Three assertions, one per case, because each fails on its own and each
+# fails silently: a suppression nobody is told about reads as "the prose
+# holds nothing", a missing document reads the same, and a truncated list
+# reads as complete.
+python3 tools/srs_view.py --grep Zarquon --area CORE > /tmp/v-prose-f.log
+absent "specs/00-glossary.md:" /tmp/v-prose-f.log
+grep -q "prose not searched" /tmp/v-prose-f.log
+# Asking about a file is the same statement, and it is the one of the five
+# a later reader would most plausibly not count as a filter.
+python3 tools/srs_view.py --grep Zarquon --code src/app.py > /tmp/v-prose-p.log
+absent "specs/00-glossary.md:" /tmp/v-prose-p.log
+grep -q "prose not searched" /tmp/v-prose-p.log
+
+mv specs/02-overview.md /tmp/v-overview.md
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-m.log
+grep -q "the project has no 02-overview.md" /tmp/v-prose-m.log
+mv /tmp/v-overview.md specs/02-overview.md
+
+python3 - <<'PY2'
+with open('specs/03-notes.md', 'w', encoding='utf-8') as handle:
+    handle.write('# Notes\n\n')
+    for n in range(60):
+        handle.write('Zarquon line %d.\n' % n)
+PY2
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-c.log
+grep -q "more line(s) in the prose are not shown" /tmp/v-prose-c.log
+rm -f specs/03-notes.md
+
+# --- verifies: FR-VIEW-290 — a path is answered by the mode for paths.
+# Two assertions: the hint, and that the results are still there. In
+# addition rather than instead, because a needle can be a path and a word
+# at once and a hint that replaced the answer would drop the one asked for.
+printf '# implements: FR-CORE-020\n' > src/pathprobe.py  # srs-ignore
+python3 tools/srs_view.py --grep src/pathprobe.py > /tmp/v-path.log
+grep -q -- "--code src/pathprobe.py" /tmp/v-path.log
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-path2.log
+grep -q "specs/00-glossary.md:" /tmp/v-path2.log
+# An index of decisions is commonly named README.md, and it is not the
+# standard: the exclusions are whole paths, so only the one at the top of
+# specs/ is skipped.
+# The same word goes into both, so the two halves tell them apart.
+printf 'Decisions about Zarquon.\n' > specs/adr/README.md
+printf '\nThe standard does not discuss Zarquon.\n' >> specs/README.md
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-adr.log
+grep -q "specs/adr/README.md:" /tmp/v-adr.log
+absent "specs/README.md:[0-9]" /tmp/v-adr.log
+rm -f specs/adr/README.md
+# And not for a name the project does not carry. Run from somewhere else
+# in the tree, the hint used to fire on whatever file happened to sit in
+# the reader's working directory, sending them to a mode with nothing to
+# answer. The viewer finds its own root, so it works from anywhere.
+rm -rf /tmp/srs-view-elsewhere
+mkdir -p /tmp/srs-view-elsewhere
+: > /tmp/srs-view-elsewhere/decoy.md
+(cd /tmp/srs-view-elsewhere \
+ && python3 /tmp/srs-view/tools/srs_view.py --grep decoy.md) > /tmp/v-path3.log
+absent "--code decoy.md" /tmp/v-path3.log
+# Nor spelled in full from here: joining an absolute path onto the root
+# drops the root, so that route reached outside the project as well.
+python3 tools/srs_view.py --grep /tmp/srs-view-elsewhere/decoy.md \
+    > /tmp/v-path4.log
+absent "is a path" /tmp/v-path4.log
+rm -rf /tmp/srs-view-elsewhere
+echo "view-smoke: a search reaches the prose and says what it left out"
 python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
 # verifies: FR-VIEW-010

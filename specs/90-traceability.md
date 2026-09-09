@@ -8,9 +8,9 @@ Total requirements: 219.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 3 |
+| `deferred` | 0 |
 | `partial` | 0 |
-| `implemented` | 216 |
+| `implemented` | 219 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -206,9 +206,9 @@ Total requirements: 219.
 | **FR-VIEW-240** A citation is printed, not typed | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-250** What the specification is divided into | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-260** The page offers what carries no requirements | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-270** A search reaches the prose as well | `deferred` | T | — | — |
-| **FR-VIEW-280** A search says what it left out | `deferred` | T | — | — |
-| **FR-VIEW-290** A path searched for is answered by the mode for paths | `deferred` | T | — | — |
+| **FR-VIEW-270** A search reaches the prose as well | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-280** A search says what it left out | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-290** A path searched for is answered by the mode for paths | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
 | **IF-ARCH-010** The element record is a stable format | `implemented` | I | `arch/README.md` | — |
 | **IF-ARCH-020** Exit codes of the architecture checker | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **IF-ARCH-030** A published architecture rule name keeps its meaning | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
