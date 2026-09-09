@@ -2445,7 +2445,8 @@ def parse_args(argv):
     parser.add_argument("--area", help="filter by area")
     parser.add_argument("--type", help="filter by type (FR, NFR, IF, …)")
     parser.add_argument("--verification", help="filter by method (T, D, I, A)")
-    parser.add_argument("--grep", help="filter by text in id/title/statement")
+    parser.add_argument("--grep",
+                        help="filter by text in id/title/statement/rationale")
     parser.add_argument("--code", metavar="PATH",
                         help="requirements describing this file or directory, "
                              "by code/tests fields and by the file's own "

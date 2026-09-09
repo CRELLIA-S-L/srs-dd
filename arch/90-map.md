@@ -17,4 +17,4 @@ What each part of this project is, what it carries and what state it is in.
 | **E-090** The gate | `built` | `ci`, `.github/workflows/srs.yml`, `.githooks`, `tools/ci_selftest.sh`, `tools/test_lib.sh`, `tests` | **FR-ARCH-170**, **FR-CI-010**, **FR-CI-020**, **FR-CI-030**, **FR-CI-040**, **FR-CI-050**, **FR-CI-060**, **FR-CI-080**, **FR-CI-090**, **FR-CI-100**, **FR-GND-310**, **FR-GND-370** (12 realized) |
 | **E-100** The project's own documentation | `built` | `README.md`, `CONTRIBUTING.md`, `docs` | **IF-SKILL-010**, **INV-SPEC-070** (2 realized) |
 
-10 elements, carrying 213 of the 213 requirements this specification holds.
+10 elements, carrying 213 of the 215 requirements this specification holds.

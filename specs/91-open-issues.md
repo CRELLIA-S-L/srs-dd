@@ -22,6 +22,9 @@ A headless browser in CI is the honest one and the heaviest; a JavaScript engine
 transliterating the script into Python, as the baseline comparison already does, tests a copy rather than the thing that ships.
 What went in instead is narrower: the suite now asserts *where* the capture is taken, because that is the part a text can see.
 
+**Re-measured 2026-09-08.** The dependency is still absent rather than merely unused: no browser, headless or otherwise, and no JavaScript engine is named anywhere in `ci/`, in `.github/workflows/` or in `tools/ci_selftest.sh`.
+`50-verification.md` now carries this under *Known gaps* and points back here, so the limit is written down; the decision below is not.
+
 **Decision needed:** accept inspection as the method for anything the page does in the browser and say so in `50-verification.md`, or take on a headless browser for the graph and the comparison.
 
 ## The graph cannot be pinched
@@ -51,6 +54,10 @@ And the binding ceiling on a project this framework can serve is not here: the g
 
 Widening the grammar to four digits was considered and rejected on 2026-08-12. Both shapes break: mixed widths sort wrongly everywhere the tools order by identifier string, and fixed four digits with a leading zero renames every published identifier, which INV-SPEC-010 forbids.
 
+**2026-09-08.** The ceiling that binds is the one named above, and it is now the one being reached.
+213 requirements, every one of them linked, against a `GRAPH_NODE_LIMIT` of 150: the page says `63 node(s) beyond the first 150 are not drawn` and names the families that went with them.
+No area is near its 999, and a four-digit identifier is still refused — a fixture carrying `FR-CORE-0100` answers `identifier does not match <TYPE>-<AREA>-<NNN>` and exits 1.
+
 **Decision needed:** say in the Identifier section how many numbers an area has, and that the step of 10 is a convention the checker does not enforce — or decide the standard need not say it, and close this.
 
 ## A requirement with no links at all is not in the graph
@@ -62,6 +69,8 @@ Under the layered layout that was one box fewer in a row of sixty-five and nobod
 In a lane it is a gap in a column, and a gap at exactly the requirement worth noticing: one that rests on nothing and that nothing needs.
 
 **Why it is recorded rather than fixed:** this specification has no such requirement — every one of them carries at least one link, which the `unlinked` rule keeps true — so nothing that ships is wrong.
+Still true on 2026-09-08 at 213 requirements: a strict run reports no `unlinked` finding, and nothing here is `withdrawn`.
+What the drawing does with one was run rather than read on the same day — a fixture of three requirements, two linked and one standing alone, renders a page that carries the island in the census, in the list and in its own article, and leaves it out of the graph.
 What is unresolved is what a project in that position should see, and the answer is not obvious: a fresh install spends its first weeks with a specification that is mostly unlinked, and a drawing that reserved a row for every one of them would be tall and empty at exactly the moment it is first opened.
 
 Since 2026-08-12 the question has a second half.
@@ -79,13 +88,17 @@ Two `implements:` lines naming one requirement in one file are noise when they m
 The checker knows only the path, so it cannot tell those apart.
 
 The evidence says the noise is not what is there.
-All seven duplicates in this repository are the honest kind: FR-INIT-080 marks installing the hook beside an existing one and saying so; FR-INIT-110 marks deciding which upgrade notes apply and printing them; FR-INIT-140 marks computing the framework address and recording it; FR-VIEW-040 and FR-VIEW-210 each mark a computation and its rendering; IF-SPEC-010 marks the parser and the tolerance of an unknown key; FR-CHK-150 marks the isolation rule and the exemption cancelled requirements have from it.
+All seven duplicates in this repository on 2026-08-17 were the honest kind: FR-INIT-080 marks installing the hook beside an existing one and saying so; FR-INIT-110 marks deciding which upgrade notes apply and printing them; FR-INIT-140 marks computing the framework address and recording it; FR-VIEW-040 and FR-VIEW-210 each mark a computation and its rendering; IF-SPEC-010 marks the parser and the tolerance of an unknown key; FR-CHK-150 marks the isolation rule and the exemption cancelled requirements have from it.
 A rule warning on all of them would fire seven times on the first run with nothing wrong, and be silenced — which is what FR-CHK-160 argues makes a rule worthless.
+
+**Re-measured 2026-09-08: 118**, counted over every tracked file with the checker's own `RE_ANNOTATION` and its `srs-ignore` exemption — 42 in `tests/grounds-rules.sh`, 23 in `tools/srs_grounds.py`, 14 in `tests/arch-rules.sh`, the rest spread over ten files.
+The grounds and architecture layers arrived in between, and each is checked by a suite that names a requirement in its header and again at the fixture covering it, which is the honest kind at scale.
+The argument keeps its direction and multiplies its weight by seventeen: the rule would fire 118 times on the first run with nothing wrong.
 
 Finer granularity is the way out and is closed: telling a block from a file means understanding the structure of the code, and the checker is language-neutral by construction — the same rule has to work in a project written in Swift.
 
 A narrow reading works and is nearly empty.
-A requirement named twice inside one uninterrupted run of comment lines is unambiguously one entity, needs no understanding of code, and occurs zero times here.
+A requirement named twice inside one uninterrupted run of comment lines is unambiguously one entity, needs no understanding of code, and occurs zero times here — measured again on 2026-09-08 over every tracked file, still zero.
 It would catch a duplicated paste and nothing else.
 
 **Decision needed:** write the narrow rule as a guard that will rarely speak — the position FR-CHK-030 is in — or accept that a duplicate annotation is the author's business and close this.
@@ -99,6 +112,7 @@ Two capabilities, one identifier, one `verification` field, one status.
 It reads as a single sentence because the second half is written as a `while` clause, which is a subordinate grammatical form doing the work of a second requirement.
 
 Nothing about this is new — the compound has stood since the requirement was written — but 0.14.0 added the standard to the second half, so the number now answers for one more thing than it did.
+0.16.0 did it again on 2026-09-08 with the architecture standard: the second half now enumerates seven kinds of file against the first half's three, under one identifier, one status and one `tests` field.
 
 The cost is not tidiness.
 A test proving the first half says nothing about the second, and the status is a single word for both: `implemented` was true of this requirement while its second half had a gap the size of the standard, which is exactly how that gap survived to 0.14.0 unseen.
@@ -111,6 +125,8 @@ A test proving the first half says nothing about the second, and the status is a
 
 **What diverged:** `--mode adopt` deliberately keeps a project's own `specs/README.md` (FR-INIT-040), and the file it keeps carries no `SRS-DD-<version>` marker — so `--force` will not replace it either, now or ever.
 Verified end to end: adopt on a project whose `specs/README.md` says "We follow the SRS-DD standard", then `--force`, answers `specs/README.md (no SRS-DD marker — not ours, merge manually)` and leaves the file alone.
+Re-run on 0.16.0 (2026-09-08): the answer is unchanged, and no copy of the standard reaches the target under any name.
+What the installed procedures then cite into nothing is eight references across three of them — the Baselines section three times, *How to phrase* twice, and one each to Lifecycle, What-not-to-do and the map of which file holds what.
 
 That refusal is correct in itself.
 What follows from it is that such a project has no copy of the standard at all, while the skills installed alongside cite its sections by name — a licence `CON-SPEC-020` grants on the grounds that the standard is the same document in every project.
@@ -136,6 +152,11 @@ Those are read in seconds and were not read.
 Adding a summary of each procedure somewhere central was considered and rejected while writing this entry: every skill's `description` already carries one, `srs-release`'s already names the drafting step, and a second copy inside another skill is what FR-SKILL-020 forbids.
 The gap is not in what is available to read.
 
+**2026-09-08.** Two more, both inside this file.
+The entry on `carries` below said the specification checker was equally silent about a path nobody has; `FR-CHK-055` has reported it as an error since 0.14.0, and one run of the checker says so.
+The entry on where a cross-cutting rule lives said six skills cite `ART-030`; four do, in seven lines, and four was also the count on the day that entry was written.
+Both are claims about files in this repository, both cost one `grep`, neither had one.
+
 **Decision needed:** write a third requirement in that family — a procedure asserting what another procedure does, or what a file holds, reads it first — or accept that this is a matter of care rather than of rule, and that the two existing members of the family draw the line where it can be drawn.
 
 ## Calibration is built at a fraction of what the concept describes
@@ -150,6 +171,9 @@ No rule weighs a class III verdict by it, and the register has no way to acquire
 **Why it is recorded rather than fixed:** the missing half is an organizational undertaking — somebody writes the questions, somebody runs them, somebody keeps the scores — and none of that is a file format or a rule.
 No amount of code here produces it.
 
+**2026-09-08.** Half of this is already decided, and not where the entry looks for it: the rationale of `FR-GND-210` says the weighting needs calibration questions and a programme to run them, and calls the reversal count its affordable half.
+What is missing is the layer's standard — the word calibration does not occur in `grounds/README.md` at all, so a reader comparing the concept with the register meets the gap exactly where no note is.
+
 **Decision needed:** say in the layer's standard that calibration stops at the reversal count and the weighting is deliberately not attempted; or carry the fuller model as intended work and name what a project would have to run to get it.
 
 ## An unchangeable minimum can be made loud, not prevented
@@ -159,9 +183,13 @@ No amount of code here produces it.
 **What diverged:** the concept holds that an ideology carries a minimum that changes only by dissolving the ideology itself — not amendable, whatever the evidence arrives.
 A repository delivers no such thing.
 A file is a file: the minimum can be edited by anyone who can commit, and what the framework actually offers is that the edit is visible, attributable and diffable.
-The requirements for ideology and its self-revision are not written yet, so the difference is at present written down nowhere.
 
-**Decision needed:** state the weaker promise when those requirements are authored — the minimum is changed loudly, never silently — or place immutability outside the repository, in protected paths, required review or signed commits, none of which this framework configures in any target today.
+**Corrected 2026-09-08.** The entry ended here with "the requirements for ideology and its self-revision are not written yet, so the difference is at present written down nowhere", and that stopped being true three days after it was written.
+`FR-GND-510` and `FR-GND-520` landed on 2026-08-23 and charge for widening what may move an ideology, and `grounds/README.md` states the weaker promise in its own words: the register cannot stop the opposite failure, because a file is a file.
+So the promise is written down.
+What is not written down is anything stronger.
+
+**Decision needed:** whether immutability is placed outside the repository — protected paths, required review or signed commits, none of which this framework configures in any target today — or the loud-not-prevented promise is all this layer will ever offer, and is said once where the ideology is defined rather than in a rationale a reader arrives at by accident.
 
 ## A hypothesis carries one number where the concept carries two
 
@@ -180,35 +208,6 @@ Writing it into the standard alone would describe machinery nothing obliges, and
 
 **Decision needed:** give the hypothesis record a `target` key beside `refuted_if`, with a rule that the two are not the same number and a verdict of its own for the band between them; or state in the standard that the register records only the refutation line and that the target lives in the plan it justifies, naming where; or accept the collapse and say so, so that nobody reads the single number as if it were the aim.
 
-## A requirement does not say which frames bound it
-
-**Found:** while sorting the concept's record format against what the layer builds (2026-08-20).
-
-**What diverged:** the concept gives a requirement a `bounded_by` field — the frames it falls under — and this layer has no equivalent.
-The reason it was left out is that nothing reads it: the dashboard states what each frame has refused from the frame's own journal, and a field with no reader is what the constitution declines by default.
-
-**And the half of that reason which was not true.** This entry used to say frames are applied when a hypothesis is let into the fog, "by a person following a procedure rather than by a stored link".
-Measured 2026-08-25:
-there is no such procedure.
-`srs-bet` names a frame once, in the list of what the register holds, and asks nothing about frames at any step;
-`FR-GND-250` is the only requirement that mentions them, and it describes the dashboard.
-So a frame in this layer is a journal and nothing else — a hypothesis a frame forbids can be recorded, staked on and built against, and the register says nothing.
-The concept puts frames at the first gate precisely because refusing is cheapest before anything is built on it, and that gate is missing rather than manual.
-
-There is a second reason it could not be copied as written.
-In the concept `bounded_by` sits on the requirement, and nothing in this layer writes into a requirement file, so it would have had to move to the bet — the same displacement `bets_on` went through, and the same one the instrument marker went through after it.
-
-**Why it is recorded rather than fixed:** leaving it out is a decision, and an undocumented decision is indistinguishable from an oversight.
-A reader comparing the concept with the format will find the gap and, finding no note, will close it — adding a key that can afterwards be added to but never renamed or removed.
-
-**The gate half was settled 2026-08-25**, and it was the half that mattered.
-`FR-GND-530` puts a hypothesis against the frames before it is admitted, and a frame that refuses one takes a row in its own journal — which is also the first procedure that writes into a journal at all, so `FR-GND-250`'s reading of an empty one can finally tell a frame nobody tested from a frame nobody has.
-It binds a person, deliberately: whether a claim falls under a frame is a judgement about meaning, and a frame a checker could match has stopped being a frame.
-
-**Decision needed:** none for now.
-What remains is the field, and it is still not wanted — nothing reads it, and the gate above needs no stored link to do its work.
-If a reading is ever wanted — which requirements a frame would have refused, or what a frame now touches that it did not when it was drawn — the field goes on the bet and not on the requirement.
-
 ## Whether the specification could live in a database
 
 **Found:** raised by the maintainer (2026-08-20).
@@ -222,6 +221,7 @@ Worse than a conflict, and this was run rather than reasoned.
 Two branches each adding `FR-CORE-050` to the same file, one near the top and one at the end, **merge cleanly**: git reports no conflict and exits 0, because the texts do not overlap.
 What lands is a specification with the number twice.
 Nobody is asked to resolve anything, so nobody knows there was anything to resolve.
+Re-run 2026-09-08 on a fresh pair of branches forked from one base, one inserting `FR-CORE-050` in the middle of the file and the other appending it: still exit 0, still no conflict, still the number twice.
 
 What catches it is the gate afterwards: `FR-CHK-010` reports `identifier FR-CORE-050 is already used at specs/10-fr-core.md:6`, naming both occurrences, and the build fails on a branch that was already merged.
 Resolving it then means renumbering one side, which is permitted — `INV-SPEC-010` binds a *published* identifier, and one that never left a branch is not published — but choosing which side moves means understanding what both requirements say.
@@ -238,7 +238,8 @@ What hangs off it is worth listing before anyone decides, because none of it is 
 - a requirement change is reviewed today in the same pull request as the code it governs, by a tool that already exists and that nobody has to be taught;
 - history is git's, which is what lets the checker read baselines from tags and lets `INV-SPEC-040` mean anything;
 - the two generated files are compared byte for byte by a gate, which needs a text the generator and the reader agree on;
-- `NFR-SPEC-010` keeps the tooling to the standard library, and a database ends that whether it is embedded or served.
+- `NFR-SPEC-010` keeps the tooling to the standard library, and a database ends that whether it is embedded or served;
+- `INV-SPEC-070` stands on it by name — a line breaks where the meaning breaks *because* a review tool diffs the file line by line, and that rule has nothing to govern once the store is rows.
 
 **Three doors, and the expensive one should be opened last.**
 
@@ -277,6 +278,7 @@ The ideology is the loudest absence: the standard calls it what the hypotheses a
 **What will not notice:** `tests/grounds-check.sh` asserts that the checker accepts the register strictly and that the committed dashboard matches a fresh run.
 Both now hold of a register with two hypotheses in it, which is better than holding vacuously of an empty one — but they hold just as well of a register missing four kinds.
 The suite still cannot tell a kind deliberately left unwritten from one nobody got to.
+Unchanged on 2026-09-08: a fresh run of the dashboard still reads `0 ideology, 0 frame, 2 hypothesis, 0 bet, 0 unclaimed`, while the specification grew by 28 requirements in 0.16.0, not one of which carries a bet.
 
 **Decision needed:** whether the other four kinds are wanted here at all.
 The two halves are not alike.
@@ -307,6 +309,9 @@ ADR-0018 predicted the register here would come out mostly class III with named 
 What was written instead (2026-08-23) widened the population past this team, so `H-010` carries `proportion < 0.50 at n >= 8`, which refutes at 0 or 1 of 8 and gives real gradations above that.
 The corner is still there for the next class III hypothesis whose population genuinely is small, and widening is not always available — a claim about two people is a claim about two people, and rewriting it to be about more is a different claim.
 
+**Run rather than reasoned, 2026-09-08.** A class III record with `refuted_if: proportion < 0.50 at n >= 2`, a measurement of 0 at n = 2 and a verdict of `refuted` fails the checker: "0 is < 0.5 by less than a sample of 2 can miss by: at 95% confidence the truth reaches 0.575, so the verdict it compels is 'supported'".
+The arithmetic above was on paper until then.
+
 **Doors:**
 
 *Make `refuted_if` optional for class III.*
@@ -335,7 +340,7 @@ Its `code` field names `srs`, `srs-audit` and `srs-harvest`, and each states the
 `srs` argues the *therefore* test over three paragraphs, `srs-audit` repeats it against findings, `srs-harvest` states it about an open-issues entry.
 Three copies, three wordings, one rule.
 
-ART-030 — builds and test runs need the user's word each time — is stated once in `specs/constitution.md` and cited from six skills in a line apiece.
+ART-030 — builds and test runs need the user's word each time — is stated once in `specs/constitution.md` and cited from four of the twelve skills in seven lines: three of them in `srs-audit`, two in `srs`, one each in `srs-check` and `srs-harvest`.
 `skeleton/AGENTS.md` carries the same shape under *The three most frequently broken rules*: cross-cutting obligations, one line each, the constitution cited where the reasoning lives.
 
 The two differ in what they cost and in how they fail.
@@ -355,6 +360,10 @@ An exception, in other words, and the cite-once pattern is supposed to be the on
 It was not: the sentence is in `srs-release` and `AGENTS.md` says nothing about it, because the exception belongs to the only procedure that writes a changelog and would sit there under either pattern.
 A case that distinguishes the two would be an exception several procedures share.
 
+**Corrected the same day.** This entry said the rule was cited from six skills in a line apiece.
+Counted over `.claude/skills/*/SKILL.md` it is four skills and seven lines, and the same count holds at the commit this entry was written on, so the number was wrong when it was written rather than overtaken.
+The comparison survives it — one statement against three restatements is still the shape — but a claim about this repository's own files went in without the `grep` that settles it, which is the entry above.
+
 ## An element can carry a path that is not there
 
 **Found:** while building the architecture layer (2026-09-02), on a fixture written to test something else.
@@ -373,9 +382,58 @@ That is the failure mode *A procedure states what another procedure does without
 
 The remaining case is ordinary rather than exotic: a file is renamed or deleted, the element's `carries` keeps the old path, and the map goes on publishing a part that owns something nobody has.
 The specification's own side of it is covered and fails the build; the layer's side is silent.
+Both halves were run on 2026-09-08 rather than read: an element carrying `carries: [src, src/vanished.py]` passes `srs_arch.py --strict` with exit 0 and no mention of the path, while a requirement carrying `code: [src/a.py, src/gone.py]` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
 
 **Decision needed:** whether a path an element names and nobody has is a finding.
 Two answers, the third having been built already.
 The architecture layer could report it for `carries`, which makes the layer say about its own field what `FR-CHK-055` already says about the specification's — the symmetric answer, and the cheap one.
 Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the description, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.
 That second answer is harder to hold now than it was: the specification checker already reads the disk for exactly this, so the cost it warns about is one this project has already accepted once.
+
+## The link graph sits exactly on the floor the checker sets
+
+**Found:** while measuring what an impact query can answer (2026-09-09).
+
+**What diverged:** nothing is broken, and that is what makes this worth recording.
+`unlinked` fires only when a requirement is "linked to nothing, **and** nothing links to it" — a floor of one link in either direction.
+Measured 2026-09-09 over this repository: 0.96 outgoing links per requirement, and **124 of 215 have nothing pointing at them at all**.
+Over Crellian the same day, which installed the framework and wrote its own 571: 1.04 and 318 of 571.
+The two projects use the fields in opposite proportions — `depends_on` carries 177 of 206 edges here, `derives_from` carries 404 of 595 there — and still land on the same number.
+
+The consequence is not tidiness.
+An impact query answers from these links, so a radius computed today is worth exactly what the links are worth, and nobody knows what that is.
+The transitive radius has a median of 0.
+
+**Two readings, and they are not distinguishable from the data.**
+Either a specification of this shape genuinely is that loosely coupled, or the links are under-written — every requirement carrying the one link the rule demands and stopping there, because an agent writing them satisfies the stated bar and no more.
+A missing link is invisible by construction, so no rule can tell them apart.
+
+Two mechanical proxies were tried and both fail on volume, which is the argument `FR-CHK-160` makes about a rule nobody can afford to read: "two requirements name the same file and link to neither" fires **3648** times over this repository, and the narrower "annotated in adjacent regions and not linked" fires **319** of 382.
+Neither is a rule; both were run rather than reasoned.
+
+**Why it is recorded rather than fixed:** the fix is a pass over what is already written, one area at a time, with a person settling each link — and that is planned work rather than a decision.
+What is not settled is which of the two readings is true.
+
+**What would settle the reading:** the density of the links on requirements authored *after* the authoring procedure is made to show its search, against the 0.96 measured here.
+If the number does not move, the specification is loosely coupled and the floor was never a ceiling.
+If it moves, the retrieval at authoring time was the cause, and the same repair is owed to everything already written.
+
+**Decision needed:** what the link graph is for, and therefore what would count as enough of it.
+`unlinked` states a floor of one and nothing states a target, so "under-written" has no meaning here that anybody wrote down — which is why the measurement above can be read two ways at all.
+Either say what the graph is expected to carry, or accept that only the floor is stated and the rest is a judgement made one requirement at a time, and say that instead.
+
+## An element's dependency is never resolved against the elements
+
+**Found:** while planning a cycle rule for the architecture layer (2026-09-09).
+
+**What diverged:** `check_records` in `tools/srs_arch.py` resolves an element's `requirements:` against the specification and reports what does not exist — that is `FR-ARCH-040`.
+Nothing does the same for `depends_on`.
+An element may declare a dependency on `E-999`, which no element carries, and the layer says nothing.
+
+The specification's own side of this is covered from both directions: a link to a requirement that does not exist is an error, and `FR-CHK-055` reports a path that is not there.
+The architecture layer resolves one of its two identifier-bearing fields and not the other.
+
+**Why it is recorded rather than fixed:** it was found while building something else, and a rule is not written in passing.
+Its cost is one comparison against a set the checker already holds, so this is cheap rather than hard — which is a reason to decide it deliberately rather than to slip it in.
+
+**Decision needed:** report an element dependency naming no element, by the pattern `FR-ARCH-040` already set for `requirements:` — or say that `depends_on` is deliberately unresolved, and why one field is checked and the other is not.

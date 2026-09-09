@@ -505,3 +505,31 @@ What was missing is a form nobody has to assemble: the identifier, the title, th
 Several at once, because the plans this exists for cite ten requirements rather than one, and a citation that costs a call each is a citation that gets abbreviated back to the number.
 
 An unknown identifier is refused the way the single-requirement view refuses it, and a cancelled requirement is printed with the status it has: a plan naming a `superseded` requirement is exactly what the status half is there to catch.
+
+### FR-VIEW-250 — What the specification is divided into
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-09
+```
+
+Wherever the viewer states how many requirements the specification holds, it **shall** also state, for every area the project declares, how many carry it — including an area no requirement carries.
+
+**Rationale.** A reader who arrives with a number gets an answer about it; a reader who arrives without one is handed the whole listing, and the whole listing stops fitting early.
+Measured 2026-09-09: it prints as 15 KB here and as 56 KB in the first project that installed this framework, which holds 571 requirements and a traceability matrix of 187 KB.
+The areas are the one partition that is always there — the middle segment of every identifier, declared by the project itself — where the architecture layer is optional and a project may have none.
+
+Unprompted rather than only on request, and that is the whole of it.
+A reader who knows to ask for the areas did not need them; the one this is for does not know the partition exists, and a flag they never type is a flag that does not help them.
+The count of requirements already prints ahead of a search, of what describes a file and of the coverage gaps — three of the answers given to a reader who has no number to look up — and never ahead of a lookup by number, which is the case that has one.
+So the areas cost no line of their own, and they appear in front of the reader they are for.
+
+Including an area no requirement carries, for the reason `FR-VIEW-190` gives about the statuses: a declared area standing empty and an area nobody declared look the same from outside and answer different questions.
+The first says the project drew a partition it has not filled; the second says the partition is not there.

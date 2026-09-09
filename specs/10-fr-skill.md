@@ -580,3 +580,36 @@ A behaviour already described under one number is proposed again under another, 
 
 Separate from FR-SKILL-210 because the question is a different one.
 That one asks what a new statement disturbs; this asks whether it is new at all, and it is asked of a batch produced from code rather than of a sentence somebody is writing.
+
+### FR-SKILL-240 — A question about the system is entered through its vocabulary
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [FR-VIEW-250]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-09
+```
+
+Where a question is about how the system works rather than about a change to it, the procedure answering it **shall** read what the project wrote about itself in its own words — its terms, its purpose and its overview — before it reads any requirement or any code.
+
+**Rationale.** Every procedure that reads the specification starts from something the reader already has — a change, a file, a behaviour about to be written down — and none of them starts from a question about how the system works.
+An agent applying the accustomed move to a question of that kind is aimed away from the answer.
+This was measured rather than supposed: an agent in the first project that installed this framework answered from a function signature, was corrected, and found afterwards that the answer had been in an 81-line glossary it never opened.
+Its own account named the cause: the accustomed move applied to a task of another kind.
+
+Nothing pointed it at that file, and nothing could.
+Of the 214 requirements this specification then held, none mentioned the glossary or the overview.
+Nothing the viewer offers leads to those documents: no terminal mode opens one, and the page it renders links the glossary rather than rendering it, which its own footer says.
+The single sentence that says to read the vocabulary first sits in a table row of the standard, which a project that adopted rather than initialised does not have at all.
+
+What the project wrote about itself, rather than three file names: the names are a convention the standard says so of, and a project may hold its introduction in one file or four.
+Rather than every document that carries no requirements, which was the first wording and was wrong by a factor of fifteen — that set also holds the generated matrix, the register of open questions and the baseline log, 110 KB of it here and the matrix alone 187 KB in the first project that installed this framework.
+A rule obliging that much reading before a question can be answered costs exactly what this one exists to save.
+What the three have in common is the thing that matters: they are what a reader can open without already having a number, written in the words the project chose.
+
+Before requirements and before code, because the vocabulary is what makes the next query work at all — a search over requirement text finds a word the reader guessed, and the whole failure above was a reader who guessed a word the project does not use.
