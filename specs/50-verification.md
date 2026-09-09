@@ -16,7 +16,7 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/spec-check.sh` | This repository's own specification passes strictly, and the committed matrix matches what the checker generates now |
 | `tests/installer-smoke.sh` | Fresh install, upgrade, dry-run honesty, each of the seven kinds of precious file and what `--force` does to it, the exit code of a target the checker rejects, hook coexistence, the map check the installed pipeline carries, the bets the hook names on a commit that changes only code, payload isolation |
 | `tests/adopt-smoke.sh` | Adoption of a non-English specification, transactional rollback, dry-run/real parity, refusal on markdown without requirements |
-| `tests/view-smoke.sh` | Every viewer query mode, the browser it opens the page in, and the page: content, search and filters, the dashboard's census and gap lists, escaping, no CDN, determinism, no bytecode left behind |
+| `tests/view-smoke.sh` | Every viewer query mode, the areas with what each holds, the browser it opens the page in, and the page: content, the documents that carry no requirements, search and filters, the dashboard's census and gap lists, escaping, no CDN, determinism, no bytecode left behind |
 | `tests/checker-rules.sh` | One fixture per checker rule: the exit code and the message for a broken specification, and the refusals that happen before one is read |
 | `tests/upgrade-smoke.sh` | Upgrading a project from an older framework, the version transition and the notes it prints |
 | `tests/baseline-smoke.sh` | Freezing a baseline in a target and in a clone, including a hand-written row and a history too shallow to hold one |

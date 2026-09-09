@@ -509,14 +509,14 @@ An unknown identifier is refused the way the single-requirement view refuses it,
 ### FR-VIEW-250 — What the specification is divided into
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
@@ -533,3 +533,31 @@ So the areas cost no line of their own, and they appear in front of the reader t
 
 Including an area no requirement carries, for the reason `FR-VIEW-190` gives about the statuses: a declared area standing empty and an area nobody declared look the same from outside and answer different questions.
 The first says the project drew a partition it has not filled; the second says the partition is not there.
+
+### FR-VIEW-260 — The page offers what carries no requirements
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-09
+```
+
+The rendered page **shall** link every file in `specs/` that carries no requirements, except what the project has archived.
+
+**Rationale.** The page has offered six of them since it was written — the standard, the glossary, the constitution, the matrix, the open issues and the baseline log — and the list was never described, so nothing noticed when it fell behind.
+Three files the standard's own map names were missing from it: the introduction, the overview and the verification notes.
+
+All three are absent from the checker's skipped set as well, which is how they came to be invisible from both ends at once: the parser reads them as requirement files and finds nothing, and the page does not offer them.
+The list in the viewer was a copy of the checker's made by hand, and a copy is what drifts.
+
+Every such file rather than three names, because the names are a convention the standard says so of, and a project may hold its introduction in one file or four.
+Except the archived, because `specs/archive/` is not normative by that same map, and a link is an invitation to read.
+
+Linked rather than rendered.
+There is no block renderer here — the one function that turns specification text into HTML handles a single statement — and building one for the thirty-odd files this offers would be a second markdown implementation in a project that has none.

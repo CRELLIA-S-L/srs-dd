@@ -8,7 +8,8 @@ construction: it never rewrites specs/90-traceability.md and never acts
 as a gate. The matrix stays the committed, byte-compared artifact; this
 is a projection of the same data for people to read.
 
-    srs_view.py                    summary: status counts and every requirement
+    srs_view.py                    summary: counts, areas, every requirement
+    srs_view.py --areas            what the specification is divided into
     srs_view.py FR-CORE-020        one requirement in full
     srs_view.py --list [filters]   filtered list (see --help)
     srs_view.py --code src/a.py    which requirements describe this file
@@ -71,12 +72,6 @@ INCOMING_LABEL = {
     "conflicts_with": "conflicted by",
     "superseded_by": "supersedes",
 }
-
-# Service files the parser skips (see srs_check.SKIP_FILES) but a
-# reviewer still wants at hand.
-DOCUMENT_FILES = ("README.md", "00-glossary.md", "constitution.md",
-                  "90-traceability.md", "91-open-issues.md",
-                  "92-baselines.md")
 
 # Beyond this the layered graph stops being readable; what is dropped is
 # always stated on the page rather than silently cut.
@@ -193,7 +188,7 @@ def build_model(requirements, problems, with_code_scan=True):
         "incoming": incoming,
         "orphan_code": sorted(all_code - covered),
         "code_total": len(all_code),
-        "documents": collect_documents(),
+        "documents": collect_documents(entries),
         "problems": problems,
     }
 
@@ -251,18 +246,36 @@ def outlived(entries, with_code_scan):
     return {"links": links, "files": files, "annotations": annotations}
 
 
-def collect_documents():
-    """Service files and ADRs: invisible to the parser, wanted by a
-    reviewer — requirements cite ART-* articles in their rationales."""
+def collect_documents(entries):
+    """Every file in specs/ that carries no requirements: the standard,
+    the glossary, the introduction, the overview, the verification notes,
+    the generated reports and the decision log — invisible to the parser,
+    wanted by a reviewer, since requirements cite ART-* articles in their
+    rationales.
+
+    Derived from what the parse produced rather than listed by hand.
+    The list that used to stand here was a copy of the checker's skipped
+    set and fell behind it: three files the standard's own map names were
+    offered nowhere, and a name added later would have gone the same way.
+    The archive is out — not normative by that map, and a link is an
+    invitation to read.
+    """
+    # implements: FR-VIEW-260
+    carrying = set(entry["path"] for entry in entries)
     result = []
-    for name in DOCUMENT_FILES:
-        if os.path.exists(os.path.join(SPECS, name)):
-            result.append("specs/%s" % name)
-    adr = os.path.join(SPECS, "adr")
-    if os.path.isdir(adr):
-        for name in sorted(os.listdir(adr)):
-            if name.endswith(".md"):
-                result.append("specs/adr/%s" % name)
+    for current, dirs, files in os.walk(SPECS):
+        dirs[:] = [name for name in dirs if name != "archive"]
+        for name in sorted(files):
+            if not name.endswith(".md"):
+                continue
+            rel = os.path.relpath(os.path.join(current, name), ROOT)
+            rel = rel.replace(os.sep, "/")
+            if rel not in carrying:
+                result.append(rel)
+    # The decision log after the documents rather than mixed in by name:
+    # a run of ADRs between the constitution and the glossary is a sidebar
+    # nobody reads to the end.
+    result.sort(key=lambda path: ("/adr/" in path, path))
     return result
 
 
@@ -386,6 +399,7 @@ def print_problems(model, style):
 
 
 def print_counts(model, style):
+    # implements: FR-VIEW-250
     counts = {}
     for entry in model["requirements"]:
         counts[entry["status"]] = counts.get(entry["status"], 0) + 1
@@ -396,6 +410,35 @@ def print_counts(model, style):
     total = len(model["requirements"])
     out("%s %s   %s" % (style.b(str(total)),
                         "requirement" if total == 1 else "requirements",
+                        style.d(" · ".join(parts))))
+    print_areas(model, style)
+
+
+def print_areas(model, style):
+    """The partition every identifier carries, with what each holds.
+
+    Printed beside the count, and separately on request: a reader who
+    knows to ask for the areas did not need them, and the one this is for
+    does not know the partition exists, so the unprompted line is the
+    half the requirement binds and the flag is one spelling of asking.
+    Declared areas rather than the ones in use, so an area a project drew
+    and has not filled reads as empty instead of missing; one carrying
+    requirements without being declared is appended rather than dropped,
+    because the count is wrong if it is left out and the checker is the
+    place that refuses it.
+    In the order the project declared them, not alphabetical: the same
+    reading STATUSES gets in the count above it.
+    """
+    # implements: FR-VIEW-250
+    held = {}
+    for entry in model["requirements"]:
+        held[entry["area"]] = held.get(entry["area"], 0) + 1
+    areas = list(model["areas"])
+    for area in sorted(set(held) - set(areas)):
+        areas.append(area)
+    parts = ["%s %d" % (area, held.get(area, 0)) for area in areas]
+    out("%s %s   %s" % (style.b(str(len(areas))),
+                        "area" if len(areas) == 1 else "areas",
                         style.d(" · ".join(parts))))
 
 
@@ -2443,6 +2486,9 @@ def parse_args(argv):
                         help="list requirements (with the filters below)")
     parser.add_argument("--status", help="filter by status")
     parser.add_argument("--area", help="filter by area")
+    parser.add_argument("--areas", action="store_true",
+                        help="the areas this project is divided into, "
+                             "with how many requirements each holds")
     parser.add_argument("--type", help="filter by type (FR, NFR, IF, …)")
     parser.add_argument("--verification", help="filter by method (T, D, I, A)")
     parser.add_argument("--grep",
@@ -2592,6 +2638,13 @@ def main(argv=None):
 
     if args.coverage:
         print_coverage(model, style)
+        return 0
+
+    # implements: FR-VIEW-250
+    # Before the diff branch: --areas --diff would otherwise print a diff
+    # and never mention an area.
+    if args.areas:
+        print_areas(model, style)
         return 0
 
     if diff:

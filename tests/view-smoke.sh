@@ -135,6 +135,23 @@ printf '# implements: FR-CORE-030\n' > src/extra.py  # srs-ignore
 
 python3 tools/srs_view.py --list > /tmp/v-list.log
 grep -q "FR-CORE-030" /tmp/v-list.log
+
+# --- verifies: FR-VIEW-250 — the areas, with what each holds.
+# Three assertions, each catching a different way to be wrong. The count
+# answers the flag at all; the zero proves the list is the declared areas
+# and not the ones in use, which is the half a project reads to see where
+# it drew a partition and has not filled it; and `absent` is what catches
+# an --areas that delegated to --list and printed requirements instead.
+python3 tools/srs_view.py --areas > /tmp/v-areas.log
+grep -qE "CORE +[0-9]+" /tmp/v-areas.log
+grep -qE "SEC +0" /tmp/v-areas.log
+absent "FR-CORE-030" /tmp/v-areas.log
+
+# The flag is one spelling; what the requirement binds is the line beside
+# the count, which prints before an answer nobody asked to filter.
+python3 tools/srs_view.py --coverage > /tmp/v-areas-sum.log
+grep -qE "CORE +[0-9]+" /tmp/v-areas-sum.log
+echo "view-smoke: the areas are named with what each holds"
 python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
 # verifies: FR-VIEW-010
@@ -388,6 +405,42 @@ if grep -q "https://cdn" .srs-site/index.html; then
     exit 1
 fi
 test -f .srs-site/.gitignore
+
+# --- verifies: FR-VIEW-260 — every file that carries no requirements is offered.
+# Sliced to the Documents list rather than the aside around it: the aside
+# also holds the file filter's chips, which name every requirement file, so
+# an assertion over the whole of it would pass on the chips and say nothing
+# about the list. The named ones are what the page never offered while its
+# list was a hand-made copy of the checker's skipped set; 10-fr-core.md is
+# the one file the target carries requirements in, and it must stay out.
+python3 - <<'PY2'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+listing = page[page.index('<h2>Documents</h2>'):]
+listing = listing[:listing.index('</ul>')]
+for name in ('00-glossary.md', '01-introduction.md', '02-overview.md',
+             '50-verification.md', 'constitution.md'):
+    assert name in listing, 'the page does not offer %s' % name
+assert '10-fr-core.md' not in listing, 'a file carrying requirements reached the list'
+PY2
+
+# The assertions above pass just as well on a list kept by hand,
+# which is what stood here and fell behind. These two do not: a file the
+# skeleton never shipped, and one under the archive the map calls
+# not normative.
+printf '# Context\n\nWhat this project sits inside.\n' > specs/03-context.md
+mkdir -p specs/archive
+printf '# Old\n\nAbsorbed.\n' > specs/archive/absorbed.md
+python3 tools/srs_view.py --html >/dev/null
+python3 - <<'PY2'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+listing = page[page.index('<h2>Documents</h2>'):]
+listing = listing[:listing.index('</ul>')]
+assert '03-context.md' in listing, 'a file added to specs/ is not offered'
+assert 'absorbed.md' not in listing, 'the archive reached the list'
+PY2
+rm -f specs/03-context.md specs/archive/absorbed.md
+python3 tools/srs_view.py --html >/dev/null
+echo "view-smoke: the page offers every file that carries no requirements"
 
 # Search and filters are two of the five things FR-VIEW-060 names, and
 # neither was asserted: the aside could have lost either one with every
