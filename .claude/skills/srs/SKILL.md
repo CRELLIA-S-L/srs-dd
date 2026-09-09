@@ -13,6 +13,24 @@ Read `specs/README.md` if you have not read it in this session.
 
 The specification language follows the lexicon in `specs/srs-config.json` — statements, titles, and rationales are written in that language, whatever language this skill is written in.
 
+## Two questions, and they enter from opposite ends
+
+**How does this work, and what is it for?** Start with what the project wrote about itself in its own words — the terms, the purpose and the overview, which the standard's map places in `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`.
+They are short, they are in the vocabulary the project actually uses, and they cost nothing to read: a lookup by number needs a number nobody has handed you yet, and a search over requirement text finds the word you guessed, which is the wrong word when the project calls the thing something else.
+Then the areas the project declared, then one of them, then the requirement, then its code:
+
+```
+python3 tools/srs_view.py --areas
+python3 tools/srs_view.py --list --area <AREA>
+python3 tools/srs_view.py <ID>
+python3 tools/srs_view.py --code <path/to/file>
+```
+
+Where the question turns out to be undecided rather than merely unanswered, `specs/91-open-issues.md` is where that is recorded, together with the decision it waits on — and it is read whole.
+An entry taken by the line will hand you a sentence the paragraph below it corrects.
+
+**Am I about to change something?** That is the rest of this procedure, starting here.
+
 ## First things first
 
 Before changing code, find out which requirements describe the affected behavior:
@@ -23,6 +41,8 @@ python3 tools/srs_view.py --code <path/to/file>
 
 It answers from the `code` and `tests` fields and from the file's own `implements:`/`verifies:` annotations; a directory works too.
 Where that tool is absent, `grep -rn "<path/to/file>" specs/*.md` and the “Requirement → code → verification” table in `specs/90-traceability.md` give the same answer by hand.
+That table is not the only reason to know the file.
+Its *Incoming links* section is every link between requirements in one place, computed and stored nowhere else — which is what to read when the question is about the shape of the graph rather than about one file, and is the wrong thing to read when it is about one file.
 
 **Then let that answer decide what you read.** The `code` and `tests` fields of the requirements a change belongs to are the files to open; a search over the repository is the fallback, taken out loud, when they turn out not to be all of them.
 The rule itself is in `AGENTS.md`.

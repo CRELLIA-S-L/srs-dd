@@ -29,7 +29,8 @@ The decision log follows **MADR**.
 | `archive/` | Absorbed documents. Not normative, kept for history |
 | `srs-config.json` | Project settings — see *Configuration* |
 
-The file names are a convention: the checker scans every `.md` file in `specs/` except the service files above.
+The file names are a convention, and the checker reads every `.md` file in `specs/` for requirements except these: this file, the glossary, the constitution, the three that record rather than state — the matrix, the open issues and the baseline log — and everything under `adr/` and `archive/`.
+Everything else is read whether or not it holds any, so a section file still empty is read and yields nothing.
 Split the `10-fr-*` files by area as your system grows.
 
 ## Identifier

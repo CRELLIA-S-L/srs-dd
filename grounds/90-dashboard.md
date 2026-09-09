@@ -102,6 +102,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-170 | 0 | 3 | 3 |
 | FR-SKILL-210 | 0 | 3 | 3 |
 | FR-SKILL-220 | 0 | 3 | 3 |
+| FR-SKILL-240 | 0 | 3 | 3 |
 | FR-SPEC-010 | 2 | 1 | 3 |
 | FR-VIEW-010 | 2 | 1 | 3 |
 | FR-VIEW-040 | 2 | 1 | 3 |
@@ -263,4 +264,3 @@ requirements link to them, plus how many files their `code` field names.
 | INV-GND-040 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-SKILL-240 | 0 | 0 | 0 |

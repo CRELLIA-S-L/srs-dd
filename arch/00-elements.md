@@ -26,7 +26,7 @@ requirements: [CON-SPEC-030, FR-CHK-160, FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, 
 depends_on: [E-010]
 ```
 
-Projects the same specification for reading: one requirement with its links, what describes a file, the coverage gaps, a citation, and a self-contained page.
+Projects the same specification for reading: one requirement with its links, what describes a file, what the whole is divided into, the coverage gaps, a citation, and a self-contained page.
 
 **Rationale.** Depends on the checker for the parser and for nothing else.
 It never writes to `specs/`, which is what lets a reader run it without asking anyone.
@@ -89,7 +89,7 @@ This layer: which parts the system is made of, what each carries, and the disagr
 ```yaml
 status: built
 carries: [.claude/skills, AGENTS.md, CLAUDE.md]
-requirements: [FR-ARCH-150, FR-ARCH-160, FR-GND-320, FR-GND-330, FR-GND-340, FR-GND-350, FR-GND-360, FR-GND-380, FR-GND-440, FR-GND-500, FR-GND-530, FR-SKILL-010, FR-SKILL-020, FR-SKILL-030, FR-SKILL-040, FR-SKILL-050, FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-090, FR-SKILL-100, FR-SKILL-110, FR-SKILL-120, FR-SKILL-130, FR-SKILL-140, FR-SKILL-150, FR-SKILL-160, FR-SKILL-170, FR-SKILL-180, FR-SKILL-190, FR-SKILL-200, FR-SKILL-210, FR-SKILL-220, FR-SKILL-230, IF-SKILL-010, INV-SPEC-070]
+requirements: [FR-ARCH-150, FR-ARCH-160, FR-GND-320, FR-GND-330, FR-GND-340, FR-GND-350, FR-GND-360, FR-GND-380, FR-GND-440, FR-GND-500, FR-GND-530, FR-SKILL-010, FR-SKILL-020, FR-SKILL-030, FR-SKILL-040, FR-SKILL-050, FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-090, FR-SKILL-100, FR-SKILL-110, FR-SKILL-120, FR-SKILL-130, FR-SKILL-140, FR-SKILL-150, FR-SKILL-160, FR-SKILL-170, FR-SKILL-180, FR-SKILL-190, FR-SKILL-200, FR-SKILL-210, FR-SKILL-220, FR-SKILL-230, FR-SKILL-240, IF-SKILL-010, INV-SPEC-070]
 depends_on: []
 ```
 
@@ -115,7 +115,7 @@ What a person reads before they clone: the landing page, the contribution rules,
 ```yaml
 status: built
 carries: [specs/README.md, skeleton]
-requirements: [CON-SPEC-020, FR-GND-300, FR-INIT-220, FR-SKILL-020, FR-SKILL-200, FR-SKILL-220, IF-SPEC-010, INV-SPEC-010, INV-SPEC-020, INV-SPEC-030, INV-SPEC-040, INV-SPEC-050, INV-SPEC-060, INV-SPEC-070, NFR-SPEC-020]
+requirements: [CON-SPEC-020, FR-GND-300, FR-INIT-220, FR-SKILL-020, FR-SKILL-200, FR-SKILL-220, FR-SKILL-240, IF-SPEC-010, INV-SPEC-010, INV-SPEC-020, INV-SPEC-030, INV-SPEC-040, INV-SPEC-050, INV-SPEC-060, INV-SPEC-070, NFR-SPEC-020]
 depends_on: []
 ```
 

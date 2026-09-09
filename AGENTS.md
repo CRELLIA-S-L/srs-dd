@@ -48,7 +48,9 @@ This repository is itself an SRS-DD project: behavior changes go through `specs/
 - **Line width** — the rule and its reasons are in `CONTRIBUTING.md` under *Ground rules*; read it before reformatting anything.
   Markdown is not wrapped to a width, and where a markdown line may break is INV-SPEC-070.
   `tests/line-width.sh` refuses what it forbids (FR-CI-100).
-- **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--html`.
+- **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--areas`, `--html`.
+- **A question about how this works, rather than a change to it** — start with `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`, then `--areas`, then one area, then the requirement.
+  A lookup by number needs a number nobody has handed you, and a search over requirement text finds the word you guessed rather than the one this project uses (FR-SKILL-240).
 - **Naming a requirement to a person** — give its title, the file it is written in and its status the first time it appears, and do not type them by hand: `python3 tools/srs_view.py --cite <ID>…` prints the citation ready to paste — `FR-CI-100 — The gate refuses a source line nobody had to write long (specs/10-fr-ci.md, implemented)`.
   The identifier alone is a key, not a name, and costs the reader a lookup per mention.
   Afterwards the number on its own is enough.

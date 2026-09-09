@@ -13,7 +13,7 @@ System behavior is described in `specs/` as numbered requirements with links bet
 - **Markdown is not wrapped to a width** — a line breaks where the meaning breaks, never inside a sentence.
   The renderer does the wrapping.
 - **Check** — `python3 tools/srs_check.py`.
-- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with its links resolved, `--code <path>` for the requirements describing a file, `--open` for a page a non-engineer can read;
+- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with its links resolved, `--code <path>` for the requirements describing a file, `--areas` for what the specification is divided into, `--open` for a page a non-engineer can read;
   `.claude/skills/srs-page/SKILL.md` is the procedure around it.
 - **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those.
   It runs nothing unasked.
@@ -24,6 +24,14 @@ System behavior is described in `specs/` as numbered requirements with links bet
   It shows the version transition, the upgrade notes and the file list, then asks;
   `.claude/skills/srs-upgrade/SKILL.md` is the procedure.
   Nothing else is needed — no framework clone, no address to look up.
+
+## Two ways in
+
+A question about how the system works starts with what this project wrote about itself — the terms, the purpose and the overview, which the standard's map places in `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`.
+They are short and they carry the project's own words — the ones a search over requirement text assumes you already know.
+Then `--areas`, then one area, then the requirement, then its code.
+
+A change to behavior starts at the loop below.
 
 ## The loop
 

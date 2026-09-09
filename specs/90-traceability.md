@@ -8,9 +8,9 @@ Total requirements: 216.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 1 |
+| `deferred` | 0 |
 | `partial` | 0 |
-| `implemented` | 215 |
+| `implemented` | 216 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -178,7 +178,7 @@ Total requirements: 216.
 | **FR-SKILL-210** What is already written is read before something new is | `implemented` | I | `.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-220** What to read comes from the specification, not from a search | `implemented` | I | `AGENTS.md`<br>`skeleton/AGENTS.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-230** A mined requirement is checked against what is written | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
-| **FR-SKILL-240** A question about the system is entered through its vocabulary | `deferred` | I | — | — |
+| **FR-SKILL-240** A question about the system is entered through its vocabulary | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | — |
 | **FR-SPEC-010** Freezing a baseline is one command | `implemented` | T | `tools/srs_baseline.py` | `tests/baseline-smoke.sh` |
 | **FR-SPEC-020** A specification can be dated from its own history | `implemented` | T | `tools/srs_dates.py` | `tests/dates-smoke.sh` |
 | **FR-VIEW-010** One requirement with its links resolved | `implemented` | T | `tools/srs_view.py` | `tests/view-smoke.sh` |
@@ -370,6 +370,7 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-SKILL-210** (`implemented`, method `I`) — What is already written is read before something new is
 - **FR-SKILL-220** (`implemented`, method `I`) — What to read comes from the specification, not from a search
 - **FR-SKILL-230** (`implemented`, method `I`) — A mined requirement is checked against what is written
+- **FR-SKILL-240** (`implemented`, method `I`) — A question about the system is entered through its vocabulary
 - **IF-ARCH-010** (`implemented`, method `I`) — The element record is a stable format
 - **IF-GND-010** (`implemented`, method `I`) — The register record is a stable format
 - **IF-SKILL-010** (`implemented`, method `I`) — The published entry point for an agent
