@@ -561,3 +561,84 @@ Except the archived, because `specs/archive/` is not normative by that same map,
 
 Linked rather than rendered.
 There is no block renderer here — the one function that turns specification text into HTML handles a single statement — and building one for the thirty-odd files this offers would be a second markdown implementation in a project that has none.
+
+### FR-VIEW-270 — A search reaches the prose as well
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-09
+```
+
+When searching by text, the viewer **shall** search the documents in `specs/` that state no requirements — excluding the standard, the matrix, the open issues, the baseline log and the archive — as well as the requirements themselves, naming the file and the line of each hit.
+
+**Rationale.** A search that reads only requirement text finds the word the reader guessed, and the reader who most needs the search is the one who does not yet know the project's word for the thing.
+That is the failure this whole entrance was built for, and it is the half a procedure cannot fix: an instruction to read the glossary is read once at the start of a session, while the search is what an agent reaches for forty minutes later.
+
+Line and file rather than a rendered paragraph, because `INV-SPEC-070` makes a line the unit of meaning in markdown written by hand — which is what lets a glossary table and a page of prose come back in the same shape.
+
+**The page offers a wider set than this, and the difference is the point.** A link costs the reader nothing when it is the wrong document — they see the name and do not click.
+A search hands back a line, and a line out of its document is what misleads.
+
+**Four of the five exclusions have a reason of their own.**
+The standard is the framework's own document, the same in every project that took it from here, and a search for a project's word would return its prose about how to write requirements.
+The matrix is generated: measured over this repository, it adds nothing to an ordinary word — every line it contributes is already answered by the requirement above it — and what it alone carries is file paths, which have their own mode.
+The baseline log is a list of versions.
+The archive is not normative by the standard's own map.
+
+**The open issues are excluded for a fifth reason, and it is the one worth writing down.** That register holds sentences it has since retracted — entries carry their own corrections, marked as such — and a search returns a line, not the paragraph that overturns it.
+A reader handed a retracted sentence with no sign that it was retracted is worse off than one handed nothing.
+Read whole it is sound; read by the line it is not, and a search reads by the line.
+
+### FR-VIEW-280 — A search says what it left out
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-270]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-09
+```
+
+Where a search leaves something out — the prose because a filter asked about requirements, a document because the project does not have it, or hits beyond the number it prints — the viewer **shall** say which.
+
+**Rationale.** The page already works this way and says why: what is dropped is stated rather than silently cut, which is how a reader learns that the graph drew a hundred and fifty nodes and how many it left undrawn.
+A terminal answer had the same problem and no such rule.
+
+The three cases fail the same way and would fail invisibly.
+A filter suppressing the prose is right — `--status draft` is a question about requirements — but a reader who is never told will conclude the prose is not searched at all and stop asking.
+A document the project does not have is the ordinary case in a project that adopted the framework rather than starting from it, and silence there reads as "searched, nothing found".
+A truncated list read as complete is the worst of the three, because the reader acts on it.
+
+Which, rather than that: naming the missing thing is what lets the reader ask again differently, and a bare "some results were omitted" costs a line and answers nothing.
+
+### FR-VIEW-290 — A path searched for is answered by the mode for paths
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-09
+```
+
+Where the text searched for names a path the project carries, the viewer **shall** also name the mode that answers about a path.
+
+**Rationale.** A path is not in what the search reads: it lives in the `code` and `tests` fields, and a hit happens only where the text being searched mentions the path in passing — searching for `tools/srs_arch.py` returns nothing while the mode beside it returns nineteen.
+Silence is the wrong answer twice over — it is indistinguishable from "the project does not mention this file", and it arrives at the reader least able to tell the difference, since a reader who knew the mode would have used it.
+
+Also, never instead: a needle can be a path and a word at once — `tools` is a directory here and a word in a dozen rationales — and a hint that replaced the results would answer a question nobody asked while dropping the one they did.

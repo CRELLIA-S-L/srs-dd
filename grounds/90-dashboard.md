@@ -39,11 +39,11 @@ Counted by quarter, which is what `period` says in the register's configuration.
 
 | quarter | arrived unclaimed | areas |
 |---|---|---|
-| 2026-Q3 | 216 | ARCH 25, CHK 26, CI 12, GND 63, INIT 22, SKILL 25, SPEC 16, VIEW 27 |
+| 2026-Q3 | 219 | ARCH 25, CHK 26, CI 12, GND 63, INIT 22, SKILL 25, SPEC 16, VIEW 30 |
 
 ## Requirements resting on no hypothesis
 
-216 of 216 requirements. Weight is what stands on them: how many
+219 of 219 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -53,8 +53,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-090 | 0 | 13 | 13 |
 | FR-SKILL-200 | 1 | 12 | 13 |
 | IF-GND-010 | 10 | 2 | 12 |
+| IF-SPEC-010 | 9 | 2 | 11 |
 | NFR-SPEC-010 | 1 | 10 | 11 |
-| IF-SPEC-010 | 8 | 2 | 10 |
 | CON-SPEC-030 | 0 | 9 | 9 |
 | FR-ARCH-010 | 8 | 1 | 9 |
 | FR-GND-010 | 8 | 1 | 9 |
@@ -160,6 +160,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-110 | 0 | 2 | 2 |
 | FR-SKILL-160 | 1 | 1 | 2 |
 | FR-SPEC-020 | 1 | 1 | 2 |
+| FR-VIEW-020 | 1 | 1 | 2 |
 | FR-VIEW-120 | 1 | 1 | 2 |
 | FR-VIEW-140 | 1 | 1 | 2 |
 | FR-VIEW-250 | 1 | 1 | 2 |
@@ -236,7 +237,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-180 | 0 | 1 | 1 |
 | FR-SKILL-190 | 0 | 1 | 1 |
 | FR-SKILL-230 | 0 | 1 | 1 |
-| FR-VIEW-020 | 0 | 1 | 1 |
 | FR-VIEW-030 | 0 | 1 | 1 |
 | FR-VIEW-070 | 0 | 1 | 1 |
 | FR-VIEW-080 | 0 | 1 | 1 |
@@ -254,6 +254,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-230 | 0 | 1 | 1 |
 | FR-VIEW-240 | 0 | 1 | 1 |
 | FR-VIEW-260 | 0 | 1 | 1 |
+| FR-VIEW-270 | 1 | 0 | 1 |
 | IF-ARCH-020 | 0 | 1 | 1 |
 | IF-ARCH-030 | 0 | 1 | 1 |
 | IF-CI-010 | 0 | 1 | 1 |
@@ -264,3 +265,5 @@ requirements link to them, plus how many files their `code` field names.
 | INV-GND-040 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
+| FR-VIEW-280 | 0 | 0 | 0 |
+| FR-VIEW-290 | 0 | 0 | 0 |
