@@ -613,3 +613,39 @@ A rule obliging that much reading before a question can be answered costs exactl
 What the three have in common is the thing that matters: they are what a reader can open without already having a number, written in the words the project chose.
 
 Before requirements and before code, because the vocabulary is what makes the next query work at all — a search over requirement text finds a word the reader guessed, and the whole failure above was a reader who guessed a word the project does not use.
+
+### FR-SKILL-250 — A search is reported, not only its result
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-210, FR-SKILL-010, FR-SKILL-100]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-check/SKILL.md]
+tests: []
+created: 2026-09-09
+```
+
+When reporting what is already written, the procedure **shall** say what it searched, not only what it found.
+
+**Rationale.** The rules it stands on oblige the lookup and the report of what it turned up, and where nothing turned up, "nothing" is the honest report of it.
+What none of them obliges is naming the search — and without that, two different things arrive at the maintainer looking identical: a procedure that looked properly and found nothing, and one that ran a poor query and honestly reported its result.
+Only the first is worth acting on, and nobody downstream can tell them apart.
+
+The agent writing that report is not being careless; it does not know it searched badly.
+A text search matches the word the author guessed, and the reader who most needs it is the one who does not yet know the project's word for the thing — which is the same failure that put the entrance to the specification in this area in the first place.
+
+**What "searched" has to carry, for the report to be worth reading, is the terms and the scope.**
+"I searched the specification" satisfies the sentence and defeats it: it names no word anyone can dispute and no boundary anyone can widen.
+The area asked, the words tried and the paths given are all cheap to write down, because the procedure had to choose them a moment earlier — and each one is something the maintainer can look at and say *that is the wrong word for this project*, which is the only correction that helps.
+The sentence stays at one obligation and leaves that to this paragraph, the way the authoring rule among them leaves "behaviour rather than files" to its own.
+
+**Beside those rules rather than narrowing them.** A refinement is the same obligation made precise for one branch; this one is a second thing to say about every search made to find out what is already written, and it is meaningless where no such search was made at all.
+The links name the rules that oblige one — before a requirement is written, before the code of a change is, and when a finished change has to name what it touched — because withdrawing any of them leaves this obligation with nothing to bite on at that door.
+
+Both this and the alternative below aim at one thing: link fields chosen from what is actually written rather than from what the author remembered.
+A checker rule demanding some number of links was the other way to reach it, and it is worse.
+It would produce that number of links, and nothing in the result would say which of them were found and which were written to satisfy the rule.
+A false link lies about the blast radius; an absent one only stays silent, and silence is the honest state of a graph nobody has walked.

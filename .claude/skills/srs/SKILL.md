@@ -26,6 +26,9 @@ python3 tools/srs_view.py <ID>
 python3 tools/srs_view.py --code <path/to/file>
 ```
 
+Where the answer turns out to be that the specification does not say, name the rungs you actually walked — the area you asked for, the words you searched, the path you gave.
+That claim is worth exactly what the query behind it was worth, and naming the query is what lets anyone who knows the project's word for the thing say so.
+
 Where the question turns out to be undecided rather than merely unanswered, `specs/91-open-issues.md` is where that is recorded, together with the decision it waits on — and it is read whole.
 An entry taken by the line will hand you a sentence the paragraph below it corrects.
 
@@ -46,6 +49,10 @@ Its *Incoming links* section is every link between requirements in one place, co
 
 **Then let that answer decide what you read.** The `code` and `tests` fields of the requirements a change belongs to are the files to open; a search over the repository is the fallback, taken out loud, when they turn out not to be all of them.
 The rule itself is in `AGENTS.md`.
+
+**Report the lookup, not only its outcome** — the paths you gave, and the words, where you fell back to a search over them.
+Where the answer is nothing, a lookup that missed and a lookup nobody made produce the same sentence, and the reader who could tell them apart is the one holding the report.
+Where it is something, the paths are what tell that reader how wide the answer was.
 
 Found some — read them in full, together with their `derives_from` and `depends_on`; `python3 tools/srs_view.py <ID>` prints one requirement with every link resolved in both directions.
 When changing a requirement, the incoming links are the blast radius.

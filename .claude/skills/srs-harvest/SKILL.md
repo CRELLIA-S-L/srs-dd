@@ -37,6 +37,8 @@ Read `specs/srs-config.json`: the `areas` partition the work, `code_roots` say w
    ```
 
    Say what each overlap is — the same behaviour under another number, or a neighbour worth a link — and let the maintainer settle it before the batch is written.
+   Say what the three sweeps were given, too, not only what they returned: the areas, the paths, the words.
+   A batch reporting no overlaps is the one claim here nobody can check without them — and the word a draft was searched under is where this goes wrong, because a mined statement carries the vocabulary of the code rather than of the specification.
    Each one named as `AGENTS.md` asks at its first mention, from `--cite`: a batch is read at speed, and a bare number in it is a lookup the maintainer has to make before they can judge anything.
    What the draft would disturb rather than repeat is the other half of the same sweep: what points at the requirements you found is what a new obligation lands on top of.
 4. After writing an approved batch, run `python3 tools/srs_check.py` and show the result.

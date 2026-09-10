@@ -18,6 +18,7 @@ Every requirement carries a `verification` method and the paths that verify it, 
    ```
 
    Name each of them as `AGENTS.md` asks the first time it appears — what this procedure reports is read by a person, and `--cite` prints the line.
+   Say which paths you gave, not only which requirements came back: a path spelled wrong returns an empty list, and an empty list is also what a change governed by nothing looks like.
 
 2. **Read what each of them asks for.**
    `python3 tools/srs_view.py <ID>` prints the method and the `tests` field.

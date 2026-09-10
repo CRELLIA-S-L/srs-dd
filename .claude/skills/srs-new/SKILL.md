@@ -14,7 +14,7 @@ Read `specs/srs-config.json` for the areas and the lexicon.
    One capability per requirement.
    If the user describes two, say so and split.
 2. **Type and area.**
-   The area comes from the `areas` list in `specs/srs-config.json`.
+   The area comes from the `areas` list in `specs/srs-config.json`, which `python3 tools/srs_view.py --areas` prints beside how many requirements each one already holds.
    Propose both, let the user confirm.
 3. **Number.**
    The next free one in the area — check the target file (see the map in `specs/README.md`).
@@ -46,6 +46,10 @@ Read `specs/srs-config.json` for the areas and the lexicon.
    Here the sentence and the method are on the table together, which is the one moment the question costs nothing.
 6. **What is already written.**
    Before the links are chosen, resolve which requirements already speak to this behaviour and what points at those, and say what you found — including "nothing", which is an answer.
+   **Say what you searched, not only what came back** — the area you asked, the words you tried, the paths you gave.
+   "Nothing" after a thorough sweep and "nothing" after a poor one arrive identically: a text search matches the word you guessed, and the word this project uses for the thing may not be it.
+   You cannot catch that yourself, because not knowing the project's word is exactly the condition you are in.
+   The maintainer can, in one glance, and only if the words are in the report.
    Whatever it turns up is named as `AGENTS.md` asks the first time it appears, from `python3 tools/srs_view.py --cite <ID>…`: a requirement you are about to link to is one you had to open anyway, and the citation is what shows you did.
 
    ```
@@ -56,6 +60,7 @@ Read `specs/srs-config.json` for the areas and the lexicon.
    ```
 
    The area and the words come from steps 2 and 4; the paths come from wherever the behaviour will live, which the author knows before the `code` field does.
+   The search over words reads the project's own prose alongside its requirements, so a term the project uses and no requirement states is found here rather than nowhere — and a word that returns nothing from both is the one worth reporting as tried.
    Two questions are being answered and neither substitutes for the other: whether this is already said somewhere, and what a new obligation lands on top of.
    Filling the link fields from memory answers the first badly and the second not at all.
 
