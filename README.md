@@ -181,7 +181,7 @@ Ask for them by name, or describe the task and let the agent pick.
 | any change to behaviour | `srs` — the everyday loop: name the requirements the change belongs to *before* the code, create one where none exists, re-read their statements as the loop closes, fill `code` and `tests` with real paths. |
 | "we have code and no spec" | `srs-harvest` — reads the code area by area, proposes `draft` requirements in batches you approve first, invents no tests. |
 | "check this before I commit" | `srs-check` — names the checks the touched requirements actually call for: the checker, the tests those requirements list, and what a person must look at where the method is not a test. It offers; it never runs a suite unasked. |
-| "audit the spec against the code" | `srs-audit` — semantic drift and test adequacy. Read-only: it reports which side looks wrong and never picks one. |
+| "audit the spec against the code" | `srs-audit` — semantic drift, test adequacy, and the links requirements do not carry. Read-only: it reports which side looks wrong and never picks one. |
 | "freeze the spec" | `srs-baseline` — shows what changed since the last baseline, offers an audit of what the diff touches, settles the version with you, writes the row. |
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
 | "why do we do X" / a measurement came in | `srs-bet` — the grounds register: write a hypothesis, stake a requirement on it, record a measurement, settle what happens when one is refuted. |

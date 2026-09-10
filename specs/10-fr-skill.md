@@ -113,9 +113,14 @@ tests: []
 created: 2026-08-07
 ```
 
-The `srs-audit` procedure **shall** report drift between the specification and the code without changing either side on its own.
+The `srs-audit` procedure **shall** report what it finds without changing the specification or the code on its own.
 
 **Rationale.** When the two disagree it is unknown which one is wrong, and that is the maintainer's call — a helpful fix here would silently pick a side.
+
+**This was scoped to drift against the code, and that stopped being all the audit finds.** The sentence named the two sides it must not touch and, in naming them, quietly named the only thing it was looking at.
+A pass over an area's links finds what the specification lacks within itself, with the code no part of it, and under the old wording the procedure's own rule — *name the edit; do not make it* — rested on this requirement's title rather than on its statement.
+Widened to what it finds, because the reason was never about the code: where two sides disagree it is unknown which is wrong, and where there is only the specification it is unknown whether what the audit sees is a gap or a shape somebody chose.
+Both are the maintainer's to settle, and a procedure that acts on its own settles them in silence.
 
 ### FR-SKILL-060 — The upgrade procedure travels with the project
 
@@ -649,3 +654,36 @@ Both this and the alternative below aim at one thing: link fields chosen from wh
 A checker rule demanding some number of links was the other way to reach it, and it is worse.
 It would produce that number of links, and nothing in the result would say which of them were found and which were written to satisfy the rule.
 A false link lies about the blast radius; an absent one only stays silent, and silence is the honest state of a graph nobody has walked.
+
+### FR-SKILL-260 — The links an area lacks are offered
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-050, FR-VIEW-220, FR-VIEW-250]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-audit/SKILL.md]
+tests: []
+created: 2026-09-10
+```
+
+When auditing an area, the `srs-audit` procedure **shall** propose the links its requirements should carry and do not.
+
+**Rationale.** Nothing looks for a missing link, and nothing can: the checker proves that what is written resolves, never that anything was left out, and an empty link field is valid on every requirement in the file.
+The one rule that touches this fires only on total isolation — a requirement linked to nothing with nothing linking to it — so a single link satisfies it and the graph settles on exactly that floor.
+Measured here on 2026-09-10: 217 links of all four kinds over 222 requirements, and 126 of those requirements with nothing pointing at them at all.
+The first project that installed this framework lands within a hair of both from 571 requirements — 1.05 links each against 0.98 here, 55% with no incoming link against 57% — while using the fields in opposite proportions, `depends_on` carrying 188 of the edges here and 150 of 600 there.
+What that leaves is an impact query answering from links nobody has ever read as a set.
+
+**Area by area, because that is the unit a reader can hold at once.** The eight areas here run from 12 requirements to 63, and one area's titles are between 872 and 4550 bytes — against 15.9 KB for every title at once here, and 55.9 KB in the project that installed this framework.
+A link is proposed between two requirements that were read together, so the size of what can be read together is the size of what can be proposed.
+Reading starts there and does not end there, and the measurement says why: 84% of the ordered pairs in this specification cross an area boundary, and 23% of the links written do — a pair inside one area is linked at 2.19%, a pair across two at 0.12%.
+The area is also a unit the specification already carries — every identifier names one, the configuration declares them, the viewer both states how many each holds and narrows a listing to one — so the pass has a place to stop and be resumed that nobody has to invent.
+
+**Proposed, not written.** The rule above this one says the audit changes neither side on its own, and that is why the verb here is *propose*: a link recorded without the maintainer's word is a claim about the shape of the system made by whoever happened to be reading.
+A false link is worse than an absent one — it lies about what a change reaches, where silence merely says nothing.
+
+**What this does not promise is completeness, and it cannot.** A missing link is invisible by construction, so no pass and no rule can establish that none remain.
+After it the graph has been looked at once, by somebody, area by area — which is more than has ever been true of it, and less than proof.

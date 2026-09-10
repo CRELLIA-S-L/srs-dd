@@ -14,7 +14,7 @@ An agent without a skill system reads them directly as workflow guides:
 |---|---|
 | `srs` | The everyday loop and multi-requirement planning |
 | `srs-new` | Authoring one requirement through a dialog |
-| `srs-audit` | Spec ↔ code drift and test adequacy |
+| `srs-audit` | Spec ↔ code drift, test adequacy, and the links requirements do not carry |
 | `srs-harvest` | Mining a specification out of existing code |
 | `srs-check` | Naming and running the checks a finished change calls for |
 | `srs-page` | Rendering the specification as a page, and opening it |

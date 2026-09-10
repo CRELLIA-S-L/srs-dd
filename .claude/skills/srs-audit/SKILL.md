@@ -1,9 +1,9 @@
 ---
 name: srs-audit
-description: Semantic drift audit between the specification and the code, including test adequacy — whether the listed tests actually prove the statements. Invoke when the user asks to audit the spec, verify that code matches requirements, find undocumented behavior, check whether requirements are adequately tested, or derive test cases from statements. Read-only analysis with a report; fixes nothing by itself, except that on explicit request it can author the missing tests. For the everyday workflow use the srs skill.
+description: Semantic drift audit between the specification and the code, including test adequacy — whether the listed tests actually prove the statements — and the links between requirements, which nothing else looks for. Invoke when the user asks to audit the spec, verify that code matches requirements, find undocumented behavior, check whether requirements are adequately tested, or derive test cases from statements. Read-only analysis with a report; fixes nothing by itself, except that on explicit request it can author the missing tests. For the everyday workflow use the srs skill.
 ---
 
-# Auditing spec ↔ code drift
+# Auditing the specification
 
 The checker (`tools/srs_check.py`) already catches everything mechanical:
 broken links, missing paths, stale annotations by ID.
@@ -66,6 +66,38 @@ Only requirements with `verification: T` get derived test cases; for `D`, `I`, a
    The audit runs nothing (ART-030), and the question is answerable while reading.
 4. On the user's explicit request — and only then — author the missing tests; the new test path goes into `tests` in the same set of edits (ART-050).
    Running them still needs its own confirmation (ART-030).
+
+## Links between requirements
+
+The third dimension, and the one nothing else looks at.
+The checker proves that every link written down resolves; it cannot prove that any link was left out, and an empty link field is valid on every requirement in the file.
+Its one rule here fires only on total isolation — nothing pointing out, nothing pointing in — so a single link satisfies it, and the graph settles on that floor.
+What rests on the links is every question of the form *what does this change reach*, so a radius computed from them is worth what they are worth.
+
+**One area at a time.**
+
+```
+python3 tools/srs_view.py --areas
+python3 tools/srs_view.py --list --area <AREA>
+```
+
+1. Read the area's titles together — that is the unit small enough to hold in one reading, and a link is only ever proposed between requirements that were read together.
+2. For each requirement in it, open what looks related and judge which links are missing, in both directions:
+   `depends_on` where one is meaningless without the other, `derives_from` where one exists because the other does, `refines` where one is the same obligation narrowed for a branch, `conflicts_with` where the divergence is deliberate.
+   The four are not interchangeable — the standard says what each means, and a link filed under the wrong field misdescribes the radius as surely as a missing one.
+3. Look outside the area as well. The area is where reading starts, not where the graph ends, and a link crossing two areas is the one nobody was looking at when either end was written — an author works inside an area, and reads that area.
+4. **Propose, one link at a time, and let the maintainer settle each.**
+   Name both ends as `AGENTS.md` asks, say which field and why in a clause, and wait.
+   A batch of twenty approved in one breath is twenty links nobody read.
+5. Stop at the proposal. What the maintainer approves is written the way any other specification edit is — through the everyday procedure, with the matrix regenerated in the same set of edits — and that is not this audit's act; see *Boundaries*.
+
+Say what the pass covered — which area, how many requirements, how many links proposed and how many approved — because the next pass starts where this one stopped and nothing else records that.
+
+**What it does not establish.** A missing link is invisible by construction, so the pass cannot end with "none remain".
+It ends with an area that has been read once, by somebody, which is a different and smaller claim.
+Say it that way rather than reporting the area clean.
+
+In a project part-way through describing itself the pass has a second effect worth expecting: linking a realized requirement to a `draft` one is what makes the checker report it, and that is the rule doing its job, not the pass going wrong.
 
 ## Boundaries
 
