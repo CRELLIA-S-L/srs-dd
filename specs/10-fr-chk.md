@@ -585,3 +585,33 @@ That statement obliges the matrix to be generated and never hand-edited; what a 
 
 Scoped to the one reading.
 The *Incoming links* section keeps every link, including those from cancelled requirements, because settling a withdrawal is exactly the case that needs them whole — the same reason the viewer computes its reverse links over every entry.
+
+### FR-CHK-240 — No cycles in the dependency graph
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-030]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-09-10
+```
+
+If `depends_on` links form a cycle, the checker **shall** report it as an error listing the requirements on the cycle.
+
+**Rationale.** A cycle here says that each requirement in a set is meaningless without the next, and therefore that the set is meaningless without itself.
+Nothing in it can be read first, and a reader following the field to find out what a requirement rests on arrives back where they started.
+
+**A second graph, walked separately, and the sibling rule is the argument for it.** That rule merged `derives_from` and `refines` into one walk precisely because they answer one question — why does this exist — and the merge fixed a cycle that two separate walks each saw half of.
+The same test keeps this one apart: `depends_on` answers a different question, what is this meaningless without, and a path that alternates between the two fields is not a circle in either sense.
+It would be a chain of "A exists because B does" and "B is meaningless without A", which is an ordinary shape and not an error.
+So the message names which links the cycle was drawn in, the way the sibling's does, and a mixed path is reported by neither.
+
+**An error, and it carries no rule name, so it cannot be lowered.** That is the cost worth stating plainly: a project that already holds such a cycle cannot take an upgrade until its specification is repaired, because upgrading runs the installer and the installer ends by checking what it installed into.
+Measured on 2026-09-10 over the two projects there are: 185 `depends_on` edges here, this requirement's own included, and 150 across the 571 requirements of the first project that installed this framework — no cycle in either.
+A tunable warning was the alternative and it buys nothing here, because a specification that is circular about what rests on what is wrong in a way no project would choose to keep.
+
+Before the pass that fills in missing links, not after: that pass exists to add `depends_on` edges, which is exactly the work able to close a circle, and a rule landing afterwards would find the cycle two hundred edits later instead of inside the edit that made it.

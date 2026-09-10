@@ -300,7 +300,7 @@ Which of your words carries which binding force (mandatory / recommended / allow
 python3 tools/srs_check.py
 ```
 
-The script catches uniqueness and well-formedness of identifiers, dangling references, cycles in the derivation links (`derives_from`, `refines`), an empty `code` field with status `implemented` or `partial`, nonexistent paths, `superseded` without a replacement and a replacement named by anything but a `superseded` requirement, two requirements glued into one sentence, and annotation drift (see *Annotations*).
+The script catches uniqueness and well-formedness of identifiers, dangling references, a link naming its own requirement, cycles in the derivation links (`derives_from`, `refines`) and in the dependency links (`depends_on`), an empty `code` field with status `implemented` or `partial`, nonexistent paths, `superseded` without a replacement and a replacement named by anything but a `superseded` requirement, two requirements glued into one sentence, and annotation drift (see *Annotations*).
 As a side effect it rewrites `90-traceability.md`.
 
 The `--no-write` flag — check only, generate nothing.

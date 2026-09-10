@@ -334,21 +334,33 @@ def collect_spec_files():
 
 CYCLE_FIELDS = ("derives_from", "refines")
 
+# implements: FR-CHK-240
+# Walked on its own, not added to the pair above. Those two answer one
+# question — why does this exist — which is why they share a graph. This
+# one answers another, what is this meaningless without, and a path
+# alternating between the two is a circle in neither sense.
+DEPENDENCY_FIELDS = ("depends_on",)
 
-def find_cycles(requirements):
-    # implements: FR-CHK-040
-    """Loops in the derivation graph, as (cycle path, fields on it).
 
-    One graph over both kinds of link rather than one per kind. A cycle
-    that alternates them — A derives from B, B refines A — is circular in
-    exactly the way the rationale describes, and two separate walks see
-    neither half of it.
+def find_cycles(requirements, fields):
+    # implements: FR-CHK-040, FR-CHK-240
+    """Loops in one link graph, as (cycle path, fields on it).
+
+    The fields to walk are given, because the specification holds two
+    graphs and not one: the derivation fields, which the caller passes
+    together for the reason below, and the dependency field, which is
+    walked by itself.
+
+    One graph over both kinds of derivation link rather than one per kind.
+    A cycle that alternates them — A derives from B, B refines A — is
+    circular in exactly the way the rationale describes, and two separate
+    walks see neither half of it.
 
     The fields are carried along so the message can still name them: a
     cycle drawn in one kind reads exactly as it did when there was a walk
     per kind.
     """
-    graph = dict((r.id, [(t, field) for field in CYCLE_FIELDS
+    graph = dict((r.id, [(t, field) for field in fields
                          for t in r.links(field)])
                  for r in requirements)
     cycles = []
@@ -597,7 +609,15 @@ def validate(requirements):
                          "%s — %s is linked to nothing, and nothing links "
                          "to it" % (req.where, req.id), req)
 
-    for cycle, fields in find_cycles(requirements):
+    for cycle, fields in find_cycles(requirements, CYCLE_FIELDS):
+        errors.append("cycle in %s links: %s"
+                      % ("/".join(fields), " → ".join(cycle)))
+
+    # implements: FR-CHK-240
+    # A separate walk, so a path that alternates between the two graphs is
+    # reported by neither. The message names the field it was drawn in, so
+    # the two read apart without any wording of their own.
+    for cycle, fields in find_cycles(requirements, DEPENDENCY_FIELDS):
         errors.append("cycle in %s links: %s"
                       % ("/".join(fields), " → ".join(cycle)))
 

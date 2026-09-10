@@ -53,7 +53,7 @@ document.
 the most common source of lost work reports.
 ````
 
-`python3 tools/srs_check.py` regenerates `specs/90-traceability.md` — requirement → code → verification, in both directions — and fails on a dangling link, a status of `implemented` without code paths, a path that does not exist, a cycle in the derivation graph, or an annotation naming a requirement that was never written.
+`python3 tools/srs_check.py` regenerates `specs/90-traceability.md` — requirement → code → verification, in both directions — and fails on a dangling link, a status of `implemented` without code paths, a path that does not exist, a cycle in the derivation or the dependency graph, or an annotation naming a requirement that was never written.
 Softer drift is a warning: a file a requirement names that does not name it back, a requirement verified by test that lists none, a requirement no link touches.
 `--strict` turns warnings into failures too.
 

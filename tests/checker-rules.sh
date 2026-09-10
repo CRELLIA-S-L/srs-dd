@@ -165,6 +165,28 @@ spec < <(block FR-CORE-010 "Derives from the other" \
 rule "FR-CHK-040 cycle across both kinds" 1 \
      "cycle in derives_from/refines links"
 
+# --- verifies: FR-CHK-240 — the other graph, walked on its own.
+spec < <(block FR-CORE-010 "Meaningless without the other" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Meaningless without the first" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+rule "FR-CHK-240 cycle in depends_on" 1 "cycle in depends_on links"
+
+# --- verifies: FR-CHK-240 — and the case the separate walks exist for: a
+# --- path alternating between the two graphs is a circle in neither sense,
+# --- so neither rule reports it. This is the whole content of the decision
+# --- to keep the walks apart, and it reddens the day somebody folds
+# --- `depends_on` into the derivation fields.
+spec < <(block FR-CORE-010 "Derives from the other" \
+               "${META/derives_from: \[\]/derives_from: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Meaningless without the first" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+silent "FR-CHK-240 mixed path is no cycle" 0 "cycle in"
+
 # --- verifies: FR-CHK-055 — a path a requirement names exists.
 spec < <(block FR-CORE-010 "Names a file that is not there" \
                "$(printf '%s' "${META/status: deferred/status: implemented}" \
