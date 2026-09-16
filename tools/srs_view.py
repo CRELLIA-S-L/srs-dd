@@ -408,6 +408,52 @@ def requirements_for_path(model, path):
     return found
 
 
+def split_line_spec(spec):
+    # implements: FR-VIEW-300
+    """`path:line` into (path, line), or (spec, None) when it is not one.
+
+    A colon is not enough to say so: `C:\\src` and a path with a colon in
+    its name both carry one and mean no line. Only a wholly numeric tail
+    behind a head that exists as a file is read as a line, so a path that
+    happens to end that way and exists as written is kept whole first.
+    A directory before the colon is not a file with lines, and is left as
+    the whole spec for the caller to say so.
+    """
+    head, sep, tail = spec.rpartition(":")
+    if not sep or not tail.isdigit() or not head:
+        return spec, None
+    if os.path.exists(spec) or os.path.exists(os.path.join(ROOT, spec)):
+        return spec, None
+    if os.path.isfile(os.path.join(ROOT, head)) or os.path.isfile(head):
+        return head, int(tail)
+    return spec, None
+
+
+def requirements_for_line(path, line):
+    # implements: FR-VIEW-300
+    """The requirements the annotation covering a line marks — the one on
+    the line itself, or the nearest above it — and nothing from the
+    `code`/`tests` fields, which have no lines to be asked about.
+
+    A line before any annotation is covered by none and answers with an
+    empty set; the file-wide count the caller prints beside it is then the
+    whole of the answer. The grammar is the checker's, as in
+    requirements_for_path, and for the same reason.
+    """
+    wanted = path.replace(os.sep, "/").strip()
+    if not os.path.exists(os.path.join(ROOT, wanted)) and os.path.exists(path):
+        wanted = _repo_relative(path) or wanted
+    full = os.path.join(ROOT, wanted)
+    covering = None
+    for lineno, _kw, rid in srs_check.read_annotations(full):
+        if lineno > line:
+            break
+        if lineno != covering:
+            covering, found = lineno, set()
+        found.add(rid)
+    return found if covering is not None else set()
+
+
 def select(model, args):
     # implements: FR-VIEW-220
     entries = model["requirements"]
@@ -590,6 +636,30 @@ def print_list(entries, style):
         return
     for entry in entries:
         print_line(entry, style)
+
+
+def print_line_answer(model, path, line, style, listing):
+    # implements: FR-VIEW-300
+    """What a line of a file marks, and how many the whole file answers
+    for — the second from the path mode, so the two never disagree about
+    the file."""
+    marked = requirements_for_line(path, line)
+    whole = requirements_for_path(model, path)
+    if not listing:
+        print_counts(model, style)
+        out()
+    index = by_id(model)
+    entries = [index[rid] for rid in sorted(marked) if rid in index]
+    unknown = sorted(rid for rid in marked if rid not in index)
+    if not entries and not unknown:
+        out(style.d("no annotation covers %s:%d" % (path, line)))
+    for entry in entries:
+        print_line(entry, style)
+    for rid in unknown:
+        out("%-15s %s" % (rid, style.d("annotated here, not in the "
+                                       "specification")))
+    out(style.d("the whole file answers for %d requirement(s) — "
+                "--code %s without a line lists them" % (len(whole), path)))
 
 
 def wrap(text, width=76, indent="  "):
@@ -2631,10 +2701,12 @@ def parse_args(argv):
     parser.add_argument("--grep",
                         help="text in id/title/statement/rationale, "
                              "and in the prose beside them")
-    parser.add_argument("--code", metavar="PATH",
+    parser.add_argument("--code", metavar="PATH[:LINE]",
                         help="requirements describing this file or directory, "
                              "by code/tests fields and by the file's own "
-                             "implements:/verifies: annotations")
+                             "implements:/verifies: annotations; with :LINE, "
+                             "only what the annotation covering that line "
+                             "marks, and how many the whole file answers for")
     parser.add_argument("--tree", metavar="ID",
                         help="what derives from this requirement")
     parser.add_argument("--up", action="store_true",
@@ -2788,6 +2860,22 @@ def main(argv=None):
     if diff:
         print_diff(diff, style)
         return 0
+
+    # implements: FR-VIEW-300
+    # Its own branch rather than a narrowing of select(): the mode for a
+    # path answers from three sources and this one from the annotations
+    # alone, and the count beside the answer is the path mode's, so the
+    # reader handed one requirement knows it is one of thirty.
+    if args.code:
+        path, line = split_line_spec(args.code)
+        if line is not None:
+            print_line_answer(model, path, line, style, args.list)
+            return 0
+        head, sep, tail = args.code.rpartition(":")
+        if sep and tail.isdigit() and os.path.isdir(os.path.join(ROOT, head)):
+            out(style.d("%s is a directory; a line belongs to a file"
+                        % head))
+            return 0
 
     entries = select(model, args)
     if not args.list:

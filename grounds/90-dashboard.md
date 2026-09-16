@@ -39,11 +39,11 @@ Counted by quarter, which is what `period` says in the register's configuration.
 
 | quarter | arrived unclaimed | areas |
 |---|---|---|
-| 2026-Q3 | 222 | ARCH 25, CHK 27, CI 12, GND 63, INIT 22, SKILL 27, SPEC 16, VIEW 30 |
+| 2026-Q3 | 223 | ARCH 25, CHK 27, CI 12, GND 63, INIT 22, SKILL 27, SPEC 16, VIEW 31 |
 
 ## Requirements resting on no hypothesis
 
-222 of 222 requirements. Weight is what stands on them: how many
+223 of 223 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -79,6 +79,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-120 | 3 | 1 | 4 |
 | FR-ARCH-170 | 1 | 3 | 4 |
 | FR-CHK-070 | 3 | 1 | 4 |
+| FR-CHK-080 | 3 | 1 | 4 |
 | FR-CHK-090 | 3 | 1 | 4 |
 | FR-CI-050 | 1 | 3 | 4 |
 | FR-GND-330 | 3 | 1 | 4 |
@@ -94,7 +95,6 @@ requirements link to them, plus how many files their `code` field names.
 | CON-SPEC-020 | 1 | 2 | 3 |
 | FR-ARCH-090 | 2 | 1 | 3 |
 | FR-ARCH-110 | 2 | 1 | 3 |
-| FR-CHK-080 | 2 | 1 | 3 |
 | FR-CHK-120 | 2 | 1 | 3 |
 | FR-CHK-160 | 1 | 2 | 3 |
 | FR-GND-110 | 2 | 1 | 3 |
@@ -115,6 +115,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-240 | 0 | 3 | 3 |
 | FR-SPEC-010 | 2 | 1 | 3 |
 | FR-VIEW-010 | 2 | 1 | 3 |
+| FR-VIEW-020 | 2 | 1 | 3 |
 | FR-VIEW-040 | 2 | 1 | 3 |
 | FR-VIEW-050 | 2 | 1 | 3 |
 | FR-VIEW-250 | 2 | 1 | 3 |
@@ -164,7 +165,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-110 | 0 | 2 | 2 |
 | FR-SKILL-160 | 1 | 1 | 2 |
 | FR-SPEC-020 | 1 | 1 | 2 |
-| FR-VIEW-020 | 1 | 1 | 2 |
 | FR-VIEW-080 | 1 | 1 | 2 |
 | FR-VIEW-120 | 1 | 1 | 2 |
 | FR-VIEW-140 | 1 | 1 | 2 |
@@ -259,6 +259,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-260 | 0 | 1 | 1 |
 | FR-VIEW-280 | 0 | 1 | 1 |
 | FR-VIEW-290 | 0 | 1 | 1 |
+| FR-VIEW-300 | 0 | 1 | 1 |
 | IF-ARCH-020 | 0 | 1 | 1 |
 | IF-ARCH-030 | 0 | 1 | 1 |
 | IF-CI-010 | 0 | 1 | 1 |

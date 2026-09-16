@@ -126,6 +126,8 @@ Reverse ones (`refined_by`, `required_by`) are computed by the script into `90-t
 
 The difference between `derives_from` and `refines`: the first is the vertical of abstraction (“this requirement exists because that one does”), the second is a special case (“the same thing, but more precise for one branch”).
 
+The checker proves that every link written resolves, never that the links are all of them: an empty link field is valid, and a link left out shows only when it leaves a requirement touched by no link at all.
+
 ## Lifecycle
 
 `draft → deferred → partial / implemented → superseded`

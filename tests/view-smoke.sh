@@ -279,6 +279,30 @@ python3 tools/srs_view.py --code src/extra.py --list > /tmp/v-annot.log
 grep -q "FR-CORE-030" /tmp/v-annot.log
 python3 tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
 grep -q "FR-CORE-080" /tmp/v-tests.log
+# verifies: FR-VIEW-300
+# A line asks a narrower question than a file. Two annotations in one file,
+# with room between them, so that each line lands in exactly one region and
+# the answer for a line is not the answer for the file. Its own file, listed
+# in no `code` field: src/app.py is listed by FR-CORE-020, and a path mode
+# narrowed to one annotation would still answer that one from the field.
+printf '# implements: FR-CORE-020\n\n\n\n# implements: FR-CORE-030\n\n\n' > src/lines.py  # srs-ignore
+python3 tools/srs_view.py --code src/lines.py:2 --list > /tmp/v-line1.log
+grep -q "FR-CORE-020" /tmp/v-line1.log
+absent "FR-CORE-030" /tmp/v-line1.log
+python3 tools/srs_view.py --code src/lines.py:6 --list > /tmp/v-line2.log
+grep -q "FR-CORE-030" /tmp/v-line2.log
+absent "FR-CORE-020" /tmp/v-line2.log
+# The count beside the answer is the file's, not the line's: whoever is
+# handed one requirement is told it is one of two.
+grep -q "answers for 2 requirement" /tmp/v-line2.log
+# The wide answer did not narrow. This is the probe that reddens the day
+# somebody "simplifies" the line mode into a filter on the path mode.
+python3 tools/srs_view.py --code src/lines.py --list > /tmp/v-whole.log
+grep -q "FR-CORE-020" /tmp/v-whole.log
+grep -q "FR-CORE-030" /tmp/v-whole.log
+# A directory before the colon is not a file with lines.
+python3 tools/srs_view.py --code src:1 --list > /tmp/v-dirline.log
+grep -q "a line belongs to a file" /tmp/v-dirline.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
 # verifies: FR-VIEW-040

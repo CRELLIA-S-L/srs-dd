@@ -642,3 +642,34 @@ Where the text searched for names a path the project carries, the viewer **shall
 Silence is the wrong answer twice over — it is indistinguishable from "the project does not mention this file", and it arrives at the reader least able to tell the difference, since a reader who knew the mode would have used it.
 
 Also, never instead: a needle can be a path and a word at once — `tools` is a directory here and a word in a dozen rationales — and a hint that replaced the results would answer a question nobody asked while dropping the one they did.
+
+### FR-VIEW-300 — Which requirements are related to a line of a file
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-020, FR-CHK-080]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-16
+```
+
+When given a path and a line within it, the viewer **shall** name the requirements the annotation covering that line marks, and how many the whole file answers for.
+
+**Rationale.** Two questions hide behind one path, and the answer to one is the wrong size for the other.
+"What breaks if I touch this file" wants every requirement the file answers for, and that list is long by nature — thirty here at the median, sixty-four for one file of a project that adopted the framework — because a file carries many things.
+"What does this line realize" wants the requirements marked at that line, and that set is one or two almost everywhere an annotation stands, because a line carries one thing.
+The mode for a path answers the first and no mode answers the second, so a reader at a line reads the long list and picks by eye.
+
+Added beside `FR-VIEW-020` rather than folded into it.
+That requirement answers from three sources — the `code` fields, the `tests` fields and the annotations — and the first two have no lines to be asked about; this one answers from the annotations alone, and only where one covers the line: the annotation on the line itself, or the nearest one above it.
+Narrowing the mode for a path to what a line marks would take the long answer away from the reader who came for it.
+
+Both halves in one sentence for the reason `FR-VIEW-280` gives: a reader who asked about a line and was handed one requirement cannot tell it from one of thirty, and the count is what tells them.
+The line before any annotation marks nothing, and the count is then the whole of the answer.
+The count is printed with the command that lists what it counts, because a number a reader cannot expand is a number they will go and derive by hand; that is the same mode named, not a second one, which is why it earns no requirement of its own where `FR-VIEW-290` did.
+
+A directory before the colon is refused with a sentence rather than read as a path: a directory has no lines, and the mode for a path would answer about the directory and say nothing about the number the reader typed.
