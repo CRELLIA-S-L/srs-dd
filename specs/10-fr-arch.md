@@ -421,19 +421,19 @@ A circle is named once, from whichever element the walk reached first, rather th
 A cancelled element is not on any circle.
 It has left the model and keeps its `depends_on` only for the record, and a circle that survives through it would be one nothing live can break.
 
-A dependency naming no element is not a circle either, and the walk has to say nothing rather than stop: nothing today checks that an element's `depends_on` resolves, which is an open question of its own, and the answer to it is not this rule's to give.
+A dependency naming no element is not a circle either, and the walk has to say nothing rather than stop: that it does not resolve is `FR-ARCH-230`'s error, and a second voice from here would say the same thing about the same name.
 
 ### FR-ARCH-230 — An element depends on an element that exists
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
 created: 2026-09-16
 ```
 

@@ -452,7 +452,7 @@ Two readers of `depends_on` now tolerate the same unresolved name in silence, wh
 
 **Decision needed:** report an element dependency naming no element, by the pattern `FR-ARCH-040` already set for `requirements:` — or say that `depends_on` is deliberately unresolved, and why one field is checked and the other is not.
 
-**Settled 2026-09-16.** The first, as an error: `FR-ARCH-230`, authored and not yet built.
+**Settled 2026-09-16.** The first, as an error: `FR-ARCH-230`, authored and built the same day.
 
 ## The page's links to the source are promised in one area and built in another
 

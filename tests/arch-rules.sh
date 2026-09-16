@@ -5,7 +5,7 @@
 # verifies: FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
 # verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
-# verifies: FR-ARCH-220
+# verifies: FR-ARCH-220, FR-ARCH-230
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -591,8 +591,8 @@ Left, and its field stayed.
 MD
 silent "FR-ARCH-220 a circle through a cancelled element is none" 0 "in a circle"
 
-# --- A dependency naming no element ends the path, not the run: nothing
-# --- checks that `depends_on` resolves, and the walk must not be what does.
+# --- A dependency naming no element ends the path, not the run: resolving
+# --- it is FR-ARCH-230's error, and the walk must not be what reports it.
 # --- The unresolved name sits on a would-be circle, so a walk that followed
 # --- it into its bookkeeping would report one that no declared element closes.
 elements <<'MD'
@@ -620,7 +620,7 @@ depends_on: [E-010]
 
 Needs the first.
 MD
-silent "FR-ARCH-220 an unresolved dependency ends the path, not the run" 0 "circle"
+silent "FR-ARCH-220 an unresolved dependency ends the path, not the run" 1 "circle"
 
 # --- And the degenerate circle, said in words that fit one element.
 elements <<'MD'
@@ -680,6 +680,80 @@ MD
 rule "FR-ARCH-220 the circle is cut where it closes" 0 \
      "in a circle: E-010 → E-020 → E-010"
 silent "FR-ARCH-220 and the way in is not on it" 0 "E-005 → E-010 → E-020"
+
+# --- verifies: FR-ARCH-230 — a dependency names an element that exists.
+elements <<'MD'
+# Elements
+
+### E-010 — Points at nothing
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-999]
+```
+
+Depends on a part nobody described.
+MD
+rule "FR-ARCH-230 unresolved dependency" 1 "E-010 depends on E-999, which no element carries"
+
+# --- Declared further down the file is still declared: the rule reads the
+# --- whole layer, not the records above the one it is looking at.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+```
+
+Needs the one below.
+
+### E-020 — The second
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Declared after it is needed.
+MD
+silent "FR-ARCH-230 a forward reference resolves" 0 "no element carries"
+
+# --- A cancelled element is present, with a status that says it left.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-020]
+```
+
+Needs one that left.
+
+### E-020 — Gone
+
+```yaml
+status: withdrawn
+carries: []
+requirements: []
+depends_on: []
+```
+
+Left.
+MD
+silent "FR-ARCH-230 a cancelled target is not absent" 0 "no element carries"
 
 # --- verifies: FR-ARCH-210 — the drivers are ranked, not chosen by taste.
 cat >> "$LAB/specs/10-fr-core.md" <<'MD'

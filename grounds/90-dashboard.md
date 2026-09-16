@@ -186,6 +186,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-200 | 0 | 1 | 1 |
 | FR-ARCH-210 | 0 | 1 | 1 |
 | FR-ARCH-220 | 0 | 1 | 1 |
+| FR-ARCH-230 | 0 | 1 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-040 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
@@ -273,4 +274,3 @@ requirements link to them, plus how many files their `code` field names.
 | INV-GND-040 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-ARCH-230 | 0 | 0 | 0 |

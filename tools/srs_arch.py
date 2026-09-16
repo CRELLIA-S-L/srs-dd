@@ -332,6 +332,25 @@ def declared_dependencies(records):
     return declared
 
 
+def check_dependencies_resolve(records, errors):
+    # implements: FR-ARCH-230
+    """A dependency names an element the layer carries.
+
+    Its own walk after every record is read, not a clause of check_records: that one reads
+    records one at a time, and an element declared further down the file would be reported as
+    absent. A cancelled element is present — it has a status that says it left — and a
+    dependency on it is not this rule's finding.
+    """
+    present = set(record.id for record in records if RE_ID.match(record.id))
+    for record in records:
+        if record.id not in present:
+            continue
+        for target in as_list(record.fields.get("depends_on")):
+            if target not in present:
+                errors.append("%s — %s depends on %s, which no element carries"
+                              % (record.where, record.id, target))
+
+
 def check_cycles(records, warnings, reports, cfg):
     # implements: FR-ARCH-220
     """Elements that depend on each other in a circle, each circle named once.
@@ -483,6 +502,7 @@ def main(argv=None):
     errors, warnings, reports = [], [], []
     records = read_records(errors)
     check_records(records, model, errors, warnings, reports, cfg)
+    check_dependencies_resolve(records, errors)
     check_ownership(records, model, warnings, reports, cfg)
     check_conformance(records, warnings, reports, cfg)
     check_cycles(records, warnings, reports, cfg)

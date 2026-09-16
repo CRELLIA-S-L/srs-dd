@@ -8,9 +8,9 @@ Total requirements: 226.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 1 |
+| `deferred` | 0 |
 | `partial` | 0 |
-| `implemented` | 225 |
+| `implemented` | 226 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -46,7 +46,7 @@ Total requirements: 226.
 | **FR-ARCH-200** A dependency the model does not declare is reported | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **FR-ARCH-210** The drivers are computed, not chosen by taste | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **FR-ARCH-220** Elements that depend on each other in a circle are reported | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
-| **FR-ARCH-230** An element depends on an element that exists | `deferred` | T | — | — |
+| **FR-ARCH-230** An element depends on an element that exists | `implemented` | T | `tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `tools/srs_check.py` | `tests/checker-rules.sh` |
