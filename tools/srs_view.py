@@ -106,6 +106,7 @@ GRAPH_NODE_LIMIT = 150
 # --------------------------------------------------------------------
 
 def read_repo_url():
+    # implements: FR-VIEW-310
     """The blob-URL prefix used for links to code, e.g.
     https://gitlab.com/acme/app/-/blob/main — copied out of a browser,
     so no per-host URL shapes are guessed here.
@@ -1890,6 +1891,7 @@ def _pair(text, marker, tag):
 
 
 class Links(object):
+    # implements: FR-VIEW-310
     """Paths become links twice over: relative ones so the page works
     from file://, and repository ones when repo_url is configured.
 

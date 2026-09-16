@@ -422,6 +422,17 @@ If it moves, the retrieval at authoring time was the cause, and the same repair 
 `unlinked` states a floor of one and nothing states a target, so "under-written" has no meaning here that anybody wrote down — which is why the measurement above can be read two ways at all.
 Either say what the graph is expected to carry, or accept that only the floor is stated and the rest is a judgement made one requirement at a time, and say that instead.
 
+**Settled 2026-09-16.** The measurement the entry asked for came in.
+Thirteen requirements were authored after the procedure was made to show its search (`FR-SKILL-250`, 2026-09-09); they carry 1.54 outgoing links apiece, against 1.07 over the 213 written before — and that 1.07 is itself after two passes over what was already written, which took it up from the 0.96 above.
+The number moved, so the second reading held: the links were under-written because they were never looked for, not because the specification is loosely coupled.
+Thirteen is a small sample and all of it was written under one procedure, which is said here so that nobody reads more into the ratio than it carries.
+
+The repair the entry says would then be owed is the pass `FR-SKILL-260` describes, and it has been made once over every area and twice over the two that changed since.
+
+The decision is the second of the two offered: only the floor is stated.
+No target is written into a rule, because the one candidate — an outgoing link on every requirement — is false on the requirement each area hangs from, and "the root of an area" is not a thing the format can name.
+What a requirement should stand on is a judgement made one requirement at a time, by whoever authors it and by whoever passes over the area afterwards, and the standard says under *Links* that the checker never proves the graph whole.
+
 ## An element's dependency is never resolved against the elements
 
 **Found:** while planning a cycle rule for the architecture layer (2026-09-09).
@@ -436,7 +447,12 @@ The architecture layer resolves one of its two identifier-bearing fields and not
 **Why it is recorded rather than fixed:** it was found while building something else, and a rule is not written in passing.
 Its cost is one comparison against a set the checker already holds, so this is cheap rather than hard — which is a reason to decide it deliberately rather than to slip it in.
 
+The cycle rule has since been built (`FR-ARCH-220`, 2026-09-16) and walked around this rather than through it: a dependency naming no element ends the path and is not reported, and its rationale says the answer is not that rule's to give.
+Two readers of `depends_on` now tolerate the same unresolved name in silence, which is one more than when this was written.
+
 **Decision needed:** report an element dependency naming no element, by the pattern `FR-ARCH-040` already set for `requirements:` — or say that `depends_on` is deliberately unresolved, and why one field is checked and the other is not.
+
+**Settled 2026-09-16.** The first, as an error: `FR-ARCH-230`, authored and not yet built.
 
 ## The page's links to the source are promised in one area and built in another
 
@@ -455,3 +471,7 @@ Nothing mechanical can see this. The file is claimed by other requirements, the 
 Either area VIEW is missing a requirement for a capability that has its own flag and its own configuration key, or `FR-CI-040` is claiming behaviour that belongs to the viewer and should say only that the pipeline passes the revision in.
 
 **Decision needed:** write the missing viewer requirement and narrow `FR-CI-040` to what the pipeline actually does — or declare the source links a detail of the page already described by `FR-VIEW-060`, and say why a flag and a configuration key of their own do not make them behaviour.
+
+**Settled 2026-09-16.** The first.
+`FR-VIEW-310` describes the links, the flag and the key; `FR-CI-040` now says the pipeline hands the viewer the URL at the built revision and stands on 310.
+The suite had never exercised `--repo-url` in the six weeks the three pipelines had passed it, and does now.

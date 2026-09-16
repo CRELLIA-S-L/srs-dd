@@ -69,7 +69,7 @@ The YAML check runs before the suites, because a suite fails routinely on a matr
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-VIEW-060]
+depends_on: [FR-VIEW-060, FR-VIEW-310]
 refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, .github/workflows/srs.yml]
@@ -77,9 +77,12 @@ tests: []
 created: 2026-08-07
 ```
 
-On the default branch the pipeline **shall** render the specification into a published page with links back to the source at the built revision.
+On the default branch the pipeline **shall** render the specification into a published page, handing the viewer the repository URL at the built revision.
 
 **Rationale.** The audience for a specification includes people who will never clone the repository, and a page whose code links point at a moving branch lies as soon as the branch moves.
+
+This said "with links back to the source" while nothing in area VIEW described them, and so was the only statement in the specification naming a capability the viewer carries under its own flag and its own configuration key.
+The links are `FR-VIEW-310`'s now; what the pipeline does is know the revision and pass it, and that is all this sentence claims.
 
 ### FR-CI-050 — A target gets a pipeline, not our pipeline
 

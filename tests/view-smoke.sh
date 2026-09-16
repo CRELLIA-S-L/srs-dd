@@ -522,6 +522,36 @@ if grep -q "https://cdn" .srs-site/index.html; then
 fi
 test -f .srs-site/.gitignore
 
+# verifies: FR-VIEW-310
+# With no URL the page links relatively; told where the repository is, it
+# links there — files by path, requirements by path and line — and the
+# command line wins over the configuration, since the pipeline knows the
+# commit and the configuration names a branch.
+absent 'href="https://example.invalid' .srs-site/index.html
+python3 tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
+grep -q 'href="https://example.invalid/blob/abc123/src/app.py"' .srs-site/index.html
+grep -qE 'href="https://example.invalid/blob/abc123/specs/10-fr-core.md#L[0-9]+"' .srs-site/index.html
+python3 - <<'PY_URL'
+import json
+path = 'specs/srs-config.json'
+cfg = json.load(open(path))
+cfg['repo_url'] = 'https://example.invalid/blob/main/'
+json.dump(cfg, open(path, 'w'), indent=2)
+PY_URL
+python3 tools/srs_view.py --html
+grep -q 'href="https://example.invalid/blob/main/src/app.py"' .srs-site/index.html
+python3 tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
+grep -q 'href="https://example.invalid/blob/abc123/src/app.py"' .srs-site/index.html
+absent 'blob/main/' .srs-site/index.html
+python3 - <<'PY_URL'
+import json
+path = 'specs/srs-config.json'
+cfg = json.load(open(path))
+cfg.pop('repo_url', None)
+json.dump(cfg, open(path, 'w'), indent=2)
+PY_URL
+python3 tools/srs_view.py --html
+
 # --- verifies: FR-VIEW-260 — every file that carries no requirements is offered.
 # Sliced to the Documents list rather than the aside around it: the aside
 # also holds the file filter's chips, which name every requirement file, so

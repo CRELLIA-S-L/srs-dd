@@ -66,7 +66,7 @@ Where an element omits a key the format requires, the architecture checker **sha
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_arch.py]
@@ -210,7 +210,7 @@ Where `--strict` is given, the architecture checker **shall** exit non-zero when
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [CON-ARCH-020]
 refines: []
 conflicts_with: []
 code: [tools/srs_arch.py]
@@ -422,3 +422,28 @@ A cancelled element is not on any circle.
 It has left the model and keeps its `depends_on` only for the record, and a circle that survives through it would be one nothing live can break.
 
 A dependency naming no element is not a circle either, and the walk has to say nothing rather than stop: nothing today checks that an element's `depends_on` resolves, which is an open question of its own, and the answer to it is not this rule's to give.
+
+### FR-ARCH-230 — An element depends on an element that exists
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-16
+```
+
+Where an element names in `depends_on` an element absent from the layer, the architecture checker **shall** report it as an error naming the element and the name.
+
+**Rationale.** The record carries two fields of identifiers, and until now one was resolved and the other was not: a requirement that does not exist is an error under `FR-ARCH-040`, and a dependency on `E-999` was read in silence by both rules that read the field — the reflexion check and the cycle walk — and shown by nothing, since the map has no column for it.
+A typed identifier that resolves is the basis of every check over the field, which is the argument `FR-ARCH-040` makes for its own error and holds here unchanged.
+
+An error rather than a warning with a name.
+A dependency on a part nobody has described is not a fact about the code a project may choose to live with, as a circle is; it is a reference to nothing, and the case a project might mean by it — a part planned and not yet built — is already a status, `proposed`, on an element that exists.
+
+A cancelled element is not absent.
+It is in the layer with a status that says it left, and a dependency on it is the other rule's business — the one `FR-ARCH-050` is for a cancelled requirement — or nobody's, and either way not this one's.

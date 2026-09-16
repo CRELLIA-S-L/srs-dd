@@ -481,7 +481,7 @@ A tool that edited requirement files, or a configuration outside its own, would 
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-ARCH-110]
+depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_arch.py]

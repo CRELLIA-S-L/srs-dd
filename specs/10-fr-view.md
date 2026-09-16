@@ -8,7 +8,7 @@ The viewer, `tools/srs_view.py`: the read-only projections of what the checker v
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -108,7 +108,7 @@ A version is accepted because a baseline need not have a tag to name it by (INV-
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -162,7 +162,7 @@ The viewer **shall not** modify anything under `specs/` or leave bytecode in the
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-VIEW-060]
+depends_on: [FR-VIEW-060, INV-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -673,3 +673,26 @@ The line before any annotation marks nothing, and the count is then the whole of
 The count is printed with the command that lists what it counts, because a number a reader cannot expand is a number they will go and derive by hand; that is the same mode named, not a second one, which is why it earns no requirement of its own where `FR-VIEW-290` did.
 
 A directory before the colon is refused with a sentence rather than read as a path: a directory has no lines, and the mode for a path would answer about the directory and say nothing about the number the reader typed.
+
+### FR-VIEW-310 — The page links to the repository when told where it is
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-16
+```
+
+Where a repository URL is given — on the command line or in the project's configuration — the rendered page **shall** link each file it names to that repository, and each requirement to its line in it.
+
+**Rationale.** A page read from the filesystem links relatively and works for whoever has the tree; a page published for people who will never clone it has nowhere relative to point.
+The URL is a prefix ending at a revision, copied out of a browser rather than assembled from a host's URL shape, and a pipeline passes the revision it built from — a link into a moving branch lies as soon as the branch moves, which is the argument `FR-CI-040` makes for what it hands the viewer.
+The command line wins over the configuration because the configuration names the branch a person reads by hand and the pipeline knows the commit.
+
+Written down six weeks after the flag: the behaviour was promised by a requirement about the pipeline the day after the flag arrived, built in the viewer, and described by nothing in this area — which the audit found because the annotation nearest the code named a requirement about baselines.
+Files and requirements in one sentence because one function makes both links and a page with half of them pointing at a clone the reader does not have is a broken page, not half of a working one.
