@@ -233,7 +233,7 @@ Both lists of a bet are optional, so a record naming neither is legal and stands
 status: implemented
 verification: T
 derives_from: []
-depends_on: [IF-GND-030]
+depends_on: []
 refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]

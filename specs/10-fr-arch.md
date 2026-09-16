@@ -229,7 +229,7 @@ It is generated for the reason `CON-ARCH-020` gives, and it is a text file rathe
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]

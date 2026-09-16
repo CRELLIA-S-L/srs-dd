@@ -19,6 +19,7 @@ Where a word is also an SRS term of art, the meaning here is the one that binds.
 | Marker | A line reading `SRS-DD-<version>` in a file the installer wrote; how it tells its own files from a project's. Versioned because the bare name occurs in ordinary prose |
 | Gate | A check that fails the build: the checker's exit code and the matrix freshness comparison |
 | Grounds register | `grounds/`, optional and a sibling of `specs/`: what the requirements rest on. Declining it costs nothing and leaves no trace |
+| Record | An entry in the grounds register — an ideology, a frame, a hypothesis, a bet, or a requirement declared unclaimed. Authored by a person; generated output that lives in the register, the dashboard among it, is not a record |
 | Hypothesis | A record in that register claiming something about the world that could turn out to be false, with a population, a threshold declared in advance, a term and an owner |
 | Ideology / frame | The two kinds of ground no measurement touches: what the product is for, and what it will not do for anyone |
 | Bet | The record joining one requirement to the hypotheses it rests on. Stored in that direction only; the other is computed |

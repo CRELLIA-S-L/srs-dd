@@ -9,7 +9,7 @@ What is written here cannot change without breaking somebody's pipeline or someb
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-INIT-010]
+depends_on: [FR-INIT-010, FR-INIT-030]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
@@ -95,7 +95,7 @@ Not on the page — the page is one reader of the model among several, and a cal
 ```yaml
 status: implemented
 verification: I
-derives_from: []
+derives_from: [NFR-SPEC-020]
 depends_on: []
 refines: []
 conflicts_with: []
@@ -199,7 +199,7 @@ A fifth code there would rewrite a promise every installed project already depen
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-GND-010]
+depends_on: [FR-GND-010, FR-GND-110]
 refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
@@ -258,7 +258,7 @@ The same three the specification checker and the grounds checker already publish
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-ARCH-010]
+depends_on: [FR-ARCH-010, FR-ARCH-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_arch.py]

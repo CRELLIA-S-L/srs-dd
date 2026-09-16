@@ -165,7 +165,7 @@ Total requirements: 222.
 | **FR-SKILL-070** The release procedure travels with the framework | `implemented` | I | `.claude/skills/srs-release/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-080** The baseline procedure travels with the project | `implemented` | T | `.claude/skills/srs-baseline/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-090** Authoring a requirement is not implementing it | `implemented` | I | `.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs/SKILL.md` | — |
-| **FR-SKILL-100** The checks a change calls for are named, not guessed | `implemented` | I | `.claude/skills/srs-check/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-SKILL-100** The check procedure names what to run | `implemented` | I | `.claude/skills/srs-check/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-110** The specification can be read as a page on request | `implemented` | I | `.claude/skills/srs-page/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-120** Whoever writes a statement judges what no checker reaches | `implemented` | I | `.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-130** The baseline procedure settles the number and offers an audit | `implemented` | I | `.claude/skills/srs-baseline/SKILL.md` | — |
@@ -251,13 +251,15 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **CON-GND-010** | CON-GND-030 (depends_on) |
 | **CON-GND-020** | FR-GND-130 (depends_on), FR-GND-240 (depends_on), FR-GND-250 (depends_on), FR-GND-260 (depends_on), FR-GND-370 (depends_on) |
 | **CON-GND-030** | FR-GND-200 (depends_on) |
-| **CON-SPEC-010** | FR-CHK-230 (depends_on), FR-VIEW-080 (depends_on) |
+| **CON-SPEC-010** | FR-CHK-230 (depends_on), FR-CI-010 (depends_on), FR-VIEW-080 (depends_on) |
 | **CON-SPEC-020** | FR-INIT-180 (derives_from) |
-| **FR-ARCH-010** | CON-ARCH-010 (depends_on), FR-ARCH-060 (depends_on), FR-ARCH-070 (depends_on), FR-ARCH-080 (depends_on), FR-ARCH-200 (depends_on), FR-ARCH-210 (depends_on), IF-ARCH-020 (depends_on), IF-ARCH-030 (depends_on) |
+| **CON-SPEC-030** | FR-CI-070 (depends_on), FR-SPEC-010 (depends_on) |
+| **FR-ARCH-010** | CON-ARCH-010 (depends_on), FR-ARCH-060 (depends_on), FR-ARCH-070 (depends_on), FR-ARCH-080 (depends_on), FR-ARCH-120 (depends_on), FR-ARCH-200 (depends_on), FR-ARCH-210 (depends_on), IF-ARCH-020 (depends_on), IF-ARCH-030 (depends_on) |
 | **FR-ARCH-040** | FR-ARCH-050 (depends_on) |
-| **FR-ARCH-090** | FR-ARCH-100 (depends_on) |
+| **FR-ARCH-090** | FR-ARCH-100 (depends_on), IF-ARCH-030 (depends_on) |
 | **FR-ARCH-110** | CON-ARCH-020 (depends_on), FR-ARCH-160 (depends_on) |
 | **FR-ARCH-120** | FR-ARCH-130 (depends_on), FR-ARCH-140 (depends_on), FR-ARCH-150 (depends_on) |
+| **FR-ARCH-170** | FR-SKILL-100 (depends_on) |
 | **FR-CHK-010** | INV-SPEC-010 (depends_on) |
 | **FR-CHK-030** | FR-CHK-040 (depends_on), FR-CHK-075 (depends_on), FR-CHK-150 (depends_on), FR-CHK-240 (depends_on), INV-SPEC-020 (depends_on) |
 | **FR-CHK-050** | CON-SPEC-010 (depends_on), FR-CHK-080 (depends_on), FR-SKILL-210 (depends_on), FR-SKILL-220 (depends_on) |
@@ -270,16 +272,17 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-CHK-130** | FR-CHK-220 (depends_on) |
 | **FR-CHK-160** | IF-SPEC-020 (depends_on) |
 | **FR-CHK-170** | FR-CHK-180 (depends_on) |
-| **FR-CI-010** | CON-SPEC-010 (depends_on), FR-CI-020 (derives_from), FR-CI-060 (derives_from) |
+| **FR-CI-010** | FR-CI-020 (derives_from), FR-CI-060 (derives_from) |
 | **FR-CI-020** | FR-CI-030 (derives_from), FR-CI-090 (depends_on), FR-CI-100 (depends_on), FR-INIT-080 (depends_on), NFR-CHK-010 (depends_on) |
 | **FR-CI-030** | FR-CI-080 (depends_on) |
+| **FR-CI-050** | FR-CI-030 (depends_on) |
 | **FR-CI-070** | FR-SKILL-070 (depends_on) |
 | **FR-GND-010** | CON-GND-010 (depends_on), CON-GND-020 (depends_on), FR-GND-060 (depends_on), FR-GND-120 (depends_on), FR-GND-280 (depends_on), FR-GND-310 (depends_on), IF-GND-020 (depends_on), IF-GND-030 (depends_on) |
 | **FR-GND-030** | FR-GND-510 (depends_on) |
 | **FR-GND-040** | FR-GND-400 (depends_on) |
 | **FR-GND-060** | FR-GND-430 (depends_on) |
 | **FR-GND-070** | FR-GND-420 (depends_on) |
-| **FR-GND-110** | FR-GND-170 (depends_on) |
+| **FR-GND-110** | FR-GND-170 (depends_on), IF-GND-030 (depends_on) |
 | **FR-GND-140** | FR-GND-150 (depends_on), FR-GND-160 (depends_on), FR-GND-190 (depends_on), FR-GND-350 (depends_on) |
 | **FR-GND-150** | FR-GND-490 (depends_on) |
 | **FR-GND-160** | FR-GND-210 (depends_on) |
@@ -291,19 +294,21 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-GND-280** | FR-GND-290 (depends_on), FR-GND-300 (depends_on), FR-GND-320 (depends_on), FR-GND-480 (depends_on) |
 | **FR-GND-330** | FR-GND-340 (depends_on), FR-GND-440 (depends_on), FR-GND-500 (depends_on) |
 | **FR-GND-350** | FR-GND-380 (depends_on) |
+| **FR-GND-370** | FR-SKILL-100 (depends_on) |
 | **FR-GND-410** | FR-GND-450 (depends_on) |
 | **FR-GND-500** | FR-SKILL-180 (depends_on) |
 | **FR-GND-510** | FR-GND-520 (depends_on) |
 | **FR-INIT-010** | FR-INIT-020 (derives_from), FR-INIT-030 (derives_from), FR-INIT-050 (derives_from), FR-INIT-060 (derives_from), FR-INIT-070 (depends_on), FR-INIT-100 (depends_on), IF-CI-010 (depends_on) |
 | **FR-INIT-020** | CON-SPEC-020 (depends_on), FR-CI-050 (depends_on), FR-INIT-140 (depends_on), FR-INIT-150 (derives_from) |
-| **FR-INIT-030** | FR-INIT-040 (derives_from) |
+| **FR-INIT-030** | FR-INIT-040 (derives_from), IF-CI-010 (depends_on) |
 | **FR-INIT-060** | FR-INIT-110 (derives_from), FR-INIT-120 (derives_from), FR-INIT-190 (depends_on), FR-INIT-200 (depends_on) |
 | **FR-INIT-070** | FR-INIT-130 (derives_from) |
 | **FR-INIT-090** | FR-INIT-210 (depends_on), FR-SKILL-040 (depends_on) |
 | **FR-INIT-110** | FR-INIT-160 (depends_on) |
 | **FR-INIT-120** | FR-INIT-130 (depends_on), FR-SKILL-060 (depends_on) |
 | **FR-INIT-140** | FR-INIT-120 (depends_on) |
-| **FR-INIT-210** | FR-INIT-220 (depends_on) |
+| **FR-INIT-160** | FR-SKILL-070 (depends_on) |
+| **FR-INIT-210** | FR-INIT-220 (depends_on), FR-SKILL-190 (depends_on) |
 | **FR-SKILL-010** | FR-SKILL-020 (depends_on), FR-SKILL-100 (depends_on), FR-SKILL-250 (depends_on) |
 | **FR-SKILL-030** | FR-SKILL-230 (depends_on) |
 | **FR-SKILL-040** | FR-SKILL-190 (depends_on), IF-SKILL-010 (depends_on) |
@@ -322,6 +327,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-VIEW-040** | FR-SKILL-050 (depends_on), FR-VIEW-200 (refines) |
 | **FR-VIEW-050** | FR-VIEW-100 (derives_from), FR-VIEW-120 (derives_from) |
 | **FR-VIEW-060** | FR-CI-040 (depends_on), FR-SKILL-110 (depends_on), FR-VIEW-070 (depends_on), FR-VIEW-090 (depends_on), FR-VIEW-100 (depends_on), FR-VIEW-110 (depends_on), FR-VIEW-130 (depends_on), FR-VIEW-140 (depends_on), FR-VIEW-150 (depends_on), FR-VIEW-160 (depends_on), FR-VIEW-180 (depends_on), FR-VIEW-190 (depends_on), FR-VIEW-200 (depends_on), FR-VIEW-210 (depends_on), FR-VIEW-230 (depends_on), FR-VIEW-260 (depends_on), NFR-VIEW-010 (depends_on) |
+| **FR-VIEW-080** | FR-VIEW-120 (depends_on) |
 | **FR-VIEW-120** | FR-SPEC-010 (depends_on) |
 | **FR-VIEW-140** | FR-SKILL-110 (depends_on) |
 | **FR-VIEW-220** | FR-SKILL-260 (depends_on) |
@@ -329,20 +335,20 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-VIEW-270** | FR-VIEW-280 (depends_on) |
 | **IF-ARCH-010** | FR-ARCH-020 (depends_on), FR-ARCH-030 (depends_on), INV-ARCH-010 (depends_on) |
 | **IF-GND-010** | FR-GND-010 (depends_on), FR-GND-020 (depends_on), FR-GND-030 (depends_on), FR-GND-140 (depends_on), FR-GND-330 (depends_on), FR-GND-390 (depends_on), FR-GND-410 (depends_on), FR-GND-530 (depends_on), INV-GND-020 (depends_on), INV-GND-040 (depends_on) |
-| **IF-GND-030** | FR-GND-110 (depends_on) |
-| **IF-SPEC-010** | FR-CHK-110 (depends_on), FR-CHK-170 (derives_from), FR-CHK-180 (derives_from), FR-SKILL-200 (depends_on), FR-VIEW-020 (depends_on), FR-VIEW-220 (depends_on), FR-VIEW-250 (depends_on), FR-VIEW-270 (depends_on), IF-VIEW-010 (depends_on) |
+| **IF-SPEC-010** | FR-CHK-010 (depends_on), FR-CHK-110 (depends_on), FR-CHK-170 (derives_from), FR-CHK-180 (derives_from), FR-SKILL-200 (depends_on), FR-VIEW-020 (depends_on), FR-VIEW-220 (depends_on), FR-VIEW-250 (depends_on), FR-VIEW-270 (depends_on), IF-VIEW-010 (depends_on) |
 | **IF-VIEW-010** | FR-ARCH-010 (depends_on) |
 | **INV-GND-010** | FR-GND-180 (depends_on), IF-GND-010 (depends_on) |
 | **INV-GND-020** | FR-GND-040 (depends_on), FR-GND-050 (depends_on), FR-GND-070 (depends_on), FR-GND-080 (depends_on), INV-GND-030 (depends_on) |
 | **INV-GND-030** | FR-GND-090 (depends_on), FR-GND-100 (depends_on), FR-GND-220 (depends_on), FR-GND-500 (derives_from) |
-| **INV-SPEC-010** | INV-SPEC-050 (depends_on) |
-| **INV-SPEC-020** | IF-VIEW-010 (depends_on) |
+| **INV-SPEC-010** | INV-GND-010 (derives_from), INV-SPEC-050 (depends_on) |
+| **INV-SPEC-020** | IF-VIEW-010 (depends_on), INV-ARCH-010 (derives_from), INV-GND-020 (derives_from) |
 | **INV-SPEC-030** | FR-CI-070 (derives_from), FR-SPEC-010 (derives_from), INV-SPEC-040 (derives_from) |
-| **INV-SPEC-040** | CON-SPEC-030 (derives_from) |
+| **INV-SPEC-040** | CON-SPEC-030 (derives_from), FR-VIEW-050 (depends_on) |
 | **INV-SPEC-050** | FR-CHK-190 (depends_on), FR-SKILL-150 (depends_on), FR-VIEW-210 (depends_on) |
-| **INV-SPEC-060** | FR-CHK-020 (derives_from), FR-SKILL-120 (depends_on) |
+| **INV-SPEC-060** | FR-CHK-020 (derives_from), FR-SKILL-120 (depends_on), INV-GND-040 (derives_from) |
+| **INV-SPEC-070** | FR-VIEW-270 (depends_on) |
 | **NFR-SPEC-010** | NFR-SPEC-020 (derives_from) |
-| **NFR-SPEC-020** | INV-SPEC-070 (derives_from) |
+| **NFR-SPEC-020** | IF-SPEC-010 (derives_from), INV-SPEC-070 (derives_from) |
 
 ## Requirements without listed tests
 

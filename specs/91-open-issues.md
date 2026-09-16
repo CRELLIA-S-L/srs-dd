@@ -437,3 +437,21 @@ The architecture layer resolves one of its two identifier-bearing fields and not
 Its cost is one comparison against a set the checker already holds, so this is cheap rather than hard — which is a reason to decide it deliberately rather than to slip it in.
 
 **Decision needed:** report an element dependency naming no element, by the pattern `FR-ARCH-040` already set for `requirements:` — or say that `depends_on` is deliberately unresolved, and why one field is checked and the other is not.
+
+## The page's links to the source are promised in one area and built in another
+
+**Found:** while passing over the links of area CI (2026-09-10).
+
+**What diverged:** `FR-CI-040` obliges the pipeline to publish the page "with links back to the source at the built revision", and that is the only statement in the specification which mentions them.
+It is a CI requirement, so it describes what the pipeline does.
+
+The pipeline does not do it. The viewer does: `--repo-url` on the command line, `repo_url` in `specs/srs-config.json`, and the code that turns a path from a `code` field into a link at a pinned revision.
+No requirement of area VIEW describes any of that — the nearest `implements:` above that code names `FR-VIEW-050`, which is about comparing against a baseline.
+The `code` field of `FR-CI-040` names the two pipeline files and not `tools/srs_view.py`.
+
+Nothing mechanical can see this. The file is claimed by other requirements, the annotation is not wrong about the code it sits over, and a statement that describes another area's tool breaks no rule.
+
+**Why it is recorded rather than fixed:** which side is wrong is not the auditor's call.
+Either area VIEW is missing a requirement for a capability that has its own flag and its own configuration key, or `FR-CI-040` is claiming behaviour that belongs to the viewer and should say only that the pipeline passes the revision in.
+
+**Decision needed:** write the missing viewer requirement and narrow `FR-CI-040` to what the pipeline actually does — or declare the source links a detail of the page already described by `FR-VIEW-060`, and say why a flag and a configuration key of their own do not make them behaviour.

@@ -8,7 +8,7 @@ The gates: what this repository runs on itself, and the templates a target proje
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
 code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml]
@@ -19,6 +19,10 @@ created: 2026-08-07
 The specification gate **shall** regenerate the traceability matrix and fail when the committed copy differs from it.
 
 **Rationale.** The matrix is committed so it can be read and diffed in a review; that is only safe if staleness is a build failure rather than a habit.
+
+It stands on the constraint that the matrix is generated output in the first place: with nothing to regenerate the comparison has no subject.
+That link used to run the other way — the constraint pointed here, on the reading that a rule against hand-editing leans on the gate enforcing it — which left this requirement with no outgoing link at all and recorded the same relationship in the opposite direction from the map and the dashboard, whose gates both point at their constraint.
+Where a rule is enforced is already written in `code` and `tests`; what the links carry is what a requirement means and why it exists, and both of those run from the gate to the constraint.
 
 ### FR-CI-020 — The same gate runs before a commit
 
@@ -45,7 +49,7 @@ one that runs on commit is the difference between a habit and a chore.
 status: implemented
 verification: I
 derives_from: [FR-CI-020]
-depends_on: []
+depends_on: [FR-CI-050]
 refines: []
 conflicts_with: []
 code: [tools/ci_selftest.sh]
@@ -188,7 +192,7 @@ where the shared function lives, and whether there is one, is the implementation
 status: implemented
 verification: T
 derives_from: [INV-SPEC-030]
-depends_on: []
+depends_on: [CON-SPEC-030]
 refines: []
 conflicts_with: []
 code: [tools/srs_release.py]

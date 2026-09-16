@@ -167,7 +167,7 @@ Recorded that way rather than backdated.
 ```yaml
 status: implemented
 verification: I
-derives_from: []
+derives_from: [INV-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
@@ -190,7 +190,7 @@ Stated for the register rather than inherited from the requirement invariant bec
 ```yaml
 status: implemented
 verification: I
-derives_from: []
+derives_from: [INV-SPEC-020]
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
@@ -238,7 +238,7 @@ The same position `INV-SPEC-010` is in.
 ```yaml
 status: implemented
 verification: I
-derives_from: []
+derives_from: [INV-SPEC-060]
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
@@ -320,7 +320,7 @@ A rule enforced by a heuristic that is wrong a tenth of the time teaches its rea
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-CHK-050, FR-CI-010]
+depends_on: [FR-CHK-050]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py, specs/90-traceability.md]
@@ -441,7 +441,7 @@ It is generated output living in the register, governed by `CON-GND-020`, and wr
 ```yaml
 status: implemented
 verification: I
-derives_from: []
+derives_from: [INV-SPEC-020]
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
@@ -452,7 +452,8 @@ created: 2026-09-02
 
 The architecture layer **shall** record which requirements a part carries in the element alone, leaving what carries a requirement to be computed.
 
-**Rationale.** The same rule the register keeps for bets, held for the same reason: a link written on both ends is a link that eventually disagrees with itself, and only one of the two copies is ever updated.
+**Rationale.** The same rule `INV-SPEC-020` states for links between requirements, and the register keeps for bets:
+a link written on both ends is a link that eventually disagrees with itself, and only one of the two copies is ever updated.
 It also keeps the layer optional in the way that matters — a requirement file says nothing about elements, so removing `arch/` removes the layer and leaves the specification exactly as it was.
 
 ### CON-ARCH-010 — The architecture layer writes nowhere else

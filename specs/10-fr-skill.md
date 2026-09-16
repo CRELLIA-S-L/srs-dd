@@ -147,7 +147,7 @@ Upgrading is the one part of it a project needs to carry itself, and until now n
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-CI-070]
+depends_on: [FR-CI-070, FR-INIT-160]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-release/SKILL.md, tools/srs_init.py]
@@ -228,13 +228,13 @@ A baseline can then only record what already shipped, which is why freezing one 
 Separating the two acts is what gives a baseline something to freeze.
 The architectural part of that discussion is a decision, not behaviour, so it goes where decisions go — `specs/adr/` — and only when there was a choice to settle: a requirement describes what the system must do, and how it will be built has no place in it.
 
-### FR-SKILL-100 — The checks a change calls for are named, not guessed
+### FR-SKILL-100 — The check procedure names what to run
 
 ```yaml
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-SKILL-010]
+depends_on: [FR-SKILL-010, FR-GND-370, FR-ARCH-170]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-check/SKILL.md, tools/srs_init.py]
@@ -251,7 +251,7 @@ Offering rather than running is not politeness but ART-030: builds and test runs
 The statement said "the checker" while there was one.
 A project carrying a grounds register has two, and its gate fails on a dashboard the change left stale (`FR-GND-370`) — so a procedure naming only the first hands back work that passes everything it named and reddens the pipeline.
 Naming the second is conditional, because a project without a register has no such command to run.
-The third arrived with the architecture layer and on the same terms: it regenerates a map the gate compares, so a change that moved a file between parts and did not run it fails exactly where the register's does.
+The third arrived with the architecture layer and on the same terms: it regenerates a map the gate compares (`FR-ARCH-170`), so a change that moved a file between parts and did not run it fails exactly where the register's does.
 The procedure named it before this sentence did, which is the direction that stays invisible — a check the code offers and no statement asks for is reported by nothing.
 
 ### FR-SKILL-110 — The specification can be read as a page on request
@@ -448,7 +448,7 @@ A dialog offering to record a bet in a project that has no register would be des
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-SKILL-040]
+depends_on: [FR-SKILL-040, FR-INIT-210]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-init/SKILL.md]

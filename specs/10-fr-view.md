@@ -86,7 +86,7 @@ A reader has no way to tell which of the two is speaking about their code.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [INV-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -226,7 +226,7 @@ Done in the page's own script rather than with a graph library: the layout is ar
 status: implemented
 verification: T
 derives_from: [FR-VIEW-050]
-depends_on: []
+depends_on: [FR-VIEW-080]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -568,7 +568,7 @@ There is no block renderer here — the one function that turns specification te
 status: implemented
 verification: T
 derives_from: []
-depends_on: [IF-SPEC-010]
+depends_on: [IF-SPEC-010, INV-SPEC-070]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]

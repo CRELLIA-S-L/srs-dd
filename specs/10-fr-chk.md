@@ -9,7 +9,7 @@ Everything here is observable from a single run.
 status: implemented
 verification: T
 derives_from: []
-depends_on: []
+depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]

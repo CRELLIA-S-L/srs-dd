@@ -9,7 +9,7 @@ Everything here travels to a project that adopts the framework, because every pr
 status: implemented
 verification: T
 derives_from: [INV-SPEC-030]
-depends_on: [FR-VIEW-120]
+depends_on: [FR-VIEW-120, CON-SPEC-030]
 refines: []
 conflicts_with: []
 code: [tools/srs_baseline.py]
