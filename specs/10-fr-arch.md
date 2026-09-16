@@ -392,3 +392,33 @@ When asked for the architectural drivers, the architecture command **shall** ran
 The signal is in the model already: over this repository, requirements that took part in an architecture decision carry an average of 1.87 incoming links against 0.62 for the rest, and by the stricter reading — the ADR's own *Related requirements* field — 2.04 against 0.63.
 Type carries weight too, since an interface or an invariant constrains structure by construction.
 What the ranking cannot see is a trade-off nobody wrote down, so it prints candidates for a person to accept, never a decision.
+
+### FR-ARCH-220 — Elements that depend on each other in a circle are reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, FR-ARCH-090]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-16
+```
+
+Where elements depend on each other in a circle, the architecture checker **shall** report it naming the elements on the circle.
+
+**Rationale.** The layer exists to say which part answers for which file, and a circle is the one shape of the dependency graph in which no part answers for itself: each is where the other's reasons live.
+The graph is declared by hand, one `depends_on` per element, and a circle is invisible from any single element — the author of `E-030` sees that it depends on `E-010` and never that `E-010` came to depend on it.
+
+A warning with a rule name, where the same finding between requirements is an error with none.
+`FR-CHK-240` argues that a circle in `depends_on` breaks the order a plan is built in, and that a project cannot be allowed to silence what breaks the tool's own arithmetic.
+Nothing here is broken by a circle: the map renders, the reflexion check runs, and two parts that genuinely need each other are a fact about the code rather than a mistake in the model.
+So the project prices it, as it prices every other finding of this checker under `FR-ARCH-090`, and the name is published under `IF-ARCH-030` from the first release that carries it.
+A circle is named once, from whichever element the walk reached first, rather than once per element on it: three findings for one circle of three would read as three defects.
+
+A cancelled element is not on any circle.
+It has left the model and keeps its `depends_on` only for the record, and a circle that survives through it would be one nothing live can break.
+
+A dependency naming no element is not a circle either, and the walk has to say nothing rather than stop: nothing today checks that an element's `depends_on` resolves, which is an open question of its own, and the answer to it is not this rule's to give.

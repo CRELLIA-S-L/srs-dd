@@ -62,7 +62,7 @@ REALIZED = ("implemented", "partial")
 # Published names: a project writes them into arch/arch-config.json, so one is never renamed and
 # never given to a different rule.
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
-         "dependency-undeclared")
+         "dependency-undeclared", "element-cycle")
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
 SEVERITIES = ("warn", "report", "off")
@@ -315,6 +315,67 @@ def imports_of(path):
     return [name.split(".")[0] for name in names]
 
 
+def declared_dependencies(records):
+    # implements: FR-ARCH-200, FR-ARCH-220
+    """The graph the elements declare, live elements only.
+
+    One place, read by the reflexion check and by the cycle walk: two readings of `depends_on`
+    would one day disagree about which elements are in the graph. A cancelled element is out of
+    it — it keeps its field for the record, and a circle surviving through it would be one
+    nothing live can break. Targets are kept as written, resolving or not: nothing here checks
+    that a dependency names an element, and the walk has to tolerate one that does not.
+    """
+    declared = {}
+    for record in records:
+        if RE_ID.match(record.id) and record.fields.get("status") not in CANCELLED:
+            declared[record.id] = set(as_list(record.fields.get("depends_on")))
+    return declared
+
+
+def check_cycles(records, warnings, reports, cfg):
+    # implements: FR-ARCH-220
+    """Elements that depend on each other in a circle, each circle named once.
+
+    A warning with a name where the same finding between requirements is an error with none:
+    nothing here is broken by a circle — the map renders, the reflexion check runs — and two
+    parts that need each other are a fact about the code the project may choose to live with.
+    A dependency naming no element ends the path rather than the walk.
+    """
+    declared = declared_dependencies(records)
+    where = dict((record.id, record.where) for record in records)
+    colour = {}
+    stack = []
+
+    def walk(node):
+        colour[node] = "grey"
+        stack.append(node)
+        for target in sorted(declared.get(node, ())):
+            # Cancelled or never declared: a path ends here, and the name stays out of the
+            # walk's own bookkeeping so a circle is never reported through it.
+            if target not in declared:
+                continue
+            if colour.get(target) == "grey":
+                circle = stack[stack.index(target):]
+                # The degenerate circle has no "each other" in it, and the layer has no rule
+                # of its own for a self-reference the way the specification checker does.
+                # Located at the element the circle is named from, since a circle has no
+                # single line of its own and the other findings all start with a place.
+                if len(circle) == 1:
+                    text = "%s — %s depends on itself" % (where[node], node)
+                else:
+                    text = ("%s — elements depend on each other in a circle: %s"
+                            % (where[target], " → ".join(circle + [target])))
+                rule_finding(warnings, reports, cfg, "element-cycle", text)
+            elif target not in colour:
+                walk(target)
+        stack.pop()
+        colour[node] = "black"
+
+    for node in sorted(declared):
+        if node not in colour:
+            walk(node)
+
+
 def check_conformance(records, warnings, reports, cfg):
     # implements: FR-ARCH-200
     """The declared model against the one the code has.
@@ -324,10 +385,7 @@ def check_conformance(records, warnings, reports, cfg):
     has no rule here.
     """
     by_path, unique = python_modules(records)
-    declared = {}
-    for record in records:
-        if RE_ID.match(record.id):
-            declared[record.id] = set(as_list(record.fields.get("depends_on")))
+    declared = declared_dependencies(records)
     seen = set()
     for path in sorted(by_path):
         element = by_path[path]
@@ -427,6 +485,7 @@ def main(argv=None):
     check_records(records, model, errors, warnings, reports, cfg)
     check_ownership(records, model, warnings, reports, cfg)
     check_conformance(records, warnings, reports, cfg)
+    check_cycles(records, warnings, reports, cfg)
 
     for text in warnings:
         sys.stdout.write("warning: %s\n" % text)

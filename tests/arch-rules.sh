@@ -5,6 +5,7 @@
 # verifies: FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
 # verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
+# verifies: FR-ARCH-220
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -518,6 +519,167 @@ printf 'import util\nimport other\n' > "$LAB/zeta/main.py"
 rule "FR-ARCH-200 a real cross-element import still speaks" 0 \
      "imports other, carried by E-020, and E-010 does not declare it"
 rm -rf "$LAB/alpha" "$LAB/zeta"
+
+# --- verifies: FR-ARCH-220 — elements that depend on each other in a circle.
+# --- No imports in the sources: the circle is declared, and the rule reads
+# --- the declaration, not the code.
+printf 'x = 1\n' > "$LAB/src/a.py"
+printf 'x = 1\n' > "$LAB/src/b.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+```
+
+Needs the second.
+
+### E-020 — The second
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-010]
+```
+
+Needs the first.
+MD
+rule "FR-ARCH-220 a circle is reported naming its elements" 0 \
+     "elements depend on each other in a circle: E-010 → E-020 → E-010"
+# --- Located like every other finding here, at the element it is named from.
+rule "FR-ARCH-220 and located at that element" 0 \
+     "arch/00-elements.md:3 — elements depend on each other"
+rule "FR-ARCH-220 and fails a strict run" 1 "treated as errors" --strict
+# --- Priced by the project like every other rule here (FR-ARCH-090), under
+# --- the name IF-ARCH-030 publishes.
+printf '{"rules": {"element-cycle": "off"}}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-220 silenced in the configuration" 0 "in a circle" --strict
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+
+# --- A cancelled element is on no circle: it keeps its field for the record
+# --- and has left the graph.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+```
+
+Needs the second.
+
+### E-020 — The second, gone
+
+```yaml
+status: withdrawn
+carries: [src/b.py]
+requirements: []
+depends_on: [E-010]
+```
+
+Left, and its field stayed.
+MD
+silent "FR-ARCH-220 a circle through a cancelled element is none" 0 "in a circle"
+
+# --- A dependency naming no element ends the path, not the run: nothing
+# --- checks that `depends_on` resolves, and the walk must not be what does.
+# --- The unresolved name sits on a would-be circle, so a walk that followed
+# --- it into its bookkeeping would report one that no declared element closes.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: [E-999]
+```
+
+Points at nothing.
+
+### E-020 — The second
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-010]
+```
+
+Needs the first.
+MD
+silent "FR-ARCH-220 an unresolved dependency ends the path, not the run" 0 "circle"
+
+# --- And the degenerate circle, said in words that fit one element.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-010]
+```
+
+Needs itself.
+MD
+rule "FR-ARCH-220 an element depending on itself" 0 "E-010 depends on itself"
+
+# --- The circle is named from where it closes, not from where the walk
+# --- began: an element that merely leads into one is not on it.
+elements <<'MD'
+# Elements
+
+### E-005 — The way in
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: [E-010]
+```
+
+Leads into the circle.
+
+### E-010 — On the circle
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-020]
+```
+
+On it.
+
+### E-020 — Also on the circle
+
+```yaml
+status: built
+carries: [t]
+requirements: []
+depends_on: [E-010]
+```
+
+On it too.
+MD
+rule "FR-ARCH-220 the circle is cut where it closes" 0 \
+     "in a circle: E-010 → E-020 → E-010"
+silent "FR-ARCH-220 and the way in is not on it" 0 "E-005 → E-010 → E-020"
 
 # --- verifies: FR-ARCH-210 — the drivers are ranked, not chosen by taste.
 cat >> "$LAB/specs/10-fr-core.md" <<'MD'
