@@ -8,6 +8,50 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.17.0] — 2026-09-17
+
+### Added
+
+- The architecture layer can derive what a part carries from the files it owns. `arch/arch-config.json` takes `"requirements": "derived"`; under it an element's `requirements` key is optional, the checker counts as carried every `implemented` or `partial` requirement whose `code` names a file the element owns, together with whatever the record still names, and nothing is written back into a record. A specification written by capability puts every requirement in two or three parts, and a list of two hundred identifiers kept by hand is a list that stops being read; the projection lives in the generated map instead, which the gate already compares (`FR-ARCH-240`, ADR-0025).
+- The map marks what the record names apart from what was derived. Under `derived`, a written entry is bold and a computed one plain, with a legend above the table saying so, because the two are different claims — that a part answers for an obligation, and that it owns the files the obligation names (`FR-ARCH-250`).
+- Elements that depend on each other in a circle are reported. A new architecture rule, `element-cycle`, names the elements on a circle of declared `depends_on`, once, from where it closes; a warning the project prices like the rest, because nothing the checker computes is broken by one (`FR-ARCH-220`).
+- An element's dependency has to name an element the layer carries. A `depends_on` entry naming no element is an error naming both, the way a `requirements` entry naming no requirement already was; a cancelled element is present and is not this rule's finding (`FR-ARCH-230`).
+- A cycle in `depends_on` links is an error of the specification checker. A set where each requirement is declared meaningless without the next is meaningless without itself; the walk is separate from the derivation fields, so a path alternating between the two graphs is reported by neither, and the error carries no rule name and cannot be lowered (`FR-CHK-240`).
+- The viewer states every declared area with how many requirements it holds. Beside the count it already prints ahead of a search, of what describes a file and of the coverage gaps, and on request through `--areas`; an area a project drew and has not filled reads as 0 rather than going missing (`FR-VIEW-250`).
+- The page links every document in `specs/` that states no requirement. The introduction, the overview and the verification notes were never offered, because the list was a copy of the checker's skipped set kept by hand; it is derived from the parse now, and `specs/archive/` stays out (`FR-VIEW-260`).
+- A text search reads the prose as well as the requirements. `--grep` reaches the glossary, the introduction, the overview, the verification notes, the constitution and the decision log, naming the file and the line of each hit; the standard, the matrix, the open issues, the baseline log and the archive stay out, each for a reason written beside the exclusion (`FR-VIEW-270`).
+- A search says what it left out. The prose because a filter asked about requirements, a document the project does not have, or hits past the fortieth — each is stated rather than silently cut (`FR-VIEW-280`).
+- A search for text that is a path is pointed at the mode for paths. In addition to the results rather than instead of them, and only for a path inside the repository (`FR-VIEW-290`).
+- `--code <path>:<line>` names what the annotation covering that line marks. And how many requirements the whole file answers for, with the command that lists them; beside the path mode rather than folded into it: the path mode answers from `code`, `tests` and annotations, this one from annotations alone (`FR-VIEW-300`).
+- The page links into the repository when told where it is. Files by path and requirements by line; `--repo-url` on the command line wins over `repo_url` in `specs/srs-config.json`, since the pipeline knows the commit and the configuration names a branch; the behaviour had a flag since 0.5.0 and no requirement, and the suite never exercised it (`FR-VIEW-310`).
+- A question about how the system works starts from its own vocabulary. The `srs` procedure and the agent guides start such a question at the glossary, the introduction and the overview, then the areas, then one requirement — a lookup by number needs a number nobody has handed you, and a search over requirement text finds the word you guessed (`FR-SKILL-240`).
+- A procedure that searches reports what it searched, not only what it found. The area asked, the words tried and the paths given, in the authoring dialog, the harvest sweeps, the everyday loop and the check procedure, so that "found nothing" can be told apart from "looked for nothing" (`FR-SKILL-250`).
+- The audit proposes the links an area lacks. A third dimension beside spec ↔ code drift and test adequacy: area by area, one link at a time, stopping at the proposal — because the checker proves that every link written resolves and cannot prove that any was left out (`FR-SKILL-260`).
+- Fifteen requirements in all, none removed.
+
+### Changed
+
+- Every area has been read once for missing links. Twenty-nine links were written and three reversed across the eight areas, two of the reversals found by the new cycle rule refusing the new edge while the old one stood; the register's and the layer's invariants now derive from the ones they mirror in the specification, and `FR-ARCH-220` records its deliberate divergence from `FR-CHK-240` — the first use of `conflicts_with` in this specification.
+- `FR-CI-040` obliges the pipeline to hand the viewer the repository URL. At the built revision, standing on `FR-VIEW-310`, where it used to ask for links back to the source without saying who made them; `ci/github-workflow.yml` is named among its files.
+- `FR-ARCH-070` and `FR-ARCH-080` say `carries` where they said `names`. Nothing changes for a layer that keeps the field written; what an element carries under `derived` is defined by `FR-ARCH-240`.
+- `FR-SKILL-050` binds the audit to report what it finds and change nothing. It said "drift between the specification and the code" — a missing link is drift inside the specification with the code no part of it. `FR-SKILL-100` is titled "The check procedure names what to run" and points at the two gates its statement names conditionally.
+- Three fields were tightened by a word or a path. `FR-ARCH-140` names `skeleton/arch` among its files, as its twin `FR-GND-300` names `skeleton/grounds`; `FR-VIEW-250` binds the viewer's answers rather than the baseline row it also prints, and `FR-VIEW-260` says document where it said file.
+- The specification standard says more of what the checker does. It names the files it skips outright, states under Links that a resolving link is all the checker proves, and names the self-link and the dependency cycle among what the checker catches. The `srs-audit` skill's title and description, and the four places that route a request to it, name the third dimension.
+- `specs/91-open-issues.md` was re-measured by running its claims. The entry on frames became ADR-0024, and three entries opened during this cycle — the link graph on the floor the checker sets, an element's dependency resolved against nothing, the page's source links promised in one area and built in another — were settled by it.
+- The landing page stops counting requirements. The count went stale the day it was written; the page also puts the register's own sentence back beside the register.
+
+### Fixed
+
+- The architecture checker refuses a configuration whose top level is not an object with exit 2 and one line, where it used to raise a traceback on `[]` (`IF-ARCH-020`).
+- One rationale claimed that searching for the path it names returns nothing, which its own sentence had made false.
+
+### Upgrade notes
+
+- A cycle in `depends_on` links is now an error, and the upgrade ends by running the checker in your project. If it reports `cycle in depends_on links`, the tools are already in place and nothing is lost: break the cycle in the requirements it names and run `python3 tools/srs_check.py` again. Neither project carrying this framework held one when the rule was written.
+- Where you keep the architecture layer, two rules are new. An element whose `depends_on` names no element is an error, so a layer that carried such a slip fails until it is corrected; and `element-cycle` is a warning that fails `--strict`, lowered under that name in `arch/arch-config.json` like the rest.
+- Deriving what a part carries is opt-in. Nothing changes until `arch/arch-config.json` says `"requirements": "derived"`; the default is `written`, and a layer written before this release reads exactly as it did. The standard describing the mode, `arch/README.md`, is refreshed only with `--force`, so a project keeps its old copy until `python3 tools/srs_upgrade.py --yes --force`; the `srs-arch` skill, which points at the mode, is refreshed either way.
+- The agent guides gained the vocabulary entry and are precious, so a project that has installed already keeps its old `AGENTS.md` and `CLAUDE.md` until `--force`; the `srs` skill carries the same entry and is refreshed either way.
+
 ## [0.16.0] — 2026-09-04
 
 ### Added
