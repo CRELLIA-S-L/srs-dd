@@ -26,6 +26,7 @@ Where the answer is no, decline the layer and lose nothing.
 An element names the requirements it carries.
 A requirement never names an element.
 The other direction is computed, and it is computed rather than stored for the reason the same rule exists in the grounds register: a link written on both ends eventually disagrees with itself, and only one of the two copies is ever updated.
+Where the project derives the requirements instead (see *Derived requirements*), the direction does not change: the join still lives on the element's side, in its `carries` rather than in a list, and the requirement still names no element.
 
 It is also what keeps the layer optional.
 Nothing in `specs/` mentions this directory, so removing `arch/` removes the layer and leaves the specification exactly as it was.
@@ -70,7 +71,7 @@ A key that is neither required nor optional here is not an error — that tolera
 |---|---|---|
 | `status` | required | `proposed`, `built`, `superseded`, `withdrawn` |
 | `carries` | required | the files and directories that are this part |
-| `requirements` | required | the requirements this part realizes |
+| `requirements` | required, unless derived | the requirements this part realizes — see *Derived requirements* |
 | `depends_on` | optional | other elements this part leans on — the declared model |
 | `interface` | optional | how the part is reached from outside |
 | `superseded_by` | by status | the successor, where the status is `superseded` |
@@ -81,10 +82,34 @@ A requirement's `code` field names whatever realizes it — a standard, a proced
 `depends_on` is the declared model, and it is written by a person.
 It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected (ADR-0023).
 
+## Derived requirements
+
+A specification written by capability names the view, the engine and the table in one requirement, so a requirement lands in two or three parts and every part's list grows with every capability.
+Past a few hundred requirements those lists cannot be kept by hand, and a list nobody can keep is lowered to `report` and stops meaning anything.
+
+A project at that scale says so in the configuration:
+
+```json
+{"requirements": "derived"}
+```
+
+Under `derived` the checker counts as carried by an element every `implemented` or `partial` requirement whose `code` field names a file the element owns — by the same rule that decides which carrier a file belongs to — together with any the record still names.
+The `requirements` key becomes optional.
+A record that keeps it is making a claim the derivation cannot: that this part answers for an obligation whose files it does not own.
+
+**What the record shows changes.**
+Under `derived` a record naming no requirement is not a part that answers to nothing; what the part carries is in the map, which marks what the record names apart from what was computed.
+Read the map, not the record, to learn what a part carries.
+
+Nothing is written back.
+The records stay the author's, the map is where the projection lives, and the gate that compares the map now holds it fresh against the specification's `code` fields as well as against the records.
+The default is `written`: every entry is the author's claim, and a layer written before this key existed reads exactly as it did.
+This is not the derivation ADR-0023 rejected — `depends_on` is still written by a person — and ADR-0025 says why the projection lives in the map rather than in the record.
+
 ## The map
 
 `arch/90-map.md` is generated from the records and never edited by hand.
-It states, for every element, what it carries, which requirements it holds and what state it is in.
+It states, for every element, what it carries, which requirements it holds and what state it is in; where the requirements are derived, it marks which of them the record names and which were computed.
 A committed map that no longer matches what the records produce is a change somebody made without looking at the parts, which is why the map is compared rather than trusted.
 
 ## Checking
@@ -98,7 +123,7 @@ python3 tools/srs_arch.py --strict     treat warnings as errors
 Errors are the readings that make the rest meaningless: a repeated identifier, a missing required key, a requirement that does not exist.
 Everything else is a warning, because the honest resolution differs case by case and the checker cannot choose it.
 
-What a rule costs is the project's to set, in `arch/arch-config.json`:
+What a rule costs is the project's to set, in `arch/arch-config.json`, beside the `requirements` key described above:
 
 ```json
 {"rules": {"carrier-unclaimed": "report"}}

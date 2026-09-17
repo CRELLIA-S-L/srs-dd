@@ -2,7 +2,7 @@
 
 `E-NNN` — the parts this system is made of.
 
-Each record names what the part is responsible for, the files it is made of, and the requirements it carries.
+Each record names what the part is responsible for, the files it is made of, and — unless the project derives them from those files — the requirements it carries.
 The join points one way: an element names its requirements, and a requirement never names an element.
 
 Cut the parts as coarsely as the system allows.

@@ -67,6 +67,11 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
 SEVERITIES = ("warn", "report", "off")
 
+# implements: FR-ARCH-240
+# How the `requirements` field is kept. `written` is the author's claim and the default;
+# `derived` counts as carried what the element owns, and the record's key becomes optional.
+MODES = ("written", "derived")
+
 
 def fail_setup(message):
     """Something the layer could not be read through at all — exit 2, never 1."""
@@ -76,8 +81,9 @@ def fail_setup(message):
 
 def load_config():
     # implements: FR-ARCH-090
-    """What each rule costs, as the project set it. A missing file means every default."""
-    cfg = {"rules": {}}
+    """What each rule costs, as the project set it, and how the requirements are kept. A
+    missing file means every default."""
+    cfg = {"rules": {}, "requirements": "written"}
     if not os.path.exists(CONFIG):
         return cfg, None
     try:
@@ -85,6 +91,8 @@ def load_config():
             raw = json.load(handle)
     except (OSError, ValueError) as exc:
         return None, "arch/arch-config.json: %s" % exc
+    if not isinstance(raw, dict):
+        return None, "arch/arch-config.json: the top level must be a JSON object"
     rules = raw.get("rules", {})
     if not isinstance(rules, dict):
         return None, "arch/arch-config.json: `rules` must be an object"
@@ -96,6 +104,12 @@ def load_config():
             return None, ("arch/arch-config.json: rule %r is %r, expected %s"
                           % (name, severity, "/".join(SEVERITIES)))
     cfg["rules"] = rules
+    # implements: FR-ARCH-240
+    mode = raw.get("requirements", "written")
+    if mode not in MODES:
+        return None, ("arch/arch-config.json: `requirements` is %r, expected %s"
+                      % (mode, "/".join(MODES)))
+    cfg["requirements"] = mode
     return cfg, None
 
 
@@ -178,6 +192,8 @@ def check_records(records, model, errors, warnings, reports, cfg):
     """Everything decidable from one element and the requirement model."""
     seen = {}
     by_id = {r["id"]: r for r in model["requirements"]}
+    derived = cfg["requirements"] == "derived"
+    computed = carried_by(records, model, cfg)[1]
     for record in records:
         if not RE_ID.match(record.id):
             errors.append("%s — identifier does not match E-<NNN>" % record.where)
@@ -189,6 +205,9 @@ def check_records(records, model, errors, warnings, reports, cfg):
         seen[record.id] = record.where
 
         for key in REQUIRED_KEYS:
+            # The standard requires the field only where it is written.
+            if key == "requirements" and derived:
+                continue
             if key not in record.fields:
                 errors.append("%s — required key %r is missing" % (record.where, key))
         status = record.fields.get("status")
@@ -210,7 +229,11 @@ def check_records(records, model, errors, warnings, reports, cfg):
                              % (record.where, record.id, rid, requirement["status"]))
         # A dissolved part has nothing left to answer for, and saying so
         # every run is how a report teaches its reader to skim it.
-        if "requirements" in record.fields and not named and not cancelled:
+        # Over what the element carries, not what it names: under `derived` a record naming
+        # nothing may carry a dozen, and one naming nothing and owning nothing is empty even
+        # though no key is missing.
+        carried = named or computed.get(record.id)
+        if not carried and not cancelled and ("requirements" in record.fields or derived):
             rule_finding(warnings, reports, cfg, "element-empty",
                          "%s — %s carries no requirement, so nothing says what it is for"
                          % (record.where, record.id))
@@ -225,6 +248,7 @@ def check_ownership(records, model, warnings, reports, cfg):
     """
     carried = set()
     claimed = set()
+    written, computed = carried_by(records, model, cfg)
     for record in records:
         if not RE_ID.match(record.id):
             continue
@@ -232,7 +256,8 @@ def check_ownership(records, model, warnings, reports, cfg):
             continue
         for path in as_list(record.fields.get("carries")):
             carried.add(path.rstrip("/"))
-        claimed.update(as_list(record.fields.get("requirements")))
+        claimed.update(written[record.id])
+        claimed.update(computed[record.id])
 
     for requirement in model["requirements"]:
         if requirement.get("status") not in REALIZED:
@@ -246,6 +271,53 @@ def check_ownership(records, model, warnings, reports, cfg):
                 rule_finding(warnings, reports, cfg, "carrier-unclaimed",
                              "%s — named by %s and carried by no element"
                              % (path, requirement["id"]))
+
+
+def carried_by(records, model, cfg):
+    # implements: FR-ARCH-240
+    """What each element carries, as ({id: written}, {id: derived}) — two sets per element,
+    kept apart because they are two claims: the record's, that the part answers for the
+    obligation; the derivation's, that the part owns a file the obligation names.
+
+    The derived set is empty under `written`, and empty for a cancelled element under either
+    mode: a dissolved part owns nothing the way it depends on nothing. Ownership is decided by
+    owner_of over every live carrier, so the file a requirement names lands in the element
+    whose carrier is nearest — by the rule that decides whether a carrier is unclaimed at all.
+    """
+    written, derived, owners = {}, {}, {}
+    for record in records:
+        if not RE_ID.match(record.id):
+            continue
+        written[record.id] = set(as_list(record.fields.get("requirements")))
+        derived[record.id] = set()
+        if record.fields.get("status") in CANCELLED:
+            continue
+        for path in as_list(record.fields.get("carries")):
+            owners.setdefault(path.rstrip("/"), []).append(record.id)
+    if cfg["requirements"] == "derived":
+        for requirement in model["requirements"]:
+            if requirement.get("status") not in REALIZED:
+                continue
+            for path in requirement.get("code") or []:
+                for element in owners.get(owner_of(path, owners), ()):
+                    derived[element].add(requirement["id"])
+    return written, derived
+
+
+def spec_order(model):
+    """A sort key placing identifiers the way the specification does: by type, then by the
+    area order the project declared, then by number."""
+    types = list(model.get("types") or ())
+    areas = list(model.get("areas") or ())
+
+    def key(rid):
+        parts = rid.split("-")
+        kind, area = parts[0], parts[1] if len(parts) > 2 else ""
+        number = parts[-1]
+        return (types.index(kind) if kind in types else len(types),
+                areas.index(area) if area in areas else len(areas),
+                int(number) if number.isdigit() else 0, rid)
+    return key
 
 
 def owner_of(path, carried):
@@ -446,30 +518,44 @@ def print_drivers(model, limit=10):
     return 0
 
 
-def render_map(records, model):
-    # implements: FR-ARCH-110, CON-ARCH-020
-    """The map, generated from the records and never edited by hand."""
+def render_map(records, model, cfg):
+    # implements: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
+    """The map, generated from the records and never edited by hand.
+
+    Under `derived` an entry the record names is bold and one computed from what the element
+    owns is plain, and the map says so above the table: the two are different claims, and a
+    reader deciding whether a part answers for an obligation has to see which one they hold.
+    """
     by_id = {r["id"]: r for r in model["requirements"]}
+    derived = cfg["requirements"] == "derived"
+    written, computed = carried_by(records, model, cfg)
+    order = spec_order(model)
     out = ["# The map", "",
            "**Generated by `tools/srs_arch.py`. Do not edit by hand — "
            "run the command and commit the result.**", "",
-           "What each part of this project is, what it carries and what state it is in.", "",
-           "| Element | Status | Carries | Requirements |", "|---|---|---|---|"]
+           "What each part of this project is, what it carries and what state it is in.", ""]
+    if derived:
+        out += ["Requirements are derived: an entry in **bold** is one the record names, "
+                "an entry in plain text one computed from what the element owns.", ""]
+    out += ["| Element | Status | Carries | Requirements |", "|---|---|---|---|"]
+    carrying = set()
     for record in sorted(records, key=lambda r: r.id):
         if not RE_ID.match(record.id):
             continue
         carries = ", ".join("`%s`" % p for p in as_list(record.fields.get("carries"))) or "—"
         named = as_list(record.fields.get("requirements"))
-        shown = ", ".join("**%s**" % rid for rid in named) or "—"
-        live = sum(1 for rid in named if by_id.get(rid, {}).get("status") in REALIZED)
+        extra = sorted(computed[record.id] - set(named), key=order)
+        shown = ", ".join(["**%s**" % rid for rid in named] + extra) or "—"
+        held = set(named) | set(extra)
+        carrying |= held
+        live = sum(1 for rid in held if by_id.get(rid, {}).get("status") in REALIZED)
         out.append("| **%s** %s | `%s` | %s | %s (%d realized) |"
                    % (record.id, record.title, record.fields.get("status") or "?",
                       carries, shown, live))
     out.append("")
     out.append("%d elements, carrying %d of the %d requirements this specification holds."
                % (len([r for r in records if RE_ID.match(r.id)]),
-                  len({rid for r in records for rid in as_list(r.fields.get("requirements"))}),
-                  len(model["requirements"])))
+                  len(carrying), len(model["requirements"])))
     out.append("")
     return "\n".join(out)
 
@@ -521,7 +607,7 @@ def main(argv=None):
 
     if write:
         with open(MAP, "w", encoding="utf-8") as handle:
-            handle.write(render_map(records, model))
+            handle.write(render_map(records, model, cfg))
 
     sys.stdout.write("Elements: %d. Errors: 0. Warnings: %d.%s (srs_arch %s)\n"
                      % (len(records), len(warnings),

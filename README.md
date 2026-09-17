@@ -90,9 +90,9 @@ A specification records what the system must do.
 It does not record why anyone thought those were the right things to build — that reasoning lives in rationale prose, which no rule checks.
 Delete a requirement's rationale and a strict run reports nothing at all.
 
-The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest part of this framework: 63 of its 213 requirements.
-The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries, and a checker that reports a file the specification claims and no part owns.
+The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest of the eight areas this framework specifies itself in.
 It holds three kinds of ground, and one record that joins them to the specification.
+The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries — written by hand or derived from the files it owns — and a checker that reports a file the specification claims and no part owns.
 
 - A **hypothesis** is a claim about the world that could turn out false — who needs the thing, what they will pay for, what they do today instead.
   It carries a bounded population, a threshold that says what would refute it, a term, and an owner who answers for measuring it.

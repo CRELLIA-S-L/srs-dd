@@ -142,10 +142,13 @@ tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 
-Where a requirement is `implemented` or `partial` and no element names it, the architecture checker **shall** report it as a warning naming the requirement.
+Where a requirement is `implemented` or `partial` and no element carries it, the architecture checker **shall** report it as a warning naming the requirement.
 
 **Rationale.** The other direction of the same decay, and the one that says the map has stopped describing the whole system.
 Scoped to the two statuses that claim realization for the reason `FR-CHK-200` is: a `draft` or `deferred` requirement has nothing built yet, so no part can be expected to carry it.
+
+Carries rather than names.
+Where the layer keeps the field written the two are the same set, and this said "names" for as long as that was the only mode; `FR-ARCH-240` says what an element carries where the requirements are derived, and this rule asks the question either way.
 
 ### FR-ARCH-080 — An element carrying no requirement is reported
 
@@ -161,11 +164,13 @@ tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 
-Where an element that is not cancelled names no requirement, the architecture checker **shall** report it as a warning naming the element.
+Where an element that is not cancelled carries no requirement, the architecture checker **shall** report it as a warning naming the element.
 
 **Rationale.** A part that answers to nothing is either a part nobody needed or a requirement nobody wrote, and both are worth a sentence from whoever knows which.
 This is the rule that keeps the layer from becoming a second file tree: every element earns its place by naming what it is for.
 A `superseded` or `withdrawn` element is exempt because a dissolved part has nothing left to answer for, and a finding repeated every run is how a report teaches its reader to skim it.
+
+Carries rather than names, for the reason `FR-ARCH-070` gives: under `FR-ARCH-240` an element may name nothing and carry a dozen, and the question here is whether the part answers for anything, not whether its author typed a list.
 
 ### FR-ARCH-090 — What an architecture rule costs is the project's to set
 
@@ -270,7 +275,7 @@ derives_from: []
 depends_on: [FR-ARCH-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_init.py]
+code: [tools/srs_init.py, skeleton/arch]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-02
 ```
@@ -401,7 +406,7 @@ verification: T
 derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-090]
 refines: []
-conflicts_with: []
+conflicts_with: [FR-CHK-240]
 code: [tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-16
@@ -447,3 +452,71 @@ A dependency on a part nobody has described is not a fact about the code a proje
 
 A cancelled element is not absent.
 It is in the layer with a status that says it left, and a dependency on it is the other rule's business — the one `FR-ARCH-050` is for a cancelled requirement — or nobody's, and either way not this one's.
+
+### FR-ARCH-240 — What a part carries can be derived from what it owns
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, FR-ARCH-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py, arch/README.md, .claude/skills/srs-arch/SKILL.md]
+tests: [tests/arch-rules.sh]
+created: 2026-09-17
+```
+
+Where the layer's configuration says the requirements are derived, the architecture checker **shall** count as carried by an element every `implemented` or `partial` requirement naming in its `code` field a file that element owns, together with any the record names.
+
+**Rationale.** A specification written by part names the files of one part in each requirement, and the list an element carries can be assembled by hand and kept by hand: this repository's ten elements carry between two and fifty-three each.
+A specification written by capability does not.
+"The user can rename a topic" names the view, the engine and the table together, because that is what the capability is made of.
+Measured 2026-09-17 in the first project that installed the layer: 560 realized requirements over ten elements, 220 of them with `code` in two or three elements, 37 carriers in all, and the longest `requirements:` list 237 identifiers long.
+Every new capability lands in two or three lists, each appended by hand or `requirement-uncarried` fires — and the predictable outcome is the one the standard warns about: the rule is lowered to `report`, the warnings become noise and the field stops meaning anything.
+
+Everything needed to fill the field is already read.
+`FR-ARCH-060` decides which carrier owns a file, and the two loops reporting under it and under `FR-ARCH-070` already walk every realized requirement and every file it names; the join they never made — the requirement lands in the element owning its file — is this set.
+The checker could say a list was incomplete and could not complete it.
+
+Computed rather than written back.
+The project that raised this proposed a flag rewriting each record's `requirements:` line from the specification, and what that costs is the line ADR-0009 draws: a tool that edits the author's records is no longer a tool the project runs.
+It also makes one field both written and generated, so the format would have to say which entries are whose.
+So the written stays written, the derived lives in the map — which `CON-ARCH-020` already generates and `FR-ARCH-170` already compares — and the record's key becomes optional in this mode.
+The standard says so, which is what keeps `FR-ARCH-030` true by its own words.
+
+Together with what the record names, because the two say different things.
+A derived entry says *this part owns a file this obligation names*; a written one says *this part answers for this obligation*, and a part may answer for one whose files it does not own.
+The union is what the element carries, and `FR-ARCH-250` keeps the two apart on the map.
+
+A mode chosen in the configuration rather than the default, because the field changes meaning.
+Under the default every entry is the author's claim, and a project that opts in says so in a file a reader of `arch/` will open.
+It is not the derivation ADR-0023 measured and rejected: that was `depends_on` from the links between requirements, twenty-five conceptual edges against seven real ones, and it stays written by a person.
+This projects what the specification already states about its files, by the rule the checker already applies (ADR-0025).
+
+One consequence is said here so that nobody discovers it in a report.
+Under this mode a requirement no element carries is one none of whose files any element owns — which is exactly when `FR-ARCH-060` has already fired on each of them.
+The two directions of the same decay collapse into one, and a project that finds the second voice noise lowers `requirement-uncarried` under `FR-ARCH-090`.
+
+### FR-ARCH-250 — The map says which requirements were written and which derived
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-240]
+refines: [FR-ARCH-110]
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-17
+```
+
+Where the requirements are derived, the map **shall** mark, for every element, which of the requirements it carries the record names and which were computed from what it owns.
+
+**Rationale.** In the derived mode the record stops showing what the part carries: an element may name nothing and carry a dozen, and the map is where a reader finds out.
+Two kinds of entry meet there and they are not the same claim — one the author made, one the checker projected — and a reader deciding whether a part answers for an obligation has to see which they are looking at.
+Marked rather than split into two columns, because the map is what a reviewer diffs when a part changes hands, and one list is what they compare.
+
+The map also moves for a new reason.
+A derived entry changes when a `code` field in the specification changes, so the gate that compares the map under `FR-ARCH-170` now holds the lists fresh against the specification and not only against the records — which is the whole of what the project that raised this wanted a second command for.

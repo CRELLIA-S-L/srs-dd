@@ -520,11 +520,12 @@ tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
-Wherever the viewer states how many requirements the specification holds, it **shall** also state, for every area the project declares, how many carry it — including an area no requirement carries.
+Wherever the viewer answers with how many requirements the specification holds, it **shall** also state, for every area the project declares, how many carry it — including an area no requirement carries.
 
 **Rationale.** A reader who arrives with a number gets an answer about it; a reader who arrives without one is handed the whole listing, and the whole listing stops fitting early.
 Measured 2026-09-09: it prints as 15 KB here and as 56 KB in the first project that installed this framework, which holds 571 requirements and a traceability matrix of 187 KB.
 The areas are the one partition that is always there — the middle segment of every identifier, declared by the project itself — where the architecture layer is optional and a project may have none.
+Answers, and not the baseline row the viewer also prints: that row is a record read next to its neighbours, and an area count in it would say the same thing a hundred times down the log.
 
 Unprompted rather than only on request, and that is the whole of it.
 A reader who knows to ask for the areas did not need them; the one this is for does not know the partition exists, and a flag they never type is a flag that does not help them.
@@ -548,10 +549,11 @@ tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
-The rendered page **shall** link every file in `specs/` that carries no requirements, except what the project has archived.
+The rendered page **shall** link every document in `specs/` that carries no requirements, except what the project has archived.
 
 **Rationale.** The page has offered six of them since it was written — the standard, the glossary, the constitution, the matrix, the open issues and the baseline log — and the list was never described, so nothing noticed when it fell behind.
 Three files the standard's own map names were missing from it: the introduction, the overview and the verification notes.
+A document, not a file: `specs/srs-config.json` is in the directory and carries no requirement, and a link to a configuration is not an invitation to read.
 
 All three are absent from the checker's skipped set as well, which is how they came to be invisible from both ends at once: the parser reads them as requirement files and finds nothing, and the page does not offer them.
 The list in the viewer was a copy of the checker's made by hand, and a copy is what drifts.

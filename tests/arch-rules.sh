@@ -5,7 +5,7 @@
 # verifies: FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
 # verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
-# verifies: FR-ARCH-220, FR-ARCH-230
+# verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -402,6 +402,12 @@ printf '{"rules": {"no-such-rule": "warn"}}\n' > "$LAB/arch/arch-config.json"
 rule "IF-ARCH-030 an unknown rule name is refused" 2 "unknown rule"
 printf '{"rules": {"element-empty": "loud"}}\n' > "$LAB/arch/arch-config.json"
 rule "FR-ARCH-090 an unknown severity is refused" 2 "expected warn/report/off"
+# --- A file that parses and is not an object is refused the same way, not
+# --- with a traceback: IF-ARCH-020 promises 2 for what cannot be read, and a
+# --- gate reading the exit code told 1 would call it a bad layer.
+printf '[]\n' > "$LAB/arch/arch-config.json"
+rule "IF-ARCH-020 a configuration that is not an object is refused" 2 \
+     "the top level must be a JSON object"
 printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 
 # --- verifies: IF-ARCH-020 — the third exit code is for what cannot be read.
@@ -754,6 +760,244 @@ depends_on: []
 Left.
 MD
 silent "FR-ARCH-230 a cancelled target is not absent" 0 "no element carries"
+
+# --- verifies: FR-ARCH-240 — what a part carries can be derived from what it
+# --- owns. The rows of the decision table, one fixture each: under the default
+# --- nothing changes and a missing key is still missing; under `derived` a
+# --- record naming nothing carries what it owns, so neither the emptiness rule
+# --- nor the uncarried rule speaks; a file two elements could own goes to the
+# --- nearest carrier; what the record names is kept beside what was derived;
+# --- and an element owning nothing is empty even though no key is missing.
+elements <<'MD'
+# Elements
+
+### E-010 — Owns both files, names neither
+
+```yaml
+status: built
+carries: [src]
+```
+
+Owns everything under src/.
+MD
+rule "FR-ARCH-240 written is the default, so the key is still required" 1 \
+     "required key 'requirements' is missing"
+printf '{"requirements": "written"}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-240 and required when written is said out loud" 1 \
+     "required key 'requirements' is missing"
+printf '{"requirements": "derived"}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-240 derived: the key is optional" 0 "is missing" --strict
+silent "FR-ARCH-240 derived: an element owning files is not empty" 0 \
+       "carries no requirement" --strict
+silent "FR-ARCH-240 derived: a requirement whose file is owned is carried" 0 \
+       "no element carries it" --strict
+# --- The union: the record names what it does not own, and that entry is
+# --- the only thing carrying the requirement — nothing owns b.py, so the
+# --- file is reported unclaimed and the requirement must not be reported
+# --- uncarried. Without --strict, because the unclaimed file is a warning
+# --- this fixture expects. A second element owning b.py would carry the
+# --- requirement by derivation and prove nothing about the written half.
+elements <<'MD'
+# Elements
+
+### E-010 — Owns the first, answers for the second
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-020]
+```
+
+Owns a.py and answers for what b.py realizes.
+MD
+rule "FR-ARCH-240 derived: a file nobody owns is still unclaimed" 0 \
+     "src/b.py — named by FR-CORE-020 and carried by no element"
+silent "FR-ARCH-240 derived: a written entry is kept beside the derived" 0 \
+       "FR-CORE-020 is implemented and no element carries it"
+# --- The nearest carrier owns the file, the same answer FR-ARCH-060 gives.
+elements <<'MD'
+# Elements
+
+### E-010 — The directory
+
+```yaml
+status: built
+carries: [src]
+```
+
+Owns src/ except what a nearer carrier claims.
+
+### E-020 — One file out of it
+
+```yaml
+status: built
+carries: [src/b.py]
+```
+
+Owns b.py alone.
+MD
+( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+    || { echo "FAIL FR-ARCH-240 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
+grep -qE '^\| \*\*E-010\*\*.*\| FR-CORE-010 \(1 realized\) \|$' "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-240 — the directory carries only what no nearer carrier owns"
+         cat "$LAB/arch/90-map.md"; exit 1; }
+grep -qE '^\| \*\*E-020\*\*.*\| FR-CORE-020 \(1 realized\) \|$' "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-240 — the nearer carrier owns the file"
+         cat "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+# --- Owning nothing is still empty: the derivation found nothing, and no key
+# --- is missing to say so instead.
+elements <<'MD'
+# Elements
+
+### E-010 — Owns nothing anybody realizes
+
+```yaml
+status: built
+carries: [t]
+```
+
+Owns the tests and nothing else.
+MD
+rule "FR-ARCH-240 derived: an element owning nothing is empty" 0 \
+     "E-010 carries no requirement"
+# --- And one owning nothing but naming something is not: the written half
+# --- counts for emptiness as it counts for carrying.
+elements <<'MD'
+# Elements
+
+### E-010 — Owns nothing, answers for the first
+
+```yaml
+status: built
+carries: [t]
+requirements: [FR-CORE-010]
+```
+
+Owns the tests and answers for the first.
+MD
+silent "FR-ARCH-240 derived: a written entry alone keeps an element from being empty" 0 \
+       "carries no requirement"
+# --- Only what is realized, and only through `code`: a deferred requirement
+# --- naming an owned file is not carried, a test file an element owns makes
+# --- it carry nothing, and an entry the record names that the derivation
+# --- would also produce is printed once, in the specification's order.
+# --- The two requirements stay in the lab from here on; nothing below
+# --- assumes they are absent.
+mkdir -p "$LAB/t"; printf 'x\n' > "$LAB/t/x.sh"
+cat >> "$LAB/specs/10-fr-core.md" <<'MD'
+
+### FR-CORE-050 — Approved, not built
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/b.py]
+tests: []
+created: 2026-09-17
+```
+
+The system **shall** eventually act.
+
+### FR-CORE-060 — Realized in both files, proven in t
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/a.py, src/b.py]
+tests: [t/x.sh]
+created: 2026-09-17
+```
+
+The system **shall** act again.
+MD
+elements <<'MD'
+# Elements
+
+### E-010 — Owns the sources, names one of them
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010]
+```
+
+Owns src/ and names what it would have derived anyway.
+
+### E-020 — Owns the tests
+
+```yaml
+status: built
+carries: [t]
+```
+
+Owns t/ and nothing a requirement realizes.
+MD
+rule "FR-ARCH-240 derived: a test file an element owns carries nothing" 0 \
+     "E-020 carries no requirement"
+( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+    || { echo "FAIL FR-ARCH-240 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF '| **FR-CORE-010**, FR-CORE-020, FR-CORE-060 (3 realized) |' "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-240 — only realized requirements, through code, each once, in order"
+         cat "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+# --- A mode this checker does not publish is a setup error, like a rule it
+# --- does not publish.
+printf '{"requirements": "guessed"}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-240 an unknown mode is refused before anything is read" 2 \
+     "expected written/derived"
+
+# --- verifies: FR-ARCH-250 — the map marks what was written apart from what
+# --- was derived. One element naming one requirement and owning the file of
+# --- two others: the named one is bold, the derived ones plain, and the map
+# --- says so above the table. The second derived one is the requirement
+# --- realized in both files, and it lands here as it landed in the element
+# --- owning the other file — the case a specification by capability produces
+# --- on every second requirement. Then the same layer under the default, where the
+# --- legend is absent and nothing is derived — which is the assertion that
+# --- reddens the day the mark is printed unconditionally.
+printf '{"requirements": "derived"}\n' > "$LAB/arch/arch-config.json"
+elements <<'MD'
+# Elements
+
+### E-010 — Names one, owns the other
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-010]
+```
+
+Answers for the first and owns what realizes the second.
+MD
+( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+    || { echo "FAIL FR-ARCH-250 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF '| **FR-CORE-010**, FR-CORE-020, FR-CORE-060 (3 realized) |' "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-250 — the map does not mark written apart from derived"
+         cat "$LAB/arch/90-map.md"; exit 1; }
+grep -qF 'Requirements are derived' "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-250 — the map does not say what the mark means"
+         cat "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+    || { echo "FAIL FR-ARCH-250 — the written layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF '| **FR-CORE-010** (1 realized) |' "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-250 — under the default nothing is derived"
+         cat "$LAB/arch/90-map.md"; exit 1; }
+if grep -qF 'Requirements are derived' "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-250 — the legend is printed where nothing is derived"
+    cat "$LAB/arch/90-map.md"; exit 1
+fi
+passes=$((passes + 1))
 
 # --- verifies: FR-ARCH-210 — the drivers are ranked, not chosen by taste.
 cat >> "$LAB/specs/10-fr-core.md" <<'MD'

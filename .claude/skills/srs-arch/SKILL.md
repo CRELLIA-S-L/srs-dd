@@ -23,6 +23,7 @@ Three findings matter and they are not the same finding:
   Either a part's `carries` is out of date, or the file belongs to a part nobody has written down.
 - **a realized requirement no element carries** — something is built and no part answers for it.
 - **an element carrying no requirement** — a part that answers to nothing, which is either a part nobody needed or a requirement nobody wrote.
+  Where the requirements are derived, a third reading: the part owns files no realized requirement names, and the question is whether the files or the requirement are missing.
 
 Say which of the readings it is before proposing an edit, naming the requirement in it as `AGENTS.md` asks the first time it appears, from `--cite`.
 Two of the three findings are about a requirement, and which reading it is depends on what that requirement actually says.
@@ -40,6 +41,10 @@ Before writing one:
    Carriers are not only code — a standard, a procedure, a CI template and a payload are all things a part can be made of.
 3. **List the requirements it carries**, from what the specification already says realizes those files:
    `python3 tools/srs_view.py --code <path>` answers it from the other end.
+
+   Where the layer's configuration says the requirements are derived, skip this step: the checker counts as carried what the part owns, and the list is on the map, not in the record.
+   Write `requirements:` there only for an obligation the part answers for without owning its files, and say so in the rationale — the map marks the entry as written, and a reader will ask why.
+   The standard says when a project chooses that mode and what it costs; the short of it is that a specification written by capability puts every requirement in two or three parts, and a list nobody can keep by hand is a list that stops being read.
 4. **Declare its dependencies** where they are real.
    `depends_on` is the model a person writes; it is not derived from the links between requirements, and ADR-0023 records the measurement that settled why.
 

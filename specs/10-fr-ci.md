@@ -72,7 +72,7 @@ derives_from: []
 depends_on: [FR-VIEW-060, FR-VIEW-310]
 refines: []
 conflicts_with: []
-code: [ci/gitlab-ci.yml, .github/workflows/srs.yml]
+code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml]
 tests: []
 created: 2026-08-07
 ```
