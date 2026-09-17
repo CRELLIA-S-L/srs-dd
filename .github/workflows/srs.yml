@@ -63,6 +63,12 @@ jobs:
       - name: Release smoke
         run: tests/release-smoke.sh
 
+      - name: Arch rules
+        run: tests/arch-rules.sh
+
+      - name: Arch check
+        run: tests/arch-check.sh
+
       - name: Grounds rules
         run: tests/grounds-rules.sh
 

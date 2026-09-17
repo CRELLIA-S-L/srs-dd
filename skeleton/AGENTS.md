@@ -1,66 +1,57 @@
 # <Your Project Name> — agent guide
 <!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
-A summary for coding agents; the project follows the SRS-DD standard. On
-any conflict, `specs/README.md` wins — it is the single normative document
-on the specification.
+A summary for coding agents; the project follows the SRS-DD standard.
+On any conflict, `specs/README.md` wins — it is the single normative document on the specification.
 
-The project is driven by its specification. System behavior is described
-in `specs/` as numbered requirements with links between them and
-references to code.
+The project is driven by its specification.
+System behavior is described in `specs/` as numbered requirements with links between them and references to code.
 
 - **Specification rules** — `specs/README.md`.
-- **Engineering principles** — `specs/constitution.md` (`ART-*`); they
-  apply to every task.
+- **Engineering principles** — `specs/constitution.md` (`ART-*`); they apply to every task.
 <SRS-DD-WIDTH-LINE>
+- **Markdown is not wrapped to a width** — a line breaks where the meaning breaks, never inside a sentence.
+  The renderer does the wrapping.
 - **Check** — `python3 tools/srs_check.py`.
-- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with
-  its links resolved, `--code <path>` for the requirements describing a
-  file, `--open` for a page a non-engineer can read;
+- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with its links resolved, `--code <path>` for the requirements describing a file, `--areas` for what the specification is divided into, `--open` for a page a non-engineer can read;
   `.claude/skills/srs-page/SKILL.md` is the procedure around it.
-- **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads
-  the `verification` method and the `tests` field of every requirement the
-  change touched, and offers exactly those. It runs nothing unasked.
-- **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain
-  markdown; an agent without a skill system reads them directly as
-  workflow guides.
-- **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the
-  row into `specs/92-baselines.md`; the commit that carries it is the
-  baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure
-  around it. Nothing here commits or tags for you.
-- **Upgrade the framework** — `python3 tools/srs_upgrade.py`. It shows the
-  version transition, the upgrade notes and the file list, then asks;
-  `.claude/skills/srs-upgrade/SKILL.md` is the procedure. Nothing else is
-  needed — no framework clone, no address to look up.
+- **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those.
+  It runs nothing unasked.
+- **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain markdown; an agent without a skill system reads them directly as workflow guides.
+- **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the row into `specs/92-baselines.md`; the commit that carries it is the baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure around it.
+  Nothing here commits or tags for you.
+- **Upgrade the framework** — `python3 tools/srs_upgrade.py`.
+  It shows the version transition, the upgrade notes and the file list, then asks;
+  `.claude/skills/srs-upgrade/SKILL.md` is the procedure.
+  Nothing else is needed — no framework clone, no address to look up.
+
+## Two ways in
+
+A question about how the system works starts with what this project wrote about itself — the terms, the purpose and the overview, which the standard's map places in `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`.
+They are short and they carry the project's own words — the ones a search over requirement text assumes you already know.
+Then `--areas`, then one area, then the requirement, then its code.
+
+A change to behavior starts at the loop below.
 
 ## The loop
 
 1. Before changing behavior, find the requirements that describe it:
-   `python3 tools/srs_view.py --code <path/to/file>`, or the tables in
-   `specs/90-traceability.md`. None exist — create one first, with the
-   initial status per the Lifecycle section of `specs/README.md`.
+   `python3 tools/srs_view.py --code <path/to/file>`, or the tables in `specs/90-traceability.md`.
+   None exist — create one first, with the initial status per the Lifecycle section of `specs/README.md`.
 2. Plans reference requirement IDs, not prose.
 3. Implement.
-4. Close the loop: status, `code`, `tests` — in the same set of edits as
-   the code.
+4. Close the loop: status, `code`, `tests` — in the same set of edits as the code.
 5. Run the checker.
 
 ## The rules most easily broken
 
-1. Changing behavior — first find or create the requirement, then write
-   the code.
-2. `specs/90-traceability.md` is generated by a script. Never edit it by
-   hand.
-3. Builds, tests, and every other action that ART-030 of the constitution
-   reserves run only with the user's explicit confirmation.
-4. Naming a requirement to a person — give its title and where it is
-   written the first time it appears: `FR-<AREA>-<NNN> — <its own title>
-   (specs/<file>.md:<line>)`, filled in from this project's own
-   specification. The identifier alone is a key, not a name, and costs
-   the reader a lookup per mention. Afterwards the number on its own is
-   enough.
-5. Reading the code behind a change — take the files from the `code` and
-   `tests` fields of the requirements the change belongs to
-   (`python3 tools/srs_view.py --code <path>` answers from the other end),
-   not from a search over the repository. Go wider where you must, and say
-   where you went.
+1. Changing behavior — first find or create the requirement, then write the code.
+2. `specs/90-traceability.md` is generated by a script.
+   Never edit it by hand.
+3. Builds, tests, and every other action that ART-030 of the constitution reserves run only with the user's explicit confirmation.
+4. Naming a requirement to a person — give its title, the file it is written in and its status the first time it appears, and do not type them by hand: `python3 tools/srs_view.py --cite <ID>…` prints `FR-<AREA>-<NNN> — <its own title> (specs/<file>.md, <status>)` ready to paste, filled in from this project's own specification.
+   The identifier alone is a key, not a name, and costs the reader a lookup per mention.
+   Afterwards the number on its own is enough.
+   The rule holds in a table, in a list and in the steps of a plan; a number the specification does not carry yet is a proposal and is marked as one instead.
+5. Reading the code behind a change — take the files from the `code` and `tests` fields of the requirements the change belongs to (`python3 tools/srs_view.py --code <path>` answers from the other end), not from a search over the repository.
+   Go wider where you must, and say where you went.

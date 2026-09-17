@@ -8,9 +8,11 @@ construction: it never rewrites specs/90-traceability.md and never acts
 as a gate. The matrix stays the committed, byte-compared artifact; this
 is a projection of the same data for people to read.
 
-    srs_view.py                    summary: status counts and every requirement
+    srs_view.py                    summary: counts, areas, every requirement
+    srs_view.py --areas            what the specification is divided into
     srs_view.py FR-CORE-020        one requirement in full
     srs_view.py --list [filters]   filtered list (see --help)
+    srs_view.py --grep <text>      requirements and prose holding it
     srs_view.py --code src/a.py    which requirements describe this file
     srs_view.py --tree FR-CORE-010 what derives from it (--up for ancestors)
     srs_view.py --coverage         gaps: no tests, code outside the spec, …
@@ -72,11 +74,27 @@ INCOMING_LABEL = {
     "superseded_by": "supersedes",
 }
 
-# Service files the parser skips (see srs_check.SKIP_FILES) but a
-# reviewer still wants at hand.
-DOCUMENT_FILES = ("README.md", "00-glossary.md", "constitution.md",
-                  "90-traceability.md", "91-open-issues.md",
+# implements: FR-VIEW-270
+# What a text search skips beyond what the page skips. The standard is the
+# framework's own document and the same in every project that took it from
+# here; the three that record rather than state answer an ordinary word
+# with lines the requirement above them already answered; and the open
+# issues hold sentences they have since retracted, which a search would
+# return one line at a time.
+PROSE_EXCLUDED = ("README.md", "90-traceability.md", "91-open-issues.md",
                   "92-baselines.md")
+
+# implements: FR-VIEW-280
+# What the standard's map names as prose, used only to say which of them a
+# project does not have. The search itself takes whatever is there, so a
+# project's own prose file is read without being listed here.
+PROSE_EXPECTED = ("00-glossary.md", "01-introduction.md", "02-overview.md",
+                  "50-verification.md", "constitution.md")
+
+# implements: FR-VIEW-280
+# Past this the answer stops being read. Same reading as the graph limit
+# below: what is dropped is stated rather than silently cut.
+PROSE_HIT_LIMIT = 40
 
 # Beyond this the layered graph stops being readable; what is dropped is
 # always stated on the page rather than silently cut.
@@ -88,6 +106,7 @@ GRAPH_NODE_LIMIT = 150
 # --------------------------------------------------------------------
 
 def read_repo_url():
+    # implements: FR-VIEW-310
     """The blob-URL prefix used for links to code, e.g.
     https://gitlab.com/acme/app/-/blob/main — copied out of a browser,
     so no per-host URL shapes are guessed here.
@@ -193,7 +212,7 @@ def build_model(requirements, problems, with_code_scan=True):
         "incoming": incoming,
         "orphan_code": sorted(all_code - covered),
         "code_total": len(all_code),
-        "documents": collect_documents(),
+        "documents": collect_documents(entries),
         "problems": problems,
     }
 
@@ -251,19 +270,87 @@ def outlived(entries, with_code_scan):
     return {"links": links, "files": files, "annotations": annotations}
 
 
-def collect_documents():
-    """Service files and ADRs: invisible to the parser, wanted by a
-    reviewer — requirements cite ART-* articles in their rationales."""
+def collect_documents(entries):
+    """Every file in specs/ that carries no requirements: the standard,
+    the glossary, the introduction, the overview, the verification notes,
+    the generated reports and the decision log — invisible to the parser,
+    wanted by a reviewer, since requirements cite ART-* articles in their
+    rationales.
+
+    Derived from what the parse produced rather than listed by hand.
+    The list that used to stand here was a copy of the checker's skipped
+    set and fell behind it: three files the standard's own map names were
+    offered nowhere, and a name added later would have gone the same way.
+    The archive is out — not normative by that map, and a link is an
+    invitation to read.
+    """
+    # implements: FR-VIEW-260
+    carrying = set(entry["path"] for entry in entries)
     result = []
-    for name in DOCUMENT_FILES:
-        if os.path.exists(os.path.join(SPECS, name)):
-            result.append("specs/%s" % name)
-    adr = os.path.join(SPECS, "adr")
-    if os.path.isdir(adr):
-        for name in sorted(os.listdir(adr)):
-            if name.endswith(".md"):
-                result.append("specs/adr/%s" % name)
+    for current, dirs, files in os.walk(SPECS):
+        dirs[:] = [name for name in dirs if name != "archive"]
+        for name in sorted(files):
+            if not name.endswith(".md"):
+                continue
+            rel = os.path.relpath(os.path.join(current, name), ROOT)
+            rel = rel.replace(os.sep, "/")
+            if rel not in carrying:
+                result.append(rel)
+    # The decision log after the documents rather than mixed in by name:
+    # a run of ADRs between the constitution and the glossary is a sidebar
+    # nobody reads to the end.
+    result.sort(key=lambda path: ("/adr/" in path, path))
     return result
+
+
+def collect_prose(entries):
+    """What a text search reads, and what the map names and the project
+    does not have.
+
+    Filtered from the documents the page offers rather than walked again:
+    the two sets differ by four files and nothing else, and a second walk
+    is a second thing to keep true.
+    The page and the search differ deliberately — a link costs nothing
+    when it is the wrong document, and a line out of its document is what
+    misleads.
+    """
+    # implements: FR-VIEW-270
+    # Compared as whole paths, not as names: an index of decisions is
+    # commonly `adr/README.md`, and it is not the standard. Dropped by its
+    # basename it would be dropped in silence, which is the one thing the
+    # neighbouring obligation exists to prevent.
+    excluded = set(_repo_relative(os.path.join(SPECS, name))
+                   for name in PROSE_EXCLUDED)
+    present = [path for path in collect_documents(entries)
+               if path not in excluded]
+    missing = [name for name in PROSE_EXPECTED
+               if not os.path.exists(os.path.join(SPECS, name))]
+    return present, missing
+
+
+def grep_prose(needle, paths):
+    """Every line of the prose holding the text, as (path, line, text).
+
+    By the line, because a line of markdown written by hand breaks where
+    the meaning breaks — which is what lets a glossary table and a
+    page of prose come back in the same shape.
+    Tolerant of an odd byte for the reason read_annotations is: one file
+    the encoding trips over must not take the whole answer with it.
+    """
+    # implements: FR-VIEW-270
+    needle = needle.lower()
+    hits = []
+    for path in paths:
+        try:
+            handle = open(os.path.join(ROOT, path), "r",
+                          encoding="utf-8", errors="replace")
+        except IOError:
+            continue
+        with handle:
+            for lineno, line in enumerate(handle, 1):
+                if needle in line.lower():
+                    hits.append((path, lineno, line.strip()))
+    return hits
 
 
 def load_current():
@@ -320,6 +407,52 @@ def requirements_for_path(model, path):
         found.update(rid for _line, _kw, rid
                      in srs_check.read_annotations(full))
     return found
+
+
+def split_line_spec(spec):
+    # implements: FR-VIEW-300
+    """`path:line` into (path, line), or (spec, None) when it is not one.
+
+    A colon is not enough to say so: `C:\\src` and a path with a colon in
+    its name both carry one and mean no line. Only a wholly numeric tail
+    behind a head that exists as a file is read as a line, so a path that
+    happens to end that way and exists as written is kept whole first.
+    A directory before the colon is not a file with lines, and is left as
+    the whole spec for the caller to say so.
+    """
+    head, sep, tail = spec.rpartition(":")
+    if not sep or not tail.isdigit() or not head:
+        return spec, None
+    if os.path.exists(spec) or os.path.exists(os.path.join(ROOT, spec)):
+        return spec, None
+    if os.path.isfile(os.path.join(ROOT, head)) or os.path.isfile(head):
+        return head, int(tail)
+    return spec, None
+
+
+def requirements_for_line(path, line):
+    # implements: FR-VIEW-300
+    """The requirements the annotation covering a line marks — the one on
+    the line itself, or the nearest above it — and nothing from the
+    `code`/`tests` fields, which have no lines to be asked about.
+
+    A line before any annotation is covered by none and answers with an
+    empty set; the file-wide count the caller prints beside it is then the
+    whole of the answer. The grammar is the checker's, as in
+    requirements_for_path, and for the same reason.
+    """
+    wanted = path.replace(os.sep, "/").strip()
+    if not os.path.exists(os.path.join(ROOT, wanted)) and os.path.exists(path):
+        wanted = _repo_relative(path) or wanted
+    full = os.path.join(ROOT, wanted)
+    covering = None
+    for lineno, _kw, rid in srs_check.read_annotations(full):
+        if lineno > line:
+            break
+        if lineno != covering:
+            covering, found = lineno, set()
+        found.add(rid)
+    return found if covering is not None else set()
 
 
 def select(model, args):
@@ -386,6 +519,7 @@ def print_problems(model, style):
 
 
 def print_counts(model, style):
+    # implements: FR-VIEW-250
     counts = {}
     for entry in model["requirements"]:
         counts[entry["status"]] = counts.get(entry["status"], 0) + 1
@@ -397,6 +531,99 @@ def print_counts(model, style):
     out("%s %s   %s" % (style.b(str(total)),
                         "requirement" if total == 1 else "requirements",
                         style.d(" · ".join(parts))))
+    print_areas(model, style)
+
+
+def print_areas(model, style):
+    """The partition every identifier carries, with what each holds.
+
+    Printed beside the count, and separately on request: a reader who
+    knows to ask for the areas did not need them, and the one this is for
+    does not know the partition exists, so the unprompted line is the
+    half the requirement binds and the flag is one spelling of asking.
+    Declared areas rather than the ones in use, so an area a project drew
+    and has not filled reads as empty instead of missing; one carrying
+    requirements without being declared is appended rather than dropped,
+    because the count is wrong if it is left out and the checker is the
+    place that refuses it.
+    In the order the project declared them, not alphabetical: the same
+    reading STATUSES gets in the count above it.
+    """
+    # implements: FR-VIEW-250
+    held = {}
+    for entry in model["requirements"]:
+        held[entry["area"]] = held.get(entry["area"], 0) + 1
+    areas = list(model["areas"])
+    for area in sorted(set(held) - set(areas)):
+        areas.append(area)
+    parts = ["%s %d" % (area, held.get(area, 0)) for area in areas]
+    out("%s %s   %s" % (style.b(str(len(areas))),
+                        "area" if len(areas) == 1 else "areas",
+                        style.d(" · ".join(parts))))
+
+
+def prose_path_hint(needle):
+    """The text searched for, where it names a path the project carries.
+
+    A path is not in what the search reads — it lives in the `code` and
+    `tests` fields — so searching for one answers nothing while the mode
+    beside it answers exactly.
+    """
+    # implements: FR-VIEW-290
+    candidate = needle.strip()
+    if not candidate:
+        return None
+    # From the repository first, then from wherever the reader is standing
+    # — and both translated the way the mode for paths translates them, so
+    # what comes back is the path as the specification would write it.
+    # Refused where it lands outside: a file in whatever directory the
+    # reader happens to stand in, an absolute path anywhere on the machine,
+    # or a climb through `..` is not a path this project carries, and the
+    # mode named would answer nothing.
+    for probe in (os.path.join(ROOT, candidate.replace("/", os.sep)),
+                  candidate):
+        if not os.path.exists(probe):
+            continue
+        inside = _repo_relative(probe)
+        if inside:
+            return inside
+    return None
+
+
+def print_prose(model, args, style):
+    """The prose half of a text search, and what it left out.
+
+    After the requirements rather than before: the cheap answer is read
+    first, and a line of prose is as long as its meaning.
+    """
+    # implements: FR-VIEW-270, FR-VIEW-280, FR-VIEW-290
+    if not args.grep:
+        return
+    narrowed = [name for name in ("area", "status", "type", "verification",
+                                  "code")
+                if getattr(args, name, None)]
+    hint = prose_path_hint(args.grep)
+    present, missing = collect_prose(model["requirements"])
+
+    if narrowed:
+        # A filter is a statement that the question is about requirements.
+        # Said out loud, because a reader never told concludes the prose
+        # is not searched at all and stops asking.
+        out(style.d("prose not searched: --%s asks about requirements"
+                    % narrowed[0]))
+    else:
+        hits = grep_prose(args.grep, present)
+        for path, lineno, text in hits[:PROSE_HIT_LIMIT]:
+            out("%s  %s" % (style.b("%s:%d" % (path, lineno)), text))
+        if len(hits) > PROSE_HIT_LIMIT:
+            out(style.d("%d more line(s) in the prose are not shown"
+                        % (len(hits) - PROSE_HIT_LIMIT)))
+        if missing:
+            out(style.d("not searched, the project has no %s"
+                        % ", ".join(missing)))
+    if hint:
+        out(style.d("%s is a path — `--code %s` answers about it"
+                    % (hint, hint)))
 
 
 def print_line(entry, style):
@@ -410,6 +637,30 @@ def print_list(entries, style):
         return
     for entry in entries:
         print_line(entry, style)
+
+
+def print_line_answer(model, path, line, style, listing):
+    # implements: FR-VIEW-300
+    """What a line of a file marks, and how many the whole file answers
+    for — the second from the path mode, so the two never disagree about
+    the file."""
+    marked = requirements_for_line(path, line)
+    whole = requirements_for_path(model, path)
+    if not listing:
+        print_counts(model, style)
+        out()
+    index = by_id(model)
+    entries = [index[rid] for rid in sorted(marked) if rid in index]
+    unknown = sorted(rid for rid in marked if rid not in index)
+    if not entries and not unknown:
+        out(style.d("no annotation covers %s:%d" % (path, line)))
+    for entry in entries:
+        print_line(entry, style)
+    for rid in unknown:
+        out("%-15s %s" % (rid, style.d("annotated here, not in the "
+                                       "specification")))
+    out(style.d("the whole file answers for %d requirement(s) — "
+                "--code %s without a line lists them" % (len(whole), path)))
 
 
 def wrap(text, width=76, indent="  "):
@@ -439,6 +690,20 @@ def emphasize(text, style):
         return text
     return "".join(piece if index % 2 == 0 else style.b(piece)
                    for index, piece in enumerate(pieces))
+
+
+def citation(entry):
+    # implements: FR-VIEW-240
+    """The form a requirement is named in outside the specification.
+
+    Assembled here and nowhere else: the identifier, the title, the file
+    and the status, in the order they are read. No line number — it is
+    right for the minute it is written and wrong after the next edit above
+    it, and the card below prints the current one for whoever wants to
+    open the file.
+    """
+    return "%s — %s (%s, %s)" % (entry["id"], entry["title"], entry["path"],
+                                 entry["status"] or "?")
 
 
 def print_card(entry, model, style):
@@ -835,6 +1100,17 @@ DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
                "code", "tests", "exempt") + LINK_FIELDS
 
 
+def statement_words(text):
+    # implements: FR-VIEW-050
+    """A statement as its words, so that where its lines end is not a difference.
+
+    A line break inside a markdown paragraph renders as a space and is invisible to every reader;
+    only `git diff` sees it. Comparing the raw text made a reflow of the specification report every
+    statement in it as changed, which is the reading this command exists to spare its reader.
+    """
+    return " ".join((text or "").split())
+
+
 def compute_diff(old_model, new_model):
     """Working tree against the revision — not HEAD against it."""
     old = by_id(old_model)
@@ -848,7 +1124,7 @@ def compute_diff(old_model, new_model):
             if old[rid][field] != new[rid][field]:
                 fields.append((field, old[rid][field], new[rid][field]))
         statement = []
-        if old[rid]["statement"] != new[rid]["statement"]:
+        if statement_words(old[rid]["statement"]) != statement_words(new[rid]["statement"]):
             statement = list(difflib.unified_diff(
                 old[rid]["statement"].split("\n"),
                 new[rid]["statement"].split("\n"),
@@ -1615,6 +1891,7 @@ def _pair(text, marker, tag):
 
 
 class Links(object):
+    # implements: FR-VIEW-310
     """Paths become links twice over: relative ones so the page works
     from file://, and repository ones when repo_url is configured.
 
@@ -2418,13 +2695,20 @@ def parse_args(argv):
                         help="list requirements (with the filters below)")
     parser.add_argument("--status", help="filter by status")
     parser.add_argument("--area", help="filter by area")
+    parser.add_argument("--areas", action="store_true",
+                        help="the areas this project is divided into, "
+                             "with how many requirements each holds")
     parser.add_argument("--type", help="filter by type (FR, NFR, IF, …)")
     parser.add_argument("--verification", help="filter by method (T, D, I, A)")
-    parser.add_argument("--grep", help="filter by text in id/title/statement")
-    parser.add_argument("--code", metavar="PATH",
+    parser.add_argument("--grep",
+                        help="text in id/title/statement/rationale, "
+                             "and in the prose beside them")
+    parser.add_argument("--code", metavar="PATH[:LINE]",
                         help="requirements describing this file or directory, "
                              "by code/tests fields and by the file's own "
-                             "implements:/verifies: annotations")
+                             "implements:/verifies: annotations; with :LINE, "
+                             "only what the annotation covering that line "
+                             "marks, and how many the whole file answers for")
     parser.add_argument("--tree", metavar="ID",
                         help="what derives from this requirement")
     parser.add_argument("--up", action="store_true",
@@ -2449,6 +2733,9 @@ def parse_args(argv):
     parser.add_argument("--json", nargs="?", const="-", metavar="PATH",
                         help="write the model as JSON (default stdout); with "
                              "--diff it carries the comparison too")
+    parser.add_argument("--cite", nargs="+", metavar="ID",
+                        help="print each requirement as a citation ready to "
+                             "paste: identifier, title, file and status")
     parser.add_argument("--repo-url", dest="repo_url", metavar="URL",
                         help="blob-URL prefix for links to code, overriding "
                              "repo_url in specs/srs-config.json; in CI the "
@@ -2474,6 +2761,16 @@ def main(argv=None):
     model = load_current()
     if args.repo_url:
         model["repo_url"] = args.repo_url.rstrip("/")
+    if args.cite:
+        known = by_id(model)
+        missing = [rid for rid in args.cite if rid not in known]
+        for rid in args.cite:
+            if rid in known:
+                sys.stdout.write("%s\n" % citation(known[rid]))
+        for rid in missing:
+            sys.stderr.write("no requirement %s\n" % rid)
+        return 1 if missing else 0
+
     if args.baseline:
         try:
             sys.stdout.write("%s\n" % baseline_row(args.baseline, args.date))
@@ -2555,15 +2852,39 @@ def main(argv=None):
         print_coverage(model, style)
         return 0
 
+    # implements: FR-VIEW-250
+    # Before the diff branch: --areas --diff would otherwise print a diff
+    # and never mention an area.
+    if args.areas:
+        print_areas(model, style)
+        return 0
+
     if diff:
         print_diff(diff, style)
         return 0
+
+    # implements: FR-VIEW-300
+    # Its own branch rather than a narrowing of select(): the mode for a
+    # path answers from three sources and this one from the annotations
+    # alone, and the count beside the answer is the path mode's, so the
+    # reader handed one requirement knows it is one of thirty.
+    if args.code:
+        path, line = split_line_spec(args.code)
+        if line is not None:
+            print_line_answer(model, path, line, style, args.list)
+            return 0
+        head, sep, tail = args.code.rpartition(":")
+        if sep and tail.isdigit() and os.path.isdir(os.path.join(ROOT, head)):
+            out(style.d("%s is a directory; a line belongs to a file"
+                        % head))
+            return 0
 
     entries = select(model, args)
     if not args.list:
         print_counts(model, style)
         out()
     print_list(entries, style)
+    print_prose(model, args, style)
     return 0
 
 

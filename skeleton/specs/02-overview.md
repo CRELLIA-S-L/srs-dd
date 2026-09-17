@@ -2,8 +2,7 @@
 
 ## 2.1 Product perspective
 
-How the system relates to its environment: standalone, a component, a
-replacement of something existing.
+How the system relates to its environment: standalone, a component, a replacement of something existing.
 
 ## 2.2 User classes
 
@@ -15,5 +14,4 @@ Platforms, dependencies, external services.
 
 ## 2.4 Assumptions and dependencies
 
-What is taken for granted; what breaks the specification if it turns out
-false.
+What is taken for granted; what breaks the specification if it turns out false.

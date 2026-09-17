@@ -29,9 +29,15 @@ git diff --exit-code -- specs/90-traceability.md >/dev/null 2>&1 || {
 # they are in the middle of repairing, so nothing below can fail the
 # commit. What may not fail is this report — the checker above still
 # fails on a stale matrix.
+# Every staged file, not only the specification: a requirement owns the
+# files its `code` and `tests` fields name, and a commit that changes one of
+# those is exactly the moment this report exists for.
+# NUL-separated and through xargs, not a word-split variable: this shell
+# splits an unquoted expansion on spaces, and the list is now every staged
+# path rather than a handful of `specs/*.md`. A file with a space in its
+# name would arrive as two paths matching nothing, and the report would go
+# quiet about exactly the requirement somebody is touching.
 if [ -f grounds/grounds-config.json ]; then
-    touched=$(git diff --cached --name-only --diff-filter=ACM -- 'specs/*.md')
-    if [ -n "$touched" ]; then
-        python3 tools/srs_grounds.py --blast $touched || true
-    fi
+    git diff --cached --name-only -z --diff-filter=ACM \
+        | xargs -0 python3 tools/srs_grounds.py --blast || true
 fi

@@ -165,6 +165,28 @@ spec < <(block FR-CORE-010 "Derives from the other" \
 rule "FR-CHK-040 cycle across both kinds" 1 \
      "cycle in derives_from/refines links"
 
+# --- verifies: FR-CHK-240 — the other graph, walked on its own.
+spec < <(block FR-CORE-010 "Meaningless without the other" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Meaningless without the first" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+rule "FR-CHK-240 cycle in depends_on" 1 "cycle in depends_on links"
+
+# --- verifies: FR-CHK-240 — and the case the separate walks exist for: a
+# --- path alternating between the two graphs is a circle in neither sense,
+# --- so neither rule reports it. This is the whole content of the decision
+# --- to keep the walks apart, and it reddens the day somebody folds
+# --- `depends_on` into the derivation fields.
+spec < <(block FR-CORE-010 "Derives from the other" \
+               "${META/derives_from: \[\]/derives_from: [FR-CORE-020]}" \
+               'The system **shall** act.'
+         block FR-CORE-020 "Meaningless without the first" \
+               "${META/depends_on: \[\]/depends_on: [FR-CORE-010]}" \
+               'The system **shall** respond.')
+silent "FR-CHK-240 mixed path is no cycle" 0 "cycle in"
+
 # --- verifies: FR-CHK-055 — a path a requirement names exists.
 spec < <(block FR-CORE-010 "Names a file that is not there" \
                "$(printf '%s' "${META/status: deferred/status: implemented}" \
@@ -405,6 +427,26 @@ printf '{"areas": "CORE"}\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 bad type" 2 "areas must be a list of non-empty strings"
 printf '{"areas": ["core"]}\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 bad area" 2 "must match"
+# A list of non-empty strings that holds none is still a list of non-empty
+# strings, so the check above passes it. The rule fires on three keys and
+# had a fixture for one, which is the shape this whole file exists to
+# refuse: a list exercised at a single entry is a list that can lose the
+# others without anybody hearing. Each of the three is something the
+# checker cannot work without — the identifier grammar is built from the
+# areas, and a statement is recognized by its modal verb and its rationale
+# marker — so an empty one matches nothing anybody could write.
+for key in areas modal_verbs rationale_markers; do
+    python3 - "$LAB/specs/srs-config.json" "$key" <<'PY2'
+import json
+import sys
+cfg = {"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"],
+       "code_extensions": [".py"]}
+cfg[sys.argv[2]] = []
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    handle.write(json.dumps(cfg) + "\n")
+PY2
+    rule "FR-CHK-100 empty $key" 2 "$key must not be empty"
+done
 printf 'not json at all\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 unparsable" 2 "invalid JSON"
 # Valid JSON of the wrong shape: every key lookup below would fail on it, so

@@ -6,7 +6,8 @@
 
 ## Context and problem statement
 
-What forces are at play. Why a decision is needed at all.
+What forces are at play.
+Why a decision is needed at all.
 
 ## Considered options
 

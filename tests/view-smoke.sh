@@ -135,6 +135,115 @@ printf '# implements: FR-CORE-030\n' > src/extra.py  # srs-ignore
 
 python3 tools/srs_view.py --list > /tmp/v-list.log
 grep -q "FR-CORE-030" /tmp/v-list.log
+
+# --- verifies: FR-VIEW-250 — the areas, with what each holds.
+# Three assertions, each catching a different way to be wrong. The count
+# answers the flag at all; the zero proves the list is the declared areas
+# and not the ones in use, which is the half a project reads to see where
+# it drew a partition and has not filled it; and `absent` is what catches
+# an --areas that delegated to --list and printed requirements instead.
+python3 tools/srs_view.py --areas > /tmp/v-areas.log
+grep -qE "CORE +[0-9]+" /tmp/v-areas.log
+grep -qE "SEC +0" /tmp/v-areas.log
+absent "FR-CORE-030" /tmp/v-areas.log
+
+# The flag is one spelling; what the requirement binds is the line beside
+# the count, which prints before an answer nobody asked to filter.
+python3 tools/srs_view.py --coverage > /tmp/v-areas-sum.log
+grep -qE "CORE +[0-9]+" /tmp/v-areas-sum.log
+echo "view-smoke: the areas are named with what each holds"
+
+# --- verifies: FR-VIEW-270 — a search reaches the prose as well.
+# The term is appended because the skeleton ships the glossary as a
+# template with no terms in it: a fixture asserting a word only the
+# glossary carries has to put one there first.
+printf '| Zarquon | A word no requirement uses |\n' >> specs/00-glossary.md
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose.log
+grep -q "specs/00-glossary.md:" /tmp/v-prose.log
+
+# The three registers the requirement excludes, and nothing else here
+# would notice if they stopped being excluded: the matrix answers an
+# ordinary word with lines the requirement above each already answered,
+# and the open issues hold sentences they have since retracted, which a
+# search returns one line at a time. The word is planted first and the
+# planting asserted, so the absence below is an absence and not an empty
+# file.
+for reg in 90-traceability 91-open-issues 92-baselines; do
+    cp "specs/$reg.md" "/tmp/v-$reg.md"
+    printf '\nQuuxword appears only here.\n' >> "specs/$reg.md"
+done
+grep -q Quuxword specs/91-open-issues.md
+python3 tools/srs_view.py --grep Quuxword > /tmp/v-registers.log
+absent Quuxword /tmp/v-registers.log
+for reg in 90-traceability 91-open-issues 92-baselines; do
+    mv "/tmp/v-$reg.md" "specs/$reg.md"
+done
+
+# --- verifies: FR-VIEW-280 — a search says what it left out.
+# Three assertions, one per case, because each fails on its own and each
+# fails silently: a suppression nobody is told about reads as "the prose
+# holds nothing", a missing document reads the same, and a truncated list
+# reads as complete.
+python3 tools/srs_view.py --grep Zarquon --area CORE > /tmp/v-prose-f.log
+absent "specs/00-glossary.md:" /tmp/v-prose-f.log
+grep -q "prose not searched" /tmp/v-prose-f.log
+# Asking about a file is the same statement, and it is the one of the five
+# a later reader would most plausibly not count as a filter.
+python3 tools/srs_view.py --grep Zarquon --code src/app.py > /tmp/v-prose-p.log
+absent "specs/00-glossary.md:" /tmp/v-prose-p.log
+grep -q "prose not searched" /tmp/v-prose-p.log
+
+mv specs/02-overview.md /tmp/v-overview.md
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-m.log
+grep -q "the project has no 02-overview.md" /tmp/v-prose-m.log
+mv /tmp/v-overview.md specs/02-overview.md
+
+python3 - <<'PY2'
+with open('specs/03-notes.md', 'w', encoding='utf-8') as handle:
+    handle.write('# Notes\n\n')
+    for n in range(60):
+        handle.write('Zarquon line %d.\n' % n)
+PY2
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-c.log
+grep -q "more line(s) in the prose are not shown" /tmp/v-prose-c.log
+rm -f specs/03-notes.md
+
+# --- verifies: FR-VIEW-290 — a path is answered by the mode for paths.
+# Two assertions: the hint, and that the results are still there. In
+# addition rather than instead, because a needle can be a path and a word
+# at once and a hint that replaced the answer would drop the one asked for.
+printf '# implements: FR-CORE-020\n' > src/pathprobe.py  # srs-ignore
+python3 tools/srs_view.py --grep src/pathprobe.py > /tmp/v-path.log
+grep -q -- "--code src/pathprobe.py" /tmp/v-path.log
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-path2.log
+grep -q "specs/00-glossary.md:" /tmp/v-path2.log
+# An index of decisions is commonly named README.md, and it is not the
+# standard: the exclusions are whole paths, so only the one at the top of
+# specs/ is skipped.
+# The same word goes into both, so the two halves tell them apart.
+printf 'Decisions about Zarquon.\n' > specs/adr/README.md
+printf '\nThe standard does not discuss Zarquon.\n' >> specs/README.md
+python3 tools/srs_view.py --grep Zarquon > /tmp/v-adr.log
+grep -q "specs/adr/README.md:" /tmp/v-adr.log
+absent "specs/README.md:[0-9]" /tmp/v-adr.log
+rm -f specs/adr/README.md
+# And not for a name the project does not carry. Run from somewhere else
+# in the tree, the hint used to fire on whatever file happened to sit in
+# the reader's working directory, sending them to a mode with nothing to
+# answer. The viewer finds its own root, so it works from anywhere.
+rm -rf /tmp/srs-view-elsewhere
+mkdir -p /tmp/srs-view-elsewhere
+: > /tmp/srs-view-elsewhere/decoy.md
+(cd /tmp/srs-view-elsewhere \
+ && python3 /tmp/srs-view/tools/srs_view.py --grep decoy.md) > /tmp/v-path3.log
+absent "--code decoy.md" /tmp/v-path3.log
+# Nor spelled in full from here: joining an absolute path onto the root
+# drops the root, so that route reached outside the project as well.
+python3 tools/srs_view.py --grep /tmp/srs-view-elsewhere/decoy.md \
+    > /tmp/v-path4.log
+absent "is a path" /tmp/v-path4.log
+rm -rf /tmp/srs-view-elsewhere
+echo "view-smoke: a search reaches the prose and says what it left out"
 python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
 # verifies: FR-VIEW-010
@@ -170,6 +279,30 @@ python3 tools/srs_view.py --code src/extra.py --list > /tmp/v-annot.log
 grep -q "FR-CORE-030" /tmp/v-annot.log
 python3 tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
 grep -q "FR-CORE-080" /tmp/v-tests.log
+# verifies: FR-VIEW-300
+# A line asks a narrower question than a file. Two annotations in one file,
+# with room between them, so that each line lands in exactly one region and
+# the answer for a line is not the answer for the file. Its own file, listed
+# in no `code` field: src/app.py is listed by FR-CORE-020, and a path mode
+# narrowed to one annotation would still answer that one from the field.
+printf '# implements: FR-CORE-020\n\n\n\n# implements: FR-CORE-030\n\n\n' > src/lines.py  # srs-ignore
+python3 tools/srs_view.py --code src/lines.py:2 --list > /tmp/v-line1.log
+grep -q "FR-CORE-020" /tmp/v-line1.log
+absent "FR-CORE-030" /tmp/v-line1.log
+python3 tools/srs_view.py --code src/lines.py:6 --list > /tmp/v-line2.log
+grep -q "FR-CORE-030" /tmp/v-line2.log
+absent "FR-CORE-020" /tmp/v-line2.log
+# The count beside the answer is the file's, not the line's: whoever is
+# handed one requirement is told it is one of two.
+grep -q "answers for 2 requirement" /tmp/v-line2.log
+# The wide answer did not narrow. This is the probe that reddens the day
+# somebody "simplifies" the line mode into a filter on the path mode.
+python3 tools/srs_view.py --code src/lines.py --list > /tmp/v-whole.log
+grep -q "FR-CORE-020" /tmp/v-whole.log
+grep -q "FR-CORE-030" /tmp/v-whole.log
+# A directory before the colon is not a file with lines.
+python3 tools/srs_view.py --code src:1 --list > /tmp/v-dirline.log
+grep -q "a line belongs to a file" /tmp/v-dirline.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
 # verifies: FR-VIEW-040
@@ -280,6 +413,43 @@ grep -q "status .*draft -> deferred" /tmp/v-diff.log
 grep -q "^  + FR-CORE-080" /tmp/v-diff.log
 grep -q "^  - FR-CORE-070" /tmp/v-diff.log
 
+# --- verifies: FR-VIEW-050 — a statement counts as different by its words,
+# --- not by where its lines end. Without this the release that reflowed every
+# --- paragraph in the framework wrote a baseline row naming 176 requirements
+# --- as changed, one of which had changed.
+python3 - <<'PY2'
+import re
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+head, sep, rest = text.partition('### FR-CORE-010')
+block, sep2, tail = rest.partition('### FR-CORE-0')
+# The statement is the first paragraph after the metadata block; break one of
+# its spaces into a line ending and change nothing else.
+before, fence, body = block.partition('```\n\n')
+line, nl, remainder = body.partition('\n')
+assert ' ' in line[20:], line
+cut = line.index(' ', 20)
+open(path, 'w', encoding='utf-8').write(
+    head + sep + before + fence + line[:cut] + '\n' + line[cut + 1:] + nl
+    + remainder + sep2 + tail)
+PY2
+python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-reflow.log
+absent "~ FR-CORE-010" /tmp/v-diff-reflow.log
+
+# And a word that actually changed is still reported.
+python3 - <<'PY2'
+path = 'specs/10-fr-core.md'
+text = open(path, encoding='utf-8').read()
+head, sep, rest = text.partition('### FR-CORE-010')
+open(path, 'w', encoding='utf-8').write(
+    head + sep + rest.replace('**shall**', '**shall** promptly', 1))
+PY2
+python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-word.log
+grep -q "~ FR-CORE-010" /tmp/v-diff-word.log \
+    || { echo "view-smoke: a changed word is no longer reported as a change"
+         exit 1; }
+echo "view-smoke: a reflowed statement is not a change, a changed word is"
+
 # verifies: IF-VIEW-010
 # The model is what two suites parse — this one, and the payload-isolation
 # check that guards CON-SPEC-020 — so what it promises is asserted rather
@@ -351,6 +521,72 @@ if grep -q "https://cdn" .srs-site/index.html; then
     exit 1
 fi
 test -f .srs-site/.gitignore
+
+# verifies: FR-VIEW-310
+# With no URL the page links relatively; told where the repository is, it
+# links there — files by path, requirements by path and line — and the
+# command line wins over the configuration, since the pipeline knows the
+# commit and the configuration names a branch.
+absent 'href="https://example.invalid' .srs-site/index.html
+python3 tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
+grep -q 'href="https://example.invalid/blob/abc123/src/app.py"' .srs-site/index.html
+grep -qE 'href="https://example.invalid/blob/abc123/specs/10-fr-core.md#L[0-9]+"' .srs-site/index.html
+python3 - <<'PY_URL'
+import json
+path = 'specs/srs-config.json'
+cfg = json.load(open(path))
+cfg['repo_url'] = 'https://example.invalid/blob/main/'
+json.dump(cfg, open(path, 'w'), indent=2)
+PY_URL
+python3 tools/srs_view.py --html
+grep -q 'href="https://example.invalid/blob/main/src/app.py"' .srs-site/index.html
+python3 tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
+grep -q 'href="https://example.invalid/blob/abc123/src/app.py"' .srs-site/index.html
+absent 'blob/main/' .srs-site/index.html
+python3 - <<'PY_URL'
+import json
+path = 'specs/srs-config.json'
+cfg = json.load(open(path))
+cfg.pop('repo_url', None)
+json.dump(cfg, open(path, 'w'), indent=2)
+PY_URL
+python3 tools/srs_view.py --html
+
+# --- verifies: FR-VIEW-260 — every file that carries no requirements is offered.
+# Sliced to the Documents list rather than the aside around it: the aside
+# also holds the file filter's chips, which name every requirement file, so
+# an assertion over the whole of it would pass on the chips and say nothing
+# about the list. The named ones are what the page never offered while its
+# list was a hand-made copy of the checker's skipped set; 10-fr-core.md is
+# the one file the target carries requirements in, and it must stay out.
+python3 - <<'PY2'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+listing = page[page.index('<h2>Documents</h2>'):]
+listing = listing[:listing.index('</ul>')]
+for name in ('00-glossary.md', '01-introduction.md', '02-overview.md',
+             '50-verification.md', 'constitution.md'):
+    assert name in listing, 'the page does not offer %s' % name
+assert '10-fr-core.md' not in listing, 'a file carrying requirements reached the list'
+PY2
+
+# The assertions above pass just as well on a list kept by hand,
+# which is what stood here and fell behind. These two do not: a file the
+# skeleton never shipped, and one under the archive the map calls
+# not normative.
+printf '# Context\n\nWhat this project sits inside.\n' > specs/03-context.md
+mkdir -p specs/archive
+printf '# Old\n\nAbsorbed.\n' > specs/archive/absorbed.md
+python3 tools/srs_view.py --html >/dev/null
+python3 - <<'PY2'
+page = open('.srs-site/index.html', encoding='utf-8').read()
+listing = page[page.index('<h2>Documents</h2>'):]
+listing = listing[:listing.index('</ul>')]
+assert '03-context.md' in listing, 'a file added to specs/ is not offered'
+assert 'absorbed.md' not in listing, 'the archive reached the list'
+PY2
+rm -f specs/03-context.md specs/archive/absorbed.md
+python3 tools/srs_view.py --html >/dev/null
+echo "view-smoke: the page offers every file that carries no requirements"
 
 # Search and filters are two of the five things FR-VIEW-060 names, and
 # neither was asserted: the aside could have lost either one with every
@@ -1058,3 +1294,49 @@ assert r['path'] == 'specs/10-fr-core.md' and r['title'] == 'X', \
 PY
 echo "view-smoke: an unknown block key reaches the published model"
 
+# --- verifies: FR-VIEW-240 — the citation is printed, not typed. Its own
+# --- project, like the fixture above: the form has to be asserted character
+# --- for character, and a lab whose statuses are known is the only place
+# --- that can be done. A cancelled requirement is here because the status
+# --- is in the citation for the plan that names one.
+CITE=/tmp/srs-view-cite
+rm -rf "$CITE"; mkdir -p "$CITE/tools" "$CITE/specs"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$CITE/tools/"
+printf '{"areas": ["CORE"]}\n' > "$CITE/specs/srs-config.json"
+{ printf '# c\n\n### FR-CORE-010 — A live one\n\n'
+  printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: [src/a.py]\n'
+  printf 'tests: [t/a.sh]\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** act.\n\n'
+  printf '### FR-CORE-020 — A cancelled one\n\n'
+  printf '```yaml\nstatus: superseded\nsuperseded_by: FR-CORE-010\n'
+  printf 'verification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: []\n'
+  printf 'tests: []\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** have acted.\n'
+} > "$CITE/specs/10-fr-core.md"
+
+( cd "$CITE" && python3 tools/srs_view.py --cite FR-CORE-010 FR-CORE-020 ) \
+    > /tmp/srs-cite.out
+cat > /tmp/srs-cite.want <<'WANT'
+FR-CORE-010 — A live one (specs/10-fr-core.md, implemented)
+FR-CORE-020 — A cancelled one (specs/10-fr-core.md, superseded)
+WANT
+diff -u /tmp/srs-cite.want /tmp/srs-cite.out \
+    || { echo "--cite printed something other than the form AGENTS.md asks"
+         echo "for, or did not keep the order of its arguments"; exit 1; }
+echo "view-smoke: --cite prints both requirements ready to paste"
+
+# An identifier that resolves to nothing is refused the way the single
+# requirement view refuses it: a line on stderr and a non-zero exit, so that
+# a plan built from a citation cannot be built from a silent blank.
+rc=0
+( cd "$CITE" && python3 tools/srs_view.py --cite FR-CORE-010 FR-CORE-990 ) \
+    > /tmp/srs-cite-bad.out 2>/tmp/srs-cite-bad.err || rc=$?
+[ "$rc" = 1 ] \
+    || { echo "an unknown identifier left --cite with exit $rc"; exit 1; }
+grep -q "no requirement FR-CORE-990" /tmp/srs-cite-bad.err \
+    || { echo "--cite said nothing about what it could not resolve"; exit 1; }
+grep -q "FR-CORE-010 — A live one" /tmp/srs-cite-bad.out \
+    || { echo "--cite dropped the requirements it could resolve"; exit 1; }
+echo "view-smoke: --cite refuses an identifier the specification does not carry"

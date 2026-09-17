@@ -1,7 +1,6 @@
 # Functional requirements — init
 
-The installer, `tools/srs_init.py`: it runs from a clone of this repository
-against somebody else's, which is what every requirement below is shaped by.
+The installer, `tools/srs_init.py`: it runs from a clone of this repository against somebody else's, which is what every requirement below is shaped by.
 
 ### FR-INIT-010 — Three modes, detected from the target
 
@@ -17,14 +16,9 @@ tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-The installer **shall** decide by inspecting the target which mode it is in —
-fresh when no specification is present, adopt when an SRS-shaped
-specification exists without `specs/srs-config.json`, upgrade when that
-configuration exists.
+The installer **shall** decide by inspecting the target which mode it is in — fresh when no specification is present, adopt when an SRS-shaped specification exists without `specs/srs-config.json`, upgrade when that configuration exists.
 
-**Rationale.** The mode is a property of the target, not a claim the caller
-should have to get right; an agent installing by URL cannot know it in
-advance.
+**Rationale.** The mode is a property of the target, not a claim the caller should have to get right; an agent installing by URL cannot know it in advance.
 
 ### FR-INIT-020 — Fresh install leaves a target its checker accepts
 
@@ -40,14 +34,9 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When installing into a target without a specification, the installer
-**shall** lay out the skeleton, the configuration, one placeholder
-requirement and the tooling, then run the target's own checker and return its
-verdict.
+When installing into a target without a specification, the installer **shall** lay out the skeleton, the configuration, one placeholder requirement and the tooling, then run the target's own checker and return its verdict.
 
-**Rationale.** The first thing a maintainer sees must be a green run in their
-repository, not ours; and the placeholder makes the format concrete before
-they write anything.
+**Rationale.** The first thing a maintainer sees must be a green run in their repository, not ours; and the placeholder makes the format concrete before they write anything.
 
 ### FR-INIT-030 — Adoption is transactional
 
@@ -63,22 +52,14 @@ tests: [tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-While adopting an existing specification, the installer **shall** validate it
-against the proposed configuration before installing anything and leave the
-target byte-identical when that validation fails.
+While adopting an existing specification, the installer **shall** validate it against the proposed configuration before installing anything and leave the target byte-identical when that validation fails.
 
-**Rationale.** Adoption is the moment of highest risk — a stranger's
-specification, our guess at their lexicon. Anything short of a rollback would
-mean a half-converted repository nobody asked for.
+**Rationale.** Adoption is the moment of highest risk — a stranger's specification, our guess at their lexicon.
+Anything short of a rollback would mean a half-converted repository nobody asked for.
 
-*Before installing*, and the word is exact. The validation runs the target's
-checker against the proposed configuration, so that configuration and a
-temporary copy of the checker are on disk before it can start; both are taken
-back out when it fails, which is what the second half promises and what the
-suite compares. A run killed between the two leaves the temporary checker
-behind, and the installer removes it on the next attempt — the single
-exception to the guarantee, named here because a statement claiming more than
-the design can give is a statement nobody can check code against.
+*Before installing*, and the word is exact.
+The validation runs the target's checker against the proposed configuration, so that configuration and a temporary copy of the checker are on disk before it can start; both are taken back out when it fails, which is what the second half promises and what the suite compares.
+A run killed between the two leaves the temporary checker behind, and the installer removes it on the next attempt — the single exception to the guarantee, named here because a statement claiming more than the design can give is a statement nobody can check code against.
 
 ### FR-INIT-040 — Existing specification files are never modified
 
@@ -94,12 +75,9 @@ tests: [tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-While adopting, the installer **shall** write only the tooling and the
-service files the target lacks, leaving every existing specification file
-untouched.
+While adopting, the installer **shall** write only the tooling and the service files the target lacks, leaving every existing specification file untouched.
 
-**Rationale.** Their requirements are theirs; we bring rules and scripts, not
-edits.
+**Rationale.** Their requirements are theirs; we bring rules and scripts, not edits.
 
 ### FR-INIT-050 — A specification without requirements is refused
 
@@ -115,12 +93,9 @@ tests: [tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-If the target holds markdown under `specs/` but no requirement the strict
-identifier grammar recognizes, the installer **shall** refuse with exit code
-2 rather than treating the directory as empty.
+If the target holds markdown under `specs/` but no requirement the strict identifier grammar recognizes, the installer **shall** refuse with exit code 2 rather than treating the directory as empty.
 
-**Rationale.** Going fresh over somebody's documentation directory would
-scatter our skeleton through files that only look like a specification.
+**Rationale.** Going fresh over somebody's documentation directory would scatter our skeleton through files that only look like a specification.
 
 ### FR-INIT-060 — Upgrades refresh the tooling and nothing precious
 
@@ -136,38 +111,25 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When run against an initialized target, the installer **shall** refresh the
-checker, the viewer and the skills without a flag, while files that may be
-the project's own — CI configuration, the agent guides, `.gitattributes`,
-the hook, the specification standard, the grounds standard — are refreshed
-only with `--force` and only when they carry the SRS-DD marker.
+When run against an initialized target, the installer **shall** refresh the checker, the viewer and the skills without a flag, while files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — are refreshed only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Tooling has to move with the framework or targets drift;
-everything a maintainer has edited must not, and the marker is how we tell a
-file we installed from one they wrote.
+everything a maintainer has edited must not, and the marker is how we tell a file we installed from one they wrote.
 
-The standard was in neither list until 0.14.0, so it was installed once and
-never moved again: a project set up at 0.7.0 and upgraded since ran the
-current checker and the current skills against a standard 112 lines out of
-date. That is worse than a stale CI file, because `CON-SPEC-020` lets a
-shipped procedure cite the standard's sections by name on the grounds that
-it is the same document in every project — a claim nothing maintained.
+The standard was in neither list until 0.14.0, so it was installed once and never moved again: a project set up at 0.7.0 and upgraded since ran the current checker and the current skills against a standard 112 lines out of date.
+That is worse than a stale CI file, because `CON-SPEC-020` lets a shipped procedure cite the standard's sections by name on the grounds that it is the same document in every project — a claim nothing maintained.
 
-It joins the second list rather than the first because adopt deliberately
-keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing
-without a flag would undo that at the first upgrade. `grounds/README.md`
-joined it on the same terms and reaches only the projects that keep a
-register — an upgrade refreshes it where it is and installs it nowhere
-else. So the characterization
-widened: "commonly owns" was true of CI files and agent guides, and the
-standard is not something anyone writes for themselves — it is merely a file
-that may already be theirs.
+It joins the second list rather than the first because adopt deliberately keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing without a flag would undo that at the first upgrade.
+`grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
+`arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
+The code had it right from the layer's first commit — the same flag the grounds standard travels under — so what lagged was the enumeration, and an enumeration that lags is invisible: every path it names exists, and nothing reports the one it does not.
+So the characterization widened: "commonly owns" was true of CI files and agent guides, and the standard is not something anyone writes for themselves — it is merely a file that may already be theirs.
 
-The marker carries the framework version — `SRS-DD-0.14.0`, matched as a
-pattern — because the bare name appears in ordinary prose. A project that
-adopted the framework and wrote "we follow the SRS-DD standard" in its own
-`specs/README.md` would otherwise be told its document is ours and have it
-replaced.
+The agent guides were in this list and behaved unlike the other six: an upgrade left them alone with the flag and without it, because they are filled in rather than copied and the answers had not been kept.
+`FR-INIT-200` keeps the name, `FR-INIT-210` already kept the width, and the seven now mean one thing.
+
+The marker carries the framework version — `SRS-DD-0.14.0`, matched as a pattern — because the bare name appears in ordinary prose.
+A project that adopted the framework and wrote "we follow the SRS-DD standard" in its own `specs/README.md` would otherwise be told its document is ours and have it replaced.
 
 ### FR-INIT-070 — A dry run writes nothing and tells the truth
 
@@ -183,14 +145,9 @@ tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-Where `--dry-run` is given, the installer **shall** print the created,
-refreshed and skipped lists the real run would produce and write nothing at
-all.
+Where `--dry-run` is given, the installer **shall** print the created, refreshed and skipped lists the real run would produce and write nothing at all.
 
-**Rationale.** This is what an agent shows a maintainer before touching their
-repository, so the list has to match the real run entry for entry — adopt
-takes a separate branch through the code and is compared against it in the
-tests.
+**Rationale.** This is what an agent shows a maintainer before touching their repository, so the list has to match the real run entry for entry — adopt takes a separate branch through the code and is compared against it in the tests.
 
 ### FR-INIT-080 — A project's own pre-commit hook is never displaced
 
@@ -206,12 +163,9 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-If the target already runs something on commit, the installer **shall**
-install the gate beside it and say so, instead of advising the
-`core.hooksPath` switch that would disable what is already there.
+If the target already runs something on commit, the installer **shall** install the gate beside it and say so, instead of advising the `core.hooksPath` switch that would disable what is already there.
 
-**Rationale.** Silently disabling a project's linters and secret scanners
-would be the single most damaging thing this tool could do.
+**Rationale.** Silently disabling a project's linters and secret scanners would be the single most damaging thing this tool could do.
 
 ### FR-INIT-090 — The lexicon is asked for, not assumed
 
@@ -227,13 +181,9 @@ tests: [tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-The installer **shall** accept the modal verbs, negation words and rationale
-markers as parameters and write them into the target's configuration, without
-inferring a natural language on its own.
+The installer **shall** accept the modal verbs, negation words and rationale markers as parameters and write them into the target's configuration, without inferring a natural language on its own.
 
-**Rationale.** Which words carry binding force is a decision with
-consequences for every future requirement; the tooling proposes nothing here,
-and the skill exists to have that conversation.
+**Rationale.** Which words carry binding force is a decision with consequences for every future requirement; the tooling proposes nothing here, and the skill exists to have that conversation.
 
 ### FR-INIT-100 — The installer refuses to install into itself
 
@@ -249,12 +199,9 @@ tests: []
 created: 2026-08-07
 ```
 
-If the target lies inside this repository, the installer **shall** refuse
-before changing anything.
+If the target lies inside this repository, the installer **shall** refuse before changing anything.
 
-**Rationale.** The framework repository already has a specification of its
-own; installing the payload over it would overwrite the standard with its own
-starter copy.
+**Rationale.** The framework repository already has a specification of its own; installing the payload over it would overwrite the standard with its own starter copy.
 
 ### FR-INIT-110 — Upgrade notes come from the changelog
 
@@ -270,11 +217,9 @@ tests: []
 created: 2026-08-07
 ```
 
-When upgrading, the installer **shall** print the version transition and the
-upgrade notes recorded for the versions being crossed.
+When upgrading, the installer **shall** print the version transition and the upgrade notes recorded for the versions being crossed.
 
-**Rationale.** A maintainer who upgrades three versions at once needs the
-notes for all three, and nobody reads a changelog they were not handed.
+**Rationale.** A maintainer who upgrades three versions at once needs the notes for all three, and nobody reads a changelog they were not handed.
 
 ### FR-INIT-120 — Upgrading is one command inside the project
 
@@ -290,14 +235,10 @@ tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```
 
-When run inside an initialized project, the upgrader **shall** fetch the
-framework that project was installed from, run its installer against the
-project, and remove what it fetched.
+When run inside an initialized project, the upgrader **shall** fetch the framework that project was installed from, run its installer against the project, and remove what it fetched.
 
-**Rationale.** The old procedure asked a maintainer to keep a framework clone
-somewhere, remember where, and pull it before every upgrade. Nothing in the
-project pointed at any of that, so an agent working there could not upgrade
-without being handed the address — which is the whole reason this exists.
+**Rationale.** The old procedure asked a maintainer to keep a framework clone somewhere, remember where, and pull it before every upgrade.
+Nothing in the project pointed at any of that, so an agent working there could not upgrade without being handed the address — which is the whole reason this exists.
 
 ### FR-INIT-130 — The upgrade is shown before it happens
 
@@ -313,15 +254,9 @@ tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```
 
-Before writing anything into the project, the upgrader **shall** print the
-version transition, the upgrade notes for the versions being crossed and the
-list of files it would touch, and then wait for confirmation unless it was
-told to proceed.
+Before writing anything into the project, the upgrader **shall** print the version transition, the upgrade notes for the versions being crossed and the list of files it would touch, and then wait for confirmation unless it was told to proceed.
 
-**Rationale.** A command that reaches the network and then rewrites files in
-a repository has to show its hand first; the same shape the installer already
-has with `--dry-run`, made the default here because the person running it
-usually cannot see the framework's changelog any other way.
+**Rationale.** A command that reaches the network and then rewrites files in a repository has to show its hand first; the same shape the installer already has with `--dry-run`, made the default here because the person running it usually cannot see the framework's changelog any other way.
 
 ### FR-INIT-140 — A project records the framework it came from
 
@@ -337,13 +272,9 @@ tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```
 
-When installing into a project, the installer **shall** record in
-`specs/srs-config.json` the framework repository the project is being
-installed from.
+When installing into a project, the installer **shall** record in `specs/srs-config.json` the framework repository the project is being installed from.
 
-**Rationale.** A fork or a mirror must upgrade from where it came, not from
-an address compiled into the tooling; and a project that predates this field
-still upgrades, because the compiled-in address remains the fallback.
+**Rationale.** A fork or a mirror must upgrade from where it came, not from an address compiled into the tooling; and a project that predates this field still upgrades, because the compiled-in address remains the fallback.
 
 ### FR-INIT-150 — A fresh install says what to do first
 
@@ -359,21 +290,14 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-08
 ```
 
-When a fresh installation finishes, the installer **shall** print what to do
-next in that project, beginning with the agent procedures it just installed
-and followed by where the first requirement goes, the commands that check
-and read the specification, and how the framework is upgraded later.
+When a fresh installation finishes, the installer **shall** print what to do next in that project, beginning with the agent procedures it just installed and followed by where the first requirement goes, the commands that check and read the specification, and how the framework is upgraded later.
 
-**Rationale.** Installation ends with a maintainer alone in front of a
-directory of unfamiliar files. "Replace the placeholder" does not cover it:
-neither the checker, nor the viewer, nor the one-command upgrade follow from
-anything they can see, and those are what turn an install into a workflow.
+**Rationale.** Installation ends with a maintainer alone in front of a directory of unfamiliar files.
+"Replace the placeholder" does not cover it:
+neither the checker, nor the viewer, nor the one-command upgrade follow from anything they can see, and those are what turn an install into a workflow.
 The agent procedures come first because they are the point of the framework:
-it exists so that code written with agents still has requirements behind it,
-and a maintainer who never learns the skills are there gets the bookkeeping
-without the reason for it. Switching the commit gate on is deliberately left
-out of the list — it depends on what the project already runs, and
-FR-INIT-080 answers it.
+it exists so that code written with agents still has requirements behind it, and a maintainer who never learns the skills are there gets the bookkeeping without the reason for it.
+Switching the commit gate on is deliberately left out of the list — it depends on what the project already runs, and FR-INIT-080 answers it.
 
 ### FR-INIT-160 — An upgrade says what arrived, not only what to do
 
@@ -389,14 +313,11 @@ tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```
 
-When an upgrade crosses one or more framework versions, the installer
-**shall** print what those versions added and changed, one line per entry,
-beside the upgrade notes and with a pointer to the changelog for the rest.
+When an upgrade crosses one or more framework versions, the installer **shall** print what those versions added and changed, one line per entry, beside the upgrade notes and with a pointer to the changelog for the rest.
 
 **Rationale.** Upgrade notes answer "what must I do now", and only that.
-Somebody who upgrades across three versions never learns that a new tool or
-a new skill arrived, and so never uses it. One line per entry keeps the jump
-across several versions readable, which the full sections would not be.
+Somebody who upgrades across three versions never learns that a new tool or a new skill arrived, and so never uses it.
+One line per entry keeps the jump across several versions readable, which the full sections would not be.
 
 ### FR-INIT-170 — An undated specification is offered a date
 
@@ -412,20 +333,13 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-21
 ```
 
-Where a target's specification carries requirements without a `created`
-date, the installer **shall** say that one command can date them, and run
-nothing.
+Where a target's specification carries requirements without a `created` date, the installer **shall** say that one command can date them, and run nothing.
 
-**Rationale.** The dating command exists for specifications written before
-the field did, which is every specification a project already has. Nobody
-looks for a tool they have not heard of, and an upgrade is the one moment
-the framework has a project's attention.
+**Rationale.** The dating command exists for specifications written before the field did, which is every specification a project already has.
+Nobody looks for a tool they have not heard of, and an upgrade is the one moment the framework has a project's attention.
 
-Said and not done, for the reason nothing else here writes a requirement
-block unasked. An installer that edited a hundred requirements because it
-noticed a missing field would be the tool taking a decision that belongs to
-whoever owns the specification, and a project that wants no dates at all is
-not a project in error.
+Said and not done, for the reason nothing else here writes a requirement block unasked.
+An installer that edited a hundred requirements because it noticed a missing field would be the tool taking a decision that belongs to whoever owns the specification, and a project that wants no dates at all is not a project in error.
 
 
 ### FR-INIT-180 — The tooling arrives without this framework's annotations
@@ -442,41 +356,24 @@ tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-25
 ```
 
-When copying its own tooling into a target, the installer **shall** replace
-every traceability annotation, leaving the line where it was and leaving an
-annotation marked as an example alone.
+When copying its own tooling into a target, the installer **shall** replace every traceability annotation, leaving the line where it was and leaving an annotation marked as an example alone.
 
-**Rationale.** The shipped Python carries a hundred-odd `implements:` and
-`verifies:` lines. They exist for the two-way check this repository runs on itself — the
-requirement's field is the specification's claim, the annotation the file's
-own — and that check is checked here, where the requirements are. In a
-target they are at best inert and at worst wrong: where a project declares
-an area this framework also uses, `implements: FR-CHK-110` stops being an
-unknown identifier and resolves to *their* requirement under that number,
-which is the harm CON-SPEC-020 is worded against.
+**Rationale.** The shipped Python carries a hundred-odd `implements:` and `verifies:` lines.
+They exist for the two-way check this repository runs on itself — the requirement's field is the specification's claim, the annotation the file's own — and that check is checked here, where the requirements are.
+In a target they are at best inert and at worst wrong: where a project declares an area this framework also uses, `implements: FR-CHK-110` stops being an unknown identifier and resolves to *their* requirement under that number, which is the harm CON-SPEC-020 is worded against.
 
-Every annotation, not only one naming a requirement of ours. CON-SPEC-020
-stopped sorting by whose number it is, and the removal never sorted either: it takes out exactly what a checker would have read as a claim,
-whatever area the claim names.
+Every annotation, not only one naming a requirement of ours.
+CON-SPEC-020 stopped sorting by whose number it is, and the removal never sorted either: it takes out exactly what a checker would have read as a claim, whatever area the claim names.
 
-Removed on the way out rather than in the source, because the alternatives
-each cost something this does not. Marking the lines `srs-ignore` would
-silence them here as well — the exemption is unconditional — and the check
-they exist for would end. Moving the links into a register beside the code
-would make them a second copy of the `code` field written by the same hand
-in the same commit, which is what ADR-0014 rejected and INV-SPEC-020
-forbids: an annotation earns its place by being a different person's claim
-made in the file, and a list is not that.
+Removed on the way out rather than in the source, because the alternatives each cost something this does not.
+Marking the lines `srs-ignore` would silence them here as well — the exemption is unconditional — and the check they exist for would end.
+Moving the links into a register beside the code would make them a second copy of the `code` field written by the same hand in the same commit, which is what ADR-0014 rejected and INV-SPEC-020 forbids: an annotation earns its place by being a different person's claim made in the file, and a list is not that.
 
-The line survives the removal. A traceback from a target names the line it
-happened on, and a bug report is read against the source in this repository;
-deleting the lines would shift every number after them and make the two
-disagree by an amount nobody can see.
+The line survives the removal.
+A traceback from a target names the line it happened on, and a bug report is read against the source in this repository;
+deleting the lines would shift every number after them and make the two disagree by an amount nobody can see.
 
-An annotation carrying `srs-ignore` is left alone, because that is how the
-standard marks an example rather than a claim, and the two examples in the
-checker's own comments are where a target reads the annotation format at
-all.
+An annotation carrying `srs-ignore` is left alone, because that is how the standard marks an example rather than a claim, and the two examples in the checker's own comments are where a target reads the annotation format at all.
 
 ### FR-INIT-190 — Each copied tool says which release it came from
 
@@ -492,20 +389,40 @@ tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-25
 ```
 
-The installer **shall** stamp every tool it copies with the framework
-version it was installed from.
+The installer **shall** stamp every tool it copies with the framework version it was installed from.
 
-**Rationale.** The marker already tells a precious file from a project's
-own; on a tool it answers a different question, which is how old this
-particular file is. A project can copy the tooling by hand, one file at a
-time, and an upgrade that failed halfway leaves some files moved and some
-not — in both cases the version is the first thing anybody needs and there
-was nowhere to read it. Reading it out of the running tool answers only for
-the tool that runs.
+**Rationale.** The marker already tells a precious file from a project's own; on a tool it answers a different question, which is how old this particular file is.
+A project can copy the tooling by hand, one file at a time, and an upgrade that failed halfway leaves some files moved and some not — in both cases the version is the first thing anybody needs and there was nowhere to read it.
+Reading it out of the running tool answers only for the tool that runs.
 
-One line per file, in the shape the marker already has, rather than one per
-annotation removed: the same number repeated a hundred times in one file is
-not more information than the same number once.
+One line per file, in the shape the marker already has, rather than one per annotation removed: the same number repeated a hundred times in one file is not more information than the same number once.
+
+### FR-INIT-200 — A project records the name it was installed under
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-08
+```
+
+The installer **shall** record the project's name in the target's configuration, so that a later run can rewrite the agent guides without asking for it again.
+
+**Rationale.** `AGENTS.md` and `CLAUDE.md` are the only payload files that are filled in rather than copied: each template carries the project's name, and `AGENTS.md` also carries the line `FR-INIT-220` writes about its width — answers a person gives at install.
+An upgrade does not ask those questions, so until the answers were kept there was nothing to fill the template with — and the installer's response was to leave the guides alone entirely, with `--force` and without it.
+
+That left `FR-INIT-060` promising a refresh nothing performed, and the guide's own header saying `--force` would overwrite it.
+Keeping the name is what makes both true; the width was already kept, by `FR-INIT-210`, for a different reason and to the same effect.
+
+Recorded rather than derived: the directory a project sits in is not its name, and a guess written into the file a project's agents read every session is a guess nobody asked for.
+Where an older configuration carries no name — every project installed before this — the directory is the fallback, because a guide refreshed under a slightly wrong title is better than a guide that stops being refreshed at all.
+The same for an answer the file carries but nothing can use: both of these are interpolated into text, so a name that is not a string and a width that is not a whole number each end in a traceback rather than a message, out of a tool whose whole job is to run inside somebody else's repository.
+Each falls back and the run says which answer it disbelieved.
 
 ### FR-INIT-210 — The project's line width is asked for, never assumed
 
@@ -521,35 +438,22 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-26
 ```
 
-The installer **shall** accept the project's line width as a parameter and
-write it into the target's configuration, without inferring it from the
-project's files.
+The installer **shall** accept the project's line width as a parameter and write it into the target's configuration, without inferring it from the project's files.
 
-**Rationale.** This framework has a width of its own — 120 columns, enforced
-by `FR-CI-100` over this repository's sources — and it reaches no project:
-the suite that enforces it does not travel, and neither does the document
-that states it. That is the right arrangement and this requirement does not
-change it. A project's code is written to the project's rules.
+**Rationale.** This framework has a width of its own — 120 columns, enforced by `FR-CI-100` over this repository's sources — and it reaches no project:
+the suite that enforces it does not travel, and neither does the document that states it.
+That is the right arrangement and this requirement does not change it.
+A project's code is written to the project's rules.
 
-What is missing is that the framework installs an agent guide and says
-nothing about those rules, so an agent working there infers a width from how
-the files happen to look. That is the same failure `FR-CI-100` was written
-against, met in somebody else's repository, where we have no business
-enforcing anything and every reason to pass the number along.
+What is missing is that the framework installs an agent guide and says nothing about those rules, so an agent working there infers a width from how the files happen to look.
+That is the same failure `FR-CI-100` was written against, met in somebody else's repository, where we have no business enforcing anything and every reason to pass the number along.
 
-Taken as a parameter and not worked out here, for the reason the lexicon is
-taken as a parameter: finding out what a project already follows is reading,
-and reading is what the agent running the install is for. A project states
-its width in whichever file its toolchain reads — `.editorconfig`,
-`pyproject.toml`, a linter's own config, or nowhere at all — and a script
-that went looking would need a heuristic per convention, would be wrong
-quietly when a project used a form it had not been taught, and would grow a
-new branch with every tool that comes into fashion. `FR-SKILL-190` puts the
-reading on the procedure, where a wrong answer is seen by the person
-approving it.
+Taken as a parameter and not worked out here, for the reason the lexicon is taken as a parameter: finding out what a project already follows is reading, and reading is what the agent running the install is for.
+A project states its width in whichever file its toolchain reads — `.editorconfig`, `pyproject.toml`, a linter's own config, or nowhere at all — and a script that went looking would need a heuristic per convention, would be wrong quietly when a project used a form it had not been taught, and would grow a new branch with every tool that comes into fashion.
+`FR-SKILL-190` puts the reading on the procedure, where a wrong answer is seen by the person approving it.
 
-A project that declares nothing anywhere is not a project in error. Then
-there is no parameter and nothing is written.
+A project that declares nothing anywhere is not a project in error.
+Then there is no parameter and nothing is written.
 
 ### FR-INIT-220 — The installed agent guide names the project's width
 
@@ -565,21 +469,14 @@ tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-26
 ```
 
-Where a project has recorded a line width, the shared agent guide the
-installer writes **shall** state it.
+Where a project has recorded a line width, the shared agent guide the installer writes **shall** state it.
 
-**Rationale.** The number is worth recording only if something reads it back,
-and the reader here is an agent rather than a gate. A guide that carries the
-width turns a rule the project stated once into a rule an agent applies
-without being told twice, which is what the guide is for.
+**Rationale.** The number is worth recording only if something reads it back, and the reader here is an agent rather than a gate.
+A guide that carries the width turns a rule the project stated once into a rule an agent applies without being told twice, which is what the guide is for.
 
-One guide and not both. `AGENTS.md` is the shared one and `CLAUDE.md` opens
-by sending its reader there, carrying only what is specific to one agent; a
-width in both would be two places to keep in step and one of them would
-eventually be wrong.
+One guide and not both.
+`AGENTS.md` is the shared one and `CLAUDE.md` opens by sending its reader there, carrying only what is specific to one agent; a width in both would be two places to keep in step and one of them would eventually be wrong.
 
-No gate goes with it, deliberately. Checking the width of a project's code is
-a linter's job and most projects already have one; the framework arrives for
-the specification and would be overstepping if it started refusing commits
-over source formatting. Where the width is not recorded, the guide says
-nothing about it rather than naming a default.
+No gate goes with it, deliberately.
+Checking the width of a project's code is a linter's job and most projects already have one; the framework arrives for the specification and would be overstepping if it started refusing commits over source formatting.
+Where the width is not recorded, the guide says nothing about it rather than naming a default.

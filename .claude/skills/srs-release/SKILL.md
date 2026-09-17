@@ -5,9 +5,8 @@ description: Cut a release of the SRS-DD framework — choose the version with t
 
 # Cutting a release
 
-The mechanics are one command. What this procedure is for is the two things
-the command will not decide: which number this release carries, and what its
-notes say.
+The mechanics are one command.
+What this procedure is for is the two things the command will not decide: which number this release carries, and what its notes say.
 
 ## Procedure
 
@@ -18,35 +17,27 @@ notes say.
    python3 tools/srs_view.py --diff <newest version in specs/92-baselines.md>
    ```
 
-   The first says what was done since the last release, the second what it
-   did to the specification — requirements added, removed, or reworded.
-   Read the baseline out of the log rather than out of `git describe`: the
-   log is what records a baseline, and a tag for it may never have been
-   made (INV-SPEC-040). Where release tags exist, filter for them — `v*` —
-   because an unfiltered `git describe` answers with whichever namespace
-   came last.
+   The first says what was done since the last release, the second what it did to the specification — requirements added, removed, or reworded, each named as `AGENTS.md` asks at its first mention, which `python3 tools/srs_view.py --cite <ID>…` prints.
+   The maintainer settles a version number off this list in the next step, and a bare number is a lookup per line before they can judge anything (FR-SKILL-200).
+   Read the baseline out of the log rather than out of `git describe`: the log is what records a baseline, and a tag for it may never have been made (INV-SPEC-040).
+   Where release tags exist, filter for them — `v*` — because an unfiltered `git describe` answers with whichever namespace came last.
 
-2. **Propose the version, and let the maintainer settle it.** The scheme
-   is in the Version schemes section of `CONTRIBUTING.md`; read what you
-   found in step 1 against it and say which reading you used, out loud —
-   "MINOR, because `srs_view.py` gained a flag a project can call".
+2. **Propose the version, and let the maintainer settle it.**
+   The scheme is in the Version schemes section of `CONTRIBUTING.md`; read what you found in step 1 against it and say which reading you used, out loud — "MINOR, because `srs_view.py` gained a flag a project can call".
 
-   Do not settle it yourself. The number is a claim about compatibility,
-   and the person who owns the project owns that claim.
+   Do not settle it yourself.
+   The number is a claim about compatibility, and the person who owns the project owns that claim.
 
-3. **Draft the `## [X.Y.Z]` section** in `CHANGELOG.md`, under `### Added`,
-   `### Changed`, `### Fixed` and `### Upgrade notes` as they apply. Leave
-   the heading **undated** — the command dates it.
+3. **Draft the `## [X.Y.Z]` section** in `CHANGELOG.md`, under `### Added`, `### Changed`, `### Fixed` and `### Upgrade notes` as they apply.
+   Leave the heading **undated** — the command dates it.
 
-   The shape of that section is a contract the installer parses: it is
-   stated in the comment at the top of `CHANGELOG.md`, and the ground
-   rules in `CONTRIBUTING.md` say what an upgrade note owes its reader.
-   Read both before writing — an entry that ignores them still passes the
-   checker and reaches the reader in pieces, because an upgrade prints one
-   sentence per entry and the notes section alone.
+   The shape of that section is a contract the installer parses: it is stated in the comment at the top of `CHANGELOG.md`, and the ground rules in `CONTRIBUTING.md` say what an upgrade note owes its reader.
+   Read both before writing — an entry that ignores them still passes the checker and reaches the reader in pieces, because an upgrade prints one sentence per entry and the notes section alone.
 
-   Name the requirement identifiers the release implements. Show the draft
-   to the maintainer before committing it.
+   Name the requirement identifiers the release implements — bare, and not as the citation `AGENTS.md` asks for everywhere else.
+   Two reasons, and both are about this file rather than about the rule: an upgrade prints each entry on one line, so a citation inside the first sentence breaks what the reader of an upgrade sees; and a citation carries a status, which is a value that moves, while a changelog entry is a record of what a release did and nobody will ever go back and re-date it.
+   Put them in a trailing parenthesis, as the entries already there do.
+   Show the draft to the maintainer before committing it.
 
 4. **Prepare it.**
 
@@ -55,42 +46,33 @@ notes say.
    python3 tools/srs_release.py X.Y.Z
    ```
 
-   The dry run prints the date and the version bump — the last chance to
-   notice that the version is not the one you meant.
+   The dry run prints the date and the version bump — the last chance to notice that the version is not the one you meant.
 
-5. **Hand the commit back.** The command edits `CHANGELOG.md`,
-   `tools/srs_parse.py` — where the version lives, both checkers
-   re-exporting it — and the matrix, and stops: it commits nothing and
-   tags nothing (CON-SPEC-030). Say which files are staged for the
-   maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or
-   skip.
+5. **Hand the commit back.**
+   The command edits `CHANGELOG.md`, `tools/srs_parse.py` — where the version lives, both checkers re-exporting it — and the matrix, and stops: it commits nothing and tags nothing (CON-SPEC-030).
+   Say which files are staged for the maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or skip.
 
-6. **Ask whether the specification should be frozen too**, if step 1 showed
-   it moved, and follow the `srs-baseline` procedure if so.
+6. **Ask whether the specification should be frozen too**, if step 1 showed it moved, and follow the `srs-baseline` procedure if so.
 
-   A separate act because the two are independent: a release ships what the
-   system does, a baseline freezes what it must do, and neither number
-   constrains the other (INV-SPEC-030). Do not assume they share a number
-   just because both are being cut today.
+   A separate act because the two are independent: a release ships what the system does, a baseline freezes what it must do, and neither number constrains the other (INV-SPEC-030).
+   Do not assume they share a number just because both are being cut today.
 
-7. **Report what is in the working tree, and stop.** Nothing has been
-   committed, tagged or pushed — say so plainly, and let the maintainer
-   take it from there with the client they use.
+7. **Report what is in the working tree, and stop.**
+   Nothing has been committed, tagged or pushed — say so plainly, and let the maintainer take it from there with the client they use.
 
 ## When it refuses
 
-Exit code 2, always before writing anything: no section for that version, a
-section that already carries a date, or a checker reporting an error or a
-warning. The baseline command is the one place the two differ: it reads the
-log instead of the changelog — a version already logged is one already
-frozen — and it stops on an error alone, because a specification still being
-worked off can be frozen while it should not be shipped.
+Exit code 2, always before writing anything: no section for that version, a section that already carries a date, or a checker reporting an error or a warning.
+The baseline command is the one place the two differ: it reads the log instead of the changelog — a version already logged is one already frozen — and it stops on an error alone, because a specification still being worked off can be frozen while it should not be shipped.
 
-Fix the cause and run it again. There is nothing to clean up: neither
-command has touched the history, and running either twice is safe.
+Fix the cause and run it again.
+There is nothing to clean up: neither command has touched the history, and running either twice is safe.
 
 ## What this procedure does not do
 
-Commit. Tag. Push. Choose the version. Write the notes without showing
-them. The first three belong to the maintainer's git client, which may not
-be a console at all; the last two are their judgement.
+Commit.
+Tag.
+Push.
+Choose the version.
+Write the notes without showing them.
+The first three belong to the maintainer's git client, which may not be a console at all; the last two are their judgement.

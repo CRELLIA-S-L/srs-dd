@@ -6,8 +6,8 @@
     python3 tools/srs_grounds.py             check and rewrite 90-dashboard.md
     python3 tools/srs_grounds.py --no-write  check only
     python3 tools/srs_grounds.py --strict    treat warnings as errors
-    python3 tools/srs_grounds.py --blast P…  what the requirements in these
-                                             files are staked on
+    python3 tools/srs_grounds.py --blast P…  what the requirements these
+                                             files belong to are staked on
 
 The register's format is described in grounds/README.md — that file is the
 normative one; this script only enforces it. Standard library only,
@@ -1318,7 +1318,15 @@ def build_dashboard(records, model, incoming, cfg):
 
 def blast(records, model, paths):
     # implements: FR-GND-310
-    """What the requirements defined in these files are staked on.
+    """What the requirements these files belong to are staked on.
+
+    A file belongs to a requirement two ways and both count: the
+    specification file the requirement is written in, and the `code` or
+    `tests` entries naming it. The second is the one a commit usually
+    touches, and it is the one this exists for — the moment somebody is
+    changing the code is the moment what it rests on is worth knowing.
+    Matching only the first made this silent on every commit that
+    changed no specification, which is most of them.
 
     Quiet where nothing is staked: a report that speaks on every commit
     is a report nobody reads, and the hook this feeds runs on all of
@@ -1327,8 +1335,13 @@ def blast(records, model, paths):
     if model is None:
         return 0
     wanted = {os.path.normpath(p) for p in paths}
-    here = {r["id"] for r in model.values()
-            if os.path.normpath(r.get("path", "")) in wanted}
+    here = set()
+    for record in model.values():
+        named = [record.get("path", "")]
+        named += record.get("code") or []
+        named += record.get("tests") or []
+        if wanted & {os.path.normpath(p) for p in named if p}:
+            here.add(record["id"])
     if not here:
         return 0
     said = False
