@@ -65,7 +65,7 @@ To add one to a project that has none:
 python3 path/to/srs-dd/tools/srs_init.py path/to/your-project --arch yes
 ```
 
-The layer has one setting, `rules` in `arch/arch-config.json`, and the install asks about none of it: every rule starts at its default and a project lowers what it wants lowered while it is still describing its parts.
+The layer has two settings in `arch/arch-config.json`, `rules` and `requirements`, and the install asks about neither: every rule starts at its default and the requirements start written, and a project lowers a rule or switches to derived requirements while it is still describing its parts.
 
 To be rid of it, delete `arch/`, `tools/srs_arch.py` and the `srs-arch` skill.
 Nothing else refers to them.

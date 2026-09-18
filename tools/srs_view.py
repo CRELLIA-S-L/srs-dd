@@ -371,6 +371,53 @@ def by_id(model):
     return dict((entry["id"], entry) for entry in model["requirements"])
 
 
+RE_ADR_ID = re.compile(r"^ADR-\d{4}$")
+RE_ADR_HEADING = re.compile(r"^# (ADR-\d{4}) — (.+?)\s*$")
+RE_ADR_STATUS = re.compile(r"^- \*\*Status:\*\* (.+?)\s*$")
+
+
+def decisions():
+    # implements: FR-VIEW-330
+    """Every decision in specs/adr/ as {id: entry}, shaped like a
+    requirement entry as far as a citation needs: id, title, path, status.
+
+    Read from the heading and the status line, not the file name: a file is
+    renamed, the number in the heading is what a plan cites. A file whose
+    heading does not carry the form is not a decision to this reader and is
+    left out, which is what an index or a template under adr/ wants.
+    """
+    found = {}
+    root = os.path.join(SPECS, "adr")
+    if not os.path.isdir(root):
+        return found
+    for name in sorted(os.listdir(root)):
+        if not name.endswith(".md"):
+            continue
+        path = os.path.join(root, name)
+        try:
+            with open(path, encoding="utf-8") as handle:
+                lines = handle.read().splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        # The first line that says anything: a file may open with a blank
+        # line, and the heading is what makes it a decision, not its row.
+        first = next((line for line in lines if line.strip()), "")
+        heading = RE_ADR_HEADING.match(first)
+        if not heading:
+            continue
+        status = "?"
+        for line in lines[1:12]:
+            matched = RE_ADR_STATUS.match(line)
+            if matched:
+                status = matched.group(1)
+                break
+        found[heading.group(1)] = {"id": heading.group(1),
+                                   "title": heading.group(2),
+                                   "path": _repo_relative(path),
+                                   "status": status}
+    return found
+
+
 # --------------------------------------------------------------------
 # Selection
 # --------------------------------------------------------------------
@@ -627,8 +674,12 @@ def print_prose(model, args, style):
 
 
 def print_line(entry, style):
-    out("%s  %-12s %s" % (style.b("%-14s" % entry["id"]),
-                          entry["status"] or "?", entry["title"]))
+    # implements: FR-VIEW-320
+    # Identifier, status, title, file — the four parts of a citation, in
+    # the order they are read; the file is the path alone, never the line.
+    out("%s  %-12s %s  %s" % (style.b("%-14s" % entry["id"]),
+                              entry["status"] or "?", entry["title"],
+                              style.d(entry["path"])))
 
 
 def print_list(entries, style):
@@ -2734,8 +2785,9 @@ def parse_args(argv):
                         help="write the model as JSON (default stdout); with "
                              "--diff it carries the comparison too")
     parser.add_argument("--cite", nargs="+", metavar="ID",
-                        help="print each requirement as a citation ready to "
-                             "paste: identifier, title, file and status")
+                        help="print each requirement or decision (ADR-NNNN) as a "
+                             "citation ready to paste: identifier, title, file "
+                             "and status")
     parser.add_argument("--repo-url", dest="repo_url", metavar="URL",
                         help="blob-URL prefix for links to code, overriding "
                              "repo_url in specs/srs-config.json; in CI the "
@@ -2763,12 +2815,19 @@ def main(argv=None):
         model["repo_url"] = args.repo_url.rstrip("/")
     if args.cite:
         known = by_id(model)
+        # implements: FR-VIEW-330
+        # Decisions are read only when one is asked for: a citation of ten
+        # requirements does not open the decision log.
+        if any(RE_ADR_ID.match(rid) for rid in args.cite):
+            known = dict(known, **decisions())
         missing = [rid for rid in args.cite if rid not in known]
         for rid in args.cite:
             if rid in known:
                 sys.stdout.write("%s\n" % citation(known[rid]))
         for rid in missing:
-            sys.stderr.write("no requirement %s\n" % rid)
+            sys.stderr.write("no %s %s\n"
+                             % ("decision" if RE_ADR_ID.match(rid)
+                                else "requirement", rid))
         return 1 if missing else 0
 
     if args.baseline:

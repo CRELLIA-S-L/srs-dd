@@ -467,7 +467,7 @@ Approved rather than applied, on the pattern this procedure already uses for the
 Nothing is invented where nothing is found.
 A project that has never stated a width gets no parameter and no line in its guides, because a default inserted here would be this framework deciding how somebody else's code is formatted.
 
-### FR-SKILL-200 — A requirement is named by more than its number
+### FR-SKILL-200 — A record is named by more than its number
 
 ```yaml
 status: implemented
@@ -481,7 +481,7 @@ tests: []
 created: 2026-08-27
 ```
 
-When a procedure first names a requirement in what it reports to a person, it **shall** give that requirement's title, the file it is written in and its status, not the identifier alone.
+When a procedure first names a record — a requirement, an element, a grounds record or a decision — in what it reports to a person, it **shall** give that record's title, the file it is written in and its status, not the identifier alone.
 
 **Rationale.** `FR-CORE-020` is a key, not a name.
 It is exactly right inside a link field, where a machine resolves it and a person is not reading; in a paragraph written for somebody it costs them a lookup per mention, and a report full of them gets skimmed rather than read.
@@ -506,6 +506,15 @@ They earn their place in the case the procedure cannot afford:
 work planned against a requirement that was cancelled while nobody was looking, in a project far enough along to have cancelled some.
 
 **Not typed by hand.** The whole citation is what `srs_view.py --cite` prints, for the reason the annotation warnings print theirs: what a person retypes from memory is what gets invented, and this project shipped an invented one — a title and a file that were never anybody's — inside this very rule's example, until a review caught it.
+
+**Any record, and each tool cites its own.** This said "requirement" while a procedure names elements, hypotheses, bets and decisions to the same reader for the same reasons, and `--cite` reached one register: an element named in a report was a bare `E-040` or a form invented on the spot, and neither of those was a violation of a rule written for requirements.
+The form is one; the resolvers are three, because the viewer reads the specification and nothing else — a layer reads the model through the published JSON, never the other way round, so that deleting a layer leaves the specification as it was.
+Decisions live in `specs/adr/` and are the viewer's to cite.
+
+**To a person, and not inside the specification.** A rationale names its neighbours by identifier, a record names what it stands on by identifier, and a decision names the requirements it relates to by identifier — 121 of this specification's 234 requirements do, as this is written, and that is the convention rather than 117 lapses.
+The reader of a file in `specs/`, `arch/` or `grounds/` is already where the links are resolved by the tool and the title is one command away, and a title beside every cross-reference in every rationale is the noise the paragraph above exists to remove.
+The unit of "first" is what a person reads as a whole — a message, a plan, a report, a review — not a session: the person reads one at a time, and a citation given an hour ago is not on the page in front of them.
+What a tool printed is not yet a citation either: a finding names the element it found and the one it found it against, and a procedure relaying that line to a person runs its identifiers through `--cite` first rather than copying the line as it came.
 
 ### FR-SKILL-210 — What is already written is read before something new is
 

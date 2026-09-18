@@ -156,7 +156,7 @@ What refutation takes away is the ground, not the code — and the difference be
 
 1. **Read what stood on it.**
    The bets name the requirements; a requirement whose other grounds still hold is not affected.
-   Name each as `AGENTS.md` asks at its first mention, from `--cite`: the maintainer is about to take removal as the default one requirement at a time, and a bare number decides nothing.
+   Name each as `AGENTS.md` asks at its first mention — the requirements from the viewer's `--cite`, the hypothesis and its bets from `python3 tools/srs_grounds.py --cite <ID>…`: the maintainer is about to take removal as the default one requirement at a time, and a bare number decides nothing.
 2. **Settle each one with the maintainer, taking removal as the default.**
    The opposite default is how dead features survive for years.
 3. **Somebody still uses it is not a reason to keep it.**

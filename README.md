@@ -214,7 +214,7 @@ python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
 python3 tools/srs_view.py --code src/app.py  which requirements describe a file
 python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
 python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
-python3 tools/srs_view.py --cite <ID>…       how to name it to a person
+python3 tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
 python3 tools/srs_view.py --diff 0.14.0      working tree against a baseline
 python3 tools/srs_view.py --json             the model, for your own tooling
 python3 tools/srs_view.py --html             a page for people who do not grep
@@ -222,6 +222,7 @@ python3 tools/srs_view.py --html             a page for people who do not grep
 
 The viewer never writes to `specs/` and never gates anything.
 Where a project keeps a register, `python3 tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
+Each layer's checker cites its own records in the same form — `srs_arch.py --cite E-NNN…`, `srs_grounds.py --cite H-NNN…` — because the viewer reads the specification and nothing else.
 
 ## Where things are
 

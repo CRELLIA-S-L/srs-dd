@@ -51,9 +51,12 @@ This repository is itself an SRS-DD project: behavior changes go through `specs/
 - **Read** — `python3 tools/srs_view.py <ID>`, `--code <path>`, `--areas`, `--html`.
 - **A question about how this works, rather than a change to it** — start with `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`, then `--areas`, then one area, then the requirement.
   A lookup by number needs a number nobody has handed you, and a search over requirement text finds the word you guessed rather than the one this project uses (FR-SKILL-240).
-- **Naming a requirement to a person** — give its title, the file it is written in and its status the first time it appears, and do not type them by hand: `python3 tools/srs_view.py --cite <ID>…` prints the citation ready to paste — `FR-CI-100 — The gate refuses a source line nobody had to write long (specs/10-fr-ci.md, implemented)`.
+- **Naming a record to a person** — a requirement, an element, a grounds record or a decision: give its title, the file it is written in and its status the first time it appears in what the person reads as a whole — a message, a plan, a report — and do not type them by hand.
+  `python3 tools/srs_view.py --cite <ID>…` prints the citation for a requirement or a decision, `python3 tools/srs_arch.py --cite <ID>…` for an element and `python3 tools/srs_grounds.py --cite <ID>…` for a record of the register, all in one form — `FR-CI-100 — The gate refuses a source line nobody had to write long (specs/10-fr-ci.md, implemented)`.
   The identifier alone is a key, not a name, and costs the reader a lookup per mention.
   Afterwards the number on its own is enough.
+  Inside `specs/`, `arch/` and `grounds/` the identifier is the name: the tooling resolves the links, and a title beside every cross-reference in a rationale is noise.
+  A line a checker printed is not a citation yet — run the identifiers in it through `--cite` before relaying it.
   The rule holds in a table, in a list and in the steps of a plan; a number the specification does not carry yet is a proposal and is marked as one instead (FR-SKILL-200).
 - **Reading the code behind a change** — take the files from the `code` and `tests` fields of the requirements the change belongs to, not from a search over the repository.
   Go wider where you must, and say where you went (FR-SKILL-220).

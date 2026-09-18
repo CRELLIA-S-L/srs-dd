@@ -1,6 +1,6 @@
 ---
 name: srs-arch
-description: Working with the architecture layer — naming the parts a system is cut into, saying what each carries, and reading the three disagreements the checker computes between that description and the specification. Invoke when the user asks what the system is made of, wants to add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
+description: Working with the architecture layer — naming the parts a system is cut into, saying what each carries, and reading the disagreements the checker computes — three between that description and the specification, two about the dependencies the parts declare. Invoke when the user asks what the system is made of, wants to add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
 ---
 
 # Working with the architecture layer
@@ -17,7 +17,7 @@ An element is a part with a responsibility, the files that are that part, and th
 python3 tools/srs_arch.py --no-write
 ```
 
-Three findings matter and they are not the same finding:
+Three findings are between the description and the specification, and they are not the same finding:
 
 - **a carrier no element claims** — a file the specification says realizes a requirement, and no part owns it.
   Either a part's `carries` is out of date, or the file belongs to a part nobody has written down.
@@ -25,9 +25,18 @@ Three findings matter and they are not the same finding:
 - **an element carrying no requirement** — a part that answers to nothing, which is either a part nobody needed or a requirement nobody wrote.
   Where the requirements are derived, a third reading: the part owns files no realized requirement names, and the question is whether the files or the requirement are missing.
 
-Say which of the readings it is before proposing an edit, naming the requirement in it as `AGENTS.md` asks the first time it appears, from `--cite`.
+Say which of the readings it is before proposing an edit, naming the requirement and the element in it as `AGENTS.md` asks the first time each appears — the requirement from the viewer's `--cite`, the element from `python3 tools/srs_arch.py --cite <ID>…`; a finding line copied as the checker printed it names them by key, which is not yet a citation.
 Two of the three findings are about a requirement, and which reading it is depends on what that requirement actually says.
-The checker cannot choose between them, which is why all three are warnings.
+The checker cannot choose between them, which is why all of them are warnings.
+
+Two more are about the dependencies the parts declare, and they are read differently — the specification has no say in either:
+
+- **a dependency the code has and the model does not declare** — the code reaches from one part into another and nobody wrote that down.
+  Either `depends_on` is incomplete, or the call is the thing that is wrong: a file in the wrong part, or a part reaching where it was cut not to.
+  Read the file the finding names before deciding which; the standard says where the checker gets these edges and which languages it reads on its own.
+- **elements that depend on each other in a circle** — no part on it answers for itself.
+  Either the cut is wrong and two parts are one, or one edge on the circle is a dependency in name only and should not be declared.
+  A warning rather than an error, because nothing the checker computes is broken by a circle, and two parts that genuinely need each other are a fact about the code rather than a mistake in the model.
 
 ## Naming a part
 
@@ -47,6 +56,7 @@ Before writing one:
    The standard says when a project chooses that mode and what it costs; the short of it is that a specification written by capability puts every requirement in two or three parts, and a list nobody can keep by hand is a list that stops being read.
 4. **Declare its dependencies** where they are real.
    `depends_on` is the model a person writes; it is not derived from the links between requirements, and ADR-0023 records the measurement that settled why.
+   What the code says is compared with it, and the checker reads only Python by itself: for any other language, the project lists the edges its code has in `arch/edges.json` — the standard says the shape — or the model has nothing that ever disagrees with it.
 
 Every choice that could have gone another way goes into an ADR, in `specs/adr/`, next to the neighbouring files.
 The layer records the cut; the ADR records why this cut and not the neighbouring one.
@@ -56,7 +66,7 @@ The layer records the cut; the ADR records why this cut and not the neighbouring
 Splitting or merging elements is the same act as writing one, with two additions:
 
 - The number of a part that is dissolved stays dead: status `withdrawn`, or `superseded` with the successor named.
-- Run the checker afterwards and read the three findings again — a split that left a file behind shows up as a carrier nobody claims.
+- Run the checker afterwards and read the findings again — a split that left a file behind shows up as a carrier nobody claims, and one that moved a caller away from what it calls shows up as a dependency the model does not declare, where the code's edges are read.
 
 ## What this procedure does not do
 

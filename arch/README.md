@@ -82,6 +82,26 @@ A requirement's `code` field names whatever realizes it — a standard, a proced
 `depends_on` is the declared model, and it is written by a person.
 It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected (ADR-0023).
 
+What the code says is compared with it, one way round: a dependency the code has and the model does not declare is reported under `dependency-undeclared`; a declared dependency nothing in the code walks is not, because no reading of the code is complete enough to refute the author.
+The checker reads one language itself — Python, by its imports.
+For every other language it reads `arch/edges.json`, where the project lists what its code depends on:
+
+```json
+[
+  {"from": "Sources/Core/Router.swift", "to": "Sources/Shell/Capsule.swift", "via": "Capsule:12"}
+]
+```
+
+An edge is between two files, repository-relative; the checker resolves each end to the element that carries it, by the same rule that decides which part a file belongs to, and `via` is whatever the project wants printed beside the finding — a symbol, a line — and is never parsed.
+An end no element carries is left alone.
+An end that is an element identifier is refused: a part depending on a part is what `depends_on` is for.
+Keys may be added over time; none is renamed or removed once published, because the tool that writes this file is the project's and the framework will never see it.
+
+How the file is produced is the project's business — an extractor in the project's own language, a build step, a list kept by hand — and so is its freshness.
+The checker cannot regenerate what it did not compute, so nothing holds the file against the code: a stale list is silent the way an absent one is.
+A project that generates it runs the generator before the checker, in the same pipeline; a project that writes it by hand treats it as any other hand-written record.
+Without the file, a project written in a language other than Python has a declared model and nothing that ever disagrees with it — `Warnings: 0` is then the absence of a verdict, not a verdict.
+
 ## Derived requirements
 
 A specification written by capability names the view, the engine and the table in one requirement, so a requirement lands in two or three parts and every part's list grows with every capability.
@@ -118,6 +138,7 @@ A committed map that no longer matches what the records produce is a change some
 python3 tools/srs_arch.py              read the layer, report, regenerate the map
 python3 tools/srs_arch.py --no-write   report only
 python3 tools/srs_arch.py --strict     treat warnings as errors
+python3 tools/srs_arch.py --cite ID…   name elements to a person: identifier, title, file, status
 ```
 
 Errors are the readings that make the rest meaningless: a repeated identifier, a missing required key, a requirement that does not exist.

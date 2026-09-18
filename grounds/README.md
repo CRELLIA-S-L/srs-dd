@@ -431,6 +431,7 @@ The dashboard names the unit it used in the section itself, so nobody has to loo
 python3 tools/srs_grounds.py            check and rewrite the dashboard
 python3 tools/srs_grounds.py --no-write check only
 python3 tools/srs_grounds.py --strict   treat warnings as errors
+python3 tools/srs_grounds.py --cite ID… name records to a person: identifier, title, file, status
 ```
 
 Exit 0 where nothing was found and, under `--strict`, no warning either; 1 on errors, or on warnings under `--strict`; 2 where it could not run at all.

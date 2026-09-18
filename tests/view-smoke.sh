@@ -1340,3 +1340,46 @@ grep -q "no requirement FR-CORE-990" /tmp/srs-cite-bad.err \
 grep -q "FR-CORE-010 — A live one" /tmp/srs-cite-bad.out \
     || { echo "--cite dropped the requirements it could resolve"; exit 1; }
 echo "view-smoke: --cite refuses an identifier the specification does not carry"
+
+# --- verifies: FR-VIEW-320 — a listed requirement is named where it is
+# --- written: identifier, status, title, file on one line, in that order,
+# --- the path alone and never the line.
+( cd "$CITE" && python3 tools/srs_view.py --list ) > /tmp/srs-list-file.out
+grep -qE "^FR-CORE-010 +implemented +A live one +specs/10-fr-core.md$" \
+    /tmp/srs-list-file.out \
+    || { echo "--list did not print the file after the title"; cat /tmp/srs-list-file.out; exit 1; }
+grep -q "10-fr-core.md:" /tmp/srs-list-file.out \
+    && { echo "--list printed a line number, which a citation leaves out"; exit 1; }
+echo "view-smoke: --list names the file a requirement is written in"
+
+# --- verifies: FR-VIEW-330 — a decision is cited like a requirement, by
+# --- the identifier in its heading rather than by its file name, with the
+# --- status its first lines carry. A file under adr/ whose heading is not
+# --- a decision's — an index — is not one, and an unknown number is refused
+# --- in the same run as the ones that resolve.
+mkdir -p "$CITE/specs/adr"
+{ printf '# ADR-0007 — Keep the number, rename the file\n\n'
+  printf -- '- **Status:** accepted\n- **Date:** 2026-09-01\n\n## Context\n\nSome.\n'
+} > "$CITE/specs/adr/ADR-0007-renamed-since.md"
+printf '# Decisions\n\nAn index.\n' > "$CITE/specs/adr/README.md"
+# A decision whose file opens with a blank line is still a decision, and
+# one with no status line is cited with the status it lacks shown as such.
+printf '\n# ADR-0009 — Opens with a blank line\n\nText.\n' \
+    > "$CITE/specs/adr/ADR-0009-blank-first.md"
+( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0007 FR-CORE-010 ADR-0009 ) \
+    > /tmp/srs-cite-adr.out 2>/tmp/srs-cite-adr.err \
+    || { echo "--cite refused a decision the log carries"; cat /tmp/srs-cite-adr.err; exit 1; }
+cat > /tmp/srs-cite-adr.want <<'WANT'
+ADR-0007 — Keep the number, rename the file (specs/adr/ADR-0007-renamed-since.md, accepted)
+FR-CORE-010 — A live one (specs/10-fr-core.md, implemented)
+ADR-0009 — Opens with a blank line (specs/adr/ADR-0009-blank-first.md, ?)
+WANT
+diff -u /tmp/srs-cite-adr.want /tmp/srs-cite-adr.out \
+    || { echo "--cite did not print a decision in the form, or lost the order"; exit 1; }
+rc=0
+( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0008 ) \
+    > /tmp/srs-cite-adr-bad.out 2>/tmp/srs-cite-adr-bad.err || rc=$?
+[ "$rc" = 1 ] || { echo "an unknown decision left --cite with exit $rc"; exit 1; }
+grep -q "no decision ADR-0008" /tmp/srs-cite-adr-bad.err \
+    || { echo "--cite did not say which decision it could not resolve"; exit 1; }
+echo "view-smoke: --cite prints a decision by the number in its heading"

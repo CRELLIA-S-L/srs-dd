@@ -41,6 +41,8 @@ __version__ = srs_parse.__version__
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARCH = os.path.join(ROOT, "arch")
 CONFIG = os.path.join(ARCH, "arch-config.json")
+EDGES = os.path.join(ARCH, "edges.json")
+EDGES_REL = os.path.join("arch", "edges.json")
 MAP = os.path.join(ARCH, "90-map.md")
 MAP_REL = os.path.join("arch", "90-map.md")
 VIEWER = os.path.join(ROOT, "tools", "srs_view.py")
@@ -111,6 +113,45 @@ def load_config():
                       % (mode, "/".join(MODES)))
     cfg["requirements"] = mode
     return cfg, None
+
+
+def load_edges():
+    # implements: IF-ARCH-040
+    """The edges the project computed, as [(from, to, via)]. No file means no edges.
+
+    Two ends and a note, read as the interface publishes them and no further: a shape the
+    checker cannot read is a setup fault (exit 2), not a finding, because nothing about the
+    layer is wrong when the file is. An end that is an element identifier is refused with the
+    reason — the file names files, and a list of parts depending on parts is `depends_on`.
+    """
+    if not os.path.exists(EDGES):
+        return [], None
+    try:
+        with open(EDGES, encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except (OSError, ValueError) as exc:
+        return None, "%s: %s" % (EDGES_REL, exc)
+    if not isinstance(raw, list):
+        return None, "%s: the top level must be a JSON list" % EDGES_REL
+    edges = []
+    for index, entry in enumerate(raw):
+        where = "%s: entry %d" % (EDGES_REL, index)
+        if not isinstance(entry, dict):
+            return None, "%s must be an object with `from` and `to`" % where
+        ends = []
+        for key in ("from", "to"):
+            value = entry.get(key)
+            if not isinstance(value, str) or not value:
+                return None, "%s: `%s` must be a repository-relative file path" % (where, key)
+            if RE_ID.match(value):
+                return None, ("%s: `%s` is %s — the file names files, not elements; a part "
+                              "depending on a part is written in `depends_on`" % (where, key, value))
+            ends.append(value.rstrip("/"))
+        via = entry.get("via", "")
+        if not isinstance(via, str):
+            return None, "%s: `via` must be text" % where
+        edges.append((ends[0], ends[1], via))
+    return edges, None
 
 
 def rule_finding(warnings, reports, cfg, rule, text):
@@ -273,6 +314,20 @@ def check_ownership(records, model, warnings, reports, cfg):
                              % (path, requirement["id"]))
 
 
+def live_carriers(records):
+    # implements: FR-ARCH-240, FR-ARCH-260
+    """Every carrier a live element claims, as carrier -> [elements]: the map owner_of resolves
+    a file against, read by the derivation and by the edges the project supplies. A cancelled
+    element owns nothing the way it depends on nothing."""
+    owners = {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        for path in as_list(record.fields.get("carries")):
+            owners.setdefault(path.rstrip("/"), []).append(record.id)
+    return owners
+
+
 def carried_by(records, model, cfg):
     # implements: FR-ARCH-240
     """What each element carries, as ({id: written}, {id: derived}) — two sets per element,
@@ -284,16 +339,13 @@ def carried_by(records, model, cfg):
     owner_of over every live carrier, so the file a requirement names lands in the element
     whose carrier is nearest — by the rule that decides whether a carrier is unclaimed at all.
     """
-    written, derived, owners = {}, {}, {}
+    written, derived = {}, {}
     for record in records:
         if not RE_ID.match(record.id):
             continue
         written[record.id] = set(as_list(record.fields.get("requirements")))
         derived[record.id] = set()
-        if record.fields.get("status") in CANCELLED:
-            continue
-        for path in as_list(record.fields.get("carries")):
-            owners.setdefault(path.rstrip("/"), []).append(record.id)
+    owners = live_carriers(records)
     if cfg["requirements"] == "derived":
         for requirement in model["requirements"]:
             if requirement.get("status") not in REALIZED:
@@ -467,17 +519,39 @@ def check_cycles(records, warnings, reports, cfg):
             walk(node)
 
 
-def check_conformance(records, warnings, reports, cfg):
-    # implements: FR-ARCH-200
+def element_of(path, owners):
+    # implements: FR-ARCH-260
+    """The one element that carries a path, or None."""
+    carrier = owner_of(path, owners)
+    if carrier is None or len(owners[carrier]) != 1:
+        return None
+    return owners[carrier][0]
+
+
+def check_conformance(records, edges, warnings, reports, cfg):
+    # implements: FR-ARCH-200, FR-ARCH-260
     """The declared model against the one the code has.
 
     One direction only, as the requirement states it: an edge the code has and the model does not.
     The other direction — a declared edge nothing in the code walks — is a different reading and
     has no rule here.
+
+    Two suppliers of edges and one comparison: the imports this checker reads from the Python it
+    carries, and the edges the project put in arch/edges.json for the languages it does not read.
+    Both land in the same `seen` set, so a pair is reported once whichever said it first.
     """
     by_path, unique = python_modules(records)
     declared = declared_dependencies(records)
     seen = set()
+
+    def undeclared(element, target):
+        if target == element or target in declared.get(element, set()):
+            return False
+        if (element, target) in seen:
+            return False
+        seen.add((element, target))
+        return True
+
     for path in sorted(by_path):
         element = by_path[path]
         for name in imports_of(os.path.join(ROOT, path)):
@@ -485,14 +559,24 @@ def check_conformance(records, warnings, reports, cfg):
             if target_path is None:
                 continue
             target = by_path[target_path]
-            if target == element or target in declared.get(element, set()):
-                continue
-            if (element, target) in seen:
-                continue
-            seen.add((element, target))
+            if undeclared(element, target):
+                rule_finding(warnings, reports, cfg, "dependency-undeclared",
+                             "%s — imports %s, carried by %s, and %s does not declare it"
+                             % (path, name, target, element))
+
+    # implements: FR-ARCH-260
+    # An end no single live element carries resolves to nothing and the edge is left alone, as an
+    # import that resolves to no carried module is: the rule speaks only about what it can prove.
+    owners = live_carriers(records)
+    for source, target_path, via in edges:
+        element, target = element_of(source, owners), element_of(target_path, owners)
+        if element is None or target is None:
+            continue
+        if undeclared(element, target):
             rule_finding(warnings, reports, cfg, "dependency-undeclared",
-                         "%s — imports %s, carried by %s, and %s does not declare it"
-                         % (path, name, target, element))
+                         "%s — uses %s, carried by %s, and %s does not declare it%s"
+                         % (source, target_path, target, element,
+                            " (%s)" % via if via else ""))
 
 
 def print_drivers(model, limit=10):
@@ -560,13 +644,45 @@ def render_map(records, model, cfg):
     return "\n".join(out)
 
 
+def citation(record):
+    # implements: FR-ARCH-270
+    """The form an element is named in to a person — the one the viewer prints for a
+    requirement, over this layer's own records: identifier, title, file, status."""
+    return "%s — %s (%s, %s)" % (record.id, record.title, record.path,
+                                  record.fields.get("status") or "?")
+
+
+def cite(wanted):
+    # implements: FR-ARCH-270
+    """Print each element asked for, ready to paste, in the order asked; an identifier no
+    element carries is named on stderr and fails the run, in the same run as the rest."""
+    known = {}
+    for record in read_records([]):
+        known.setdefault(record.id, record)
+    missing = [eid for eid in wanted if eid not in known]
+    for eid in wanted:
+        if eid in known:
+            sys.stdout.write("%s\n" % citation(known[eid]))
+    for eid in missing:
+        sys.stderr.write("no element %s\n" % eid)
+    return 1 if missing else 0
+
+
 def main(argv=None):
     # implements: FR-ARCH-100, IF-ARCH-020
     args = list(sys.argv[1:] if argv is None else argv)
+    wanted = None
+    if "--cite" in args:
+        cut = args.index("--cite")
+        wanted, args = args[cut + 1:], args[:cut]
+        if not wanted:
+            return fail_setup("--cite needs at least one element identifier\n"
+                              "usage: srs_arch.py --cite E-NNN…")
     unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers"})
     if unknown:
         return fail_setup("unknown flag(s): %s\n"
-                          "usage: srs_arch.py [--no-write] [--strict] [--drivers]"
+                          "usage: srs_arch.py [--no-write] [--strict] [--drivers] "
+                          "[--cite E-NNN…]"
                           % " ".join(unknown))
     strict = "--strict" in args
     write = "--no-write" not in args
@@ -574,11 +690,16 @@ def main(argv=None):
     if not os.path.isdir(ARCH):
         return fail_setup("arch/ directory not found: %s\nThe architecture layer is optional; "
                           "install it with tools/srs_init.py --arch yes." % ARCH)
+    if wanted is not None:
+        return cite(wanted)
 
     cfg, problem = load_config()
     if problem:
         return fail_setup(problem)
     model, problem = read_model()
+    if problem:
+        return fail_setup(problem)
+    edges, problem = load_edges()
     if problem:
         return fail_setup(problem)
 
@@ -590,7 +711,7 @@ def main(argv=None):
     check_records(records, model, errors, warnings, reports, cfg)
     check_dependencies_resolve(records, errors)
     check_ownership(records, model, warnings, reports, cfg)
-    check_conformance(records, warnings, reports, cfg)
+    check_conformance(records, edges, warnings, reports, cfg)
     check_cycles(records, warnings, reports, cfg)
 
     for text in warnings:

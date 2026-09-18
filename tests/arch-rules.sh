@@ -5,7 +5,7 @@
 # verifies: FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
 # verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
-# verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250
+# verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, IF-ARCH-040
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -525,6 +525,154 @@ printf 'import util\nimport other\n' > "$LAB/zeta/main.py"
 rule "FR-ARCH-200 a real cross-element import still speaks" 0 \
      "imports other, carried by E-020, and E-010 does not declare it"
 rm -rf "$LAB/alpha" "$LAB/zeta"
+
+# --- verifies: FR-ARCH-260, IF-ARCH-040 — edges the project supplies are
+# --- compared as the ones the checker reads. Sources in a language the
+# --- checker does not read; the project says what they depend on.
+mkdir -p "$LAB/src/core" "$LAB/src/shell"
+printf 'struct Router {}\n' > "$LAB/src/core/Router.swift"
+printf 'struct Capsule {}\n' > "$LAB/src/shell/Capsule.swift"
+printf 'x = 1\n' > "$LAB/src/a.py"
+printf 'x = 1\n' > "$LAB/src/b.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The core
+
+```yaml
+status: built
+carries: [src/core, src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Declares nothing.
+
+### E-020 — The shell
+
+```yaml
+status: built
+carries: [src/shell, src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-010]
+```
+
+Declares the core.
+MD
+cat > "$LAB/arch/edges.json" <<'JSON'
+[
+  {"from": "src/core/Router.swift", "to": "src/shell/Capsule.swift", "via": "Capsule:12"},
+  {"from": "src/shell/Capsule.swift", "to": "src/core/Router.swift", "via": "Router:3"},
+  {"from": "src/core/Router.swift", "to": "src/core/Other.swift"},
+  {"from": "src/core/Router.swift", "to": "vendor/Elsewhere.swift"}
+]
+JSON
+rule "FR-ARCH-260 an edge the model does not declare is reported" 0 \
+     "src/core/Router.swift — uses src/shell/Capsule.swift, carried by E-020, and E-010 does not declare it (Capsule:12)"
+silent "FR-ARCH-260 a declared edge is silent" 0 "carried by E-010"
+silent "FR-ARCH-260 an edge inside one element is not a dependency" 0 "src/core/Other.swift"
+silent "FR-ARCH-260 an end no element carries is left alone" 0 "vendor/Elsewhere.swift"
+
+# --- A carrier two elements claim resolves an end to neither, as a module
+# --- name two files answer to does: reporting it against either would name an
+# --- element the code may never touch.
+elements <<'MD'
+# Elements
+
+### E-010 — The core
+
+```yaml
+status: built
+carries: [src/core, src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Declares nothing.
+
+### E-020 — The shell
+
+```yaml
+status: built
+carries: [src/shell, src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-010]
+```
+
+Declares the core.
+
+### E-030 — A second claim on the shell
+
+```yaml
+status: built
+carries: [src/shell]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Claims the same directory.
+MD
+silent "FR-ARCH-260 an end two elements carry resolves to neither" 0 "does not declare it"
+elements <<'MD'
+# Elements
+
+### E-010 — The core
+
+```yaml
+status: built
+carries: [src/core, src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Declares nothing.
+
+### E-020 — The shell
+
+```yaml
+status: built
+carries: [src/shell, src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-010]
+```
+
+Declares the core.
+MD
+rule "FR-ARCH-260 a warning by default, which --strict fails on" 1 \
+     "treated as errors" --strict
+( cd "$LAB" && printf '{"rules": {"dependency-undeclared": "report"}}\n' > arch/arch-config.json )
+rule "FR-ARCH-260 lowered to report under the published name" 0 \
+     "note: src/core/Router.swift — uses" --strict
+( cd "$LAB" && printf '{"rules": {}}\n' > arch/arch-config.json )
+
+# --- The same pair from both suppliers is one finding.
+printf 'import b\n' > "$LAB/src/a.py"
+( cd "$LAB" && python3 tools/srs_arch.py --no-write ) > /tmp/srs-arch.log 2>&1 || true
+n=$(grep -c "and E-010 does not declare it" /tmp/srs-arch.log)
+if [ "$n" != "1" ]; then
+    echo "FAIL FR-ARCH-260 a pair said by the import and by the file is one finding — got $n"
+    cat /tmp/srs-arch.log; exit 1
+fi
+passes=$((passes + 1))
+printf 'x = 1\n' > "$LAB/src/a.py"
+
+# --- verifies: IF-ARCH-040 — a file the checker cannot read is a setup fault,
+# --- exit 2, never a finding; an element identifier as an end is refused with
+# --- the reason.
+printf 'not json\n' > "$LAB/arch/edges.json"
+rule "IF-ARCH-040 malformed JSON is exit 2" 2 "arch/edges.json:"
+printf '{"from": "a", "to": "b"}\n' > "$LAB/arch/edges.json"
+rule "IF-ARCH-040 the top level is a list" 2 "must be a JSON list"
+printf '[{"from": "src/core/Router.swift"}]\n' > "$LAB/arch/edges.json"
+rule "IF-ARCH-040 both ends are required" 2 "\`to\` must be a repository-relative file path"
+printf '[{"from": "E-010", "to": "src/core/Router.swift"}]\n' > "$LAB/arch/edges.json"
+rule "IF-ARCH-040 an element identifier is refused with the reason" 2 \
+     "the file names files, not elements"
+printf '[{"from": "src/core/Router.swift", "to": "src/shell/Capsule.swift", "via": 7}]\n' > "$LAB/arch/edges.json"
+rule "IF-ARCH-040 via is text" 2 "\`via\` must be text"
+rm -f "$LAB/arch/edges.json"
+rm -rf "$LAB/src/core" "$LAB/src/shell"
+silent "FR-ARCH-260 no file, no edges" 0 "uses"
 
 # --- verifies: FR-ARCH-220 — elements that depend on each other in a circle.
 # --- No imports in the sources: the circle is declared, and the rule reads
@@ -1079,5 +1227,52 @@ cmp -s "$BEFORE" "$AFTER" \
     || { echo "FAIL CON-ARCH-010 — a run touched something outside the layer"
          diff "$BEFORE" "$AFTER" | head -10; exit 1; }
 passes=$((passes + 2))
+
+# --- verifies: FR-ARCH-270 — an element is cited like a requirement: the
+# --- form the viewer prints, over the layer's own records, in the order
+# --- asked; an unknown identifier is named and fails the run without
+# --- dropping the ones that resolve; nothing is written.
+elements <<'MD'
+# Elements
+
+### E-010 — The first
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+One.
+
+### E-020 — The second, cancelled
+
+```yaml
+status: withdrawn
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Gone, and cited with the status that says so.
+MD
+rm -f "$LAB/arch/90-map.md"
+rc=0
+( cd "$LAB" && python3 tools/srs_arch.py --cite E-020 E-010 E-990 ) \
+    > /tmp/srs-arch-cite.out 2> /tmp/srs-arch-cite.err || rc=$?
+cat > /tmp/srs-arch-cite.want <<'WANT'
+E-020 — The second, cancelled (arch/00-elements.md, withdrawn)
+E-010 — The first (arch/00-elements.md, built)
+WANT
+diff -u /tmp/srs-arch-cite.want /tmp/srs-arch-cite.out \
+    || { echo "FAIL FR-ARCH-270 — --cite printed something other than the form, or lost the order"; exit 1; }
+[ "$rc" = 1 ] || { echo "FAIL FR-ARCH-270 — an unknown element left --cite with exit $rc"; exit 1; }
+grep -q "no element E-990" /tmp/srs-arch-cite.err \
+    || { echo "FAIL FR-ARCH-270 — --cite did not say which element it could not resolve"; exit 1; }
+[ -f "$LAB/arch/90-map.md" ] \
+    && { echo "FAIL FR-ARCH-270 — a citation wrote the map"; exit 1; }
+rule "FR-ARCH-270 --cite with nothing to cite is a setup fault" 2 "needs at least one" --cite
+passes=$((passes + 4))
 
 echo "arch-rules: $passes fixtures pass"

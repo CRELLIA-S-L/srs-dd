@@ -1421,4 +1421,30 @@ grep -qF "no grounds/ directory" /tmp/srs-grounds.log \
          cat /tmp/srs-grounds.log; exit 1; }
 passes=$((passes + 2))
 
+# --- verifies: FR-GND-540 — a record is cited like a requirement: the form
+# --- the viewer prints, over the register's own records of any kind, in the
+# --- order asked; an unknown identifier is named and fails the run without
+# --- dropping the ones that resolve; nothing is written.
+ground < <(rec H-010 "Studios keep exporting" "$HYP" 'Studios export weekly.'
+           rec U-010 "Nobody measured this" 'status: active
+requirement: FR-CORE-010
+reason: no hypothesis names it yet' 'It stands in for a bet.')
+rm -f "$LAB/grounds/90-dashboard.md"
+rc=0
+( cd "$LAB" && python3 tools/srs_grounds.py --cite U-010 H-010 H-990 ) \
+    > /tmp/srs-grounds-cite.out 2> /tmp/srs-grounds-cite.err || rc=$?
+cat > /tmp/srs-grounds-cite.want <<'WANT'
+U-010 — Nobody measured this (grounds/10-h-test.md, active)
+H-010 — Studios keep exporting (grounds/10-h-test.md, assumed)
+WANT
+diff -u /tmp/srs-grounds-cite.want /tmp/srs-grounds-cite.out \
+    || { echo "FAIL FR-GND-540 — --cite printed something other than the form, or lost the order"; exit 1; }
+[ "$rc" = 1 ] || { echo "FAIL FR-GND-540 — an unknown record left --cite with exit $rc"; exit 1; }
+grep -q "no record H-990" /tmp/srs-grounds-cite.err \
+    || { echo "FAIL FR-GND-540 — --cite did not say which record it could not resolve"; exit 1; }
+[ -f "$LAB/grounds/90-dashboard.md" ] \
+    && { echo "FAIL FR-GND-540 — a citation wrote the dashboard"; exit 1; }
+rule "FR-GND-540 --cite with nothing to cite is a setup fault" 2 "needs at least one" --cite
+passes=$((passes + 4))
+
 echo "grounds-rules: $passes fixtures pass"

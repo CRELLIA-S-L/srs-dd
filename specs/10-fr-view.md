@@ -698,3 +698,48 @@ The command line wins over the configuration because the configuration names the
 
 Written down six weeks after the flag: the behaviour was promised by a requirement about the pipeline the day after the flag arrived, built in the viewer, and described by nothing in this area — which the audit found because the annotation nearest the code named a requirement about baselines.
 Files and requirements in one sentence because one function makes both links and a page with half of them pointing at a clone the reader does not have is a broken page, not half of a working one.
+
+### FR-VIEW-320 — A listed requirement is named where it is written
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-200]
+depends_on: [FR-VIEW-220]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-17
+```
+
+When listing requirements, the viewer **shall** print for each one its identifier, its status, its title and the file it is written in.
+
+**Rationale.** The list is what a procedure reads before it names a requirement to a person — the answer to which requirements describe a file, to what an area holds, to a search — and it printed three of the four parts a citation is made of.
+The file was the one left out, so the procedure that had the list in front of it went back for it or, more often, did without.
+`FR-VIEW-240` argues that titles were never the expensive half because the list prints them all in one call; the same list now prints the file, for the same reason.
+
+The line stays one line, in the order the parts are read — identifier, status, title, file — and the file is the path alone, not the line: a line number is right for the minute it is written, which is the argument `FR-SKILL-200` makes for keeping it out of a citation.
+
+### FR-VIEW-330 — A decision is cited like a requirement
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-240, FR-SKILL-200]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-17
+```
+
+When asked to cite a decision by its identifier, the viewer **shall** print it ready to paste: its identifier, its title, the file it is written in and its status.
+
+**Rationale.** `FR-SKILL-200` binds a procedure to cite a decision as it cites a requirement, and until now nothing printed the form: an agent naming `ADR-0009` to a person invented one, or gave the number and left the lookup to the reader.
+A decision has the parts a citation needs — its heading carries the identifier and the title, its first lines carry a status — and it lives in `specs/adr/`, which the viewer already reads for a text search (`FR-VIEW-270`), so the viewer is where the citation belongs; the layers cite their own records with their own commands for the reason `FR-SKILL-200` gives.
+
+The identifier is what the heading says, not the file name: a decision is renamed when its file is, and cited by the number that never changes.
+An unknown identifier is refused the way an unknown requirement is, in the same run, so that a plan citing ten things and misspelling one learns which.
+

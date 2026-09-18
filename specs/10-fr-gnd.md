@@ -1285,3 +1285,25 @@ Whether a claim about the world falls under "we do not take regulatory surface w
 
 The refusal goes into the journal rather than into the hypothesis, because the hypothesis is not admitted at all — there is nothing yet to carry a status.
 `declined` is the other refusal and a different one: it means true, measured, and deliberately not ours to act on, which happens at the far end of the lifecycle rather than at its door.
+
+### FR-GND-540 — A record is cited like a requirement
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-GND-010, FR-SKILL-200]
+refines: []
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-09-17
+```
+
+When asked to cite records, the grounds checker **shall** print each one ready to paste: its identifier, its title, the file it is written in and its status.
+
+**Rationale.** A hypothesis, a bet, a frame, an ideology and an unclaimed declaration are all named to a person — in the dashboard's readings, in a blast report, in the answer to what a requirement stands on — and every one of them was named by key, because nothing in the framework could print more: the viewer's `--cite` reaches the specification only, and reaches nothing in `grounds/` by design.
+The form is the one `FR-VIEW-240` fixed; the resolver is this checker's, because the register is its to read.
+All five kinds, because the rule is about naming a record to a person and does not care which kind; a `U` declaration cited in full says what it stands in for, which is the whole point of citing it.
+An unknown identifier is refused in the same run, naming it.
+
