@@ -8,6 +8,38 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.18.0] — 2026-09-19
+
+### Added
+
+- The architecture checker reads the edges a project computed. `arch/edges.json` lists what the code depends on as pairs of files, each with an optional note; the checker resolves each end to the element that carries it and compares the edge with the declared model exactly as it compares a Python import, reporting an undeclared one under the existing `dependency-undeclared` rule. A project in any language gets the reflexion check; the file is the project's to produce and keep fresh, and an element identifier as an end is refused with the reason (`FR-ARCH-260`, `IF-ARCH-040`, ADR-0026).
+- Every layer cites its own records. `srs_arch.py --cite E-NNN…` and `srs_grounds.py --cite ID…` print an element or a register record in the form the viewer prints a requirement — identifier, title, file, status — and `srs_view.py --cite ADR-NNNN` cites a decision by the number in its heading. The viewer reads the specification and nothing else, so each tool resolves what it holds (`FR-ARCH-270`, `FR-GND-540`, `FR-VIEW-330`).
+- A listed requirement names the file it is written in. `--list` and `--code` print identifier, status, title and file, the four parts of a citation, so a procedure reading the list before naming a requirement has all of them (`FR-VIEW-320`).
+- The graph of a selection can be written as an image. `srs_view.py --svg PATH` writes the graph of the requirements the filters select as one self-contained SVG, colours resolved, deterministic; `--around` widens the selection by one link in either direction, which is what shows an area's place in the specification rather than a column of boxes (`FR-VIEW-340`). This repository's pipeline publishes `readme-graph.svg` beside the page at every deploy (`FR-CI-110`).
+- The agent guides carry three more rules. A report to a person is written in sentences that follow one another, with a list or a table kept for what the reader counts or compares (`FR-SKILL-270`); a statement about what the project's files say is checked against the source before it is sent, not against a memory of an earlier reading (`FR-SKILL-280`); and every procedure the framework ships is a plain markdown file an agent without a skill system, or a person, can follow as written (`NFR-SKILL-010`).
+- Whether a fresh agent follows the guide is measured. `tools/srs_cite_eval.py` asks a fresh Claude Code instance the questions in `tests/eval/citation-questions.txt` and scores how each answer names records — as the tools print them, retyped, or bare. A measurement run by hand before and after a change to the guides, never a gate; it stays in the framework repository (`FR-SKILL-290`).
+- This repository's landing page is specified. A `DOC` area of twenty-one requirements says which eleven sections the page consists of and why in that order (ADR-0027), what each section owes its reader and which requirements it restates, and holds what a test can read to the repository: documented flags accepted by their tools, headings in order, the example requirement passing the checker, the skills table equal to what the installer copies, the map equal to the top level, exit codes equal to the installer's, every link resolving, the picture named as the pipeline publishes it (`FR-DOC-010` to `FR-DOC-210`). The grounds register carries the hypothesis it rests on, `H-030`, and a bet for every one of them.
+
+### Changed
+
+- `FR-SKILL-200` covers any record named to a person, not requirements alone. An element, a grounds record and a decision are cited as a requirement is, and the guide states the unit (the first mention in a message, a plan or a report, never a session), the form (as printed, no bold, no backticks, nothing inside the brackets), that a mention in passing is a mention, that a span named as a set is one name, that a report under any procedure's template is bound, that the check happens at sending, and that commit messages and the changelog name identifiers bare.
+- `CLAUDE.md` imports `AGENTS.md` instead of pointing at it. One `@AGENTS.md` line, here and in the skeleton, puts the guide into every Claude Code session; measured with the new tool on this repository: a fresh instance behind the pointer named records bare in 87 cases of 100, and with the guide imported in 16.
+- The landing page is reworked under the new `DOC` requirements. A plain sentence before the standards, the agents it is built for named, a two-command dry run, the agent pointed at its section, a picture of the page's own requirements after the problem section, five benefits where there were nine, the agent section shortened with the installer's modes and exit codes moved to `docs/agents.md`, a row for the architecture procedure and rows for the five top-level paths the map lacked.
+- The `srs-arch` procedure names the two dependency findings it had left out. A dependency the code has and the model does not, and a circle, were reported by the checker and unread by the procedure; and `docs/upgrade.md` names both settings of the layer where it said one.
+- The `srs` procedure reads before it reports and cites from `--cite`. What it hands a person is read off the files in the same report, and `srs-bet` and `srs-arch` point at their own tools' `--cite`.
+
+### Fixed
+
+- Three stale claims on the landing page, found by the new instruments on their first run. It credited `srs_baseline.py` with the viewer's `--diff`, listed nine procedures while ten shipped, and mapped no row for `.github/`, `.githooks/`, `AGENTS.md`, `CLAUDE.md` or `LICENSE`.
+- `docs/upgrade.md` said the architecture layer had one setting; it has two. `requirements` had been the second since 0.17.0, and the sentence stood for the whole release.
+
+### Upgrade notes
+
+- The agent guides changed and are precious, so a project that has installed already keeps its old `AGENTS.md` and `CLAUDE.md` until `--force`. To get the two changes without a forced refresh: in `AGENTS.md`, the rule on naming a record to a person now covers elements, register records and decisions, states the form of a citation and exempts commit messages; in `CLAUDE.md`, replace "Read `AGENTS.md` first" with a line holding only `@AGENTS.md`, which imports the guide into every Claude Code session — measured on the framework's own repository, that one line took bare identifiers in a fresh instance's answers from 87 in 100 to 16.
+- Where you keep the architecture layer, the checker now reads `arch/edges.json` if it exists and does nothing new if it does not. To get the dependency check for a language other than Python, write the file as a JSON list of objects with `from` and `to` naming repository-relative files and an optional `via`, by a script of your own or by hand; `arch/README.md` says the shape. The checker never writes it, and a stale file is silent the way an absent one is.
+- `srs_arch.py --cite` and `srs_grounds.py --cite` are new flags on tools you already have; nothing to change, and the upgraded `AGENTS.md` names them.
+- `srs_view.py --list` and `--code` print one more column, the file; a script that parsed those lines by position reads the file as a fourth field now.
+
 ## [0.17.0] — 2026-09-17
 
 ### Added
