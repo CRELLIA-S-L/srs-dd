@@ -53,6 +53,7 @@ The rule itself is in `AGENTS.md`.
 **Report the lookup, not only its outcome** — the paths you gave, and the words, where you fell back to a search over them.
 What you then say about those files is read off them in this report, not off what you remember of them, and read back against the file before it is sent — the guide's rule for any statement about the project, and the one most often broken where the memory feels surest.
 Say it in sentences that follow one another; a list is for what the reader counts.
+Whatever this procedure hands to a person — a plan, a finding, a report, under any template — names each record as the guide asks at that message's first mention, from `--cite`, checked before the message goes.
 Where the answer is nothing, a lookup that missed and a lookup nobody made produce the same sentence, and the reader who could tell them apart is the one holding the report.
 Where it is something, the paths are what tell that reader how wide the answer was.
 

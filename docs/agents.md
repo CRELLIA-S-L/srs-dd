@@ -5,7 +5,7 @@ The framework is built for codebases written with AI coding agents, but it depen
 ## An initialized project works out of the box
 
 `AGENTS.md` is the canonical, agent-agnostic guide, and modern agents (Cursor, Codex, Gemini CLI, GitHub Copilot, …) read an `AGENTS.md` at the repository root natively.
-`CLAUDE.md` is a thin pointer to it.
+`CLAUDE.md` imports it with an `@AGENTS.md` line, because Claude Code loads `CLAUDE.md` and not the guide, and a pointer it is told to follow is followed less often than a file it is handed: measured on the framework's own repository, a fresh instance behind "read `AGENTS.md` first" named records bare in 87 cases of 100, and with the guide imported in 16.
 
 The skills in `.claude/skills/` are plain markdown with no Claude-specific machinery.
 An agent without a skill system reads them directly as workflow guides:

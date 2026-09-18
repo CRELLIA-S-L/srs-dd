@@ -1,6 +1,9 @@
 # SRS-DD framework repository
 
-Read `AGENTS.md` first — the agent guide for this repository.
+`AGENTS.md` is the agent guide for this repository, and it is imported here so that every session starts with it in front of you rather than behind a pointer:
+
+@AGENTS.md
+
 It explains that this is the framework itself rather than a project using it, where the payload (`skeleton/`) ends and the framework begins, and the two rules that keep framework content out of other people's repositories.
 
 Claude-specific additions:

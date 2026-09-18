@@ -55,7 +55,12 @@ A change to behavior starts at the loop below.
    Afterwards the number on its own is enough.
    Inside `specs/`, `arch/` and `grounds/` the identifier is the name: the tooling resolves the links, and a title beside every cross-reference in a rationale is noise.
    A line a checker printed is not a citation yet — run the identifiers in it through `--cite` before relaying it.
-   The rule holds in a table, in a list and in the steps of a plan; a number the specification does not carry yet is a proposal and is marked as one instead.
+   The rule holds in a table, in a list, in the steps of a plan and in the report of any procedure, this framework's or another's: a report template that has no place for the citation is a template you add it to, not a reason to leave it out.
+   It is checked at sending, not at writing: before a message goes, every identifier in it that the message names for the first time has been run through `--cite`, and what was pasted is what the tool printed — as printed, with no bold around it, no backticks around the file and nothing added inside the brackets, because a citation dressed up cannot be told from one made up.
+   A mention in passing is a mention: a record named on the way to another point is cited like the one the point is about.
+   A span or a family named as a set — `FR-<AREA>-010` through `FR-<AREA>-090`, a whole area — is one name and not a mention of each member; what the message singles out from it is cited, the set is not.
+   A commit message and the changelog are the exception, and name identifiers bare, in a trailing parenthesis: the constitution asks a commit for the identifiers it implements, and both are records of what a change did — a status in them would be a value that moved while the record stayed, and nobody re-dates a commit.
+   A number the specification does not carry yet is a proposal and is marked as one instead.
 5. Reading the code behind a change — take the files from the `code` and `tests` fields of the requirements the change belongs to (`python3 tools/srs_view.py --code <path>` answers from the other end), not from a search over the repository.
    Go wider where you must, and say where you went.
 6. Reporting to a person — write in sentences that follow one another, and keep a list or a table for what the reader has to count or compare.

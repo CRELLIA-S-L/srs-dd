@@ -476,7 +476,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [AGENTS.md, skeleton/AGENTS.md, specs/README.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-release/SKILL.md]
+code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, specs/README.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-release/SKILL.md]
 tests: []
 created: 2026-08-27
 ```
@@ -515,6 +515,16 @@ Decisions live in `specs/adr/` and are the viewer's to cite.
 The reader of a file in `specs/`, `arch/` or `grounds/` is already where the links are resolved by the tool and the title is one command away, and a title beside every cross-reference in every rationale is the noise the paragraph above exists to remove.
 The unit of "first" is what a person reads as a whole — a message, a plan, a report, a review — not a session: the person reads one at a time, and a citation given an hour ago is not on the page in front of them.
 What a tool printed is not yet a citation either: a finding names the element it found and the one it found it against, and a procedure relaying that line to a person runs its identifiers through `--cite` first rather than copying the line as it came.
+
+**Checked at sending, in any report, from the file the agent cannot fail to read.** The rule stood in the guide and was broken for a whole afternoon by the agent that had just reworded it: the guide had been read once and lay far back in a long session, the reports were written under the templates of procedures this framework does not ship, and nothing asked at the moment of sending whether the identifiers in the message had been through `--cite`.
+Three repairs, and each answers one of those.
+The rule binds the report of any procedure, whatever produced the template, because a template is where the citation is left out.
+It is checked at sending — the moment `FR-SKILL-280` already fixes for a statement about the project — because a rule about writing is applied while the writer's attention is on what is being said.
+And the per-agent entry file, the one a harness loads into every session unasked, imports the guide whole rather than pointing at it: measured with `FR-SKILL-290` on the day, a fresh instance behind the pointer "read `AGENTS.md` first" named records bare in 87 cases of 100, behind a pointer at this one rule in 16 with a further 23 retyped, and with the guide imported in 16 with none retyped — the guide works where it is read, and a pointer is not reading.
+An import and not a rule of its own, because a rule that lives in one agent's file is a rule that holds for one agent; what the file carries is the same guide every other agent loads natively.
+
+**Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: ART-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
+The release procedure had already said this of the changelog; the maintainer settled the commit the same way on 2026-09-18.
 
 ### FR-SKILL-210 — What is already written is read before something new is
 
@@ -752,4 +762,34 @@ A claim of absence is the hardest case and the one this is most for — *nowhere
 
 Verified by inspection.
 A checker cannot tell a sentence written from a file from one written from memory of it; a reader who has the file open can, and a procedure that names what it read gives them the means.
+
+### FR-SKILL-290 — Whether a fresh agent cites is measured, not assumed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-200]
+depends_on: [FR-VIEW-240, FR-ARCH-270, FR-GND-540, FR-VIEW-330]
+refines: []
+conflicts_with: []
+code: [tools/srs_cite_eval.py, tests/eval/citation-questions.txt]
+tests: [tests/cite-eval-smoke.sh]
+created: 2026-09-18
+```
+
+The framework **shall** carry a command that asks a fresh agent instance a set of questions about the project and reports, for every record the answers name, whether its first mention carries the citation the project's tools print — as a measurement run on request, never as a gate.
+
+**Rationale.** `FR-SKILL-200` is verified by inspection because nothing in the repository changes when an agent names a record bare in a message; the inspector is the maintainer, and on 2026-09-18 the inspector found the rule broken for an afternoon by the agent that had reworded it.
+The guides were repaired three ways, and the question the repair left open is the only one that matters: does a fresh instance, reading nothing but the project's files, now do what the guide asks?
+Memory of a session cannot answer that, and neither can the maintainer's patience; a command can, by asking an instance that has no memory and scoring what comes back.
+
+Scored against what the tools print, not against a pattern: a citation is the line `--cite` gives for that record, and a title retyped differently or a status that has moved is counted as bare, because that is what the rule says a citation is (`FR-VIEW-240`, `FR-ARCH-270`, `FR-GND-540`, `FR-VIEW-330`).
+The questions are a file, because a question that can be answered without naming a record measures nothing and the set will be changed by whoever finds that out.
+
+A measurement and not a gate, for three reasons that do not go away.
+An answer from a model varies between runs, so a single run passing or failing says little; the number is read by whoever changes the guides, against the number before the change, and whether anything in the register is staked on it is a separate act that nobody but the maintainer takes.
+The instance is asked through an agent's command-line client, which needs an account and a network, and the tooling makes no network call of its own (the introduction says so) — so the command says it cannot run where the client is absent and stops, rather than reporting a pass.
+And what it measures is the guides, not the agent: a result below the threshold is a reason to change `AGENTS.md`, which is why the maintainer asked for it beside the everyday build loop rather than beside the pipeline.
+
+The scoring is what the test holds, over canned answers, so that the test itself asks nobody.
 
