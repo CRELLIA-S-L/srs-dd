@@ -1366,6 +1366,30 @@ def blast(records, model, paths):
     return 0
 
 
+def citation(rec):
+    # implements: FR-GND-540
+    """The form a record is named in to a person — the one the viewer
+    prints for a requirement, over the register's own records: identifier,
+    title, file, status."""
+    return "%s — %s (%s, %s)" % (rec.id, rec.title, rec.path,
+                                  rec.fields.get("status") or "?")
+
+
+def cite(records, wanted):
+    # implements: FR-GND-540
+    """Print each record asked for, ready to paste, in the order asked; an
+    identifier no record carries is named on stderr and fails the run, in
+    the same run as the rest. `records` is the register keyed by identifier,
+    as read_records returns it."""
+    missing = [rid for rid in wanted if rid not in records]
+    for rid in wanted:
+        if rid in records:
+            sys.stdout.write("%s\n" % citation(records[rid]))
+    for rid in missing:
+        sys.stderr.write("no record %s\n" % rid)
+    return 1 if missing else 0
+
+
 def main():
     # implements: FR-GND-010, FR-GND-120, IF-GND-020
     argv = sys.argv[1:]
@@ -1374,11 +1398,20 @@ def main():
         cut = argv.index("--blast")
         paths = argv[cut + 1:]
         argv = argv[:cut] + ["--blast"]
+    wanted = None
+    if "--cite" in argv:
+        cut = argv.index("--cite")
+        wanted = argv[cut + 1:]
+        argv = argv[:cut] + ["--cite"]
+        if not wanted:
+            sys.stderr.write("--cite needs at least one record identifier\n"
+                             "usage: srs_grounds.py --cite ID…\n")
+            return 2
     flags = set(argv)
-    unknown = sorted(flags - {"--no-write", "--strict", "--blast"})
+    unknown = sorted(flags - {"--no-write", "--strict", "--blast", "--cite"})
     if unknown:
         sys.stderr.write("unknown flag(s): %s\nusage: srs_grounds.py "
-                         "[--no-write] [--strict] [--blast PATH…]\n"
+                         "[--no-write] [--strict] [--blast PATH…] [--cite ID…]\n"
                          % " ".join(unknown))
         return 2
     if not os.path.isdir(GROUNDS):
@@ -1386,9 +1419,13 @@ def main():
                          "no register, and there is nothing to check.\n")
         return 2
 
-    cfg = load_config()
     errors = []
     records = read_records(errors)
+    if wanted is not None:
+        # A citation reads the records and nothing else: the configuration
+        # prices findings, and a citation is not one.
+        return cite(records, wanted)
+    cfg = load_config()
     model_json, model_error = read_model()
     model = incoming = None
     if model_json is not None:

@@ -271,3 +271,25 @@ Where a line ends then depends on how long the reader's own identifiers and path
 Wrapping is the terminal's business, and a reader who wants it narrower has `fold`.
 
 Recorded here so the question is not re-derived: an over-long finding is not a defect of this framework, and a suite asserting a width over what a tool prints is asserting something no requirement says.
+
+### FR-CI-110 — The graph image is published beside the page
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-CI-040, FR-VIEW-340]
+refines: []
+conflicts_with: []
+code: [.github/workflows/srs.yml]
+tests: []
+created: 2026-09-18
+```
+
+Where the pipeline publishes the specification as a page, it **shall** publish beside it the graph image of the documentation area, at a fixed name, from the same revision.
+
+**Rationale.** The landing page shows the graph of its own requirements, and a picture kept in the repository is a picture somebody regenerates by hand and nobody does; published by the pipeline that already renders the page, it is as current as the page and costs no step of anyone's.
+A fixed name, because the landing page addresses it by URL and a name that moved would leave a broken image on the page every stranger reads first.
+The documentation area and not the whole specification, because the picture illustrates the section it sits in — the requirements of the page itself — and a reader who wants more is one click from the page.
+The same revision as the page, so that the two agree about what the specification holds.
+

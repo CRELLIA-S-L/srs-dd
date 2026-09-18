@@ -520,3 +520,62 @@ Marked rather than split into two columns, because the map is what a reviewer di
 
 The map also moves for a new reason.
 A derived entry changes when a `code` field in the specification changes, so the gate that compares the map under `FR-ARCH-170` now holds the lists fresh against the specification and not only against the records — which is the whole of what the project that raised this wanted a second command for.
+
+### FR-ARCH-260 — Edges the project supplies are compared as the ones the checker reads
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-200, FR-ARCH-060]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py, arch/README.md]
+tests: [tests/arch-rules.sh]
+created: 2026-09-17
+```
+
+Where the layer carries `arch/edges.json`, the architecture checker **shall** compare each edge it lists with the declared model as it compares a dependency it read from the code itself.
+
+**Rationale.** `FR-ARCH-200` reads one language.
+For every other one the check is silent, and silent in the same way as a clean run — `Warnings: 0` over a Swift project whose ten elements declare seventeen edges is not a verdict, it is the absence of one.
+The first project that installed the layer measured the difference on 2026-09-17: an extractor of sixty lines found forty-six edges in its code, twenty-seven of them undeclared, among them three cycles and two composition roots that a person checking declared edges against call sites could not find, because that method only ever confirms what was written.
+
+The conformance check is two operations, and only the first knows a language: reading which edges the code has, and comparing them with the model.
+The second is the reflexion model the rationale of `FR-ARCH-200` names and is worth the same for any language, so it is the project that supplies the first half — by an extractor of its own, a build step, or a list written by hand — and the checker that keeps the second.
+Without the seam a project has to write the comparison too, and a second copy of it drifts from the first.
+
+An edge names files, not elements, and the checker resolves each end to its carrier by the rule `FR-ARCH-060` already applies to a file.
+The other way round the extractor has to know which element owns which file, which is a second copy of that rule, and the edges go stale the day a file moves between elements although the code did not change.
+An end no live element carries, or one two carry, resolves to nothing and the edge is left alone, as an import that resolves to no carried module already is: the rule speaks only about what it can prove.
+Both ends in one element is not a dependency.
+
+The two suppliers merge.
+An edge the file lists and an import the checker read are the same finding for the same pair, reported once under `dependency-undeclared`, priced under `FR-ARCH-090` like the rest; a project with no file and no Python is where it was.
+
+The file is the project's, and so is its freshness.
+The checker cannot regenerate what it did not compute, so no gate of the kind `FR-ARCH-170` sets holds it against the code; a stale list is silent the way an absent one is, and the standard says so rather than pretending otherwise.
+The direction stays the one `FR-ARCH-200` states: an edge the model declares and the file does not list is not reported, because the list is complete only as far as the extractor is.
+The project that raised this had one declared edge its list lacked — written on the strength of a constant that lives in another element's file — and whether the model or the extractor was wrong about it took a person reading the file to settle, which is the judgement a rule would be making on the extractor's word.
+
+### FR-ARCH-270 — An element is cited like a requirement
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, FR-SKILL-200]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-17
+```
+
+When asked to cite elements, the architecture checker **shall** print each one ready to paste: its identifier, its title, the file it is written in and its status.
+
+**Rationale.** The finding this checker prints names an element by its key — `carried by E-070, and E-060 does not declare it` — and the procedure relaying it to a person had nothing to turn the key into a name with: the viewer's `--cite` reaches the specification only, and it reaches nothing in `arch/` by design, since the specification's tools do not read the layers.
+So the layer's own checker prints the form `FR-VIEW-240` fixed, over its own records, and a procedure that names an element cites it from here.
+Several at once, for the reason the viewer gives: the reports this exists for name several parts, and a citation that costs a call each is one that gets abbreviated back to the key.
+An unknown identifier is refused in the same run, naming it, so that a report citing five elements and misspelling one learns which.
+

@@ -279,6 +279,7 @@ The ideology is the loudest absence: the standard calls it what the hypotheses a
 Both now hold of a register with two hypotheses in it, which is better than holding vacuously of an empty one — but they hold just as well of a register missing four kinds.
 The suite still cannot tell a kind deliberately left unwritten from one nobody got to.
 Unchanged on 2026-09-08: a fresh run of the dashboard still reads `0 ideology, 0 frame, 2 hypothesis, 0 bet, 0 unclaimed`, while the specification grew by 28 requirements in 0.16.0, not one of which carries a bet.
+Moved on 2026-09-18, by one file: `03-bets.md` exists and holds twenty-one bets, `B-010` to `B-210`, every one on `H-030`, so the dashboard reads `0 ideology, 0 frame, 3 hypothesis, 21 bet, 0 unclaimed`; the ideology, the frames and the unclaimed list are still no files, and every bet is on the one hypothesis about the documentation rather than on any of the 236 requirements that predate it.
 
 **Decision needed:** whether the other four kinds are wanted here at all.
 The two halves are not alike.

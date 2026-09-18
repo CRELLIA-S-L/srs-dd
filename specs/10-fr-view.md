@@ -698,3 +698,76 @@ The command line wins over the configuration because the configuration names the
 
 Written down six weeks after the flag: the behaviour was promised by a requirement about the pipeline the day after the flag arrived, built in the viewer, and described by nothing in this area — which the audit found because the annotation nearest the code named a requirement about baselines.
 Files and requirements in one sentence because one function makes both links and a page with half of them pointing at a clone the reader does not have is a broken page, not half of a working one.
+
+### FR-VIEW-320 — A listed requirement is named where it is written
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-200]
+depends_on: [FR-VIEW-220]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-17
+```
+
+When listing requirements, the viewer **shall** print for each one its identifier, its status, its title and the file it is written in.
+
+**Rationale.** The list is what a procedure reads before it names a requirement to a person — the answer to which requirements describe a file, to what an area holds, to a search — and it printed three of the four parts a citation is made of.
+The file was the one left out, so the procedure that had the list in front of it went back for it or, more often, did without.
+`FR-VIEW-240` argues that titles were never the expensive half because the list prints them all in one call; the same list now prints the file, for the same reason.
+
+The line stays one line, in the order the parts are read — identifier, status, title, file — and the file is the path alone, not the line: a line number is right for the minute it is written, which is the argument `FR-SKILL-200` makes for keeping it out of a citation.
+
+### FR-VIEW-330 — A decision is cited like a requirement
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-VIEW-240, FR-SKILL-200]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-17
+```
+
+When asked to cite a decision by its identifier, the viewer **shall** print it ready to paste: its identifier, its title, the file it is written in and its status.
+
+**Rationale.** `FR-SKILL-200` binds a procedure to cite a decision as it cites a requirement, and until now nothing printed the form: an agent naming `ADR-0009` to a person invented one, or gave the number and left the lookup to the reader.
+A decision has the parts a citation needs — its heading carries the identifier and the title, its first lines carry a status — and it lives in `specs/adr/`, which the viewer already reads for a text search (`FR-VIEW-270`), so the viewer is where the citation belongs; the layers cite their own records with their own commands for the reason `FR-SKILL-200` gives.
+
+The identifier is what the heading says, not the file name: a decision is renamed when its file is, and cited by the number that never changes.
+An unknown identifier is refused the way an unknown requirement is, in the same run, so that a plan citing ten things and misspelling one learns which.
+
+### FR-VIEW-340 — The graph of a selection is written as an image of its own
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-110]
+depends_on: [FR-VIEW-220, FR-VIEW-070]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-18
+```
+
+When asked for the graph as an image, the viewer **shall** write the graph of the requirements the filters select — widened, where asked, to the ones they link to and that link to them — as one self-contained SVG file that carries its own styles, drawn as the page would draw the same selection.
+
+**Rationale.** The graph on the page is built by the viewer, not by the browser — the lanes and rows are arithmetic and the `<svg>` is in the HTML before any script runs — so an image of it is the same drawing written to a file rather than a second drawing.
+What the page cannot do is be embedded: a forge's landing page strips frames and scripts, and the one thing it shows from elsewhere is an image, so the image is how the graph reaches a reader who has not opened the page.
+Its own styles, because on the page the colours come from the page's stylesheet, and an SVG shown as an image has no page around it; a file without them is a graph in black on nothing.
+
+The filters are the ones the list already has (`FR-VIEW-220`): an area, a status, a type, a search, a path.
+The whole graph is a picture of two hundred nodes nobody reads; a selection is a picture of one thing, and the reader who wants the rest has the page.
+An edge to a requirement outside the selection is not drawn, as an edge to a requirement the specification does not carry is not: the file shows the selection and says nothing about the rest.
+Widening by one step is what shows a selection's place in the specification — an area drawn alone is one lane, a column of boxes with bows beside it, and the same area with what it links to is nine lanes and the reaching between them; one step and not two, because two steps from anything is most of the specification, and the whole graph is the picture nobody reads.
+A selection with no edges among its requirements has no graph, and the viewer says so and writes nothing rather than an empty picture.
+
+Deterministic for the reason the page is (`FR-VIEW-070`): a pipeline writes it beside the page on every build, and a picture that changed when nothing did is a diff nobody can review.
+

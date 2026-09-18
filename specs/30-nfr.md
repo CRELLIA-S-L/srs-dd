@@ -11,7 +11,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py, tools/srs_arch.py]
+code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py, tools/srs_arch.py, tools/srs_cite_eval.py]
 tests: []
 created: 2026-08-07
 ```
@@ -84,3 +84,24 @@ The checker **shall** validate a specification of 500 requirements in under one 
 **Rationale.** The gate is only respected while it is instant; the moment it is worth waiting for, it gets skipped.
 The measurements are logged in `50-verification.md` — the latest leaves better than an order of magnitude of headroom for growth and slower machines.
 The number lives there and not here, because a figure copied into a rationale is a figure nobody retakes.
+
+### NFR-SKILL-010 — A procedure needs no skill system
+
+```yaml
+status: implemented
+verification: I
+derives_from: [NFR-SPEC-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills, skeleton/AGENTS.md]
+tests: []
+created: 2026-09-18
+```
+
+Every procedure the framework ships **shall** be a plain markdown file that an agent without a skill system, or a person, can follow as written.
+
+**Rationale.** The procedures live under `.claude/skills/` because one agent reads that directory natively, and nothing in them depends on it: the agent guide names them by path, the landing page hands the installation procedure to any agent as a raw URL, and a team working by hand reads the same file.
+It was the landing page's claim — "the skills are plain Markdown any agent can follow; a team working entirely by hand loses nothing" — and no requirement's, which `FR-DOC-060` made visible: a benefit on the page has to be a requirement's behaviour, and this one was not.
+It stands on `NFR-SPEC-020` for the same reason the specification does: a procedure survives the tool that reads it only if it is readable without it.
+

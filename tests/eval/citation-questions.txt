@@ -1,0 +1,12 @@
+# One question per line; a line starting with # is a comment. Each question is
+# answerable only by naming records of this project, which is what the
+# measurement is about: does a fresh agent, reading nothing but the files,
+# name them the way the guide asks.
+Which requirement governs the --cite flag of tools/srs_view.py? Answer in two or three sentences.
+Which requirements describe README.md, and what does each oblige? Answer briefly, in prose.
+Why does the example requirement on the landing page have to pass the checker? Name what says so.
+What does the architecture checker report about dependencies, and which requirements say so? Two sentences.
+What is H-030 about, and which requirements are staked on it? Answer briefly.
+Which decision records why the landing page has the sections it has, and what alternatives were considered?
+What must an agent do before naming a requirement to a person, and where is that rule written? Answer briefly.
+Which element of the architecture layer carries tools/srs_grounds.py, and what does that element answer for?

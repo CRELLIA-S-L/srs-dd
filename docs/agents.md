@@ -5,7 +5,7 @@ The framework is built for codebases written with AI coding agents, but it depen
 ## An initialized project works out of the box
 
 `AGENTS.md` is the canonical, agent-agnostic guide, and modern agents (Cursor, Codex, Gemini CLI, GitHub Copilot, …) read an `AGENTS.md` at the repository root natively.
-`CLAUDE.md` is a thin pointer to it.
+`CLAUDE.md` imports it with an `@AGENTS.md` line, because Claude Code loads `CLAUDE.md` and not the guide, and a pointer it is told to follow is followed less often than a file it is handed: measured on the framework's own repository, a fresh instance behind "read `AGENTS.md` first" named records bare in 87 cases of 100, and with the guide imported in 16.
 
 The skills in `.claude/skills/` are plain markdown with no Claude-specific machinery.
 An agent without a skill system reads them directly as workflow guides:
@@ -38,8 +38,24 @@ That works for `.cursor/rules/srs.mdc`, `.github/copilot-instructions.md`, and a
 ## Installing by URL
 
 An agent given nothing but this repository's URL can install the framework itself; the [README](../README.md) section "Handing this to an agent" holds the procedure and the canonical URLs.
-Two decisions in it are not the agent's to make alone, and the skill says so: the **requirement areas** (the middle segment of every identifier, and identifiers are immutable) and the **lexicon** (which words carry binding force).
+Three things in it are not the agent's to make alone, and the skill says so: the **requirement areas** (the middle segment of every identifier, and identifiers are immutable), the **lexicon** (which words carry binding force) and the **line width** the project's code already follows.
 The agent proposes; the maintainer confirms — and sees the dry-run install list before anything is written.
+The width is looked for where the project states it — an `.editorconfig`, a formatter's configuration, a contributing guide — shown with where it was found, and passed on only once approved; nothing is invented where nothing is found.
+
+### Modes and exit codes
+
+The installer detects the mode itself from the target: **fresh** where no specification is present, **adopt** where an SRS-shaped specification exists without `specs/srs-config.json`, **upgrade** where that configuration exists.
+Adopt is transactional — the target is validated first and left byte-identical on failure — which is what makes a retry safe.
+An agent running unattended has only the exit code to decide by:
+
+```
+0  installed
+1  checker errors, or partial completion past adopt's point of no return
+2  refused before changing anything
+3  adopt rolled back, target untouched
+```
+
+Zero is done; one means read the checker's report before anything else; two means answer differently and try again; three means the target is as it was and the reason is in the output.
 
 ## What the agent is held to afterwards
 

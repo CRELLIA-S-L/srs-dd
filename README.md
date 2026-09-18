@@ -4,11 +4,23 @@
 Six weeks later nobody can say whether the behaviour it added was ever asked for.**
 SRS-DD makes that question answerable by a script: every change that alters behaviour names the numbered requirement it closes, and the build fails when it does not.
 
+In plain terms: a numbered list of what the system must do lives in the repository next to the code, every requirement on it says which files realize it and which tests prove it, and a script refuses a build where the two sides disagree — for Cursor, Codex, Claude Code, Copilot, any agent that reads a Markdown guide, and for the people reviewing what they wrote.
+
 Built for repositories written with agents, and it refuses the usual price for that.
 What agents get is not a prompt file with a nice name — it is a real software requirements specification: **ISO/IEC/IEEE 29148** structure and attributes, **EARS** statement patterns, immutable identifiers, a lifecycle, a generated traceability matrix, **MADR** decision records.
 What people get is the same thing, in plain Markdown that diffs line by line in a review, and one self-contained page for whoever will never clone the repository.
 
 `Python ≥ 3.9` · standard library only · plain Markdown · specification in any language · no server, no database, no service · MIT
+
+Try it on your own repository without writing a byte into it:
+
+```
+git clone --depth 1 https://github.com/CRELLIA-S-L/srs-dd.git /tmp/srs-dd
+python3 /tmp/srs-dd/tools/srs_init.py path/to/your-project --dry-run
+```
+
+The dry run prints the exact list of what would be created; drop the flag to install, and [Install](#install) says what the installer asks.
+Handing this to an agent instead? The procedure it needs is one file, `.claude/skills/srs-init/SKILL.md`, and [Handing this to an agent](#handing-this-to-an-agent) has its URL and what to tell it.
 
 This repository is its own example: [`specs/`](specs/) describes the checker, the viewer and the installer as numbered requirements, and the pipeline publishes them as [a page](https://crellia-s-l.github.io/srs-dd/).
 For what an ordinary product looks like after adopting the standard — a small service, a superseded requirement kept for the record, tests named from both directions — see [srs-dd-example-urlshortener](https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener).
@@ -30,6 +42,14 @@ A specification with identifiers turns all three into lookups.
 Plans cite `FR-CORE-020`.
 Diffs carry the requirement they close.
 Drift between the spec and the code becomes a build error rather than a discovery.
+
+## What it looks like
+
+[![The requirements of this page and everything they restate, drawn as the specification's graph](https://crellia-s-l.github.io/srs-dd/readme-graph.svg)](https://crellia-s-l.github.io/srs-dd/)
+
+Every box is a requirement, coloured by its status; every line is a link — what derives from what, what depends on what.
+The right-hand lane is this page's own requirements — the ones that say what each section must contain and what holds it to the repository — reaching into every other area they restate.
+The picture is drawn by the pipeline from the specification at every deploy, so it is never older than the page; click it for the live page — search, filters, the coverage gaps, the whole graph of 250-odd requirements, and any two baselines compared.
 
 ## A requirement, and what the tooling does with it
 
@@ -70,17 +90,8 @@ No CDN, no network, opens straight from `file://`.
   The matrix is a committed artifact; CI regenerates it and compares byte-for-byte, so a stale one is a red build rather than a habit.
 - **A listed test counts as proof only if it could fail.**
   The `srs-audit` procedure derives cases from the statement's own EARS parts, builds a decision table where conditions combine, and refuses to call a case covered until it can name the change to the code that would turn that test red.
-- **Requirements have immutable identifiers and a lifecycle.**
-  Cancelled ones are kept saying they were cancelled — `superseded` with a successor, `withdrawn` without — and a requirement still standing on a withdrawn one is reported.
-- **A milestone can be frozen and compared.**
-  `srs_baseline.py` writes a row into the baseline log; afterwards `--diff 0.14.0` says exactly which requirements were added, removed, or had a field or a statement changed since, on the terminal and on the page.
-- **The specification can be written in any language.**
-  The tooling reads the modal verbs it enforces from a per-project lexicon, so the requirements are in the team's language and the rules are the same — [docs/multilingual.md](docs/multilingual.md).
 - **Already have code and no spec?**
   `srs-harvest` reads it area by area and proposes draft requirements in batches you approve, never writing a status or inventing a test that does not exist.
-- **Nothing to install.**
-  Six dependency-free Python scripts land in your repository — seven with a grounds register, eight with an architecture layer.
-  No server, no database, no toolchain, no account.
 - **Agent-agnostic, and optional.**
   `AGENTS.md` is read natively by Cursor, Codex, Gemini CLI and Copilot; the skills are plain Markdown any agent can follow; a team working entirely by hand loses nothing.
 
@@ -90,7 +101,7 @@ A specification records what the system must do.
 It does not record why anyone thought those were the right things to build — that reasoning lives in rationale prose, which no rule checks.
 Delete a requirement's rationale and a strict run reports nothing at all.
 
-The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest of the eight areas this framework specifies itself in.
+The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest area this framework specifies itself in.
 It holds three kinds of ground, and one record that joins them to the specification.
 The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries — written by hand or derived from the files it owns — and a checker that reports a file the specification claims and no part owns.
 
@@ -156,19 +167,10 @@ python3 /tmp/srs-dd/tools/srs_init.py path/to/project [flags]
 ```
 
 Add `--branch vX.Y.Z` to the clone to pin a release.
-The installer detects the mode itself — fresh, adopt or upgrade — and adopt is transactional.
+The installer detects the mode itself — fresh, adopt or upgrade — and an agent running it unattended decides by the exit code; the modes, the codes and what each asks of the agent are in [docs/agents.md](docs/agents.md).
 
-```
-0  installed
-1  checker errors, or partial completion past adopt's point of no return
-2  refused before changing anything
-3  adopt rolled back, target untouched
-```
-
-**Two decisions are not the agent's to make alone**, and the skill stops for them: the **requirement areas** — the middle segment of every identifier, and identifiers are immutable — and the **lexicon**, which words carry which binding force.
-The agent proposes; the maintainer confirms.
-The same holds for the line width your code already follows: the agent looks for it in whatever you state it in — an `.editorconfig`, a formatter's configuration, a contributing guide — shows what it found and where, and passes it on only once you approve.
-Nothing is invented where nothing is found.
+**Three things are not the agent's to decide alone**, and the skill stops for each: the **requirement areas** — the middle segment of every identifier, and identifiers are immutable — the **lexicon**, which words carry which binding force, and the **line width** your code already follows, which the agent looks for where you state it and shows before passing it on.
+The agent proposes; the maintainer confirms; nothing is invented where nothing is found.
 
 ### What you then tell the agent to do
 
@@ -185,6 +187,7 @@ Ask for them by name, or describe the task and let the agent pick.
 | "freeze the spec" | `srs-baseline` — shows what changed since the last baseline, offers an audit of what the diff touches, settles the version with you, writes the row. |
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
 | "why do we do X" / a measurement came in | `srs-bet` — the grounds register: write a hypothesis, stake a requirement on it, record a measurement, settle what happens when one is refuted. |
+| "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, and read the disagreements the checker computes between that description, the specification and the code. |
 | "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, refreshes the tooling and nothing precious. |
 
 Three rules bind every one of them, and they are why an agent with these is safer than an agent without: **it proposes, you approve** — no status is flipped and no batch is written without you; **it never runs builds or tests unasked**; **it reports what follows, not what it noticed** — an observation with no consequence is dropped rather than handed to you as homework.
@@ -214,14 +217,16 @@ python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
 python3 tools/srs_view.py --code src/app.py  which requirements describe a file
 python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
 python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
-python3 tools/srs_view.py --cite <ID>…       how to name it to a person
+python3 tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
 python3 tools/srs_view.py --diff 0.14.0      working tree against a baseline
 python3 tools/srs_view.py --json             the model, for your own tooling
 python3 tools/srs_view.py --html             a page for people who do not grep
+python3 tools/srs_view.py --area DOC --around --svg graph.svg   one area and what it links to, as an image
 ```
 
 The viewer never writes to `specs/` and never gates anything.
 Where a project keeps a register, `python3 tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
+Each layer's checker cites its own records in the same form — `srs_arch.py --cite E-NNN…`, `srs_grounds.py --cite H-NNN…` — because the viewer reads the specification and nothing else.
 
 ## Where things are
 
@@ -236,5 +241,7 @@ Where a project keeps a register, `python3 tools/srs_grounds.py --blast <path>` 
 | `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
+| `.github/`, `.githooks/` | This repository's own pipeline and the hook that runs the same suites before a commit; targets get the templates in `ci/` instead |
 | `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any language](docs/multilingual.md) |
-| `CONTRIBUTING.md`, `CHANGELOG.md` | Framework governance and versioning |
+| `AGENTS.md`, `CLAUDE.md` | This repository's own agent guides — the framework is itself an SRS-DD project, and these are what an agent working on it reads first |
+| `CONTRIBUTING.md`, `CHANGELOG.md`, `LICENSE` | Framework governance, versioning and the MIT licence |

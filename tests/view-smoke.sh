@@ -1340,3 +1340,120 @@ grep -q "no requirement FR-CORE-990" /tmp/srs-cite-bad.err \
 grep -q "FR-CORE-010 — A live one" /tmp/srs-cite-bad.out \
     || { echo "--cite dropped the requirements it could resolve"; exit 1; }
 echo "view-smoke: --cite refuses an identifier the specification does not carry"
+
+# --- verifies: FR-VIEW-320 — a listed requirement is named where it is
+# --- written: identifier, status, title, file on one line, in that order,
+# --- the path alone and never the line.
+( cd "$CITE" && python3 tools/srs_view.py --list ) > /tmp/srs-list-file.out
+grep -qE "^FR-CORE-010 +implemented +A live one +specs/10-fr-core.md$" \
+    /tmp/srs-list-file.out \
+    || { echo "--list did not print the file after the title"; cat /tmp/srs-list-file.out; exit 1; }
+grep -q "10-fr-core.md:" /tmp/srs-list-file.out \
+    && { echo "--list printed a line number, which a citation leaves out"; exit 1; }
+echo "view-smoke: --list names the file a requirement is written in"
+
+# --- verifies: FR-VIEW-330 — a decision is cited like a requirement, by
+# --- the identifier in its heading rather than by its file name, with the
+# --- status its first lines carry. A file under adr/ whose heading is not
+# --- a decision's — an index — is not one, and an unknown number is refused
+# --- in the same run as the ones that resolve.
+mkdir -p "$CITE/specs/adr"
+{ printf '# ADR-0007 — Keep the number, rename the file\n\n'
+  printf -- '- **Status:** accepted\n- **Date:** 2026-09-01\n\n## Context\n\nSome.\n'
+} > "$CITE/specs/adr/ADR-0007-renamed-since.md"
+printf '# Decisions\n\nAn index.\n' > "$CITE/specs/adr/README.md"
+# A decision whose file opens with a blank line is still a decision, and
+# one with no status line is cited with the status it lacks shown as such.
+printf '\n# ADR-0009 — Opens with a blank line\n\nText.\n' \
+    > "$CITE/specs/adr/ADR-0009-blank-first.md"
+( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0007 FR-CORE-010 ADR-0009 ) \
+    > /tmp/srs-cite-adr.out 2>/tmp/srs-cite-adr.err \
+    || { echo "--cite refused a decision the log carries"; cat /tmp/srs-cite-adr.err; exit 1; }
+cat > /tmp/srs-cite-adr.want <<'WANT'
+ADR-0007 — Keep the number, rename the file (specs/adr/ADR-0007-renamed-since.md, accepted)
+FR-CORE-010 — A live one (specs/10-fr-core.md, implemented)
+ADR-0009 — Opens with a blank line (specs/adr/ADR-0009-blank-first.md, ?)
+WANT
+diff -u /tmp/srs-cite-adr.want /tmp/srs-cite-adr.out \
+    || { echo "--cite did not print a decision in the form, or lost the order"; exit 1; }
+rc=0
+( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0008 ) \
+    > /tmp/srs-cite-adr-bad.out 2>/tmp/srs-cite-adr-bad.err || rc=$?
+[ "$rc" = 1 ] || { echo "an unknown decision left --cite with exit $rc"; exit 1; }
+grep -q "no decision ADR-0008" /tmp/srs-cite-adr-bad.err \
+    || { echo "--cite did not say which decision it could not resolve"; exit 1; }
+echo "view-smoke: --cite prints a decision by the number in its heading"
+
+# --- verifies: FR-VIEW-340 — the graph of a selection is written as an image
+# --- of its own: one SVG file, well-formed, carrying its styles with no
+# --- variable left unresolved, drawing the selected requirements and their
+# --- links; the same bytes twice; nothing written where nothing links.
+# Its own lab: the citation fixture carries no link field the graph draws,
+# and the graph is about links.
+GRAPH=/tmp/srs-view-graph
+rm -rf "$GRAPH"; mkdir -p "$GRAPH/tools" "$GRAPH/specs"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$GRAPH/tools/"
+printf '{"areas": ["CORE"]}\n' > "$GRAPH/specs/srs-config.json"
+{ printf '# c\n\n### FR-CORE-010 — The root\n\n'
+  printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: [src/a.py]\n'
+  printf 'tests: [t/a.sh]\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** act.\n\n'
+  printf '### FR-CORE-020 — The one that derives\n\n'
+  printf '```yaml\nstatus: superseded\nsuperseded_by: FR-CORE-010\n'
+  printf 'verification: T\nderives_from: [FR-CORE-010]\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: []\n'
+  printf 'tests: []\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** have acted.\n'
+} > "$GRAPH/specs/10-fr-core.md"
+( cd "$GRAPH" && python3 tools/srs_view.py --svg /tmp/srs-graph-1.svg ) > /tmp/srs-svg.out \
+    || { echo "--svg refused a specification with a link in it"; cat /tmp/srs-svg.out; exit 1; }
+grep -q "Graph written: /tmp/srs-graph-1.svg (2 requirements)" /tmp/srs-svg.out \
+    || { echo "--svg did not report the file and the count"; cat /tmp/srs-svg.out; exit 1; }
+python3 - <<'PY' || exit 1
+import re, sys, xml.dom.minidom
+text = open("/tmp/srs-graph-1.svg", encoding="utf-8").read()
+xml.dom.minidom.parseString(text)
+for needle in ('<svg ', '<style>', 'FR-CORE-010', 'FR-CORE-020', 'class="edge', '.st-superseded', '.graph .node rect'):
+    if needle not in text:
+        sys.exit("the image lacks %r" % needle)
+if "var(--" in text:
+    sys.exit("the image still refers to a CSS variable an image renderer may not resolve")
+if not text.startswith('<?xml version="1.0"'):
+    sys.exit("the image does not open as an XML document")
+PY
+( cd "$GRAPH" && python3 tools/srs_view.py --svg /tmp/srs-graph-2.svg ) > /dev/null
+cmp -s /tmp/srs-graph-1.svg /tmp/srs-graph-2.svg \
+    || { echo "two runs of --svg on an unchanged specification differ"; exit 1; }
+echo "view-smoke: --svg writes the graph as one self-contained, deterministic image"
+
+# --- Widened by one step: the implemented one alone has no link to draw,
+# --- and with --around it brings the one that derives from it — and no
+# --- more, since one step is the promise.
+( cd "$GRAPH" && python3 tools/srs_view.py --status implemented --around --svg /tmp/srs-graph-4.svg ) \
+    > /tmp/srs-svg-around.out \
+    || { echo "--around did not widen a linkless selection to its neighbour"; cat /tmp/srs-svg-around.out; exit 1; }
+grep -q "(2 requirements)" /tmp/srs-svg-around.out \
+    || { echo "--around widened to something other than the one neighbour"; cat /tmp/srs-svg-around.out; exit 1; }
+grep -q "FR-CORE-020" /tmp/srs-graph-4.svg \
+    || { echo "the widened image lacks the neighbour"; exit 1; }
+# The other direction: select the one that derives, and --around brings
+# what it derives from.
+( cd "$GRAPH" && python3 tools/srs_view.py --status superseded --around --svg /tmp/srs-graph-5.svg ) \
+    > /tmp/srs-svg-around2.out \
+    || { echo "--around did not widen to what the selection links to"; cat /tmp/srs-svg-around2.out; exit 1; }
+grep -q "(2 requirements)" /tmp/srs-svg-around2.out \
+    || { echo "--around from the deriving side widened to the wrong count"; cat /tmp/srs-svg-around2.out; exit 1; }
+echo "view-smoke: --around widens the selection by one link in either direction"
+
+# --- A selection with no link among its requirements has no graph: the
+# --- viewer says so, exits 1, and writes no file.
+rm -f /tmp/srs-graph-3.svg
+rc=0
+( cd "$GRAPH" && python3 tools/srs_view.py --status implemented --svg /tmp/srs-graph-3.svg ) \
+    > /tmp/srs-svg-none.out 2>&1 || rc=$?
+[ "$rc" = 1 ] || { echo "--svg over a linkless selection exited $rc, expected 1"; exit 1; }
+grep -q "nothing to draw: 1 requirement(s) selected" /tmp/srs-svg-none.out \
+    || { echo "--svg did not say why it drew nothing"; cat /tmp/srs-svg-none.out; exit 1; }
+[ -f /tmp/srs-graph-3.svg ] && { echo "--svg wrote a file for a selection with nothing to draw"; exit 1; }
+echo "view-smoke: --svg writes nothing and says so where the selection has no link"

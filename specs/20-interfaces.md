@@ -270,3 +270,24 @@ A rule name the architecture checker has published **shall** keep its meaning: i
 
 **Rationale.** `FR-ARCH-090` lets a project write those names into its own configuration, which makes them a vocabulary somebody else's file is written in.
 A rename breaks that file in the least helpful way available — the checker refuses to start and says nothing about what the old name became — and a name quietly reused for another rule is worse, because everything keeps running while the exemption now excuses something nobody meant.
+
+### IF-ARCH-040 — The edges file is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-260]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-17
+```
+
+`arch/edges.json` **shall** be a JSON list of objects whose `from` and `to` name repository-relative file paths and whose optional `via` is text the checker prints back unread, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The file is written by a tool the framework will never see — a project's own extractor, in whatever language the project is — and a shape somebody else's tooling writes against is an interface whether or not it was meant as one; `IF-VIEW-010` made the same argument for the model the viewer publishes.
+JSON because the standard library reads it and a line format with free text in it does not survive a space in the text.
+File paths because the checker resolves them and the extractor then knows nothing about elements; a value that is an element identifier is refused when the file is read, with the reason, since a list of parts depending on parts is the declared model and has a field of its own.
+`via` is where the extractor says what it saw — a symbol, a line — and it is printed, not parsed, so that no project has to agree with another about what evidence looks like.
