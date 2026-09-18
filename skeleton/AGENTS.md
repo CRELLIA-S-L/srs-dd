@@ -58,3 +58,7 @@ A change to behavior starts at the loop below.
    The rule holds in a table, in a list and in the steps of a plan; a number the specification does not carry yet is a proposal and is marked as one instead.
 5. Reading the code behind a change — take the files from the `code` and `tests` fields of the requirements the change belongs to (`python3 tools/srs_view.py --code <path>` answers from the other end), not from a search over the repository.
    Go wider where you must, and say where you went.
+6. Reporting to a person — write in sentences that follow one another, and keep a list or a table for what the reader has to count or compare.
+   A label with a fragment after it is a note to yourself; the reader has to put back what follows from what.
+7. Saying what the project's files say — read the source in the same message and match the sentence to it before sending, not to what you remember reading earlier.
+   A count is derived over the current files, a claim that something is nowhere written names what was searched, and a paraphrase of a document is checked against the passage it paraphrases.

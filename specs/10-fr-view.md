@@ -743,3 +743,31 @@ A decision has the parts a citation needs — its heading carries the identifier
 The identifier is what the heading says, not the file name: a decision is renamed when its file is, and cited by the number that never changes.
 An unknown identifier is refused the way an unknown requirement is, in the same run, so that a plan citing ten things and misspelling one learns which.
 
+### FR-VIEW-340 — The graph of a selection is written as an image of its own
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-110]
+depends_on: [FR-VIEW-220, FR-VIEW-070]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-18
+```
+
+When asked for the graph as an image, the viewer **shall** write the graph of the requirements the filters select — widened, where asked, to the ones they link to and that link to them — as one self-contained SVG file that carries its own styles, drawn as the page would draw the same selection.
+
+**Rationale.** The graph on the page is built by the viewer, not by the browser — the lanes and rows are arithmetic and the `<svg>` is in the HTML before any script runs — so an image of it is the same drawing written to a file rather than a second drawing.
+What the page cannot do is be embedded: a forge's landing page strips frames and scripts, and the one thing it shows from elsewhere is an image, so the image is how the graph reaches a reader who has not opened the page.
+Its own styles, because on the page the colours come from the page's stylesheet, and an SVG shown as an image has no page around it; a file without them is a graph in black on nothing.
+
+The filters are the ones the list already has (`FR-VIEW-220`): an area, a status, a type, a search, a path.
+The whole graph is a picture of two hundred nodes nobody reads; a selection is a picture of one thing, and the reader who wants the rest has the page.
+An edge to a requirement outside the selection is not drawn, as an edge to a requirement the specification does not carry is not: the file shows the selection and says nothing about the rest.
+Widening by one step is what shows a selection's place in the specification — an area drawn alone is one lane, a column of boxes with bows beside it, and the same area with what it links to is nine lanes and the reaching between them; one step and not two, because two steps from anything is most of the specification, and the whole graph is the picture nobody reads.
+A selection with no edges among its requirements has no graph, and the viewer says so and writes nothing rather than an empty picture.
+
+Deterministic for the reason the page is (`FR-VIEW-070`): a pipeline writes it beside the page on every build, and a picture that changed when nothing did is a diff nobody can review.
+

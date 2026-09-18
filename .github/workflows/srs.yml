@@ -78,6 +78,12 @@ jobs:
       - name: Dates smoke
         run: tests/dates-smoke.sh
 
+      - name: Documented commands
+        run: tests/docs-commands.sh
+
+      - name: Documented content
+        run: tests/docs-content.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \
@@ -158,6 +164,9 @@ jobs:
         run: |
           python3 tools/srs_view.py --html site/index.html \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
+          # The landing page shows the graph of its own requirements by this
+          # URL; the name is fixed because README.md addresses it (FR-CI-110).
+          python3 tools/srs_view.py --area DOC --around --svg site/readme-graph.svg
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

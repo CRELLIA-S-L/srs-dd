@@ -696,3 +696,60 @@ A false link is worse than an absent one — it lies about what a change reaches
 
 **What this does not promise is completeness, and it cannot.** A missing link is invisible by construction, so no pass and no rule can establish that none remain.
 After it the graph has been looked at once, by somebody, area by area — which is more than has ever been true of it, and less than proof.
+
+### FR-SKILL-270 — What is said to a person is said in connected prose
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-170]
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-09-18
+```
+
+When a procedure reports to a person, it **shall** write in sentences that follow one another, keeping a list or a table for what the reader has to count or compare.
+
+**Rationale.** A label, a colon and a fragment is a note the writer made for themselves; the person reading it has to put the connectives back — what follows from what, which of these is the reason and which the consequence — and that is the same work a bare identifier leaves to them, only spread over the whole report.
+A page of such fragments is skimmed, and what is skimmed is not read; `FR-SKILL-170` keeps the report to what has a *therefore*, and this keeps the *therefore* in the sentence rather than in the reader's head.
+The maintainer of this project asked for it twice in one sitting, each time after a report had arrived as a table of labels.
+
+A list is not the tell, and a rule that forbade one would forbid most of what a person needs.
+Where the reader counts — five files, three options, the requirements a change reaches — a list is what they count on; where they compare, a table is what they compare in.
+What the rule takes away is the structure that stands in for a sentence: the heading over one paragraph, the bullet that carries a clause, the bold label that says what the next sentence would have said.
+
+Verified by inspection, as the rest of this area is, because what reads as connected depends on the sentence and on the language it is written in.
+
+### FR-SKILL-280 — A statement about the project is checked against its source before it is sent
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-250, FR-SKILL-200]
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs/SKILL.md]
+tests: []
+created: 2026-09-18
+```
+
+When a procedure states to a person what the project's files say, do not say or count to, it **shall** check the sentence against that source before the report is sent — the source read in the same report, not remembered from an earlier one.
+
+**Rationale.** What a procedure remembers of a file is what it read an hour ago for a different question, and it answers from that memory with the same confidence it answers from the file.
+This project has the cases on record from one sitting: a rule reported as living "in a docstring and nowhere else" while it stood in the agent guide, opened earlier in the same session; a proposal's finding paraphrased into a claim the proposal did not make; a count derived over the specification before four requirements were added to it and reported after; and "the word does not occur anywhere" said over a search result the screen had cut to nine of its nineteen lines.
+None of those was a lie, and every one of them cost the maintainer a correction, which is a cost paid for confidence rather than for knowledge.
+
+The rules it stands on cover two of its cases already.
+`FR-SKILL-250` makes a search report what it searched, so that a proper search that found nothing can be told from a poor query honestly reported; `FR-SKILL-200` calls its own rule the cheapest available form of "open it first", because a title that was guessed is contradicted by the file beside it.
+This one covers the rest: a claim that a file says something, that it does not, or that a number is what it is, is made from a reading in the same report, and the sentence is read back against the source before it goes — a step that costs a look and is skipped exactly when the memory feels sure.
+
+"Read that source in the same report" is the unit `FR-SKILL-200` gives the citation: the person reads one message at a time, and what was true of the file an hour ago is true of the file an hour ago.
+A claim of absence is the hardest case and the one this is most for — *nowhere is this written* — because it cannot be checked by opening one file; the search behind it is what `FR-SKILL-250` obliges the report to carry, and the sentence is sized to what the search covered.
+
+Verified by inspection.
+A checker cannot tell a sentence written from a file from one written from memory of it; a reader who has the file open can, and a procedure that names what it read gives them the means.
+

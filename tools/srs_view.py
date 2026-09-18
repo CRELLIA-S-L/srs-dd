@@ -2465,6 +2465,80 @@ requirements · __VERSIONS__</div>
 """
 
 
+RE_CSS_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}")
+
+
+def graph_stylesheet():
+    # implements: FR-VIEW-340
+    """The rules the drawing needs and the background colour, taken from
+    the page's own stylesheet rather than kept as a second copy: every rule
+    addressed to `.graph` and the status colours the nodes carry, with the
+    light theme's variables resolved into them.
+
+    Light and only light, on an opaque background. An SVG shown as an
+    image is not told what theme the page around it uses, and a drawing
+    that is legible on one background is worth more than one that guesses.
+    """
+    # Comments out first: a rule written after one would otherwise carry
+    # the comment inside its selector and match nothing.
+    rules = RE_CSS_RULE.findall(re.sub(r"/\*.*?\*/", "", CSS, flags=re.S))
+    root = next(body for selector, body in rules if selector.strip() == ":root")
+    values = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", root))
+    # Resolved to literal colours: an SVG rendered as an image is not
+    # promised custom properties by every renderer, and a variable it does
+    # not resolve is a node drawn in black on black.
+    def resolve(body):
+        return re.sub(r"var\((--[\w-]+)\)",
+                      lambda m: values.get(m.group(1), m.group(0)), body)
+    kept = []
+    for selector, body in rules:
+        selector = selector.strip()
+        if selector.startswith(".graph") or selector.startswith(".st-"):
+            kept.append("%s {%s}" % (selector, resolve(body.strip())))
+    return "\n".join(kept), values["--bg"]
+
+
+def neighbourhood(model, chosen):
+    # implements: FR-VIEW-340
+    """The selection and every requirement one link away from it, in either
+    direction — what it names in a link field and what names it. One step,
+    because the picture is of the selection's place in the specification,
+    and two steps from anything is most of it."""
+    known = by_id(model)
+    core = set(entry["id"] for entry in chosen)
+    wanted = set(core)
+    for entry in model["requirements"]:
+        targets = set(t for field in LINK_FIELDS for t in entry[field])
+        if entry["id"] in core:
+            wanted.update(t for t in targets if t in known)
+        elif targets & core:
+            wanted.add(entry["id"])
+    return [entry for entry in model["requirements"] if entry["id"] in wanted]
+
+
+def graph_image(model):
+    # implements: FR-VIEW-340
+    """The graph of `model` as one self-contained SVG document, or "" where
+    the selection has no edges to draw. The drawing is the page's — the
+    same function, the same arithmetic — lifted out of the stage it sits in
+    on the page and given the styles it needs to stand alone."""
+    stage, _dropped = build_graph(model)
+    if not stage:
+        return ""
+    start = stage.index("<svg ")
+    end = stage.index("</svg>", start) + len("</svg>")
+    drawing = stage[start:end]
+    # A backdrop the page gives the drawing through CSS and an image has
+    # to carry itself; inserted first so that everything draws over it.
+    head_end = drawing.index(">") + 1
+    stylesheet, background = graph_stylesheet()
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            + drawing[:head_end]
+            + "<style>" + stylesheet + "</style>"
+            + '<rect width="100%%" height="100%%" fill="%s"/>' % background
+            + drawing[head_end:] + "\n")
+
+
 def baseline_row(version, date=None):
     # implements: FR-VIEW-120
     """The row for `92-baselines.md`, ready to paste.
@@ -2781,6 +2855,12 @@ def parse_args(argv):
                              "computed against the previous baseline")
     parser.add_argument("--date", metavar="YYYY-MM-DD",
                         help="the date for --baseline; today by default")
+    parser.add_argument("--svg", metavar="PATH",
+                        help="write the graph of the selected requirements as a "
+                             "self-contained SVG image; the filters narrow it")
+    parser.add_argument("--around", action="store_true",
+                        help="with --svg: widen the selection to every requirement "
+                             "it links to or that links to it, one step")
     parser.add_argument("--json", nargs="?", const="-", metavar="PATH",
                         help="write the model as JSON (default stdout); with "
                              "--diff it carries the comparison too")
@@ -2856,6 +2936,21 @@ def main(argv=None):
     # A mistyped output path deserves a sentence, not a traceback. Both
     # outputs may be asked for at once; neither silently wins.
     try:
+        if args.svg is not None:
+            # implements: FR-VIEW-340
+            chosen = select(model, args)
+            if args.around:
+                chosen = neighbourhood(model, chosen)
+            image = graph_image(dict(model, requirements=chosen))
+            if not image:
+                sys.stderr.write("nothing to draw: %d requirement(s) selected and no "
+                                 "link among them\n" % len(chosen))
+                return 1
+            ensure_parent(args.svg)
+            with open(args.svg, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write(image)
+            out("Graph written: %s (%d requirements)" % (args.svg, len(chosen)))
+            return 0
         if args.json is not None:
             payload = dict(model)
             if diff:

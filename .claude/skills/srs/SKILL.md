@@ -51,6 +51,8 @@ Its *Incoming links* section is every link between requirements in one place, co
 The rule itself is in `AGENTS.md`.
 
 **Report the lookup, not only its outcome** — the paths you gave, and the words, where you fell back to a search over them.
+What you then say about those files is read off them in this report, not off what you remember of them, and read back against the file before it is sent — the guide's rule for any statement about the project, and the one most often broken where the memory feels surest.
+Say it in sentences that follow one another; a list is for what the reader counts.
 Where the answer is nothing, a lookup that missed and a lookup nobody made produce the same sentence, and the reader who could tell them apart is the one holding the report.
 Where it is something, the paths are what tell that reader how wide the answer was.
 
@@ -127,6 +129,7 @@ Then:
 
    A reworded statement also goes through the same lookup a new one does — what else already speaks to this behaviour, and what points at it — and what that turns up is said, not merely consulted.
    A rewording reaches everything that was standing on the old wording, and the incoming links are where that shows.
+   Among them may be a section of the landing page — the `FR-DOC-*` requirements name in `depends_on` what each section restates — and that is a document to re-read against the new statement in this same set of edits, not a link to note.
 
    Then status per Lifecycle, and `code` and `tests` filled with real paths — **and every file you named there says so back**, with `implements:` or `verifies:` (see Annotations in `specs/README.md`).
    The checker reports a file a requirement names that does not name it back, so this is not bookkeeping you can put off:

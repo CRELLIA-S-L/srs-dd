@@ -38,8 +38,24 @@ That works for `.cursor/rules/srs.mdc`, `.github/copilot-instructions.md`, and a
 ## Installing by URL
 
 An agent given nothing but this repository's URL can install the framework itself; the [README](../README.md) section "Handing this to an agent" holds the procedure and the canonical URLs.
-Two decisions in it are not the agent's to make alone, and the skill says so: the **requirement areas** (the middle segment of every identifier, and identifiers are immutable) and the **lexicon** (which words carry binding force).
+Three things in it are not the agent's to make alone, and the skill says so: the **requirement areas** (the middle segment of every identifier, and identifiers are immutable), the **lexicon** (which words carry binding force) and the **line width** the project's code already follows.
 The agent proposes; the maintainer confirms — and sees the dry-run install list before anything is written.
+The width is looked for where the project states it — an `.editorconfig`, a formatter's configuration, a contributing guide — shown with where it was found, and passed on only once approved; nothing is invented where nothing is found.
+
+### Modes and exit codes
+
+The installer detects the mode itself from the target: **fresh** where no specification is present, **adopt** where an SRS-shaped specification exists without `specs/srs-config.json`, **upgrade** where that configuration exists.
+Adopt is transactional — the target is validated first and left byte-identical on failure — which is what makes a retry safe.
+An agent running unattended has only the exit code to decide by:
+
+```
+0  installed
+1  checker errors, or partial completion past adopt's point of no return
+2  refused before changing anything
+3  adopt rolled back, target untouched
+```
+
+Zero is done; one means read the checker's report before anything else; two means answer differently and try again; three means the target is as it was and the reason is in the output.
 
 ## What the agent is held to afterwards
 

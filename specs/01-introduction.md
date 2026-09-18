@@ -9,7 +9,7 @@ A project that adopts SRS-DD writes its own specification; this one describes wh
 
 ## Scope
 
-In scope: the behavior of `tools/srs_check.py`, `tools/srs_view.py`, `tools/srs_init.py`, the procedures in `.claude/skills/`, the CI templates in `ci/`, this repository's own pipeline, and the properties of the specification format that they collectively guarantee.
+In scope: the behavior of `tools/srs_check.py`, `tools/srs_view.py`, `tools/srs_init.py`, the procedures in `.claude/skills/`, the CI templates in `ci/`, this repository's own pipeline, the properties of the specification format that they collectively guarantee, and what this repository's own documentation — the landing page and `docs/` — answers and may claim.
 
 Out of scope: the content of any target project's specification, the editors and agents that read the guides, and the forges the repository is hosted on.
 
