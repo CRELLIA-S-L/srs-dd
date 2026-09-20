@@ -3,41 +3,28 @@
 
 A summary for coding agents; the project follows the SRS-DD standard.
 On any conflict, `specs/README.md` wins — it is the single normative document on the specification.
-
-The project is driven by its specification.
 System behavior is described in `specs/` as numbered requirements with links between them and references to code.
 
-- **Specification rules** — `specs/README.md`.
+- **Specification rules** — `specs/README.md`, by section; `python3 tools/srs_view.py --vocabulary` prints the words a block may use.
 - **Engineering principles** — `specs/constitution.md` (`ART-*`); they apply to every task.
 <SRS-DD-WIDTH-LINE>
-- **Markdown is not wrapped to a width** — a line breaks where the meaning breaks, never inside a sentence.
-  The renderer does the wrapping.
+- **Markdown is not wrapped to a width** — a line breaks where the meaning breaks, never inside a sentence; the renderer does the wrapping.
 - **Check** — `python3 tools/srs_check.py`.
-- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with its links resolved, `--code <path>` for the requirements describing a file, `--areas` for what the specification is divided into, `--open` for a page a non-engineer can read;
-  `.claude/skills/srs-page/SKILL.md` is the procedure around it.
-- **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those.
-  It runs nothing unasked.
+- **Read** — `python3 tools/srs_view.py <ID>` for one requirement with its links resolved, `--code <path>` for the requirements describing a file (`--statements` adds what each obliges), `<ID> --where` for the lines that carry it (`--source` prints them), `--areas` for what the specification is divided into, `--open` for a page a non-engineer can read; `.claude/skills/srs-page/SKILL.md` is the procedure around it.
+- **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those; it runs nothing unasked.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain markdown; an agent without a skill system reads them directly as workflow guides.
-- **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the row into `specs/92-baselines.md`; the commit that carries it is the baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure around it.
-  Nothing here commits or tags for you.
-- **Upgrade the framework** — `python3 tools/srs_upgrade.py`.
-  It shows the version transition, the upgrade notes and the file list, then asks;
-  `.claude/skills/srs-upgrade/SKILL.md` is the procedure.
-  Nothing else is needed — no framework clone, no address to look up.
+- **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the row into `specs/92-baselines.md`; the commit that carries it is the baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure. Nothing here commits or tags for you.
+- **Upgrade the framework** — `python3 tools/srs_upgrade.py` shows the version transition, the upgrade notes and the file list, then asks; `.claude/skills/srs-upgrade/SKILL.md` is the procedure. No framework clone, no address to look up.
 
 ## Two ways in
 
-A question about how the system works starts with what this project wrote about itself — the terms, the purpose and the overview, which the standard's map places in `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`.
-They are short and they carry the project's own words — the ones a search over requirement text assumes you already know.
-Then `--areas`, then one area, then the requirement, then its code.
+A question about how the system works starts with what this project wrote about itself — `specs/00-glossary.md`, `specs/01-introduction.md`, `specs/02-overview.md`: short, and in the project's own words, which a search over requirement text assumes you already know. Then `--areas`, then one area, then the requirement, then its code.
 
 A change to behavior starts at the loop below.
 
 ## The loop
 
-1. Before changing behavior, find the requirements that describe it:
-   `python3 tools/srs_view.py --code <path/to/file>`, or the tables in `specs/90-traceability.md`.
-   None exist — create one first, with the initial status per the Lifecycle section of `specs/README.md`.
+1. Before changing behavior, find the requirements that describe it: `python3 tools/srs_view.py --code <path/to/file>`, or the tables in `specs/90-traceability.md`. None exist — create one first, with the initial status per the Lifecycle section of `specs/README.md`.
 2. Plans reference requirement IDs, not prose.
 3. Implement.
 4. Close the loop: status, `code`, `tests` — in the same set of edits as the code.
@@ -46,24 +33,9 @@ A change to behavior starts at the loop below.
 ## The rules most easily broken
 
 1. Changing behavior — first find or create the requirement, then write the code.
-2. `specs/90-traceability.md` is generated by a script.
-   Never edit it by hand.
+2. `specs/90-traceability.md` is generated by a script; never edit it by hand.
 3. Builds, tests, and every other action that ART-030 of the constitution reserves run only with the user's explicit confirmation.
-4. Naming a record to a person — a requirement, a decision, and where the project keeps the layers an element or a grounds record: give its title, the file it is written in and its status the first time it appears in what the person reads as a whole — a message, a plan, a report — and do not type them by hand.
-   `python3 tools/srs_view.py --cite <ID>…` prints `FR-<AREA>-<NNN> — <its own title> (specs/<file>.md, <status>)` ready to paste, filled in from this project's own specification, and cites a decision by its `ADR-NNNN`; `python3 tools/srs_arch.py --cite <ID>…` and `python3 tools/srs_grounds.py --cite <ID>…` print the same form for an element and for a record of the register.
-   The identifier alone is a key, not a name, and costs the reader a lookup per mention.
-   Afterwards the number on its own is enough.
-   Inside `specs/`, `arch/` and `grounds/` the identifier is the name: the tooling resolves the links, and a title beside every cross-reference in a rationale is noise.
-   A line a checker printed is not a citation yet — run the identifiers in it through `--cite` before relaying it.
-   The rule holds in a table, in a list, in the steps of a plan and in the report of any procedure, this framework's or another's: a report template that has no place for the citation is a template you add it to, not a reason to leave it out.
-   It is checked at sending, not at writing: before a message goes, every identifier in it that the message names for the first time has been run through `--cite`, and what was pasted is what the tool printed — as printed, with no bold around it, no backticks around the file and nothing added inside the brackets, because a citation dressed up cannot be told from one made up.
-   A mention in passing is a mention: a record named on the way to another point is cited like the one the point is about.
-   A span or a family named as a set — `FR-<AREA>-010` through `FR-<AREA>-090`, a whole area — is one name and not a mention of each member; what the message singles out from it is cited, the set is not.
-   A commit message and the changelog are the exception, and name identifiers bare, in a trailing parenthesis: the constitution asks a commit for the identifiers it implements, and both are records of what a change did — a status in them would be a value that moved while the record stayed, and nobody re-dates a commit.
-   A number the specification does not carry yet is a proposal and is marked as one instead.
-5. Reading the code behind a change — take the files from the `code` and `tests` fields of the requirements the change belongs to (`python3 tools/srs_view.py --code <path>` answers from the other end), not from a search over the repository.
-   Go wider where you must, and say where you went.
-6. Reporting to a person — write in sentences that follow one another, and keep a list or a table for what the reader has to count or compare.
-   A label with a fragment after it is a note to yourself; the reader has to put back what follows from what.
-7. Saying what the project's files say — read the source in the same message and match the sentence to it before sending, not to what you remember reading earlier.
-   A count is derived over the current files, a claim that something is nowhere written names what was searched, and a paraphrase of a document is checked against the passage it paraphrases.
+4. Naming a record to a person — a requirement, a decision, and where the project keeps the layers an element or a grounds record: at its first mention in what the person reads as a whole (a message, a plan, a report), give its title, the file it is written in and its status, pasted from the tool, never typed: `python3 tools/srs_view.py --cite <ID>…` prints `FR-<AREA>-<NNN> — <its own title> (specs/<file>.md, <status>)` and cites a decision by its `ADR-NNNN`; `python3 tools/srs_arch.py --cite` and `python3 tools/srs_grounds.py --cite` print the same form for an element and a register record. Afterwards the number alone is enough; inside `specs/`, `arch/` and `grounds/` the identifier is the name. A line a checker printed is run through `--cite` before it is relayed. The rule holds in a table, a list, the steps of a plan and the report of any procedure — a template with no place for the citation is one you add it to. It is checked at sending: what was pasted is what the tool printed — no bold around it, no backticks around the file, nothing added inside the brackets. A mention in passing is a mention. A span named as a set — `FR-<AREA>-010` through `FR-<AREA>-090`, a whole area — is one name, not a mention of each member. A commit message and the changelog are the exception and name identifiers bare, in a trailing parenthesis. A number the specification does not carry yet is a proposal, and is marked as one.
+5. Reading the code behind a change — take the files from the `code` and `tests` fields of the requirements the change belongs to (`--code <path>` answers from the other end), not from a search over the repository. Go wider where you must, and say where you went.
+6. Reporting to a person — write in sentences that follow one another, and keep a list or a table for what the reader has to count or compare. A label with a fragment after it is a note to yourself.
+7. Saying what the project's files say — read the source in the same message and match the sentence to it before sending, not to what you remember. A count is derived over the current files, a claim that something is nowhere written names what was searched, and a paraphrase is checked against the passage it paraphrases.

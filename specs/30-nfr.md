@@ -11,7 +11,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py, tools/srs_arch.py, tools/srs_cite_eval.py]
+code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py, tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py]
 tests: []
 created: 2026-08-07
 ```
@@ -104,4 +104,29 @@ Every procedure the framework ships **shall** be a plain markdown file that an a
 **Rationale.** The procedures live under `.claude/skills/` because one agent reads that directory natively, and nothing in them depends on it: the agent guide names them by path, the landing page hands the installation procedure to any agent as a raw URL, and a team working by hand reads the same file.
 It was the landing page's claim — "the skills are plain Markdown any agent can follow; a team working entirely by hand loses nothing" — and no requirement's, which `FR-DOC-060` made visible: a benefit on the page has to be a requirement's behaviour, and this one was not.
 It stands on `NFR-SPEC-020` for the same reason the specification does: a procedure survives the tool that reads it only if it is readable without it.
+
+### NFR-SKILL-020 — A procedure fits a budget
+
+```yaml
+status: implemented
+verification: T
+derives_from: [NFR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills, AGENTS.md, skeleton/AGENTS.md]
+tests: [tests/skill-budget.sh]
+created: 2026-09-19
+```
+
+Every procedure the framework ships, and each agent guide it ships, **shall** stay within a stated budget of words — the file itself, and the file together with what it tells the reader to open before its first step — and the suite fails on the one that exceeds either.
+
+**Rationale.** A procedure is read by a person once and by an agent at every invocation, and what it costs is paid in tokens each time and is invisible from inside the file.
+Measured on 2026-09-19 over the twelve shipped procedures: `srs` was 2 902 words and `srs-bet` 2 362, and each told the reader to open a standard first — 3 299 and 5 143 words — before its first step; the guide `AGENTS.md`, read by every session whether or not a procedure is invoked, was 1 323.
+The explanation those words carried already stands in the rationales of this specification and in `specs/adr/`, and a procedure that restates it pays for it on every run.
+
+Two measures because they fail differently: a procedure grows back into an essay, or it stays short and sends the reader to read a standard whole.
+The second counts only what the procedure tells the reader to open, not what an instance happens to read — that is the procedure's doing, and the rest is measured by `FR-SKILL-310`.
+The budget is written in the test beside the reason for each number, so that raising one is a visible act with a sentence attached; it starts where the procedures stand and is lowered as they are shortened, so that the gate is never red for the work it exists to guard.
+A guide counts as a procedure here because it is loaded the same way and more often; the `description` a procedure carries in its header is part of the file and is counted with it, since it sits in the prompt of every session.
 

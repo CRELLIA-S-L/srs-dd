@@ -727,7 +727,7 @@ The line stays one line, in the order the parts are read — identifier, status,
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-VIEW-240, FR-SKILL-200]
+depends_on: [FR-VIEW-240, FR-SKILL-200, IF-SPEC-030]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
@@ -770,4 +770,93 @@ Widening by one step is what shows a selection's place in the specification — 
 A selection with no edges among its requirements has no graph, and the viewer says so and writes nothing rather than an empty picture.
 
 Deterministic for the reason the page is (`FR-VIEW-070`): a pipeline writes it beside the page on every build, and a picture that changed when nothing did is a diff nobody can review.
+
+### FR-VIEW-350 — A listing can carry the statement of each requirement
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-220]
+depends_on: [FR-VIEW-220]
+refines: [FR-VIEW-320]
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-19
+```
+
+When asked for the statements, the viewer **shall** print beneath the line of each listed requirement the statement it makes, and not its rationale.
+
+**Rationale.** The list is what a procedure reads to choose what to open.
+A title says what a requirement is about; the statement says what it obliges, and the two differ exactly where the choice is hard.
+Choosing by title sends the reader to the file — an area file of this specification is forty to seventy thousand characters — or to a guess, and a fresh agent takes the file.
+The statement is one sentence; the rationale is the expensive half and is read once the requirement is chosen, in the view `FR-VIEW-010` gives.
+On request rather than always: the line of `FR-VIEW-320` is what every listing prints and what every reader of it has learned to scan, and a list three times longer is the wrong answer to most questions the list is asked (`FR-VIEW-220`).
+How the request is spelled is the interface's business, as `FR-VIEW-220` says of its own filters.
+
+### FR-VIEW-360 — The vocabulary of the block is printed by the tool that enforces it
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-020]
+depends_on: [IF-SPEC-010, FR-CHK-090]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-19
+```
+
+When asked for the vocabulary of the format, the viewer **shall** print what the checker accepts in a requirement's block — the types, the statuses, the verification methods, the fields and which of them are required, and the areas and modal verbs the project declares.
+
+**Rationale.** A procedure that needs a status or a field name today says "read `specs/README.md`" — three thousand three hundred words, charged to every session that follows the procedure, for a vocabulary of some forty words that the checker already holds as its constants and the configuration as its lists.
+Printing them is not a second statement of the standard, which `FR-SKILL-020` forbids: the standard says what the words mean and when to use them, the checker is what refuses a block written outside them, and this prints the checker's own list — the words, and nothing of what the standard says about them.
+A test holds the printed statuses to the Lifecycle section of `specs/README.md`, so that the two places the words are spelled cannot drift apart unnoticed.
+The lexicon comes from the project, not the framework (`FR-CHK-090`), which is why the areas and the verbs are printed beside the constants: the procedure that writes a statement needs both in one place, and the place used to be the whole standard.
+
+### FR-VIEW-370 — Where a requirement is realized, by line
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-220]
+depends_on: [FR-VIEW-010, FR-CHK-080]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-20
+```
+
+When asked where a requirement is realized, the viewer **shall** print every annotation that names it — the file, the line and whether it implements or verifies — and, for each file the requirement's `code` and `tests` fields name that carries no such annotation, the file with that said.
+
+**Rationale.** The specification points at code on two levels and printed only one.
+A `code` field names a file; an `implements:` annotation stands on a line inside it, above the function that does the work, and the checker reads it as the file's own half of the two-way check (`FR-CHK-080`).
+From a line to its requirements the viewer already answers (`FR-VIEW-300`); from a requirement to its lines nothing did, so an agent handed `tools/srs_view.py` — three thousand lines — found the function by grepping, three turns before it read sixty lines.
+Measured on 2026-09-20 over three runs of the everyday procedure: of the tool calls a run made, ten were that kind of search and seven were the procedure's own.
+The files named and not annotated are printed too, with the fact stated, because the answer is otherwise wrong by omission: a file the field claims and no line speaks for is exactly what `FR-SKILL-220` sends the reader to open whole, and the reader should know that this is what they are doing.
+What is printed is the annotation as it stands, one per line: a requirement realized in three places with one annotation at the top shows one place, which is the annotation being incomplete, and is for the audit to notice rather than for the viewer to guess around.
+
+### FR-VIEW-380 — The source under an annotation is printed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-370]
+depends_on: [FR-VIEW-370]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-20
+```
+
+When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region of the file the annotation marks — for a Python file the innermost function or class the annotation belongs to, for any other file the lines up to the next annotation or a bounded number of them.
+
+**Rationale.** Knowing the line saves the search; printing the region saves the read that follows it, and the two together turn three turns per requirement into one call.
+A Python file has a structure the standard library parses, and the annotation is placed at a function — on the line above its `def`, or as its first comment — so the region is that function, whole, however long; a bounded window would cut a long one in the middle.
+Other files have no structure the tool can read, so the region runs to the next annotation, which is where somebody said another requirement starts, or to a bound, so that a shell suite with one annotation at the top does not print itself entire.
+Printed as the file has it, line numbers beside, so that what the reader edits afterwards is found again without a second lookup.
+Never by default: the locations are the small answer and the source the large one, and the everyday procedure asks for the second only once the first has said which requirements the change will touch.
 

@@ -214,6 +214,10 @@ If there is no requirement — create it first rather than writing code silently
 
 An architecture decision (choosing a storage engine, rejecting an approach, working around a platform limitation) is recorded separately in `adr/`.
 A requirement says “what”; a decision says “why this path and not the neighboring one”.
+A decision is a markdown file under `adr/` whose first heading is `# ADR-NNNN — <title>`; nothing but a front matter — a block between two `---` lines of `key: value` pairs — and blank lines may stand before it.
+Its status is the front matter's `status` key or a `- **Status:** <status>` line among the first lines after the heading, whichever the file carries, and is cited as written, in whatever language the project writes.
+A file under `adr/` with no such heading — an index, a template — is not a decision.
+The number in the heading is the decision's name; the file name is a convention, and renaming the file changes nothing.
 
 ## Annotations
 

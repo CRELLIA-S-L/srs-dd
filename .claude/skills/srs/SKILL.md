@@ -5,233 +5,65 @@ description: Working with the project specification (SRS in specs/). Invoke ALWA
 
 # Working with the specification
 
-The project is driven by its specification.
-System behavior is described in `specs/` as numbered requirements with links between them and references to code.
+The rules of the format are in `specs/README.md`, by section, and are not restated here.
+`python3 tools/srs_view.py --vocabulary` prints the words a block may use — statuses, fields, areas, modal verbs; open the standard for a rule, not for a word.
+Statements, titles and rationales are written in the lexicon of `specs/srs-config.json`, whatever language this file is in.
 
-**The markup rules live in `specs/README.md`.** They are deliberately not restated here: two descriptions of the same rules would eventually diverge.
-Read `specs/README.md` if you have not read it in this session.
+## A question about the system
 
-The specification language follows the lexicon in `specs/srs-config.json` — statements, titles, and rationales are written in that language, whatever language this skill is written in.
+1. Read what the project says of itself: `specs/00-glossary.md`, `specs/01-introduction.md`, `specs/02-overview.md` — short, and in its own words. A lookup by number needs a number nobody has handed you; a search finds the word you guessed.
+2. Narrow: `python3 tools/srs_view.py --areas`, then `python3 tools/srs_view.py --list --area <AREA>`, then `python3 tools/srs_view.py <ID>`, then `--code <path>`.
+3. Where the specification does not say, name the rungs you walked — the area, the words, the paths. Where the question is undecided, `specs/91-open-issues.md` holds it; read an entry whole.
 
-## Two questions, and they enter from opposite ends
+## Before changing code
 
-**How does this work, and what is it for?** Start with what the project wrote about itself in its own words — the terms, the purpose and the overview, which the standard's map places in `specs/00-glossary.md`, `specs/01-introduction.md` and `specs/02-overview.md`.
-They are short, they are in the vocabulary the project actually uses, and they cost nothing to read: a lookup by number needs a number nobody has handed you yet, and a search over requirement text finds the word you guessed, which is the wrong word when the project calls the thing something else.
-Then the areas the project declared, then one of them, then the requirement, then its code:
+1. `python3 tools/srs_view.py --code <path> --statements` — the requirements behind the file, from the `code` and `tests` fields and the file's own annotations, each with what it obliges; a directory works. Without the tool: `grep -rn "<path>" specs/*.md` and the table in `specs/90-traceability.md`, whose *Incoming links* section is every link in one place.
+2. Read what the answer names: `python3 tools/srs_view.py <ID> --where` prints the lines of the `code` and `tests` files that carry the requirement, and `python3 tools/srs_view.py <ID> --where --source` prints the function or region under each — read those, in one call, before any file whole. A file the fields name that no line speaks for is printed as such, and is the one to open. A search over the repository is the fallback, taken out loud (`AGENTS.md`).
+3. Found some: choose by the statements the ones the change will touch, and read those in full — `python3 tools/srs_view.py <ID>` resolves the links both ways — with what each `derives_from` and `depends_on`. Incoming links are the blast radius; the rest of the list is known by its statements and is not opened.
+4. Found nothing: the behaviour is undescribed. Author a requirement first (`srs-new`); never code silently.
+5. With a `grounds/` directory beside `specs/`: `python3 tools/srs_grounds.py --blast <path>` — what the requirements stand on. `refuted` or `expired` is not a stop; it is said, because the change inherits that ground. Procedure: `srs-bet`.
+6. With an `arch/` directory: `grep -n <path> arch/90-map.md`, or the directory above it, since a directory in `carries` owns what is under it — the row names the element the file belongs to, what else it carries and the requirements it holds. A change that moves a responsibility between parts is said, not left for the checker. Procedure: `srs-arch`.
+7. Report the lookup, not only its outcome — the paths given, the words searched. What you say about a file is read off the file in that report and re-read before sending. Connected prose; a list only for what the reader counts. Every record named to a person is cited at its first mention in the message, from `python3 tools/srs_view.py --cite <ID>…`.
 
-```
-python3 tools/srs_view.py --areas
-python3 tools/srs_view.py --list --area <AREA>
-python3 tools/srs_view.py <ID>
-python3 tools/srs_view.py --code <path/to/file>
-```
+## Two acts
 
-Where the answer turns out to be that the specification does not say, name the rungs you actually walked — the area you asked for, the words you searched, the path you gave.
-That claim is worth exactly what the query behind it was worth, and naming the query is what lets anyone who knows the project's word for the thing say so.
-
-Where the question turns out to be undecided rather than merely unanswered, `specs/91-open-issues.md` is where that is recorded, together with the decision it waits on — and it is read whole.
-An entry taken by the line will hand you a sentence the paragraph below it corrects.
-
-**Am I about to change something?** That is the rest of this procedure, starting here.
-
-## First things first
-
-Before changing code, find out which requirements describe the affected behavior:
-
-```
-python3 tools/srs_view.py --code <path/to/file>
-```
-
-It answers from the `code` and `tests` fields and from the file's own `implements:`/`verifies:` annotations; a directory works too.
-Where that tool is absent, `grep -rn "<path/to/file>" specs/*.md` and the “Requirement → code → verification” table in `specs/90-traceability.md` give the same answer by hand.
-That table is not the only reason to know the file.
-Its *Incoming links* section is every link between requirements in one place, computed and stored nowhere else — which is what to read when the question is about the shape of the graph rather than about one file, and is the wrong thing to read when it is about one file.
-
-**Then let that answer decide what you read.** The `code` and `tests` fields of the requirements a change belongs to are the files to open; a search over the repository is the fallback, taken out loud, when they turn out not to be all of them.
-The rule itself is in `AGENTS.md`.
-
-**Report the lookup, not only its outcome** — the paths you gave, and the words, where you fell back to a search over them.
-What you then say about those files is read off them in this report, not off what you remember of them, and read back against the file before it is sent — the guide's rule for any statement about the project, and the one most often broken where the memory feels surest.
-Say it in sentences that follow one another; a list is for what the reader counts.
-Whatever this procedure hands to a person — a plan, a finding, a report, under any template — names each record as the guide asks at that message's first mention, from `--cite`, checked before the message goes.
-Where the answer is nothing, a lookup that missed and a lookup nobody made produce the same sentence, and the reader who could tell them apart is the one holding the report.
-Where it is something, the paths are what tell that reader how wide the answer was.
-
-Found some — read them in full, together with their `derives_from` and `depends_on`; `python3 tools/srs_view.py <ID>` prints one requirement with every link resolved in both directions.
-When changing a requirement, the incoming links are the blast radius.
-
-Found nothing — that is not permission to write code silently.
-It means the behavior is not described, and a requirement must be created first.
-
-**Where the project carries a grounds register** — a `grounds/` directory beside `specs/` — ask what the requirement is standing on before changing it:
-
-```
-python3 tools/srs_grounds.py --blast <path/to/file>
-```
-
-It names the bets on the requirements those files belong to — the ones written there, and the ones naming the file in their `code` or `tests` fields — and the state of the hypotheses under them.
-A requirement standing on something `refuted` or `expired` is not a reason to stop; it is a reason to say so, because whatever you are about to build on it inherits the same ground.
-Where the project has no register the command is not there, and this step does not apply.
-The procedure for the register itself is `srs-bet`.
-
-**Where the project carries an architecture layer** — an `arch/` directory beside `specs/` — ask what carries the file before changing it:
-
-```
-grep -n <path/to/file> arch/90-map.md      # or the directory above it
-```
-
-A directory in an element's `carries` owns everything under it, so a file inside one is found by that directory rather than by its own name — `.claude/skills` answers for every skill in it.
-The row names the element the file belongs to, what else that element carries and which requirements it holds.
-Read it for the same reason the register is read: a boundary is invisible from inside the file, and the change worth noticing is the one that moves a responsibility from one part to another.
-A change that makes a part carry something its statement does not describe is a change to the layer as well, and that is said rather than left for the checker to find.
-Where the project has no layer the directory is not there, and this step does not apply.
-The procedure for the layer itself is `srs-arch`.
-
-## Two acts, and they are not the same one
-
-Writing a requirement and building it are separate acts.
-Authoring ends at the written requirement and at whatever architecture decision the discussion settled; building it is a task started deliberately, later, and often by somebody else.
-Sliding from one into the other is how a specification ends up recording only what already shipped — `deferred` never happens, and a baseline has nothing to freeze but the past.
-
-This procedure is the second act.
-For the first, use `srs-new`.
+Authoring ends at the written requirement; building it is a separate act, started deliberately, often by somebody else. This procedure is the second act; `srs-new` is the first. Sliding from one into the other leaves a specification that records only what shipped.
 
 ## Building a requirement
 
-There are two ways in, and they meet at step 2.
+In from a file (above), or from an approved requirement nobody built: `python3 tools/srs_view.py --coverage`, `grep -n "status: deferred" specs/*.md`; read it with its links both ways.
 
-**From a file you are about to change.** Find what describes it — see *First things first* above.
-Nothing found is not permission to write code:
-it means the behavior is not described, and authoring comes first.
+1. The requirement still says what you are about to build. If not, you are authoring — stop, `srs-new`.
+2. The plan names requirements, not work — "fix the storage layer" is not a step — each cited at first mention from `--cite`; constitution articles `ART-*` by number. The plan may not conflict with `specs/constitution.md`.
+3. Code.
+4. Close the loop, in the same set of edits: re-read every named statement against what was built; what it does not describe is written in or taken out. A reworded statement passes the judgement `srs-new` gives a new one, against the qualities `specs/README.md` requires of a statement, and the same lookup — what else speaks to it, what points at it, the `FR-DOC-*` sections that restate it — and the finding is said before the edit. Then status per Lifecycle, `code` and `tests` with real paths, and every file named there says so back with `implements:` / `verifies:` (Annotations, `specs/README.md`): the field is the specification's claim, the annotation is the file's.
+5. `python3 tools/srs_check.py`.
 
-**From an approved requirement nobody has built yet.** `deferred` is the status that says so:
-
-```
-python3 tools/srs_view.py --coverage
-grep -n "status: deferred" specs/*.md
-```
-
-Read it in full with its `derives_from` and `depends_on`, and read what links back to it — `python3 tools/srs_view.py <ID>` resolves both directions.
-Incoming links are the blast radius.
-
-Then:
-
-1. **Check the requirement still says what you are about to build.**
-   If it does not, you are authoring, not building — stop and go to `srs-new`.
-2. **Plans reference requirements.**
-   The work plan names them rather than describing the work — not "fix the storage layer" — and names each one as `AGENTS.md` asks the first time it appears, from `python3 tools/srs_view.py --cite <ID>…`; a plan step is read by a person like anything else.
-   The plan must not conflict with `specs/constitution.md`; its articles (`ART-*`) are named by number and nothing else — they are not requirements, the viewer does not carry them, and the constitution is one short file the reader already has.
-3. **Code.**
-4. **Close the loop.**
-   Re-read the statement of every requirement this change names: does it describe what you actually built?
-   Whatever it does not describe is written down or taken out — not left as a surprise for the next reader.
-   A statement you reword here goes through the same judgement `srs-new` gives a new one, against the qualities `specs/README.md` requires of a statement, and what you find is said before the edit is recorded.
-   This is the easiest place to skip it: the requirement already exists, so nothing feels like authoring, and a sentence quietly grows a second capability while somebody is repairing the first.
-
-   A reworded statement also goes through the same lookup a new one does — what else already speaks to this behaviour, and what points at it — and what that turns up is said, not merely consulted.
-   A rewording reaches everything that was standing on the old wording, and the incoming links are where that shows.
-   Among them may be a section of the landing page — the `FR-DOC-*` requirements name in `depends_on` what each section restates — and that is a document to re-read against the new statement in this same set of edits, not a link to note.
-
-   Then status per Lifecycle, and `code` and `tests` filled with real paths — **and every file you named there says so back**, with `implements:` or `verifies:` (see Annotations in `specs/README.md`).
-   The checker reports a file a requirement names that does not name it back, so this is not bookkeeping you can put off:
-   the field is the specification's claim, the annotation is the file's own, and only the second notices when a file is gutted or repurposed and stops deserving the entry still pointing at it.
-5. **Check:** `python3 tools/srs_check.py`.
-
-Changing behavior — change the requirement in the same set of edits as the code.
-They diverge exactly when one moves without the other.
-
-A change that begins as a fix is where this goes wrong most often: repairing an existing requirement needs no new one, and that exemption quietly covers whatever else gets added while you are in there.
-If step 4 finds the statement silent about something you built, the statement is what is wrong.
-And a change that names no requirement at all is its own signal — either nothing about the system's behavior moved, or the requirement is missing.
+A fix that adds what the statement is silent about means the statement is wrong. A change naming no requirement means either no behaviour moved or a requirement is missing.
 
 ## Withdrawing a requirement
 
-`withdrawn` is for one cancelled with nothing to replace it.
-Where something does replace it, that is `superseded` and the successor is named — this section is not about that case.
+`withdrawn` cancels with no successor; with one, it is `superseded` and the successor is named. Before the status changes:
 
-Withdrawal is the one edit that breaks requirements it never touches, so before the status changes:
+1. `python3 tools/srs_view.py <ID>` — the incoming links, grouped by field: `depends_on` loses its meaning, `derives_from` its reason, `refines` the rule it sharpened, `conflicts_with` nothing.
+2. Show the direct dependants in full, count what lies beyond; settle one level per decision (ADR-0013).
+3. Settle each dependant with the maintainer — none is a default: do not withdraw; narrow; supersede; cascade, each dependant back through this section; re-parent; promote and reword; orphan deliberately, and say so; stage it — intent, dependants, withdrawal last.
+4. Set the status and say why in the rationale, its only home. The number stays dead.
 
-1. **Read what points at it.**
-   `python3 tools/srs_view.py <ID>` resolves incoming links in both directions; the matrix answers the same by hand.
-   Show them grouped by field, because the four break differently:
-
-   | Field | What the dependant loses |
-   |---|---|
-   | `depends_on` | its meaning — it was declared meaningless without this |
-   | `derives_from` | its reason for existing |
-   | `refines` | the general rule it was sharpening |
-   | `conflicts_with` | nothing; the divergence is merely beside the point |
-
-2. **Show one level, count the rest.**
-   The requirements pointing straight at this one, in full; whatever lies beyond them as a number.
-   Every resolution below acts on the direct dependants, and any of them may itself become a withdrawal with its own tree — so the closure is settled one level per decision, not all at once (ADR-0013).
-
-3. **Settle each dependant with the maintainer.**
-   None of these is a default, and `conflicts_with` needs no decision at all:
-
-   - **Do not withdraw** — the honest answer when the tree is large and nobody has time to dismantle it.
-   - **Narrow instead** — reword the requirement to cover only what is still wanted.
-     Nothing is cancelled and the dependants keep their ground.
-   - **Supersede instead** — the need survives and the shape changed.
-     Dependants re-point at the successor.
-   - **Cascade** — withdraw the dependants too, where the branch died with its root.
-     Each one comes back through this section.
-   - **Re-parent** — point the dependants at another requirement carrying the same ground.
-     Cheapest where the withdrawn one was a middleman.
-   - **Promote** — drop the link and let the dependant stand alone, rewording it where it leaned on its parent's words.
-     Usually the `refines` answer.
-   - **Orphan deliberately** — the dependant outlives its target because the link recorded provenance, not necessity.
-     Allowed, and to be said rather than left silent.
-   - **Stage it** — for a large tree the withdrawal is a migration: record the intent, resolve the dependants, withdraw last.
-     A cascade abandoned halfway is worse than one never started.
-
-4. **Then set the status**, and say why in the rationale — a withdrawal names no successor, so the rationale is the only place the reason can live.
-   The number stays dead forever either way — identifiers are never reused, whatever the status.
-
-Anything still standing on it afterwards is reported by the checker, which is the guard on a specification edited without this procedure — not a substitute for it.
+The checker reports what still stands on it — a guard, not a substitute.
 
 ## Planning multi-requirement work
 
-For a task that spans several requirements, build the plan from the specification, not from the code:
+1. Resolve the requirements in scope and their closure: `depends_on`, `derives_from`, `refines`, and the incoming links.
+2. Behaviour with no covering requirement: the first steps author it (`srs-new`).
+3. Order the steps by `depends_on`; each step cites its requirements (`--cite`), the articles that bind it ("per ART-040") and the verification method.
+4. A `draft` in scope is a blocker, marked so (ART-020). A `superseded` one sends the plan to its successor; a `withdrawn` one is an error to surface.
+5. The last two steps, always: close the loop; run the checker. A step that builds or tests is marked "requires the user's explicit confirmation each time" (ART-030).
 
-1. Resolve the requirements in scope (grep, the matrix), then expand the closure: read everything they list in `depends_on`, `derives_from`, and `refines`, and check “Incoming links” for the blast radius.
-2. Behavior in scope with no covering requirement — the plan's first steps author the missing requirements (see `srs-new`); no step may change behavior silently.
-3. Order the steps so a requirement is implemented only after everything in its `depends_on`.
-   Every step cites its requirements — named as `AGENTS.md` asks at the first mention, which `--cite` prints — and the constitution articles that constrain it (“per ART-040”), and notes the requirement's verification method.
-4. A `draft` in scope is a blocker, marked so in the plan — code against it waits for approval (ART-020).
-   A `superseded` or `withdrawn` requirement in scope is an error; surface it instead of planning around it.
-   For a `superseded` one the successor is where the plan goes instead; a `withdrawn` one has none, and a step that still needs it is a step whose ground was cancelled.
-5. Every plan ends with the same two steps: close the loop (status, `code`, `tests` in the same edit set) and run the checker.
-   Steps that run builds or tests are marked “requires the user's explicit confirmation each time” (ART-030).
+The plan lives in the conversation, never in `specs/`; a plan is not approval — statuses are (ART-020).
 
-The plan lives in the conversation.
-Do not write it into `specs/` or anywhere else — the specification records what the system does, not the work queue; and a plan is not approval: statuses are (ART-020).
+## Also
 
-## Prohibitions
-
-The list lives in the What-not-to-do section of `specs/README.md` — it is deliberately not restated here.
-On top of it, for agents: **do not run builds or tests without the user's explicit confirmation** (ART-030 of the constitution).
-
-## Architecture decisions
-
-Choosing a storage engine, rejecting an approach, working around a platform limitation — that is not a requirement but a decision.
-It belongs in `specs/adr/`, following the neighboring files.
-A requirement answers “what”;
-a decision answers “why this path and not the neighboring one”.
-
-## Discrepancies
-
-Found a mismatch between code and a requirement — do not silently fix either side.
-Record it in `specs/91-open-issues.md` and tell the user: it is unknown whether the bug is in the code or in the description, and that is theirs to decide.
-
-**First establish that it is one.** Before anything is reported, finish the sentence *therefore*: therefore this must be fixed; therefore it is deliberate, and here is why; therefore nobody can tell without a decision that is the maintainer's.
-Any of the three is a finding and is reported with that half included.
-An observation with no *therefore* is not a finding — work it out or drop it, but do not hand it over.
-
-The reason is not tidiness.
-Reported raw, an observation arrives as homework: read this, decide whether it means anything.
-A report mixing those with real findings teaches the reader to skim both, and the next real one goes past unread.
-Whoever noticed has the context to settle it; the reader does not.
-
-"Nobody can tell" is the third answer and stays available — it means you looked and the question is a decision, not that you did not look.
-Report it with the options, not as a shrug.
+- Prohibitions: *What not to do* in `specs/README.md`; and no builds or tests without the user's explicit confirmation (ART-030).
+- A decision — an engine chosen, an approach rejected, a platform worked around — goes to `specs/adr/`, beside its neighbours.
+- A mismatch between code and requirement: fix neither side; record it in `specs/91-open-issues.md` and tell the user. A finding ends in *therefore* — must be fixed; is deliberate, and why; needs the maintainer's decision, with the options. Without one it is an observation, and is worked out or dropped, not handed over.

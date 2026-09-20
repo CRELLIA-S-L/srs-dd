@@ -8,8 +8,8 @@ description: Mine (extract) a specification from an existing codebase — for pr
 The project is initialized (there is a `specs/srs-config.json`) but the code holds behavior the specification does not describe.
 This skill turns that behavior into requirements — always as proposals, never as decisions.
 
-Read `specs/README.md` first if you have not in this session.
-Read `specs/srs-config.json`: the `areas` partition the work, `code_roots` say where to look, and the lexicon defines the modal verbs and the **language the requirements must be written in**.
+The rules live in `specs/README.md` — *Requirement block*, *Lifecycle* and *How to phrase* are the sections this procedure uses; `python3 tools/srs_view.py --vocabulary` prints the words a block may use.
+Read first: `specs/srs-config.json` — the `areas` partition the work, `code_roots` say where to look, and the lexicon defines the modal verbs and the **language the requirements must be written in**.
 
 ## Procedure
 
@@ -31,8 +31,8 @@ Read `specs/srs-config.json`: the `areas` partition the work, `code_roots` say w
     The words of the statement are the only sweep that reaches outside both, which is where the duplicate hides that carries another area's number or names a file the draft does not:
 
    ```
-   python3 tools/srs_view.py --list --area <AREA>
-   python3 tools/srs_view.py --code <path the draft names>
+   python3 tools/srs_view.py --list --area <AREA> --statements
+   python3 tools/srs_view.py --code <path the draft names> --statements
    python3 tools/srs_view.py --grep <word from the drafted statement>
    ```
 

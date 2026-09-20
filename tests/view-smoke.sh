@@ -1352,6 +1352,256 @@ grep -q "10-fr-core.md:" /tmp/srs-list-file.out \
     && { echo "--list printed a line number, which a citation leaves out"; exit 1; }
 echo "view-smoke: --list names the file a requirement is written in"
 
+# --- verifies: FR-VIEW-350 — a listing carries the statement of each
+# --- requirement when asked, beneath its line, and never the rationale.
+# --- Its own lab: one requirement with a rationale, so that its absence
+# --- can be asserted, and one with no statement at all, so that the flag
+# --- prints nothing beneath a line it has nothing to print.
+STMT=/tmp/srs-view-stmt
+rm -rf "$STMT"; cp -R "$CITE" "$STMT"; rm -rf "$STMT/specs/adr"
+{ printf '\n### FR-CORE-030 — One with a rationale\n\n'
+  printf '```yaml\nstatus: deferred\nverification: I\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: []\n'
+  printf 'tests: []\ncreated: 2026-09-01\n```\n\n'
+  printf 'When asked, the system **shall** answer with one sentence that is long enough to be wrapped by the viewer onto a second line.\n\n'
+  printf '**Rationale.** Never printed in a list.\n\n'
+  printf '### FR-CORE-040 — One with no statement\n\n'
+  printf '```yaml\nstatus: draft\nverification: I\n```\n'
+} >> "$STMT/specs/10-fr-core.md"
+mkdir -p "$STMT/src"
+# srs-ignore: a fixture written into the lab, not a claim about this repository.
+printf '# implements: FR-CORE-010\n' > "$STMT/src/a.py"  # srs-ignore
+
+( cd "$STMT" && python3 tools/srs_view.py --list --statements ) > /tmp/srs-stmt.out
+cat > /tmp/srs-stmt.want <<'WANT'
+FR-CORE-010     implemented  A live one  specs/10-fr-core.md
+    The system **shall** act.
+FR-CORE-020     superseded   A cancelled one  specs/10-fr-core.md
+    The system **shall** have acted.
+FR-CORE-030     deferred     One with a rationale  specs/10-fr-core.md
+    When asked, the system **shall** answer with one sentence that is long
+    enough to be wrapped by the viewer onto a second line.
+FR-CORE-040     draft        One with no statement  specs/10-fr-core.md
+WANT
+diff -u /tmp/srs-stmt.want /tmp/srs-stmt.out \
+    || { echo "--list --statements did not print each statement beneath its line, wrapped and indented, and nothing beneath a line without one"; exit 1; }
+absent "Never printed in a list" /tmp/srs-stmt.out
+echo "view-smoke: --list --statements prints the statement beneath each line and not the rationale"
+
+# Without the flag the listing is the line of FR-VIEW-320 and nothing
+# beneath it — the flag is the request, and a list that grew statements
+# unasked would be the wrong answer to most questions the list is asked.
+( cd "$STMT" && python3 tools/srs_view.py --list ) > /tmp/srs-stmt-plain.out
+absent "^    " /tmp/srs-stmt-plain.out
+absent "shall" /tmp/srs-stmt-plain.out
+echo "view-smoke: without --statements a listing prints lines only"
+
+# Every listing, not only --list: the mode for a path, from the fields and
+# from the annotations, and the mode for a line of a file.
+( cd "$STMT" && python3 tools/srs_view.py --code src/a.py --statements ) > /tmp/srs-stmt-code.out
+grep -qF "    The system **shall** act." /tmp/srs-stmt-code.out \
+    || { echo "--code --statements did not print the statement beneath the line"; cat /tmp/srs-stmt-code.out; exit 1; }
+( cd "$STMT" && python3 tools/srs_view.py --code src/a.py:1 --statements ) > /tmp/srs-stmt-line.out
+grep -qF "    The system **shall** act." /tmp/srs-stmt-line.out \
+    || { echo "--code PATH:LINE --statements did not print the statement beneath the line"; cat /tmp/srs-stmt-line.out; exit 1; }
+# A filter that matches nothing says so exactly as it did, flag or no flag.
+( cd "$STMT" && python3 tools/srs_view.py --list --status withdrawn --statements ) > /tmp/srs-stmt-none.out
+grep -q "^nothing matches$" /tmp/srs-stmt-none.out \
+    || { echo "--statements over an empty selection printed something other than 'nothing matches'"; cat /tmp/srs-stmt-none.out; exit 1; }
+# Twice, the same bytes (FR-VIEW-070).
+( cd "$STMT" && python3 tools/srs_view.py --list --statements ) > /tmp/srs-stmt-again.out
+cmp -s /tmp/srs-stmt.out /tmp/srs-stmt-again.out \
+    || { echo "--list --statements is not deterministic"; exit 1; }
+echo "view-smoke: --statements holds in the path mode, the line mode and over an empty selection"
+
+# --- verifies: FR-VIEW-360 — the vocabulary of the block is printed by the
+# --- tool that enforces it: the checker's types, statuses, methods, fields
+# --- and required fields, with the areas and modal verbs the project
+# --- declares. Asserted character for character in the lab, whose
+# --- configuration declares one area and no verbs — so the verbs are the
+# --- checker's defaults, and the areas are the project's.
+( cd "$CITE" && python3 tools/srs_view.py --vocabulary ) > /tmp/srs-vocab.out
+cat > /tmp/srs-vocab.want <<'WANT'
+types         FR NFR IF INV CON
+statuses      draft deferred partial implemented superseded withdrawn
+verification  T D I A
+fields        status verification superseded_by created derives_from refines depends_on conflicts_with code tests exempt
+required      status verification
+areas         CORE
+modal verbs   shall must should may
+WANT
+diff -u /tmp/srs-vocab.want /tmp/srs-vocab.out \
+    || { echo "--vocabulary did not print the checker's words, one kind per line"; exit 1; }
+echo "view-smoke: --vocabulary prints the checker's vocabulary with the project's areas and verbs"
+
+# The project's lexicon, not the framework's: verbs declared in the
+# configuration are what is printed, in the order declared.
+VOCAB=/tmp/srs-view-vocab
+rm -rf "$VOCAB"; cp -R "$CITE" "$VOCAB"
+printf '{"areas": ["ZWEI", "EINS"], "modal_verbs": ["muss", "soll"]}\n' > "$VOCAB/specs/srs-config.json"
+( cd "$VOCAB" && python3 tools/srs_view.py --vocabulary ) > /tmp/srs-vocab-de.out
+grep -q "^areas         ZWEI EINS$" /tmp/srs-vocab-de.out \
+    || { echo "--vocabulary did not print the project's areas in the order declared"; cat /tmp/srs-vocab-de.out; exit 1; }
+grep -q "^modal verbs   muss soll$" /tmp/srs-vocab-de.out \
+    || { echo "--vocabulary did not print the project's modal verbs"; cat /tmp/srs-vocab-de.out; exit 1; }
+absent "shall" /tmp/srs-vocab-de.out
+echo "view-smoke: --vocabulary prints the lexicon the project declared, not the default"
+
+# The two places the words are spelled cannot drift apart unnoticed: what
+# the viewer prints for the statuses is the Lifecycle section of the
+# standard, in its order, and the fields and the required ones are the
+# rows of its Fields table. Read off the framework's own copy — the one
+# every target receives.
+python3 - "$FRAMEWORK/specs/README.md" /tmp/srs-vocab.out <<'PY'
+import re, sys
+readme = open(sys.argv[1], encoding="utf-8").read()
+printed = dict(re.match(r"(\S+(?: \S+)?)\s+(.*)", line).groups()
+               for line in open(sys.argv[2], encoding="utf-8").read().splitlines())
+life = readme.split("\n## Lifecycle\n", 1)[1].split("\n## ", 1)[0]
+statuses = []
+for line in life.splitlines():
+    if line.startswith("- `"):
+        statuses += re.findall(r"`(\w+)`", line.split(" — ", 1)[0])
+assert statuses, "no status bullets found under Lifecycle"
+assert printed["statuses"].split() == statuses, (printed["statuses"], statuses)
+fields = readme.split("\n### Fields\n", 1)[1].split("\n### ", 1)[0]
+rows = re.findall(r"^\| `(\w+)` \| (\*\*yes\*\*|no) \|", fields, re.M)
+assert rows, "no field rows found under Fields"
+assert set(printed["fields"].split()) == {name for name, _ in rows}, (printed["fields"], rows)
+assert set(printed["required"].split()) == {name for name, req in rows if req == "**yes**"}
+methods = re.search(r"^\| `verification` \| \*\*yes\*\* \| (.*?) \|", fields, re.M).group(1)
+assert printed["verification"].split() == re.findall(r"`(\w)`", methods)
+PY
+echo "view-smoke: --vocabulary agrees with the Lifecycle section and the Fields table of the standard"
+
+# --- verifies: FR-VIEW-370 — where a requirement is realized, by line:
+# --- every annotation naming it as path:line with its keyword, from the
+# --- files its fields name and from the annotated sources, and each file
+# --- the fields name that carries none, said so. Its own lab: a Python
+# --- file with the annotation above one def and as the first comment of
+# --- another, a shell file annotated once, a file named and not
+# --- annotated, a directory named whose files carry nothing, and an
+# --- annotation for the requirement in a source file no field names.
+WHERE=/tmp/srs-view-where
+rm -rf "$WHERE"; mkdir -p "$WHERE/tools" "$WHERE/specs" "$WHERE/src/pkg" "$WHERE/tests" "$WHERE/data"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$WHERE/tools/"
+printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["tests"], "code_extensions": [".py", ".sh"]}\n' > "$WHERE/specs/srs-config.json"
+{ printf '# c\n\n### FR-CORE-010 — Realized in places\n\n'
+  printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
+  printf 'depends_on: []\nrefines: []\nconflicts_with: []\ncode: [src/app.py, src/plain.py, data]\n'
+  printf 'tests: [tests/app.sh]\ncreated: 2026-09-01\n```\n\n'
+  printf 'The system **shall** act.\n\n'
+  printf '### FR-CORE-020 — Realized nowhere\n\n'
+  printf '```yaml\nstatus: deferred\nverification: T\n```\n\n'
+  printf 'The system **shall** wait.\n'
+} > "$WHERE/specs/10-fr-core.md"
+# The fixtures are assembled in Python from parts, so that no line of this
+# suite carries an annotation the checker would read as a claim.
+python3 - "$WHERE" <<'PY'
+import os, sys
+lab = sys.argv[1]
+def ann(keyword, rid):
+    return "# " + keyword + ": " + rid
+app = "\n".join([
+    "import os", "", "",
+    ann("implements", "FR-CORE-010"),
+    "def first():", '    """Annotation on the line above."""', "    return 1", "", "",
+    "def second():", "    " + ann("implements", "FR-CORE-010"), "    if True:", "        return 2", "    return 3", "", "",
+    "class Third(object):", "    " + ann("implements", "FR-CORE-020"), "    def method(self):", "        return 3", "", "",
+    "def after():", "    return 4", ""])
+open(os.path.join(lab, "src/app.py"), "w").write(app)
+open(os.path.join(lab, "src/plain.py"), "w").write("x = 1\n")
+open(os.path.join(lab, "data/table.txt"), "w").write("k = v\n")
+open(os.path.join(lab, "src/pkg/extra.py"), "w").write(ann("implements", "FR-CORE-010") + "\ndef elsewhere():\n    return 5\n")
+open(os.path.join(lab, "tests/app.sh"), "w").write("\n".join([
+    "#!/usr/bin/env bash", ann("verifies", "FR-CORE-010"), "echo one", "echo two",
+    ann("verifies", "FR-CORE-020"), "echo three", "echo four", ""]))
+open(os.path.join(lab, "tests/long.sh"), "w").write("\n".join(
+    ["#!/usr/bin/env bash", ann("verifies", "FR-CORE-010")] + ["echo %d" % i for i in range(1, 100)]) + "\n")
+PY
+( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where ) > /tmp/srs-where.out
+cat > /tmp/srs-where.want <<'WANT'
+src/plain.py  named in the fields, no annotation for FR-CORE-010
+data  named in the fields, no annotation for FR-CORE-010
+src/app.py:4  implements
+src/app.py:11  implements
+tests/app.sh:2  verifies
+src/pkg/extra.py:1  implements
+tests/long.sh:2  verifies
+WANT
+diff -u /tmp/srs-where.want /tmp/srs-where.out \
+    || { echo "--where did not print every annotation with its line and keyword, the unannotated file and directory first, and the annotated source no field names"; exit 1; }
+absent "src/app.py:18" /tmp/srs-where.out      # the other requirement's annotation is not this one's
+echo "view-smoke: --where prints where a requirement is realized, by line, and which named files say nothing"
+
+# A requirement realized nowhere says so in one line; an unknown one is
+# refused as the card refuses it.
+( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-020 --where ) > /tmp/srs-where-none.out
+grep -q "^src/app.py:18  implements$" /tmp/srs-where-none.out && grep -q "^tests/app.sh:5  verifies$" /tmp/srs-where-none.out \
+    || { echo "--where missed an annotation for a requirement whose fields name nothing"; cat /tmp/srs-where-none.out; exit 1; }
+printf '### FR-CORE-030 — Nothing at all\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe system **shall** idle.\n' >> "$WHERE/specs/10-fr-core.md"
+( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-030 --where ) > /tmp/srs-where-nil.out
+grep -q "^FR-CORE-030 names no file and no annotation names it$" /tmp/srs-where-nil.out \
+    || { echo "--where over a requirement realized nowhere did not say so"; cat /tmp/srs-where-nil.out; exit 1; }
+rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-990 --where ) > /dev/null 2>/tmp/srs-where-bad.err || rc=$?
+[ "$rc" = 1 ] && grep -q "no requirement FR-CORE-990" /tmp/srs-where-bad.err \
+    || { echo "--where over an unknown identifier did not refuse it with exit 1"; exit 1; }
+echo "view-smoke: --where says when nothing realizes a requirement, and refuses an unknown one"
+
+# --- Two identifiers on the line are the commonest way of asking for more
+# --- than the card shows: answered with one sentence that names both and
+# --- says what to do, exit 2 — not the usage block. Any other stray
+# --- argument is refused as before.
+rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 FR-CORE-020 --where ) > /tmp/srs-two.out 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "two identifiers left the viewer with exit $rc, expected 2"; cat /tmp/srs-two.out; exit 1; }
+grep -q "^srs_view.py shows one requirement at a time — FR-CORE-010 FR-CORE-020 is 2; call it once per identifier, or --cite FR-CORE-010 FR-CORE-020 for the citations$" /tmp/srs-two.out \
+    || { echo "two identifiers were not answered with the one-sentence refusal"; cat /tmp/srs-two.out; exit 1; }
+absent "usage:" /tmp/srs-two.out
+rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --bogus ) > /tmp/srs-bogus.out 2>&1 || rc=$?
+[ "$rc" = 2 ] && grep -q "unrecognized arguments: --bogus" /tmp/srs-bogus.out \
+    || { echo "a stray flag is no longer refused as unrecognized"; cat /tmp/srs-bogus.out; exit 1; }
+echo "view-smoke: two identifiers get one sentence and exit 2; a stray flag is refused as before"
+
+# --- verifies: FR-VIEW-380 — the source under an annotation: for Python the
+# --- innermost function or class the annotation belongs to, whole — above
+# --- the def, or as its first comment — for any other file the lines up
+# --- to the next annotation, or sixty of them; line numbers beside.
+( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source.out
+( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-020 --where --source ) > /tmp/srs-source-020.out
+python3 - /tmp/srs-source.out /tmp/srs-source-020.out <<'PY'
+import re, sys
+text = open(sys.argv[1], encoding="utf-8").read()
+text020 = open(sys.argv[2], encoding="utf-8").read()
+blocks = re.split(r"\n(?=\S)", text)
+def region(header):
+    for block in blocks:
+        if block.startswith(header):
+            return [l for l in block.split("\n")[1:] if l.strip()]
+    raise AssertionError("no block for " + header)
+first = region("src/app.py:4  implements")
+ann = lambda keyword: "# " + keyword + ": FR-CORE-010"      # assembled, so this suite claims nothing
+assert first[0].strip().startswith("4  ") and ann("implements") in first[0], first[0]
+assert first[-1].strip().startswith("7  ") and "return 1" in first[-1], first[-1]
+second = region("src/app.py:11  implements")
+assert "def second" in second[0] and second[0].strip().startswith("10  "), second[0]
+assert "return 3" in second[-1] and second[-1].strip().startswith("14  "), second[-1]
+assert not any("Third" in l or "after" in l for l in first + second)
+sh = region("tests/app.sh:2  verifies")
+assert [l.split(None, 1)[1] for l in sh] == [ann("verifies"), "echo one", "echo two"], sh
+long = region("tests/long.sh:2  verifies")
+assert len(long) == 60 and long[-1].split() == ["61", "echo", "59"], (len(long), long[-1])
+# The second annotation of app.sh is bounded by the end of the file, which
+# ends in a newline: the region stops at the last real line, "echo four".
+tail = text020.split("tests/app.sh:5  verifies\n", 1)[1].split("\n\n", 1)[0].split("\n")
+assert [l.split(None, 1)[1:] for l in tail] == [[ann("verifies").replace("010", "020")], ["echo three"], ["echo four"]], tail
+PY
+echo "view-smoke: --where --source prints a Python function whole from either annotation position, and a bounded region otherwise"
+# Without --source only the locations print; twice, the same bytes.
+absent "def first" /tmp/srs-where.out
+( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source-again.out
+cmp -s /tmp/srs-source.out /tmp/srs-source-again.out || { echo "--where --source is not deterministic"; exit 1; }
+echo "view-smoke: --where prints no source unasked, and --source is deterministic"
+
 # --- verifies: FR-VIEW-330 — a decision is cited like a requirement, by
 # --- the identifier in its heading rather than by its file name, with the
 # --- status its first lines carry. A file under adr/ whose heading is not
@@ -1366,13 +1616,27 @@ printf '# Decisions\n\nAn index.\n' > "$CITE/specs/adr/README.md"
 # one with no status line is cited with the status it lacks shown as such.
 printf '\n# ADR-0009 — Opens with a blank line\n\nText.\n' \
     > "$CITE/specs/adr/ADR-0009-blank-first.md"
-( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0007 FR-CORE-010 ADR-0009 ) \
+# --- verifies: IF-SPEC-030 — the head a decision has: the heading first,
+# --- after nothing but an optional front matter, and the status from
+# --- either place.
+# A decision that opens with a front matter — the shape a project writing
+# in its own language chose — is read past it to its heading, and its
+# status is the front matter's `status:` key, as written; a `- **Status:**`
+# line below the heading still wins where both are present.
+printf -- '---\nstatus: принято\ndate: 2026-09-17\n---\n\n# ADR-0019 — Разрез слоя\n\nТекст.\n' \
+    > "$CITE/specs/adr/0019-cut.md"
+printf -- '---\nstatus: draft\n---\n# ADR-0021 — Both places\n\n- **Status:** accepted\n' \
+    > "$CITE/specs/adr/0021-both.md"
+
+( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0007 FR-CORE-010 ADR-0009 ADR-0019 ADR-0021 ) \
     > /tmp/srs-cite-adr.out 2>/tmp/srs-cite-adr.err \
     || { echo "--cite refused a decision the log carries"; cat /tmp/srs-cite-adr.err; exit 1; }
 cat > /tmp/srs-cite-adr.want <<'WANT'
 ADR-0007 — Keep the number, rename the file (specs/adr/ADR-0007-renamed-since.md, accepted)
 FR-CORE-010 — A live one (specs/10-fr-core.md, implemented)
 ADR-0009 — Opens with a blank line (specs/adr/ADR-0009-blank-first.md, ?)
+ADR-0019 — Разрез слоя (specs/adr/0019-cut.md, принято)
+ADR-0021 — Both places (specs/adr/0021-both.md, accepted)
 WANT
 diff -u /tmp/srs-cite-adr.want /tmp/srs-cite-adr.out \
     || { echo "--cite did not print a decision in the form, or lost the order"; exit 1; }

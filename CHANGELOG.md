@@ -8,6 +8,33 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.19.0]
+
+### Added
+
+- A listing can carry the statement of each requirement. `srs_view.py --list --statements` and `--code PATH --statements` print beneath each line the sentence the requirement obliges, never its rationale, so that a procedure chooses what to open by what a requirement says rather than by its title — and then opens the chosen ones in full instead of the area's file (`FR-VIEW-350`).
+- The vocabulary of the block is printed by the tool that enforces it. `srs_view.py --vocabulary` prints the types, statuses, verification methods, fields and required fields the checker accepts, with the areas and modal verbs the project declares — some forty words in place of the standard read whole for them; a test holds the printed statuses and fields to the Lifecycle section and the Fields table of `specs/README.md` (`FR-VIEW-360`).
+- What a procedure costs a fresh agent, and what it yields, is measured. `tools/srs_proc_eval.py` runs a fresh Claude Code instance through each scenario in `tests/eval/scenarios/` — a task put to one of the shipped procedures — and reports per run the tokens added to the context beyond the session's first turn, the tokens burned over all the turns, the turns, and whether every check the scenario states was met; every trace is kept under `.srs-eval/`. A measurement on request, never a gate, and framework-only (`FR-SKILL-310`).
+- A procedure fits a budget. `tests/skill-budget.sh` holds every shipped procedure and both agent guides to a budget of words — the file itself, and the file together with what a `Read first:` line tells the reader to open — with each number's reason beside it; the budget falls as procedures are shortened (`NFR-SKILL-020`).
+- A procedure keeps its instructions when it is shortened. `tests/skill-instructions.sh` holds each procedure to the commands, articles, files and procedures its list in `tests/skill-instructions/` says it must name, written off the original before any cut (`FR-SKILL-300`).
+- Where a requirement is realized, by line. `srs_view.py <ID> --where` prints every annotation that names the requirement as `path:line` with its keyword, and each file the `code` and `tests` fields name that carries none, said so — the specification pointed at code on two levels and printed only the file (`FR-VIEW-370`). `--where --source` prints the region under each annotation: for a Python file the function or class it belongs to, whole; for any other file the lines up to the next annotation or sixty of them (`FR-VIEW-380`). Measured with the everyday procedure reading the code through it, three runs: the search for the function — three to six calls a run — is gone, every run finished and cited, and the tokens burned stayed level while the runs before it had one in three cut off by the turn limit.
+- The register carries the hypothesis this release rests on. `H-040` — a procedure is followed within a bounded cost — with bets from the five requirements above; the measurement command is its instrument.
+
+### Changed
+
+- Five procedures are rewritten as numbered procedures. `srs`, `srs-bet`, `srs-new`, `srs-audit` and `srs-arch` — one command per step, one clause of reason where it is not obvious, the rest left to the rationales and decisions that already carry it — and read the listings with `--statements`, the vocabulary with `--vocabulary` instead of the standard, and the code with `--where --source` instead of a search. Every instruction of the originals is kept, and the suite holds each to its list. Measured on this repository with the new command, three runs a side: `srs` went from 2 902 words to 1 198 and a run under it from 44 905 tokens added and 2 575 341 burned to 24 831 and 1 479 961; `srs-new` from 1 306 to 1 032 and from 31 946 and 1 499 585 to 18 256 and 1 008 145; `srs-bet` from 2 362 to 1 218 and from 23 485 and 729 339 to 21 037 and 535 673; `srs-audit` from 1 657 to 1 106 and from 21 033 and 1 148 565 to 19 758 and 996 066 — with the checks met as before.
+- What a procedure tells the reader to open is one `Read first:` line. The path is on that line, and it is one file read whole: measured on `srs-bet`, one whole read of the register's standard in one turn burned fewer tokens over the run than three section reads in three, because every turn re-reads the context before it.
+- Two identifiers on the viewer's line get one sentence. `srs_view.py FR-A-010 FR-A-020` used to answer with the usage block and `unrecognized arguments`; it now says that the card shows one requirement at a time, names both, and points at `--cite` for several — the commonest misuse an agent makes, answered where it is made (`FR-VIEW-010`).
+- The agent guides are shorter, with every rule kept. `AGENTS.md` and `skeleton/AGENTS.md`; measured with `srs_cite_eval.py`, a fresh instance cited as printed in 86 cases of 100 after, against 84 to 87 before.
+
+### Fixed
+
+- A decision that opens with a front matter is cited. `srs_view.py --cite ADR-0019` answered "no decision" for a file whose heading stood after a `---` block with `status: принято` in it — the reader took the first non-blank line as the heading. The head a decision has is now stated in the standard and read as stated: the heading after nothing but an optional front matter, the status from the front matter's `status` key or a `- **Status:**` line, cited as written (IF-SPEC-030, FR-VIEW-330).
+
+### Upgrade notes
+
+- The rewritten procedures replace the shipped ones on upgrade; nothing a target wrote into its own `AGENTS.md` is touched without `--force`. The two viewer flags are additions: a listing without `--statements` prints what it printed before.
+
 ## [0.18.0] — 2026-09-19
 
 ### Added

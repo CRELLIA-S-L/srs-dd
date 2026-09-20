@@ -1,0 +1,15 @@
+# What the `srs-bet` procedure must name — written off the original on 2026-09-19,
+# before any cut. One literal token per line; the suite fails when one is
+# missing from the procedure's text. Add a line when a procedure gains an
+# instruction; remove one only with the sentence that says why.
+
+# commands
+tools/srs_grounds.py
+tools/srs_grounds.py --cite
+tools/srs_view.py
+tools/srs_view.py --cite
+
+# files
+AGENTS.md
+grounds/README.md
+grounds/grounds-config.json

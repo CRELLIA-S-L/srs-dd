@@ -1,0 +1,46 @@
+# What the `srs` procedure must name — written off the original on 2026-09-19,
+# before any cut, and extended on 2026-09-20 with the two viewer flags the
+# rewritten procedure names. One literal token per line; the suite fails when one is
+# missing from the procedure's text. Add a line when a procedure gains an
+# instruction; remove one only with the sentence that says why.
+
+# commands
+tools/srs_check.py
+tools/srs_grounds.py
+tools/srs_grounds.py --blast
+tools/srs_view.py
+tools/srs_view.py --area
+tools/srs_view.py --areas
+tools/srs_view.py --cite
+tools/srs_view.py --code
+tools/srs_view.py --coverage
+tools/srs_view.py --statements
+tools/srs_view.py --vocabulary
+tools/srs_view.py --where
+tools/srs_view.py --source
+tools/srs_view.py --list
+
+# articles
+ART-020
+ART-030
+ART-040
+
+# decisions
+ADR-0013
+
+# files
+AGENTS.md
+specs/00-glossary.md
+specs/01-introduction.md
+specs/02-overview.md
+specs/90-traceability.md
+specs/91-open-issues.md
+specs/README.md
+specs/adr/
+specs/constitution.md
+specs/srs-config.json
+
+# procedures
+srs-arch
+srs-bet
+srs-new

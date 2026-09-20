@@ -242,7 +242,7 @@ The same five steps are in `skeleton/AGENTS.md`, so the page restates the guide 
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-240, FR-VIEW-330, FR-VIEW-340, IF-VIEW-010, FR-VIEW-080, FR-GND-310, FR-ARCH-270, FR-GND-540]
+depends_on: [FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-240, FR-VIEW-330, FR-VIEW-340, IF-VIEW-010, FR-VIEW-080, FR-GND-310, FR-ARCH-270, FR-GND-540, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -250,10 +250,10 @@ tests: []
 created: 2026-09-18
 ```
 
-*Reading the specification* **shall** list the viewer's commands one per question a reader asks — one requirement, a file, a tree, the gaps, a citation, a baseline, the model, the page, a picture of a selection — say that the viewer writes nothing and gates nothing, and name what the register and the layer answer with their own commands.
+*Reading the specification* **shall** list the viewer's commands one per question a reader asks — one requirement, a file, where a requirement is realized, a tree, the gaps, a citation, the words a block may use, a baseline, the model, the page, a picture of a selection — say that the viewer writes nothing and gates nothing, and name what the register and the layer answer with their own commands.
 
 **Rationale.** The viewer is how the specification is read once it exists, and a reader who knows its nine questions never greps.
-Each line is a requirement's answer — one requirement with its links (`FR-VIEW-010`), a file (`FR-VIEW-020`), a tree (`FR-VIEW-030`), the gaps (`FR-VIEW-040`), a citation of a requirement or a decision (`FR-VIEW-240`, `FR-VIEW-330`), a baseline (`FR-VIEW-050`), the model (`IF-VIEW-010`), the page (`FR-VIEW-060`), a picture of a selection (`FR-VIEW-340`) — and `FR-DOC-020` holds every flag on the page to the tool.
+Each line is a requirement's answer — one requirement with its links (`FR-VIEW-010`), a file (`FR-VIEW-020`; with the statements beneath, `FR-VIEW-350`), where a requirement is realized, by line and with its source (`FR-VIEW-370`, `FR-VIEW-380`), a tree (`FR-VIEW-030`), the gaps (`FR-VIEW-040`), a citation of a requirement or a decision (`FR-VIEW-240`, `FR-VIEW-330`), the words a block may use (`FR-VIEW-360`), a baseline (`FR-VIEW-050`), the model (`IF-VIEW-010`), the page (`FR-VIEW-060`), a picture of a selection (`FR-VIEW-340`) — and `FR-DOC-020` holds every flag on the page to the tool.
 That the viewer never writes (`FR-VIEW-080`) is said because a stranger assumes a tool that reads a repository might change it; what a file's requirements stand on (`FR-GND-310`) and how an element or a record is cited (`FR-ARCH-270`, `FR-GND-540`) are the layers' own commands, named here because the viewer reads the specification and nothing else.
 
 ### FR-DOC-130 — The map section names every top-level path and what it is

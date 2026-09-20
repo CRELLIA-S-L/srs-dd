@@ -793,3 +793,50 @@ And what it measures is the guides, not the agent: a result below the threshold 
 
 The scoring is what the test holds, over canned answers, so that the test itself asks nobody.
 
+### FR-SKILL-300 — A procedure keeps its instructions when it is shortened
+
+```yaml
+status: implemented
+verification: T
+derives_from: [NFR-SKILL-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tests/skill-instructions]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-19
+```
+
+For every procedure the framework ships, the suite **shall** hold its text to a list of what the procedure must name — commands, constitution articles, files and other procedures — and fail when one of them is missing.
+
+**Rationale.** A budget says how short a procedure must be and nothing about what it may lose on the way there; the two instructions most often lost are the ones that read as explanation — the command run before a file is edited, the article that forbids running a test unasked.
+The list is what a person writes off the original before the cut, one line per thing the procedure is for, and the test is the mechanical half of the check that every instruction survived: it proves that the command is still named, and a person reads whether the sentence around it still tells the reader to run it.
+Commands, articles, files and procedures because those are what a grep can find without knowing the language the procedure is written in; the reason beside each of them is what the list cannot hold and the measurement of `FR-SKILL-310` is for.
+A list naming a procedure that does not ship is a stale list, and is reported as such rather than passing empty.
+
+### FR-SKILL-310 — What a procedure costs a fresh agent, and what it yields, is measured
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-290]
+depends_on: [NFR-SKILL-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_proc_eval.py, tests/eval/scenarios]
+tests: [tests/proc-eval-smoke.sh]
+created: 2026-09-19
+```
+
+The framework **shall** carry a command that runs a fresh agent instance through each scenario in a set — a task put to one of the shipped procedures, in this repository — and reports, per run, the tokens the run added to the context beyond its first turn, the tokens it burned over all its turns, its turns, and whether every check the scenario states was met, as a measurement run on request and never as a gate.
+
+**Rationale.** `FR-SKILL-290` measures one rule, citation, over answers to questions; this measures a procedure as a whole, over a task, and the two numbers that decide whether a procedure may be shortened: what it cost the instance to follow, and whether following it still produced what the procedure is for.
+Neither is knowable from the file — a procedure of six hundred words costs more than six hundred words because of what it tells the reader to open, and a procedure cut to a third may lose the one sentence that made the instance run `--code` before editing.
+A check is what the scenario says a good run leaves behind — a tool it ran, a tool it did not, a phrase in its answer, a file it did not write — read off the run's own trace, so that the scoring asks nobody; the tokens are read off the same trace, which the client reports per turn.
+Tokens and never money: a price is the client's number for a tariff that moves, and a row that says what a run cost in a currency says nothing once the tariff has; what was burned — everything that went into the model and came out of it over all the turns, each turn re-reading the context before it — is what any tariff multiplies, and is what the rows keep.
+Beyond the first turn, because the first turn is the session's floor — the client's prompt, its tools, the guides — which belongs to the client and varies between clients by more than a procedure costs; it is the quantity `H-040` in the register is measured on.
+The cost of the procedure's own text is the file's and is counted from the file, not inferred from the trace: the turn after the procedure is loaded also carries whatever else the client wrote to its cache that turn, and on a cache miss it carries the whole context.
+Every run's trace is kept, so that a claim about what an instance read can be checked after the fact; the first runs this framework had were not, and the claim that a fresh instance reads specification files whole could not be.
+Never a gate, for the reasons `FR-SKILL-290` gives: a run varies, the client needs an account and a network, and the number is read against the number before a change by whoever made it.
+The scoring over saved traces is what the test holds.
+

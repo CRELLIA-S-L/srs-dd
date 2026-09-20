@@ -476,3 +476,25 @@ Either area VIEW is missing a requirement for a capability that has its own flag
 **Settled 2026-09-16.** The first.
 `FR-VIEW-310` describes the links, the flag and the key; `FR-CI-040` now says the pipeline hands the viewer the URL at the built revision and stands on 310.
 The suite had never exercised `--repo-url` in the six weeks the three pipelines had passed it, and does now.
+
+## Releases on the forge, and when to start them
+
+**Found:** raised by the maintainer (2026-09-19), after the first release whose changelog section was held to the installer's summary by a test.
+
+**What is being asked:** whether the framework's releases should also be published as releases on the forge — a page per `vX.Y.Z` tag with notes, the source archives the forge attaches itself, a "latest" mark, and the releases box on the repository's front page.
+
+**What it does not touch.** Nothing the tooling does depends on it.
+Installs and upgrades clone by tag — `git clone --branch vX.Y.Z`, `srs_upgrade.py --ref` — and a release page is a page for people over a tag that already exists.
+Starting or not starting changes no procedure and no requirement.
+
+**What would have to hold when it starts, settled now so that the decision is not re-derived:**
+
+- The notes are the `## [X.Y.Z]` section of `CHANGELOG.md` and nothing else, extracted the way `tools/srs_init.py` parses it for an upgrade; a second text written for the page is a second source of truth for the same release.
+- The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
+- `spec/v*` tags are not releases; the trigger filters them out, or `INV-SPEC-030` is broken by the forge on the maintainer's behalf.
+- Tags are annotated from then on — the seventeen that exist are lightweight and stay so.
+- The older sections in `CHANGELOG.md` can be published for their tags after the fact in one pass, so that the page does not open with a single entry.
+
+**Decision taken 2026-09-19:** not before 1.0.0.
+A release page is a claim to be read by strangers, and the first part of the version is still zero; the first `1.` is the maintainer's claim that the shape has settled, and the releases page starts with it.
+What stays open until then is only the order of the two acts on that day — the requirement in area CI with its test on the extraction, and the step in `srs-release` that says what the pushed tag will cause.
