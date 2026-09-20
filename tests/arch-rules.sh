@@ -1275,4 +1275,71 @@ grep -q "no element E-990" /tmp/srs-arch-cite.err \
 rule "FR-ARCH-270 --cite with nothing to cite is a setup fault" 2 "needs at least one" --cite
 passes=$((passes + 4))
 
+# --- verifies: INV-SPEC-080 — an element's number widens like a requirement's:
+# --- E-1000 is an identifier, E-0100 is not.
+# --- verifies: INV-SPEC-090 — and the map orders E-1000 after E-990.
+elements <<'MD'
+# Elements
+
+### E-100 — Hundred
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+One.
+
+### E-1000 — Thousand
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: [E-990]
+```
+
+Two.
+
+### E-990 — Nine ninety
+
+```yaml
+status: proposed
+carries: []
+requirements: []
+depends_on: []
+```
+
+Three, carrying nothing yet.
+MD
+# Warnings are expected of this fixture — a proposed part carrying nothing,
+# requirements no element carries — and are not what it asserts; an error
+# would be, and the exit code says which it was.
+rc=0; ( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || rc=$?
+[ "$rc" = 0 ] || { echo "FAIL INV-SPEC-080 — the wide fixture exited $rc"; cat /tmp/srs-arch.log; exit 1; }
+grep -q "identifier does not match" /tmp/srs-arch.log && { echo "FAIL INV-SPEC-080 — a wide element number was refused"; cat /tmp/srs-arch.log; exit 1; }
+python3 - "$LAB/arch/90-map.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the map orders elements as strings"; exit 1; }
+import re, sys
+rows = re.findall(r"^\| \*\*(E-\d+)\*\*", open(sys.argv[1], encoding="utf-8").read(), re.M)
+assert rows == ["E-100", "E-990", "E-1000"], rows
+PY
+passes=$((passes + 1))
+elements <<'MD'
+# Elements
+
+### E-0100 — A leading zero
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Not an identifier.
+MD
+rule "INV-SPEC-080 a leading zero is refused" 1 "identifier does not match"
+
 echo "arch-rules: $passes fixtures pass"

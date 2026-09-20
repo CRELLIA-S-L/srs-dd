@@ -32,8 +32,15 @@ rm -rf /tmp/srs-adopt /tmp/srs-docs
 # Fabricate a minimal existing Russian SRS. Two requirements, linked: one
 # on its own is isolated by definition, and the `unlinked` rule would then
 # be reporting the fixture rather than anything about adoption.
-mkdir -p /tmp/srs-adopt/specs
-printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-APP-020]\n```\n\nСистема **должна** сохранять файл.\n\n### FR-APP-020 — Второе требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** открывать файл.\n' > /tmp/srs-adopt/specs/10-fr-app.md
+mkdir -p /tmp/srs-adopt/specs/10-fr-app
+printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-APP-020]\n```\n\nСистема **должна** сохранять файл.\n\n### FR-APP-020 — Второе требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** открывать файл.\n' > /tmp/srs-adopt/specs/10-fr-app/000-999.md
+# verifies: INV-SPEC-080, FR-CHK-250
+# The area is a directory, and its second file carries a four-digit number in
+# the file of its thousand: adoption reads both files as the area, counts the
+# wide number as a requirement, and nothing on the way in narrows it to three
+# digits or reads the directory's README as requirements.
+printf '### FR-APP-1000 — Тысячное\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-APP-020]\n```\n\nСистема **должна** продолжать.\n' > /tmp/srs-adopt/specs/10-fr-app/1000-1999.md
+printf '# Об этой папке\n\nДля людей.\n' > /tmp/srs-adopt/specs/10-fr-app/README.md
 find /tmp/srs-adopt -type f | sort | xargs cksum > /tmp/before.sum
 
 # Adopt under --dry-run lists the install and leaves the tree alone.

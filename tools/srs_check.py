@@ -88,7 +88,7 @@ RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "rests-on-withdrawn", "test-missing", "unlinked",
          "annotation-unknown-area", "annotation-superseded",
          "annotation-unlisted", "annotation-unpaired", "annotation-absent",
-         "baseline-without-row")
+         "baseline-without-row", "file-range")
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off`
 # is not printed at all.
@@ -215,7 +215,8 @@ def _alternation(words):
 RE_HEADING = re.compile(
     r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
     r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
-RE_ID = re.compile(r"^(%s)-(%s)-(\d{3})$" % ("|".join(TYPES), "|".join(AREAS)))
+# implements: INV-SPEC-080
+RE_ID = re.compile(r"^(%s)-(%s)-(%s)$" % ("|".join(TYPES), "|".join(AREAS), srs_parse.NUMBER))
 
 
 # The statement lexicon comes from the config; the patterns are
@@ -245,7 +246,7 @@ RE_RATIONALE = re.compile(
 #   implements: FR-CORE-010          -> the `code` field    srs-ignore
 #   verifies: FR-CORE-010, FR-UI-020 -> the `tests` field   srs-ignore
 # A line containing "srs-ignore" is exempt from annotation checking.
-_ANNOT_ID = r"[A-Z]+-[A-Z0-9]+-\d{3}(?!\d)"
+_ANNOT_ID = r"[A-Z]+-[A-Z0-9]+-%s(?!\d)" % srs_parse.NUMBER
 RE_ANNOTATION = re.compile(
     r"\b(implements|verifies):\s*(%s(?:\s*,\s*%s)*)" % (_ANNOT_ID, _ANNOT_ID))
 
@@ -321,6 +322,12 @@ def parse_file(path, rel, errors):
 
 
 def collect_spec_files():
+    # implements: FR-CHK-250
+    # Every markdown file under specs/ at any depth, except the decision
+    # log, the archive and the reserved names — reserved at any depth, so
+    # that a README.md inside an area's directory is for people. An area
+    # written as one file and one written as a directory of files are the
+    # same specification to this walk (ADR-0028).
     result = []
     for current, dirs, files in os.walk(SPECS):
         dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
@@ -416,6 +423,23 @@ def normalize_meta(req, errors):
             errors.append("%s — %s must be a single value, not a list"
                           % (req.where, field))
             req.meta[field] = value[0] if value else ""
+
+
+RE_RANGE_NAME = re.compile(r"^(\d{3,})-(\d{3,})\.md$")
+
+
+def file_range_of(rel):
+    """(low, high, kind) of the numbers a requirements file's name holds:
+    a file directly under specs/ holds 000-999 ("plain"), a file named
+    `NNN-NNN.md` in a subdirectory holds that range ("named"), and any
+    other file in a subdirectory holds anything (None, None, None)."""
+    parts = rel.replace(os.sep, "/").split("/")
+    if len(parts) == 2:
+        return 0, 999, "plain"
+    match = RE_RANGE_NAME.match(parts[-1])
+    if match:
+        return int(match.group(1)), int(match.group(2)), "named"
+    return None, None, None
 
 
 def validate(requirements):
@@ -612,6 +636,34 @@ def validate(requirements):
     for cycle, fields in find_cycles(requirements, CYCLE_FIELDS):
         errors.append("cycle in %s links: %s"
                       % ("/".join(fields), " → ".join(cycle)))
+
+    # implements: FR-CHK-260
+    # A file's name may state the thousand it holds — `1000-1999.md` under
+    # an area's directory — and a file directly under specs/ holds the
+    # first thousand by the standard's convention, so a number filed in
+    # the wrong file is a name that lies to whoever opens the file by eye.
+    # A warning with the move in it: the plain file's first number past
+    # 999 is the moment the area becomes a directory (ADR-0028).
+    for req in requirements:
+        low, high, kind = file_range_of(req.path)
+        if low is None:
+            continue
+        number = srs_parse.id_key(req.id)[1]
+        if low <= number <= high:
+            continue
+        thousand = number // 1000 * 1000
+        wanted = "%04d-%04d.md" % (thousand, thousand + 999) if thousand else "000-999.md"
+        if kind == "plain":
+            area_dir = req.path[:-3]
+            rule_finding(warnings, reports, "file-range",
+                         "%s — %s is past the thousand this file holds; move the file whole "
+                         "to %s/000-999.md and open %s there"
+                         % (req.where, req.id, area_dir, wanted), req)
+        else:
+            rule_finding(warnings, reports, "file-range",
+                         "%s — %s is outside the range this file's name states (%s); it belongs "
+                         "in %s beside it"
+                         % (req.where, req.id, os.path.basename(req.path)[:-3], wanted), req)
 
     # implements: FR-CHK-240
     # A separate walk, so a path that alternates between the two graphs is
@@ -895,7 +947,8 @@ def build_traceability(requirements):
     lines.append("")
     lines.append("| Requirement | Status | Method | Code | Tests |")
     lines.append("|---|---|---|---|---|")
-    for req in sorted(requirements, key=lambda r: r.id):
+    # implements: INV-SPEC-090
+    for req in sorted(requirements, key=lambda r: srs_parse.id_key(r.id)):
         code = "<br>".join("`%s`" % p for p in req.meta.get("code", [])) or "—"
         tests = "<br>".join("`%s`" % p for p in req.meta.get("tests", [])) or "—"
         lines.append("| **%s** %s | `%s` | %s | %s | %s |"
@@ -909,13 +962,13 @@ def build_traceability(requirements):
     lines.append("Who links to each requirement. Computed; not stored in the "
                  "requirements themselves.")
     lines.append("")
-    referenced = sorted(incoming.keys())
+    referenced = sorted(incoming.keys(), key=srs_parse.id_key)
     if referenced:
         lines.append("| Requirement | Referenced by |")
         lines.append("|---|---|")
         for rid in referenced:
             refs = ", ".join("%s (%s)" % (src, field)
-                             for field, src in sorted(incoming[rid], key=lambda p: p[1]))
+                             for field, src in sorted(incoming[rid], key=lambda p: srs_parse.id_key(p[1])))
             lines.append("| **%s** | %s |" % (rid, refs))
     else:
         lines.append("No links yet.")
@@ -923,7 +976,7 @@ def build_traceability(requirements):
 
     lines.append("## Requirements without listed tests")
     lines.append("")
-    untested = [r for r in sorted(requirements, key=lambda r: r.id)
+    untested = [r for r in sorted(requirements, key=lambda r: srs_parse.id_key(r.id))
                 if not r.meta.get("tests") and r.meta.get("status") in ("implemented", "partial")]
     if untested:
         lines.append("Verified by means other than testing — or the check has "

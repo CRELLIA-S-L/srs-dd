@@ -63,8 +63,8 @@ grounds/
 
 ## Identifier
 
-`<KIND>-<NNN>`, three digits, numbered in tens so there is room to insert:
-`H-010`, `B-020`, `I-010`.
+`<KIND>-<NNN>`, three digits or more, numbered in tens so there is room to insert:
+`H-010`, `B-020`, `I-010`; after `B-990` comes `B-1000`, written without a leading zero, and the tools order records by the number, so nothing already written is renamed and a kind never runs out.
 The kinds are `I`, `F`, `H`, `B` and `U`, and the sections below say what each holds.
 
 An identifier is permanent.

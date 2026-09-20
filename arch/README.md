@@ -33,7 +33,7 @@ Nothing in `specs/` mentions this directory, so removing `arch/` removes the lay
 
 ## Identifier
 
-`E-<NNN>`, numbered in steps of 10 so there is room to insert a neighbour.
+`E-<NNN>`, three digits or more, numbered in steps of 10 so there is room to insert a neighbour; after `E-990` comes `E-1000`, written without a leading zero, and the tools order elements by the number.
 
 An identifier is immutable and never reused.
 A part that is dissolved gets status `withdrawn`, or `superseded` with its successor named; the number stays dead either way, because a reference from an old review has to keep leading to the same place.

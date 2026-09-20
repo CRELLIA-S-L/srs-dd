@@ -493,3 +493,45 @@ The layer's map **shall** be produced by the architecture checker from the eleme
 
 **Rationale.** A hand-kept map is a second copy of what the records already say, and the copy that gets edited is never the one that gets read.
 Generated, it is also diffable: a committed map that no longer matches what the records produce is a change somebody made without looking at the parts.
+
+### INV-SPEC-080 — A number widens, and nothing is renamed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_arch.py, tools/srs_init.py, tools/srs_view.py, tools/srs_cite_eval.py]
+tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh, tests/adopt-smoke.sh]
+created: 2026-09-20
+```
+
+An identifier's number **shall** have three digits or more, written without a leading zero beyond the third, so that the thousandth requirement of an area, the thousandth record of a kind and the thousandth element follow the 999th without any identifier already written changing.
+
+**Rationale.** Three digits were the grammar from the first day and nothing said what happens at the thousandth; the answer that keeps `INV-SPEC-010` is the only one — the number grows in width, forward, and what is written stays as it is.
+A fixed fourth digit would rename every published identifier and was refused for that on 2026-08-12; mixed widths were refused the same day for sorting wrongly wherever a tool orders by string, which is the tools' fault and is the next invariant's to fix (ADR-0028).
+No leading zero beyond the third digit, so that a number has one spelling: `0100` is not an identifier, `100` and `1000` are.
+One rule for every grammar the framework reads — a requirement's, a register record's, an element's — because the three share the tail and would otherwise part at the thousandth.
+
+### INV-SPEC-090 — Identifiers are ordered by their number wherever a tool orders them
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-SPEC-080]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_view.py, tools/srs_grounds.py, tools/srs_arch.py]
+tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh]
+created: 2026-09-20
+```
+
+Wherever a tool of the framework orders identifiers — a listing, the matrix, the map, the dashboard, a finding — it **shall** order them by their prefix and then by their number compared as a number, so that `1000` follows `990` and not `100`.
+
+**Rationale.** A number that widens sorts wrongly as a string, which is why mixed widths were refused before anything ordered by number (ADR-0028); the order is the tools' to compute and costs one key function apiece.
+Every place a tool orders identifiers is bound, not only the ones a reader sees: a listing is read by a person, the matrix by a review tool, and a finding names "both occurrences" in an order somebody relies on.
+The published model carries the identifier as written and no order of its own, so a consumer that orders it as strings is misplacing the number by its own choice, and this invariant does not reach it.
+

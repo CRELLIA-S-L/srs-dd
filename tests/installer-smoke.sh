@@ -383,8 +383,8 @@ import json, os, re
 # not whose area it is but what the line does: a field in a template is a
 # shape to fill in, a sentence in a procedure is a citation.
 areas = json.load(open('specs/srs-config.json', encoding='utf-8'))['areas']
-RE = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3}\b' % '|'.join(areas))
-ANY = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-[A-Z]+-\d{3}\b')
+RE = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3,}\b' % '|'.join(areas))
+ANY = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-[A-Z]+-\d{3,}\b')
 
 def instructs(rel):
     # The standards that travel are not procedures: their identifiers sit

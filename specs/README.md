@@ -17,7 +17,7 @@ The decision log follows **MADR**.
 | `constitution.md` | Standing engineering principles, `ART-*`. Changed only via its own amendment procedure |
 | `01-introduction.md` | §1: purpose, scope, boundaries, audience |
 | `02-overview.md` | §2: product perspective, user classes, environment, assumptions |
-| `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area |
+| `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area holding its first thousand numbers; from the thousandth on, a directory `10-fr-<area>/` of files by the thousand — `000-999.md`, `1000-1999.md`, … — each holding the numbers its name states |
 | `20-interfaces.md` | §5, `IF-*` — protocols, external APIs, storage schemas |
 | `30-nfr.md` | `NFR-*` — responsiveness, resource limits, privacy, reliability |
 | `40-invariants.md` | `INV-*`, `CON-*` — invariants, prohibitions, platform constraints |
@@ -32,6 +32,10 @@ The decision log follows **MADR**.
 The file names are a convention, and the checker reads every `.md` file in `specs/` for requirements except these: this file, the glossary, the constitution, the three that record rather than state — the matrix, the open issues and the baseline log — and everything under `adr/` and `archive/`.
 Everything else is read whether or not it holds any, so a section file still empty is read and yields nothing.
 Split the `10-fr-*` files by area as your system grows.
+An area's first number past a thousand is the moment its file becomes a directory: `git mv specs/10-fr-<area>.md specs/10-fr-<area>/000-999.md` — the whole file, history with it — then `1000-1999.md` opens beside it with the area's heading and the new requirement, and nothing already written moves.
+The checker reports a number outside the range its file's name states as a warning named `file-range`, naming the file it belongs in; a requirements file directly under `specs/` holds `000-999`.
+A `README.md` inside such a directory is for people and is never read as requirements, like every reserved name at any depth.
+A file may also be cut by subject and its pieces named as the project likes; `python3 tools/srs_view.py --diff HEAD` after any move names a requirement the move lost, because it compares by identifier and never by file.
 
 ## Identifier
 
@@ -42,7 +46,9 @@ Split the `10-fr-*` files by area as your system grows.
 **Areas** partition the system by subject matter and are project-specific.
 They are declared in `srs-config.json` — see *Configuration*.
 
-Numbers go in steps of 10 within an area, so there is room to insert a neighbor later.
+Numbers go in steps of 10 within an area, so there is room to insert a neighbor later — a convention, not a rule: the checker does not enforce the step, and `FR-CORE-025` between 020 and 030 is a valid identifier.
+A number has three digits or more, written without a leading zero beyond the third: after `990` comes `1000`, in the next file (see *Map*), and the tools order identifiers by their number, so nothing already written is renamed and an area never runs out.
+The sequence runs in tens and does not break; a number between tens is for a requirement written beside an existing one, and goes in the file of its thousand whenever it is written.
 
 **An identifier is immutable and never reused.** A cancelled requirement is not deleted: it gets status `superseded` and a pointer to its replacement.
 The freed number stays dead forever — otherwise a reference from an old discussion will one day lead to the wrong place.

@@ -53,7 +53,7 @@ SKIP_FILES = {"README.md", "90-map.md"}
 # Loose enough to catch a heading that meant to be a record and failed, so that
 # the identifier rule can say so instead of passing it over in silence.
 RE_HEADING = re.compile(r"^###\s+([A-Za-z][A-Za-z0-9]*-\d+(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
-RE_ID = re.compile(r"^E-\d{3}$")
+RE_ID = re.compile(r"^E-%s$" % srs_parse.NUMBER)   # implements: INV-SPEC-080
 
 REQUIRED_KEYS = ("status", "carries", "requirements")
 STATUSES = ("proposed", "built", "superseded", "withdrawn")
@@ -492,7 +492,7 @@ def check_cycles(records, warnings, reports, cfg):
     def walk(node):
         colour[node] = "grey"
         stack.append(node)
-        for target in sorted(declared.get(node, ())):
+        for target in sorted(declared.get(node, ()), key=srs_parse.id_key):
             # Cancelled or never declared: a path ends here, and the name stays out of the
             # walk's own bookkeeping so a circle is never reported through it.
             if target not in declared:
@@ -514,7 +514,7 @@ def check_cycles(records, warnings, reports, cfg):
         stack.pop()
         colour[node] = "black"
 
-    for node in sorted(declared):
+    for node in sorted(declared, key=srs_parse.id_key):
         if node not in colour:
             walk(node)
 
@@ -623,7 +623,7 @@ def render_map(records, model, cfg):
                 "an entry in plain text one computed from what the element owns.", ""]
     out += ["| Element | Status | Carries | Requirements |", "|---|---|---|---|"]
     carrying = set()
-    for record in sorted(records, key=lambda r: r.id):
+    for record in sorted(records, key=lambda r: srs_parse.id_key(r.id)):   # implements: INV-SPEC-090
         if not RE_ID.match(record.id):
             continue
         carries = ", ".join("`%s`" % p for p in as_list(record.fields.get("carries"))) or "—"

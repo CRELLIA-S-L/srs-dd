@@ -17,26 +17,6 @@ ADR-0012 removed that layout, and the defect went with it.
 **Decision needed:** whether pinch zoom is worth code.
 It is a pointer handler counting two contacts.
 
-## The standard never says how many numbers an area has
-
-**Found:** while measuring NFR-CHK-010 against a generated specification of 500 requirements (2026-08-06). 401 of them were rejected.
-
-**What diverged:** `RE_ID` (`tools/srs_check.py`) requires exactly three digits, so an area holds 999 numbers, of which the mandated steps of 10 use
-99. The Identifier section of `specs/README.md` says numbers "go in steps of 10" and never mentions either figure.
-
-This entry claimed until 2026-08-12 that the hundredth requirement is a hard error a project cannot work around without splitting the area.
-That was wrong on both counts.
-No rule requires a multiple of ten — the checker has no such rule at all — so an intermediate number passes, which is what the step of 10 leaves room for and what FR-CHK-075 used when FR-CHK-070 was split.
-And the binding ceiling on a project this framework can serve is not here: the graph draws 150 linked requirements and states what it left out (`GRAPH_NODE_LIMIT`, NFR-VIEW-010), measured the same day at 150, 300 and 800.
-
-Widening the grammar to four digits was considered and rejected on 2026-08-12. Both shapes break: mixed widths sort wrongly everywhere the tools order by identifier string, and fixed four digits with a leading zero renames every published identifier, which INV-SPEC-010 forbids.
-
-**2026-09-08.** The ceiling that binds is the one named above, and it is now the one being reached.
-213 requirements, every one of them linked, against a `GRAPH_NODE_LIMIT` of 150: the page says `63 node(s) beyond the first 150 are not drawn` and names the families that went with them.
-No area is near its 999, and a four-digit identifier is still refused — a fixture carrying `FR-CORE-0100` answers `identifier does not match <TYPE>-<AREA>-<NNN>` and exits 1.
-
-**Decision needed:** say in the Identifier section how many numbers an area has, and that the step of 10 is a convention the checker does not enforce — or decide the standard need not say it, and close this.
-
 ## A requirement with no links at all is not in the graph
 
 **Found:** while grouping the graph by area (2026-08-11).

@@ -51,6 +51,7 @@ import webbrowser                                          # noqa: E402
 from urllib.parse import quote                              # noqa: E402
 
 import srs_check                                           # noqa: E402
+import srs_parse                                           # noqa: E402
 
 if not hasattr(srs_check, "parse_text"):
     sys.stderr.write("tools/srs_check.py predates this viewer — refresh "
@@ -168,12 +169,13 @@ def build_model(requirements, problems, with_code_scan=True):
     """Projects parsed requirements into the one structure the terminal
     renderers, the HTML generator and --json all consume."""
     entries = [_requirement_dict(req) for req in requirements]
-    entries.sort(key=lambda e: (e["id"], e["path"], e["line"]))
+    # implements: INV-SPEC-090
+    entries.sort(key=lambda e: (srs_parse.id_key(e["id"]), e["path"], e["line"]))
 
     seen = {}
     for entry in entries:
         seen[entry["id"]] = seen.get(entry["id"], 0) + 1
-    for rid in sorted(k for k, n in seen.items() if n > 1):
+    for rid in sorted((k for k, n in seen.items() if n > 1), key=srs_parse.id_key):
         problems.append("duplicate identifier %s — the checker treats "
                         "this as an error" % rid)
 
@@ -749,8 +751,8 @@ def print_line_answer(model, path, line, style, listing, statements=False):
         print_counts(model, style)
         out()
     index = by_id(model)
-    entries = [index[rid] for rid in sorted(marked) if rid in index]
-    unknown = sorted(rid for rid in marked if rid not in index)
+    entries = [index[rid] for rid in sorted(marked, key=srs_parse.id_key) if rid in index]
+    unknown = sorted((rid for rid in marked if rid not in index), key=srs_parse.id_key)
     if not entries and not unknown:
         out(style.d("no annotation covers %s:%d" % (path, line)))
     for entry in entries:
@@ -1314,7 +1316,7 @@ def as_deltas(snapshots):
             now = snap["requirements"]
             entry["put"] = dict((rid, fields) for rid, fields in now.items()
                                 if before.get(rid) != fields)
-            entry["drop"] = sorted(rid for rid in before if rid not in now)
+            entry["drop"] = sorted((rid for rid in before if rid not in now), key=srs_parse.id_key)
         out.append(entry)
     return out
 
@@ -1338,10 +1340,10 @@ def compute_diff(old_model, new_model):
     """Working tree against the revision — not HEAD against it."""
     old = by_id(old_model)
     new = by_id(new_model)
-    added = [new[rid] for rid in sorted(set(new) - set(old))]
-    removed = [old[rid] for rid in sorted(set(old) - set(new))]
+    added = [new[rid] for rid in sorted(set(new) - set(old), key=srs_parse.id_key)]
+    removed = [old[rid] for rid in sorted(set(old) - set(new), key=srs_parse.id_key)]
     changed = []
-    for rid in sorted(set(old) & set(new)):
+    for rid in sorted(set(old) & set(new), key=srs_parse.id_key):
         fields = []
         for field in DIFF_FIELDS:
             if old[rid][field] != new[rid][field]:
@@ -2456,7 +2458,7 @@ def build_graph(model):
             for target in entry[field]:
                 if target in known:
                     edges.append((entry["id"], target, field))
-    nodes = sorted({rid for edge in edges for rid in edge[:2]})
+    nodes = sorted({rid for edge in edges for rid in edge[:2]}, key=srs_parse.id_key)
     # The identifiers rather than their number: the page has to say what
     # was left out, and a count says how many. Sorted order means the cut
     # falls at one place in the alphabet, so whole families go at once —
@@ -3071,7 +3073,8 @@ def parse_args(argv):
     # next without a second attempt.
     args, extra = parser.parse_known_args(argv)
     if extra:
-        stray = [a for a in extra if re.match(r"^[A-Z]+-[A-Z0-9]+-\d{3}$", a)]
+        # implements: INV-SPEC-080
+        stray = [a for a in extra if re.match(r"^[A-Z]+-[A-Z0-9]+-%s$" % srs_parse.NUMBER, a)]
         if args.requirement and stray and len(stray) == len(extra):
             parser.exit(2, "srs_view.py shows one requirement at a time — %s is %d; call it "
                            "once per identifier, or --cite %s for the citations\n"

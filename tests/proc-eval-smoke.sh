@@ -26,7 +26,7 @@ scenarios, problem = e.read_scenarios()
 assert problem is None, problem
 assert len(scenarios) >= 4, "fewer than four scenarios ship: %d" % len(scenarios)
 TOOL = {"E": "srs_arch.py", "H": "srs_grounds.py", "B": "srs_grounds.py", "U": "srs_grounds.py"}
-RE_CITED = re.compile(r"((?:FR|NFR|IF|INV|CON)-[A-Z0-9]+-\d{3}|ADR-\d{4}|[EHBU]-\d{3}) — ")
+RE_CITED = re.compile(r"((?:FR|NFR|IF|INV|CON)-[A-Z0-9]+-\d{3,}|ADR-\d{4}|[EHBU]-\d{3,}) — ")
 for s in scenarios:
     assert any(k == "skill" and a == s["procedure"] for k, a in s["checks"]), \
         "%s does not check that its procedure `%s` was invoked" % (s["name"], s["procedure"])

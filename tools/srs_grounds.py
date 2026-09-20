@@ -78,7 +78,7 @@ KINDS = {"I": "ideology", "F": "frame", "H": "hypothesis",
 # implements: INV-GND-010
 # One number, one meaning, forever: the checker's part of that promise is
 # that no two records in the register carry the same one.
-RE_ID = re.compile(r"^(%s)-(\d{3})$" % "|".join(sorted(KINDS)))
+RE_ID = re.compile(r"^(%s)-(%s)$" % ("|".join(sorted(KINDS)), srs_parse.NUMBER))   # implements: INV-SPEC-080
 
 # implements: FR-GND-030
 REQUIRED = {
@@ -521,7 +521,7 @@ def check_history(records, cfg, warnings, reports):
     widened = {}          # id -> [(what was added, whether it was disclosed)]
     for index, texts in enumerate(revisions):
         for path, text in sorted(texts.items()):
-            for hid, entry in sorted(hypotheses_in(text, path).items()):
+            for hid, entry in sorted(hypotheses_in(text, path).items(), key=lambda kv: srs_parse.id_key(kv[0])):
                 value = entry.fields.get("refuted_if")
                 if hid not in threshold:
                     threshold[hid] = (value, index, False)
@@ -533,7 +533,7 @@ def check_history(records, cfg, warnings, reports):
                 for row in rows:
                     rows_ever.setdefault(hid, {}).setdefault(row, index)
             # implements: FR-GND-510, FR-GND-520
-            for iid, entry in sorted(ideologies_in(text, path).items()):
+            for iid, entry in sorted(ideologies_in(text, path).items(), key=lambda kv: srs_parse.id_key(kv[0])):
                 value = entry.fields.get("admissible_arguments")
                 admits = frozenset(value if isinstance(value, list)
                                    else [value] if value else [])
@@ -555,7 +555,7 @@ def check_history(records, cfg, warnings, reports):
     # A record that is simply gone takes its measurements with it, which is
     # the easiest way to make an inconvenient one disappear and the one the
     # loop below cannot see: it walks what is here.
-    for hid in sorted(rows_ever):
+    for hid in sorted(rows_ever, key=srs_parse.id_key):
         if hid not in records:
             rule_finding(warnings, reports, cfg, "evidence-dropped",
                          "grounds — %s recorded %d measurement(s) and is no "
@@ -564,7 +564,7 @@ def check_history(records, cfg, warnings, reports):
                          % (hid, len(rows_ever[hid])))
 
     # implements: FR-GND-510, FR-GND-520
-    for iid in sorted(widened):
+    for iid in sorted(widened, key=srs_parse.id_key):
         if iid not in records:
             continue
         rec = records[iid]
@@ -582,7 +582,7 @@ def check_history(records, cfg, warnings, reports):
                              "named afterwards it is whatever happened"
                              % (rec.where, iid))
 
-    for hid in sorted(records):
+    for hid in sorted(records, key=srs_parse.id_key):
         rec = records[hid]
         if rec.kind != "H":
             continue
@@ -719,7 +719,7 @@ def validate(records, model, model_error, cfg):
     bets = {i: r for i, r in records.items() if r.kind == "B"}
     decls = {i: r for i, r in records.items() if r.kind == "U"}
 
-    for rid in sorted(records):
+    for rid in sorted(records, key=srs_parse.id_key):
         rec = records[rid]
         for key in REQUIRED[rec.kind]:
             if key not in rec.fields:
@@ -787,7 +787,7 @@ def validate(records, model, model_error, cfg):
                 "number, at n >= a whole number)" % (rec.where, rid, threshold))
 
     # implements: FR-GND-160, FR-GND-170, FR-GND-180
-    for hid in sorted(hyps):
+    for hid in sorted(hyps, key=srs_parse.id_key):
         rec = hyps[hid]
 
         # implements: FR-GND-140, FR-GND-150
@@ -892,7 +892,7 @@ def validate(records, model, model_error, cfg):
                           "refusal is on the record" % (rec.where, hid))
 
     # A declaration that gives no reason is indistinguishable from a shrug.
-    for rid in sorted(decls):
+    for rid in sorted(decls, key=srs_parse.id_key):
         rec = decls[rid]
         if not statement_of(rec):
             errors.append("%s — %s declares %s unclaimed and gives no reason"
@@ -900,7 +900,7 @@ def validate(records, model, model_error, cfg):
                              rec.fields.get("requirement", "a requirement")))
 
     staked = {}
-    for rid in sorted(bets):
+    for rid in sorted(bets, key=srs_parse.id_key):
         rec = bets[rid]
         if not active(rec):
             continue
@@ -933,7 +933,7 @@ def validate(records, model, model_error, cfg):
 
     # A hypothesis whose term has run out. Reported, never rewritten: expiry
     # is not a verdict, and only a measurement can answer what the status is.
-    for rid in sorted(hyps):
+    for rid in sorted(hyps, key=srs_parse.id_key):
         rec = hyps[rid]
         expires = as_date(rec.fields.get("expires"))
         if expires is None:
@@ -944,7 +944,7 @@ def validate(records, model, model_error, cfg):
                          % (rec.where, rid, expires.isoformat()))
 
     # Every pointer into a model this register does not own.
-    for rid in sorted(records):
+    for rid in sorted(records, key=srs_parse.id_key):
         rec = records[rid]
         if rec.kind not in ("B", "U") or model is None:
             continue
@@ -961,7 +961,7 @@ def validate(records, model, model_error, cfg):
     # only retired by a bet that actually stands the requirement on
     # something.
     staking = {}
-    for rid in sorted(bets):
+    for rid in sorted(bets, key=srs_parse.id_key):
         rec = bets[rid]
         for name in as_list(rec.fields.get("all_of")) \
                 + as_list(rec.fields.get("any_of")):
@@ -989,11 +989,11 @@ def validate(records, model, model_error, cfg):
     # What a hypothesis says about itself against what the register does
     # with it. Both readings are of the same pair — the record and the bets
     # standing on it — so they are computed together.
-    for name in sorted(staked):
+    for name in sorted(staked, key=srs_parse.id_key):
         if name not in hyps:
             continue                      # already reported as dangling
         rec = hyps[name]
-        on = ", ".join(sorted(staked[name]))
+        on = ", ".join(sorted(staked[name], key=srs_parse.id_key))
         if rec.fields.get("status") == "untested":
             rule_finding(warnings, reports, cfg, "relied-on-untested",
                          "%s — %s is `untested`, which says nobody relies "
@@ -1010,8 +1010,9 @@ def validate(records, model, model_error, cfg):
 
     # Two bets on one requirement turn a maximum into a minimum without
     # saying so, which is the only failure the record encoding introduces.
-    for req in sorted(by_requirement):
-        names = sorted(by_requirement[req])
+    # implements: INV-SPEC-090
+    for req in sorted(by_requirement, key=srs_parse.id_key):
+        names = sorted(by_requirement[req], key=srs_parse.id_key)
         if len(names) > 1:
             rule_finding(warnings, reports, cfg, "bet-duplicated",
                          "%s — %s is named by more than one bet (%s); two "
@@ -1020,7 +1021,7 @@ def validate(records, model, model_error, cfg):
                          % (records[names[0]].where, req, ", ".join(names)))
 
     # A declaration retires itself when a real bet turns up.
-    for rid in sorted(decls):
+    for rid in sorted(decls, key=srs_parse.id_key):
         rec = decls[rid]
         if not active(rec):
             continue
@@ -1029,7 +1030,7 @@ def validate(records, model, model_error, cfg):
             rule_finding(warnings, reports, cfg, "declaration-superfluous",
                          "%s — %s declares %s unclaimed, and %s names it"
                          % (rec.where, rid, req,
-                            ", ".join(sorted(staking[req]))))
+                            ", ".join(sorted(staking[req], key=srs_parse.id_key))))
 
     check_history(records, cfg, warnings, reports)
 
@@ -1071,7 +1072,7 @@ def decide(records, req):
     """
     hyps = {i: r for i, r in records.items() if r.kind == "H"}
     best = None
-    for rid in sorted(records):
+    for rid in sorted(records, key=srs_parse.id_key):
         rec = records[rid]
         if rec.kind != "B" or not active(rec) \
                 or rec.fields.get("requirement") != req:
@@ -1107,7 +1108,7 @@ def reversals(records):
     answer.
     """
     given, turned = {}, {}
-    for hid in sorted(records):
+    for hid in sorted(records, key=srs_parse.id_key):
         rec = records[hid]
         if rec.kind != "H":
             continue
@@ -1124,7 +1125,7 @@ def reversals(records):
 def build_dashboard(records, model, incoming, cfg):
     # implements: FR-GND-130, FR-GND-220, FR-GND-240, FR-GND-260,
     # implements: CON-GND-020
-    kinds = {k: [i for i, r in sorted(records.items()) if r.kind == k]
+    kinds = {k: [i for i, r in sorted(records.items(), key=lambda kv: srs_parse.id_key(kv[0])) if r.kind == k]
              for k in KINDS}
     out = ["# Grounds dashboard", "",
            "**Generated by `tools/srs_grounds.py`. Do not edit by hand —",
@@ -1197,7 +1198,7 @@ def build_dashboard(records, model, incoming, cfg):
         staked = sorted({r.fields.get("requirement")
                          for r in records.values()
                          if r.kind == "B" and active(r)
-                         and r.fields.get("requirement")})
+                         and r.fields.get("requirement")}, key=srs_parse.id_key)
         rows, weak = [], 0
         for req in staked:
             decided = decide(records, req)
@@ -1253,7 +1254,7 @@ def build_dashboard(records, model, incoming, cfg):
         claimed = {r.fields.get("requirement") for r in records.values()
                    if r.kind == "B" and active(r) and stakes(r)}
         buckets, undated = {}, 0
-        for req in sorted(model):
+        for req in sorted(model, key=srs_parse.id_key):
             if req in claimed or not live(model[req]):
                 continue
             date = as_date(model[req].get("created"))
@@ -1287,7 +1288,7 @@ def build_dashboard(records, model, incoming, cfg):
     else:
         claimed = {r.fields.get("requirement") for r in records.values()
                    if r.kind == "B" and active(r) and stakes(r)}
-        standing = [req for req in sorted(model) if live(model[req])]
+        standing = [req for req in sorted(model, key=srs_parse.id_key) if live(model[req])]
         rows = []
         for req in standing:
             if req in claimed:
@@ -1345,7 +1346,7 @@ def blast(records, model, paths):
     if not here:
         return 0
     said = False
-    for rid in sorted(records):
+    for rid in sorted(records, key=srs_parse.id_key):
         rec = records[rid]
         if rec.kind != "B" or not active(rec):
             continue

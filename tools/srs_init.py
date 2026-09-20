@@ -68,6 +68,7 @@ import subprocess                                          # noqa: E402
 from srs_check import (DEFAULTS, __version__, parse_file,  # noqa: E402
                        RE_ANNOTATION, TYPES, RE_AREA_NAME, SKIP_FILES,
                        SKIP_DIRS)
+import srs_parse                                           # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -76,7 +77,7 @@ RE_AREA = re.compile(r"^[A-Z][A-Z0-9]*$")
 # Strict requirement identifier: composed from the framework's TYPES and
 # the area grammar, NOT from srs_check.RE_ID (that one is bound to the
 # framework's own configured areas).
-RE_STRICT_ID = re.compile(r"^(?:%s)-[A-Z][A-Z0-9]*-\d{3}$" % "|".join(TYPES))
+RE_STRICT_ID = re.compile(r"^(?:%s)-[A-Z][A-Z0-9]*-%s$" % ("|".join(TYPES), srs_parse.NUMBER))   # implements: INV-SPEC-080
 RE_VERSION = re.compile(r'^__version__\s*=\s*"([^"]+)"', re.M)
 
 TEMP_CHECKER = ".srs_check_adopt.py"
