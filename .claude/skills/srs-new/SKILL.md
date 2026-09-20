@@ -10,6 +10,8 @@ The rules live in `specs/README.md`, not here: *Requirement block*, *Lifecycle* 
 
 ## Dialog
 
+Every step puts what it proposes — the statement, the number, the method, the links — in the message that asks, as it would be written and quoted in a block where it is long; "as shown above" sends the user back through the conversation for a text that may have moved.
+
 1. **What behavior?** One capability per requirement. If the user describes two, say so and split.
 2. **Type and area.** The area is one of the `areas` the project declares — `python3 tools/srs_view.py --areas` prints them with how many requirements each holds. Propose both, let the user confirm.
 3. **Number.** The next free one in the area — check the target file (see the map in `specs/README.md`).

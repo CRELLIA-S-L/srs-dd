@@ -842,3 +842,25 @@ Every run's trace is kept, so that a claim about what an instance read can be ch
 Never a gate, for the reasons `FR-SKILL-290` gives: a run varies, the client needs an account and a network, and the number is read against the number before a change by whoever made it.
 The scoring over saved traces is what the test holds.
 
+### FR-SKILL-320 — What is put to a person for a decision is in the message that asks
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-200]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md]
+tests: []
+created: 2026-09-20
+```
+
+When a procedure asks a person to decide on something — a sentence for a document, a requirement's text, a step of a plan — it **shall** carry in that message the text it asks them to decide on, as it would be written, and never a reference to an earlier message in its place.
+
+**Rationale.** The person reads the message in front of them, not the transcript.
+"The three sentences I showed above" sends them back through the conversation to find what they are being asked to approve, and what they find may not be what the message meant, because the text moved in between.
+A pointer to an earlier message is the failure `FR-SKILL-200` names for a record — a key handed over instead of the thing — turned on the proposal itself.
+Restating costs the length of the proposal once; the alternative costs the reader a search and the writer the chance that the approval covers a text nobody re-read.
+A long text is quoted in a block rather than shortened: what is approved is what was pasted.
+

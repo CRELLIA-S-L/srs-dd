@@ -65,5 +65,6 @@ The plan lives in the conversation, never in `specs/`; a plan is not approval �
 ## Also
 
 - Prohibitions: *What not to do* in `specs/README.md`; and no builds or tests without the user's explicit confirmation (ART-030).
+- What is put to the maintainer for a decision — a statement, a rewording, a step of a plan — is in the message that asks, as it would be written, never "as above": a pointer to an earlier message is a key, not the thing.
 - A decision — an engine chosen, an approach rejected, a platform worked around — goes to `specs/adr/`, beside its neighbours.
 - A mismatch between code and requirement: fix neither side; record it in `specs/91-open-issues.md` and tell the user. A finding ends in *therefore* — must be fixed; is deliberate, and why; needs the maintainer's decision, with the options. Without one it is an observation, and is worked out or dropped, not handed over.
