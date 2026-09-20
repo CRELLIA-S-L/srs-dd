@@ -498,3 +498,23 @@ Starting or not starting changes no procedure and no requirement.
 **Decision taken 2026-09-19:** not before 1.0.0.
 A release page is a claim to be read by strangers, and the first part of the version is still zero; the first `1.` is the maintainer's claim that the shape has settled, and the releases page starts with it.
 What stays open until then is only the order of the two acts on that day — the requirement in area CI with its test on the extraction, and the step in `srs-release` that says what the pushed tag will cause.
+
+## Documents outside a repository, and whether they want a tool of their own
+
+**Found:** a working note of 2026-09-18, written after the landing page was specified (ADR-0027, `FR-DOC-010` to `FR-DOC-210`) and no requirement of that area named a file under `tools/` — the checks it needed are two suites under `tests/` — recorded here on 2026-09-20 and the note discarded.
+
+**What is being asked:** whether the way the landing page is described — the cut into sections recorded as a decision, each section owing its reader something and naming the sources it restates, everything machine-readable held by a test, and currency a hypothesis with a threshold (`H-030`) — should become an instrument of its own for documents that live where there is no code, no specification and no git in front of the author: a company policy over laws and decisions, an onboarding over configuration and an org chart, an API description over code and schemas, in a wiki or a cloud editor.
+
+**What is already settled.** Inside a repository that carries the framework, nothing is missing: any document can be described today with an area of its own, a requirement per section and its checks under `tests/`, and the everyday rule `FR-DOC-200` states — re-read the section when a source it restates moves — rides on the blast radius the links already compute.
+The four principles are not the open part; they are written in the DOC area's rationales.
+
+**Decision taken 2026-09-20:** not a separate instrument while the question it shares with every idea of a product for people outside git — who holds the branch, and how a change reaches a document nobody edits in a repository — stays unanswered.
+Until then the instrument for such a document is this framework installed where the document is put by somebody's hand.
+
+**What stays open, and would have to be answered first:**
+
+- A source outside git — an article of a law, a record in a directory, a schema kept elsewhere — is a link no checker resolves. Whether it wants a layer of external sources of its own, each carrying the date it was last read against, the way a hypothesis carries a term.
+- A document with no single owner: whose decision the cut into sections is.
+- Documents that are meant to drift — a log, a changelog, a protocol — where what can be described is the form of an entry and not a set of sections; a different shape, and possibly a different instrument.
+
+What would be measured, if this were ever taken up, is drafted and not recorded, by the register's rule that a threshold and an owner are set by whoever will answer for the measurement: the currency of a described document against an undescribed one on another corpus, the hours a first description costs per thousand words, and the share of sections whose sources the author named rather than an agent inferred afterwards.
