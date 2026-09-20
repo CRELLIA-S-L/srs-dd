@@ -487,7 +487,7 @@ When a procedure first names a record — a requirement, an element, a grounds r
 It is exactly right inside a link field, where a machine resolves it and a person is not reading; in a paragraph written for somebody it costs them a lookup per mention, and a report full of them gets skimmed rather than read.
 The title is one clause, the file is clickable in a terminal and in an editor, and the status says whether this is still something to build against, so what the reader owes the report drops to nothing.
 
-**The side effect is worth more than the rule.** Naming a requirement in full means resolving it, and an identifier cited without being resolved is how a procedure ends up asserting what another procedure does without reading it — the failure recorded in `91-open-issues.md` under that name.
+**The side effect is worth more than the rule.** Naming a requirement in full means resolving it, and an identifier cited without being resolved is how a procedure ends up asserting what another procedure does without reading it — the failure `FR-SKILL-280` was written against.
 A rule that says "give the title" is the cheapest available form of "open it first".
 It does not make an invented title impossible — a plausible one can be written from memory — but the three parts check each other: a title that was guessed is contradicted by the file and the status standing beside it, and one command settles which.
 A bare identifier offers nothing to contradict.
@@ -695,6 +695,8 @@ The one rule that touches this fires only on total isolation — a requirement l
 Measured here on 2026-09-10: 217 links of all four kinds over 222 requirements, and 126 of those requirements with nothing pointing at them at all.
 The first project that installed this framework lands within a hair of both from 571 requirements — 1.05 links each against 0.98 here, 55% with no incoming link against 57% — while using the fields in opposite proportions, `depends_on` carrying 188 of the edges here and 150 of 600 there.
 What that leaves is an impact query answering from links nobody has ever read as a set.
+Whether the floor was a ceiling was measured rather than argued: the thirteen requirements authored after the authoring procedure was made to show its search (`FR-SKILL-250`, 2026-09-09) carry 1.54 outgoing links apiece against 1.07 over the 213 written before — a small sample under one procedure, said so that the ratio is not read for more than it carries — so the links were under-written because they were never looked for, not because the specification is loosely coupled; and no target is written into a rule, because the one candidate, an outgoing link on every requirement, is false on the requirement each area hangs from.
+Two mechanical proxies for a missing link were run and rejected on volume, which is the argument `FR-CHK-160` makes about a rule nobody can afford to read: "two requirements name the same file and link to neither" fired 3 648 times over this repository on 2026-09-09, and the narrower "annotated in adjacent regions and not linked" fired on 319 pairs of 382; a pass by a reader is what remains.
 
 **Area by area, because that is the unit a reader can hold at once.** The eight areas here run from 12 requirements to 63, and one area's titles are between 872 and 4550 bytes — against 15.9 KB for every title at once here, and 55.9 KB in the project that installed this framework.
 A link is proposed between two requirements that were read together, so the size of what can be read together is the size of what can be proposed.

@@ -837,6 +837,8 @@ From a line to its requirements the viewer already answers (`FR-VIEW-300`); from
 Measured on 2026-09-20 over three runs of the everyday procedure: of the tool calls a run made, ten were that kind of search and seven were the procedure's own.
 The files named and not annotated are printed too, with the fact stated, because the answer is otherwise wrong by omission: a file the field claims and no line speaks for is exactly what `FR-SKILL-220` sends the reader to open whole, and the reader should know that this is what they are doing.
 What is printed is the annotation as it stands, one per line: a requirement realized in three places with one annotation at the top shows one place, which is the annotation being incomplete, and is for the audit to notice rather than for the viewer to guess around.
+A rule against a duplicated annotation was weighed on 2026-08-17 and again on 2026-09-08 and not written: every duplicate counted — seven, then 118 — marked two places one requirement is honestly realized, so the rule would have fired that many times with nothing wrong; and the one reading that needs no understanding of the code, one requirement named twice inside one uninterrupted run of comment lines, occurred zero times on both counts.
+What this prints is the case laid out for a reader instead.
 
 ### FR-VIEW-380 — The source under an annotation is printed
 

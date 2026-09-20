@@ -48,7 +48,7 @@ Two gaps outlived that question, and for opposite reasons: one cannot be reached
 
 **What the page does in a browser.** Gestures, and the following of a link, are asserted as markup and handlers: their presence is proved, their working is not.
 The suites run no browser, because none is a dependency of this project.
-Recorded in `91-open-issues.md`, where the decision is stated as open — accept inspection as the method here, or take on a headless browser.
+Inspection is the method here, decided 2026-09-20: a headless browser is a dependency this project does not have and `NFR-SPEC-010` keeps out, and the suites assert what a text can see — where the pointer capture is taken, that the handlers and the stage are in the page.
 
 **Adopt past its point of no return.** A step failing after the checker is in place reports partial completion and exits 1; reaching it needs a fault injected into the installer, and a fixture for that would assert the injection rather than the behaviour.
 The exit code itself is covered from the other direction — an upgrade returning the target checker's verdict.

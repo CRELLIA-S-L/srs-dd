@@ -4,29 +4,6 @@ Discrepancies between the specification and the code, unfinished work, unresolve
 Each entry states what diverged, where it was found, and what decision is needed.
 Entries are removed once the maintainer decides which side is right and the fix lands.
 
-## Nothing in the suites exercises a gesture
-
-**Found:** while building the explorable graph (2026-08-08).
-
-**What diverged:** FR-VIEW-110 promises panning, zooming, collapsing an area and highlighting, and carries `verification: I` because no browser and no JavaScript engine is a dependency of this project.
-`tests/view-smoke.sh` asserts that the handlers and the stage are in the page — which catches a deletion, and nothing else.
-The same limit applies to the comparison of FR-VIEW-100 — its data is checked against git, its script by having been read — and to FR-VIEW-130, where the suite holds that every view links to a requirement but not that following such a link arrives anywhere.
-The set this covers grows with the page: each addition to it is one more behaviour verified by a person who remembers to look.
-
-On 2026-08-11 this stopped being hypothetical.
-Clicking a node had opened nothing since the canvas began capturing the pointer on `pointerdown`: while an element holds the capture the browser dispatches the click to it rather than to the descendant under the cursor, so every click landed on the canvas and the handlers on the nodes — all present, all asserted by this suite — were never reached.
-It surfaced only when a second control was added to the drawing and a person tried to use it.
-
-**Why it is recorded rather than fixed:** every way out adds a dependency the framework does not have.
-A headless browser in CI is the honest one and the heaviest; a JavaScript engine would run the logic but not the gestures;
-transliterating the script into Python, as the baseline comparison already does, tests a copy rather than the thing that ships.
-What went in instead is narrower: the suite now asserts *where* the capture is taken, because that is the part a text can see.
-
-**Re-measured 2026-09-08.** The dependency is still absent rather than merely unused: no browser, headless or otherwise, and no JavaScript engine is named anywhere in `ci/`, in `.github/workflows/` or in `tools/ci_selftest.sh`.
-`50-verification.md` now carries this under *Known gaps* and points back here, so the limit is written down; the decision below is not.
-
-**Decision needed:** accept inspection as the method for anything the page does in the browser and say so in `50-verification.md`, or take on a headless browser for the graph and the comparison.
-
 ## The graph cannot be pinched
 
 **Found:** while reviewing the explorable graph (2026-08-08).
@@ -79,30 +56,6 @@ Whatever is decided here, the two should agree: a requirement the checker has st
 
 **Decision needed:** draw every requirement and let the unlinked ones stand in their lane as islands, or keep the drawing to what has links and say so on the page next to the count of what was left out.
 
-## One requirement annotated twice in a file cannot be judged from the file
-
-**Found:** while considering a rule against it (2026-08-17).
-
-**What diverged:** nothing yet — this is a rule proposed and left unbuilt, recorded so the reasoning is not lost.
-Two `implements:` lines naming one requirement in one file are noise when they mark the same thing twice, and correct when the requirement is realized in two places.
-The checker knows only the path, so it cannot tell those apart.
-
-The evidence says the noise is not what is there.
-All seven duplicates in this repository on 2026-08-17 were the honest kind: FR-INIT-080 marks installing the hook beside an existing one and saying so; FR-INIT-110 marks deciding which upgrade notes apply and printing them; FR-INIT-140 marks computing the framework address and recording it; FR-VIEW-040 and FR-VIEW-210 each mark a computation and its rendering; IF-SPEC-010 marks the parser and the tolerance of an unknown key; FR-CHK-150 marks the isolation rule and the exemption cancelled requirements have from it.
-A rule warning on all of them would fire seven times on the first run with nothing wrong, and be silenced — which is what FR-CHK-160 argues makes a rule worthless.
-
-**Re-measured 2026-09-08: 118**, counted over every tracked file with the checker's own `RE_ANNOTATION` and its `srs-ignore` exemption — 42 in `tests/grounds-rules.sh`, 23 in `tools/srs_grounds.py`, 14 in `tests/arch-rules.sh`, the rest spread over ten files.
-The grounds and architecture layers arrived in between, and each is checked by a suite that names a requirement in its header and again at the fixture covering it, which is the honest kind at scale.
-The argument keeps its direction and multiplies its weight by seventeen: the rule would fire 118 times on the first run with nothing wrong.
-
-Finer granularity is the way out and is closed: telling a block from a file means understanding the structure of the code, and the checker is language-neutral by construction — the same rule has to work in a project written in Swift.
-
-A narrow reading works and is nearly empty.
-A requirement named twice inside one uninterrupted run of comment lines is unambiguously one entity, needs no understanding of code, and occurs zero times here — measured again on 2026-09-08 over every tracked file, still zero.
-It would catch a duplicated paste and nothing else.
-
-**Decision needed:** write the narrow rule as a guard that will rarely speak — the position FR-CHK-030 is in — or accept that a duplicate annotation is the author's business and close this.
-
 ## FR-INIT-060 carries two obligations under one number
 
 **Found:** while putting the standard into the precious bucket (2026-08-18).
@@ -134,30 +87,6 @@ For an adopted project it is no document at all.
 The installer says one advisory line about merging, once, at adopt time.
 
 **Decision needed:** install the standard beside theirs under a name that cannot collide, so the citations resolve; or drop the citations from the shipped procedures and let them explain themselves; or accept that adopted projects merge the standard by hand and say so where it will be read twice rather than once.
-
-## A procedure states what another procedure does without reading it
-
-**Found:** twice in one session, while reviewing the 0.14.0 work (2026-08-18).
-
-**What diverged:** an agent reported that the `## [X.Y.Z]` changelog section "is written by a person" and belongs to the maintainer.
-It does not: step 3 of `srs-release` drafts it, and the description line of that skill says so in so many words.
-The claim was inferred from the refusal message in `tools/srs_release.py`, which only says the section is missing.
-The same agent had earlier reported that the template section of the `srs` skill could not be removed without loss, and withdrew it two rounds later on discovering that nothing referenced it — again a claim about this project's own files, made without opening them.
-
-Neither is covered by what exists.
-FR-SKILL-160 binds a claim that a test proves something; FR-SKILL-170 binds a claim that an observation is a finding, and demands its consequence.
-Both leave alone the plainest kind of claim there is: what a procedure prescribes, what a file contains, who performs a step.
-Those are read in seconds and were not read.
-
-Adding a summary of each procedure somewhere central was considered and rejected while writing this entry: every skill's `description` already carries one, `srs-release`'s already names the drafting step, and a second copy inside another skill is what FR-SKILL-020 forbids.
-The gap is not in what is available to read.
-
-**2026-09-08.** Two more, both inside this file.
-The entry on `carries` below said the specification checker was equally silent about a path nobody has; `FR-CHK-055` has reported it as an error since 0.14.0, and one run of the checker says so.
-The entry on where a cross-cutting rule lives said six skills cite `ART-030`; four do, in seven lines, and four was also the count on the day that entry was written.
-Both are claims about files in this repository, both cost one `grep`, neither had one.
-
-**Decision needed:** write a third requirement in that family — a procedure asserting what another procedure does, or what a file holds, reads it first — or accept that this is a matter of care rather than of rule, and that the two existing members of the family draw the line where it can be drawn.
 
 ## Calibration is built at a fraction of what the concept describes
 
@@ -363,7 +292,7 @@ A case that distinguishes the two would be an exception several procedures share
 
 **Corrected the same day.** This entry said the rule was cited from six skills in a line apiece.
 Counted over `.claude/skills/*/SKILL.md` it is four skills and seven lines, and the same count holds at the commit this entry was written on, so the number was wrong when it was written rather than overtaken.
-The comparison survives it — one statement against three restatements is still the shape — but a claim about this repository's own files went in without the `grep` that settles it, which is the entry above.
+The comparison survives it — one statement against three restatements is still the shape — but a claim about this repository's own files went in without the `grep` that settles it, which is what `FR-SKILL-280` was later written against.
 
 ## An element can carry a path that is not there
 
@@ -379,7 +308,7 @@ The fixture: an element carrying `carries: [src, src/vanished.py]` where only th
 `FR-CHK-055` reports a `code` or `tests` entry naming an absent path as an **error**, and has since baseline 0.14.0 — two weeks before this entry was written.
 Run against a requirement carrying `code: [src/a.py, src/gone.py]`, `tools/srs_check.py` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
 The entry was written from the architecture layer's fixture outward, and the claim about the other checker was inferred rather than run; the requirement that answers it is one line in `10-fr-chk.md`, the file the entry had already opened to cite `FR-CHK-200`.
-That is the failure mode *A procedure states what another procedure does without reading it* names above, arriving in the register the entry itself lives in.
+That is the failure mode `FR-SKILL-280` was later written against — a statement about what the project's files say, made without reading them — arriving in the register the entry itself lives in.
 
 The remaining case is ordinary rather than exotic: a file is renamed or deleted, the element's `carries` keeps the old path, and the map goes on publishing a part that owns something nobody has.
 The specification's own side of it is covered and fails the build; the layer's side is silent.
@@ -390,92 +319,6 @@ Two answers, the third having been built already.
 The architecture layer could report it for `carries`, which makes the layer say about its own field what `FR-CHK-055` already says about the specification's — the symmetric answer, and the cheap one.
 Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the description, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.
 That second answer is harder to hold now than it was: the specification checker already reads the disk for exactly this, so the cost it warns about is one this project has already accepted once.
-
-## The link graph sits exactly on the floor the checker sets
-
-**Found:** while measuring what an impact query can answer (2026-09-09).
-
-**What diverged:** nothing is broken, and that is what makes this worth recording.
-`unlinked` fires only when a requirement is "linked to nothing, **and** nothing links to it" — a floor of one link in either direction.
-Measured 2026-09-09 over this repository: 0.96 outgoing links per requirement, and **124 of 215 have nothing pointing at them at all**.
-Over Crellian the same day, which installed the framework and wrote its own 571: 1.04 and 318 of 571.
-The two projects use the fields in opposite proportions — `depends_on` carries 177 of 206 edges here, `derives_from` carries 404 of 595 there — and still land on the same number.
-
-The consequence is not tidiness.
-An impact query answers from these links, so a radius computed today is worth exactly what the links are worth, and nobody knows what that is.
-The transitive radius has a median of 0.
-
-**Two readings, and they are not distinguishable from the data.**
-Either a specification of this shape genuinely is that loosely coupled, or the links are under-written — every requirement carrying the one link the rule demands and stopping there, because an agent writing them satisfies the stated bar and no more.
-A missing link is invisible by construction, so no rule can tell them apart.
-
-Two mechanical proxies were tried and both fail on volume, which is the argument `FR-CHK-160` makes about a rule nobody can afford to read: "two requirements name the same file and link to neither" fires **3648** times over this repository, and the narrower "annotated in adjacent regions and not linked" fires **319** of 382.
-Neither is a rule; both were run rather than reasoned.
-
-**Why it is recorded rather than fixed:** the fix is a pass over what is already written, one area at a time, with a person settling each link — and that is planned work rather than a decision.
-What is not settled is which of the two readings is true.
-
-**What would settle the reading:** the density of the links on requirements authored *after* the authoring procedure is made to show its search, against the 0.96 measured here.
-If the number does not move, the specification is loosely coupled and the floor was never a ceiling.
-If it moves, the retrieval at authoring time was the cause, and the same repair is owed to everything already written.
-
-**Decision needed:** what the link graph is for, and therefore what would count as enough of it.
-`unlinked` states a floor of one and nothing states a target, so "under-written" has no meaning here that anybody wrote down — which is why the measurement above can be read two ways at all.
-Either say what the graph is expected to carry, or accept that only the floor is stated and the rest is a judgement made one requirement at a time, and say that instead.
-
-**Settled 2026-09-16.** The measurement the entry asked for came in.
-Thirteen requirements were authored after the procedure was made to show its search (`FR-SKILL-250`, 2026-09-09); they carry 1.54 outgoing links apiece, against 1.07 over the 213 written before — and that 1.07 is itself after two passes over what was already written, which took it up from the 0.96 above.
-The number moved, so the second reading held: the links were under-written because they were never looked for, not because the specification is loosely coupled.
-Thirteen is a small sample and all of it was written under one procedure, which is said here so that nobody reads more into the ratio than it carries.
-
-The repair the entry says would then be owed is the pass `FR-SKILL-260` describes, and it has been made once over every area and twice over the two that changed since.
-
-The decision is the second of the two offered: only the floor is stated.
-No target is written into a rule, because the one candidate — an outgoing link on every requirement — is false on the requirement each area hangs from, and "the root of an area" is not a thing the format can name.
-What a requirement should stand on is a judgement made one requirement at a time, by whoever authors it and by whoever passes over the area afterwards, and the standard says under *Links* that the checker never proves the graph whole.
-
-## An element's dependency is never resolved against the elements
-
-**Found:** while planning a cycle rule for the architecture layer (2026-09-09).
-
-**What diverged:** `check_records` in `tools/srs_arch.py` resolves an element's `requirements:` against the specification and reports what does not exist — that is `FR-ARCH-040`.
-Nothing does the same for `depends_on`.
-An element may declare a dependency on `E-999`, which no element carries, and the layer says nothing.
-
-The specification's own side of this is covered from both directions: a link to a requirement that does not exist is an error, and `FR-CHK-055` reports a path that is not there.
-The architecture layer resolves one of its two identifier-bearing fields and not the other.
-
-**Why it is recorded rather than fixed:** it was found while building something else, and a rule is not written in passing.
-Its cost is one comparison against a set the checker already holds, so this is cheap rather than hard — which is a reason to decide it deliberately rather than to slip it in.
-
-The cycle rule has since been built (`FR-ARCH-220`, 2026-09-16) and walked around this rather than through it: a dependency naming no element ends the path and is not reported, and its rationale says the answer is not that rule's to give.
-Two readers of `depends_on` now tolerate the same unresolved name in silence, which is one more than when this was written.
-
-**Decision needed:** report an element dependency naming no element, by the pattern `FR-ARCH-040` already set for `requirements:` — or say that `depends_on` is deliberately unresolved, and why one field is checked and the other is not.
-
-**Settled 2026-09-16.** The first, as an error: `FR-ARCH-230`, authored and built the same day.
-
-## The page's links to the source are promised in one area and built in another
-
-**Found:** while passing over the links of area CI (2026-09-10).
-
-**What diverged:** `FR-CI-040` obliges the pipeline to publish the page "with links back to the source at the built revision", and that is the only statement in the specification which mentions them.
-It is a CI requirement, so it describes what the pipeline does.
-
-The pipeline does not do it. The viewer does: `--repo-url` on the command line, `repo_url` in `specs/srs-config.json`, and the code that turns a path from a `code` field into a link at a pinned revision.
-No requirement of area VIEW describes any of that — the nearest `implements:` above that code names `FR-VIEW-050`, which is about comparing against a baseline.
-The `code` field of `FR-CI-040` names the two pipeline files and not `tools/srs_view.py`.
-
-Nothing mechanical can see this. The file is claimed by other requirements, the annotation is not wrong about the code it sits over, and a statement that describes another area's tool breaks no rule.
-
-**Why it is recorded rather than fixed:** which side is wrong is not the auditor's call.
-Either area VIEW is missing a requirement for a capability that has its own flag and its own configuration key, or `FR-CI-040` is claiming behaviour that belongs to the viewer and should say only that the pipeline passes the revision in.
-
-**Decision needed:** write the missing viewer requirement and narrow `FR-CI-040` to what the pipeline actually does — or declare the source links a detail of the page already described by `FR-VIEW-060`, and say why a flag and a configuration key of their own do not make them behaviour.
-
-**Settled 2026-09-16.** The first.
-`FR-VIEW-310` describes the links, the flag and the key; `FR-CI-040` now says the pipeline hands the viewer the URL at the built revision and stands on 310.
-The suite had never exercised `--repo-url` in the six weeks the three pipelines had passed it, and does now.
 
 ## Releases on the forge, and when to start them
 
