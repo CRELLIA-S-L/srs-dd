@@ -8,7 +8,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
-## [0.19.0]
+## [0.19.0] — 2026-09-21
 
 ### Added
 
