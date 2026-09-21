@@ -163,7 +163,7 @@ When not to keep one is the paragraph that makes the rest credible: a register o
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-INIT-010, FR-INIT-020, FR-INIT-030, FR-INIT-040, FR-INIT-070, FR-INIT-080, FR-INIT-090, FR-INIT-170, FR-SPEC-020]
+depends_on: [FR-INIT-010, FR-INIT-020, FR-INIT-030, FR-INIT-040, FR-INIT-070, FR-INIT-080, FR-INIT-090, FR-INIT-170, FR-INIT-230, FR-SPEC-020]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]

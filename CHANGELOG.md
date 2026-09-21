@@ -35,6 +35,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Fixed
 
+- The dating tool orders what it could not date by number. `srs_dates.py` named uncommitted requirements sorted as strings, `FR-CORE-1000` before `FR-CORE-200`; it now orders them as every other tool does, and `INV-SPEC-090` names it.
 - A decision that opens with a front matter is cited. `srs_view.py --cite ADR-0019` answered "no decision" for a file whose heading stood after a `---` block with `status: принято` in it — the reader took the first non-blank line as the heading. The head a decision has is now stated in the standard and read as stated: the heading after nothing but an optional front matter, the status from the front matter's `status` key or a `- **Status:**` line, cited as written (IF-SPEC-030, FR-VIEW-330).
 
 ### Upgrade notes

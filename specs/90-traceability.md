@@ -288,7 +288,7 @@ Total requirements: 277.
 | **INV-SPEC-060** A requirement states one obligation | `implemented` | I | `specs/README.md` | — |
 | **INV-SPEC-070** A line in markdown breaks where the meaning breaks | `implemented` | I | `specs/README.md`<br>`CONTRIBUTING.md`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | — |
 | **INV-SPEC-080** A number widens, and nothing is renamed | `implemented` | T | `tools/srs_parse.py`<br>`tools/srs_check.py`<br>`tools/srs_grounds.py`<br>`tools/srs_arch.py`<br>`tools/srs_init.py`<br>`tools/srs_view.py`<br>`tools/srs_cite_eval.py` | `tests/checker-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/arch-rules.sh`<br>`tests/adopt-smoke.sh` |
-| **INV-SPEC-090** Identifiers are ordered by their number wherever a tool orders them | `implemented` | T | `tools/srs_parse.py`<br>`tools/srs_check.py`<br>`tools/srs_view.py`<br>`tools/srs_grounds.py`<br>`tools/srs_arch.py` | `tests/checker-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/arch-rules.sh` |
+| **INV-SPEC-090** Identifiers are ordered by their number wherever a tool orders them | `implemented` | T | `tools/srs_parse.py`<br>`tools/srs_check.py`<br>`tools/srs_view.py`<br>`tools/srs_grounds.py`<br>`tools/srs_arch.py`<br>`tools/srs_dates.py` | `tests/checker-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/arch-rules.sh`<br>`tests/dates-smoke.sh` |
 | **NFR-CHK-010** Validation stays under a second at 500 requirements | `implemented` | A | `tools/srs_check.py` | — |
 | **NFR-SKILL-010** A procedure needs no skill system | `implemented` | I | `.claude/skills`<br>`skeleton/AGENTS.md` | — |
 | **NFR-SKILL-020** A procedure fits a budget | `implemented` | T | `.claude/skills`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | `tests/skill-budget.sh` |
@@ -395,6 +395,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-INIT-170** | FR-DOC-080 (depends_on) |
 | **FR-INIT-180** | FR-DOC-130 (depends_on) |
 | **FR-INIT-210** | FR-DOC-090 (depends_on), FR-INIT-220 (depends_on), FR-SKILL-190 (depends_on) |
+| **FR-INIT-230** | FR-DOC-080 (depends_on) |
 | **FR-SKILL-010** | FR-DOC-040 (depends_on), FR-DOC-100 (depends_on), FR-DOC-110 (depends_on), FR-DOC-200 (depends_on), FR-SKILL-020 (depends_on), FR-SKILL-100 (depends_on), FR-SKILL-250 (depends_on) |
 | **FR-SKILL-020** | FR-VIEW-360 (derives_from) |
 | **FR-SKILL-030** | FR-DOC-060 (depends_on), FR-DOC-100 (depends_on), FR-SKILL-230 (depends_on) |

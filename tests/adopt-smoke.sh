@@ -193,6 +193,13 @@ grep -q "already exists" /tmp/own-stale.log \
     || { echo "FAIL FR-INIT-230 — the refusal does not say why"; cat /tmp/own-stale.log; exit 1; }
 find "$OWN" -type f | sort | xargs cksum > /tmp/own-after.sum
 diff /tmp/own-before.sum /tmp/own-after.sum
+# The refusal comes before the dry-run branch, or a dry run would list a
+# move the real run refuses.
+rc=0; python3 tools/srs_init.py "$OWN" --defaults --dry-run --areas "APP" "${LEXICON[@]}" > /tmp/own-stale-dry.log || rc=$?
+test "$rc" -eq 3 || { echo "FAIL FR-INIT-230 — a stale archive did not stop a dry run with exit 3 (got $rc)"; cat /tmp/own-stale-dry.log; exit 1; }
+if grep -q "set aside" /tmp/own-stale-dry.log; then
+    echo "FAIL FR-INIT-230 — a dry run listed a move the real run refuses"; cat /tmp/own-stale-dry.log; exit 1
+fi
 rm -r "$OWN/specs/archive"
 
 python3 tools/srs_init.py "$OWN" --defaults --areas "APP" "${LEXICON[@]}" > /tmp/own-real.log

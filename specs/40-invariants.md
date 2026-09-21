@@ -524,8 +524,8 @@ derives_from: [INV-SPEC-080]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_view.py, tools/srs_grounds.py, tools/srs_arch.py]
-tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh]
+code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_view.py, tools/srs_grounds.py, tools/srs_arch.py, tools/srs_dates.py]
+tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh, tests/dates-smoke.sh]
 created: 2026-09-20
 ```
 
