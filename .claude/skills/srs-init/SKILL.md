@@ -64,7 +64,9 @@ When the target already has an SRS-shaped spec (numbered requirements in `specs/
    The installer validates the whole spec against the proposed configuration **before changing anything**; on failure (exit 3) the target is untouched.
    `--dry-run` lists what would be installed but skips that validation — it needs the checker inside the target — so treat the dry run as a preview of the file list only.
 4. If validation fails, read the checker's output: wrong or incomplete lexicon (a missing verb form is the most common cause) — extend the lists and re-run; genuine spec defects — report them to the user instead of forcing the lexicon around them.
-5. After success: remind the user to commit the regenerated `specs/90-traceability.md` together with the new tooling, and relay the installer's advisory about merging new framework sections into their own `specs/README.md`, if it printed one.
+5. After success: remind the user to commit `specs/90-traceability.md` with the tooling.
+   Where the installer set the project's own standard aside, read `specs/archive/README-before-srs-dd.md` and sort its rules: what the standard already says needs nothing; a project rule the standard permits goes to `specs/constitution.md`; a rule the checker refuses is a practice the maintainer has to change — name it and stop.
+   What it said about the system rather than its rules goes to `specs/01-introduction.md` and `specs/00-glossary.md`. The archived file is not edited.
 
 ## Upgrading
 

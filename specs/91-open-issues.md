@@ -4,29 +4,6 @@ Discrepancies between the specification and the code, unfinished work, unresolve
 Each entry states what diverged, where it was found, and what decision is needed.
 Entries are removed once the maintainer decides which side is right and the fix lands.
 
-## Nothing in the suites exercises a gesture
-
-**Found:** while building the explorable graph (2026-08-08).
-
-**What diverged:** FR-VIEW-110 promises panning, zooming, collapsing an area and highlighting, and carries `verification: I` because no browser and no JavaScript engine is a dependency of this project.
-`tests/view-smoke.sh` asserts that the handlers and the stage are in the page — which catches a deletion, and nothing else.
-The same limit applies to the comparison of FR-VIEW-100 — its data is checked against git, its script by having been read — and to FR-VIEW-130, where the suite holds that every view links to a requirement but not that following such a link arrives anywhere.
-The set this covers grows with the page: each addition to it is one more behaviour verified by a person who remembers to look.
-
-On 2026-08-11 this stopped being hypothetical.
-Clicking a node had opened nothing since the canvas began capturing the pointer on `pointerdown`: while an element holds the capture the browser dispatches the click to it rather than to the descendant under the cursor, so every click landed on the canvas and the handlers on the nodes — all present, all asserted by this suite — were never reached.
-It surfaced only when a second control was added to the drawing and a person tried to use it.
-
-**Why it is recorded rather than fixed:** every way out adds a dependency the framework does not have.
-A headless browser in CI is the honest one and the heaviest; a JavaScript engine would run the logic but not the gestures;
-transliterating the script into Python, as the baseline comparison already does, tests a copy rather than the thing that ships.
-What went in instead is narrower: the suite now asserts *where* the capture is taken, because that is the part a text can see.
-
-**Re-measured 2026-09-08.** The dependency is still absent rather than merely unused: no browser, headless or otherwise, and no JavaScript engine is named anywhere in `ci/`, in `.github/workflows/` or in `tools/ci_selftest.sh`.
-`50-verification.md` now carries this under *Known gaps* and points back here, so the limit is written down; the decision below is not.
-
-**Decision needed:** accept inspection as the method for anything the page does in the browser and say so in `50-verification.md`, or take on a headless browser for the graph and the comparison.
-
 ## The graph cannot be pinched
 
 **Found:** while reviewing the explorable graph (2026-08-08).
@@ -39,26 +16,6 @@ ADR-0012 removed that layout, and the defect went with it.
 
 **Decision needed:** whether pinch zoom is worth code.
 It is a pointer handler counting two contacts.
-
-## The standard never says how many numbers an area has
-
-**Found:** while measuring NFR-CHK-010 against a generated specification of 500 requirements (2026-08-06). 401 of them were rejected.
-
-**What diverged:** `RE_ID` (`tools/srs_check.py`) requires exactly three digits, so an area holds 999 numbers, of which the mandated steps of 10 use
-99. The Identifier section of `specs/README.md` says numbers "go in steps of 10" and never mentions either figure.
-
-This entry claimed until 2026-08-12 that the hundredth requirement is a hard error a project cannot work around without splitting the area.
-That was wrong on both counts.
-No rule requires a multiple of ten — the checker has no such rule at all — so an intermediate number passes, which is what the step of 10 leaves room for and what FR-CHK-075 used when FR-CHK-070 was split.
-And the binding ceiling on a project this framework can serve is not here: the graph draws 150 linked requirements and states what it left out (`GRAPH_NODE_LIMIT`, NFR-VIEW-010), measured the same day at 150, 300 and 800.
-
-Widening the grammar to four digits was considered and rejected on 2026-08-12. Both shapes break: mixed widths sort wrongly everywhere the tools order by identifier string, and fixed four digits with a leading zero renames every published identifier, which INV-SPEC-010 forbids.
-
-**2026-09-08.** The ceiling that binds is the one named above, and it is now the one being reached.
-213 requirements, every one of them linked, against a `GRAPH_NODE_LIMIT` of 150: the page says `63 node(s) beyond the first 150 are not drawn` and names the families that went with them.
-No area is near its 999, and a four-digit identifier is still refused — a fixture carrying `FR-CORE-0100` answers `identifier does not match <TYPE>-<AREA>-<NNN>` and exits 1.
-
-**Decision needed:** say in the Identifier section how many numbers an area has, and that the step of 10 is a convention the checker does not enforce — or decide the standard need not say it, and close this.
 
 ## A requirement with no links at all is not in the graph
 
@@ -79,30 +36,6 @@ Whatever is decided here, the two should agree: a requirement the checker has st
 
 **Decision needed:** draw every requirement and let the unlinked ones stand in their lane as islands, or keep the drawing to what has links and say so on the page next to the count of what was left out.
 
-## One requirement annotated twice in a file cannot be judged from the file
-
-**Found:** while considering a rule against it (2026-08-17).
-
-**What diverged:** nothing yet — this is a rule proposed and left unbuilt, recorded so the reasoning is not lost.
-Two `implements:` lines naming one requirement in one file are noise when they mark the same thing twice, and correct when the requirement is realized in two places.
-The checker knows only the path, so it cannot tell those apart.
-
-The evidence says the noise is not what is there.
-All seven duplicates in this repository on 2026-08-17 were the honest kind: FR-INIT-080 marks installing the hook beside an existing one and saying so; FR-INIT-110 marks deciding which upgrade notes apply and printing them; FR-INIT-140 marks computing the framework address and recording it; FR-VIEW-040 and FR-VIEW-210 each mark a computation and its rendering; IF-SPEC-010 marks the parser and the tolerance of an unknown key; FR-CHK-150 marks the isolation rule and the exemption cancelled requirements have from it.
-A rule warning on all of them would fire seven times on the first run with nothing wrong, and be silenced — which is what FR-CHK-160 argues makes a rule worthless.
-
-**Re-measured 2026-09-08: 118**, counted over every tracked file with the checker's own `RE_ANNOTATION` and its `srs-ignore` exemption — 42 in `tests/grounds-rules.sh`, 23 in `tools/srs_grounds.py`, 14 in `tests/arch-rules.sh`, the rest spread over ten files.
-The grounds and architecture layers arrived in between, and each is checked by a suite that names a requirement in its header and again at the fixture covering it, which is the honest kind at scale.
-The argument keeps its direction and multiplies its weight by seventeen: the rule would fire 118 times on the first run with nothing wrong.
-
-Finer granularity is the way out and is closed: telling a block from a file means understanding the structure of the code, and the checker is language-neutral by construction — the same rule has to work in a project written in Swift.
-
-A narrow reading works and is nearly empty.
-A requirement named twice inside one uninterrupted run of comment lines is unambiguously one entity, needs no understanding of code, and occurs zero times here — measured again on 2026-09-08 over every tracked file, still zero.
-It would catch a duplicated paste and nothing else.
-
-**Decision needed:** write the narrow rule as a guard that will rarely speak — the position FR-CHK-030 is in — or accept that a duplicate annotation is the author's business and close this.
-
 ## FR-INIT-060 carries two obligations under one number
 
 **Found:** while putting the standard into the precious bucket (2026-08-18).
@@ -118,46 +51,6 @@ The cost is not tidiness.
 A test proving the first half says nothing about the second, and the status is a single word for both: `implemented` was true of this requirement while its second half had a gap the size of the standard, which is exactly how that gap survived to 0.14.0 unseen.
 
 **Decision needed:** split it into two requirements — the second one taking a new number, since identifiers are never reused — or leave the compound and accept that its status and its tests speak for two behaviours at once.
-
-## A project that adopted the framework never receives the standard
-
-**Found:** while making upgrades refresh the standard (2026-08-18).
-
-**What diverged:** `--mode adopt` deliberately keeps a project's own `specs/README.md` (FR-INIT-040), and the file it keeps carries no `SRS-DD-<version>` marker — so `--force` will not replace it either, now or ever.
-Verified end to end: adopt on a project whose `specs/README.md` says "We follow the SRS-DD standard", then `--force`, answers `specs/README.md (no SRS-DD marker — not ours, merge manually)` and leaves the file alone.
-Re-run on 0.16.0 (2026-09-08): the answer is unchanged, and no copy of the standard reaches the target under any name.
-What the installed procedures then cite into nothing is eight references across three of them — the Baselines section three times, *How to phrase* twice, and one each to Lifecycle, What-not-to-do and the map of which file holds what.
-
-That refusal is correct in itself.
-What follows from it is that such a project has no copy of the standard at all, while the skills installed alongside cite its sections by name — a licence `CON-SPEC-020` grants on the grounds that the standard is the same document in every project.
-For an adopted project it is no document at all.
-The installer says one advisory line about merging, once, at adopt time.
-
-**Decision needed:** install the standard beside theirs under a name that cannot collide, so the citations resolve; or drop the citations from the shipped procedures and let them explain themselves; or accept that adopted projects merge the standard by hand and say so where it will be read twice rather than once.
-
-## A procedure states what another procedure does without reading it
-
-**Found:** twice in one session, while reviewing the 0.14.0 work (2026-08-18).
-
-**What diverged:** an agent reported that the `## [X.Y.Z]` changelog section "is written by a person" and belongs to the maintainer.
-It does not: step 3 of `srs-release` drafts it, and the description line of that skill says so in so many words.
-The claim was inferred from the refusal message in `tools/srs_release.py`, which only says the section is missing.
-The same agent had earlier reported that the template section of the `srs` skill could not be removed without loss, and withdrew it two rounds later on discovering that nothing referenced it — again a claim about this project's own files, made without opening them.
-
-Neither is covered by what exists.
-FR-SKILL-160 binds a claim that a test proves something; FR-SKILL-170 binds a claim that an observation is a finding, and demands its consequence.
-Both leave alone the plainest kind of claim there is: what a procedure prescribes, what a file contains, who performs a step.
-Those are read in seconds and were not read.
-
-Adding a summary of each procedure somewhere central was considered and rejected while writing this entry: every skill's `description` already carries one, `srs-release`'s already names the drafting step, and a second copy inside another skill is what FR-SKILL-020 forbids.
-The gap is not in what is available to read.
-
-**2026-09-08.** Two more, both inside this file.
-The entry on `carries` below said the specification checker was equally silent about a path nobody has; `FR-CHK-055` has reported it as an error since 0.14.0, and one run of the checker says so.
-The entry on where a cross-cutting rule lives said six skills cite `ART-030`; four do, in seven lines, and four was also the count on the day that entry was written.
-Both are claims about files in this repository, both cost one `grep`, neither had one.
-
-**Decision needed:** write a third requirement in that family — a procedure asserting what another procedure does, or what a file holds, reads it first — or accept that this is a matter of care rather than of rule, and that the two existing members of the family draw the line where it can be drawn.
 
 ## Calibration is built at a fraction of what the concept describes
 
@@ -175,21 +68,6 @@ No amount of code here produces it.
 What is missing is the layer's standard — the word calibration does not occur in `grounds/README.md` at all, so a reader comparing the concept with the register meets the gap exactly where no note is.
 
 **Decision needed:** say in the layer's standard that calibration stops at the reversal count and the weighting is deliberately not attempted; or carry the fuller model as intended work and name what a project would have to run to get it.
-
-## An unchangeable minimum can be made loud, not prevented
-
-**Found:** while planning the grounds layer (2026-08-20).
-
-**What diverged:** the concept holds that an ideology carries a minimum that changes only by dissolving the ideology itself — not amendable, whatever the evidence arrives.
-A repository delivers no such thing.
-A file is a file: the minimum can be edited by anyone who can commit, and what the framework actually offers is that the edit is visible, attributable and diffable.
-
-**Corrected 2026-09-08.** The entry ended here with "the requirements for ideology and its self-revision are not written yet, so the difference is at present written down nowhere", and that stopped being true three days after it was written.
-`FR-GND-510` and `FR-GND-520` landed on 2026-08-23 and charge for widening what may move an ideology, and `grounds/README.md` states the weaker promise in its own words: the register cannot stop the opposite failure, because a file is a file.
-So the promise is written down.
-What is not written down is anything stronger.
-
-**Decision needed:** whether immutability is placed outside the repository — protected paths, required review or signed commits, none of which this framework configures in any target today — or the loud-not-prevented promise is all this layer will ever offer, and is said once where the ideology is defined rather than in a rationale a reader arrives at by accident.
 
 ## A hypothesis carries one number where the concept carries two
 
@@ -287,192 +165,44 @@ An ideology and a frame say what this project is for and what it will not do, an
 A bet and a declaration follow from requirements that already exist and are written by whoever works the register — `FR-GND-500` bars an agent from inventing a hypothesis, not from recording a bet on one.
 If the kinds are not wanted, the gate should say so out loud rather than passing in silence, and that part is ordinary work.
 
-## A class III reading is overruled by arithmetic
+## Releases on the forge, and when to start them
 
-**Found:** while deciding what the register's first real entries would say (2026-08-23).
+**Found:** raised by the maintainer (2026-09-19), after the first release whose changelog section was held to the installer's summary by a test.
 
-**What diverged:** `refuted_if` is required of every `H` record — `srs_grounds.py:84-85` lists it beside `class`, `population`, `expires`, `owner` and `impact` — and FR-GND-140 judges every verdict row against that threshold without asking what class the hypothesis is.
-The two class-conditional rules in the file both run the other way: `class-untestable` fires for class I alone (`srs_grounds.py:718`), `verdict-unattributed` for class III alone (`srs_grounds.py:763`).
-Nothing exempts class III from the arithmetic.
+**What is being asked:** whether the framework's releases should also be published as releases on the forge — a page per `vX.Y.Z` tag with notes, the source archives the forge attaches itself, a "latest" mark, and the releases box on the repository's front page.
 
-The standard defines class III as "outside the system: interviews, observation, judgement".
-Where the population is small the two obligations cannot both be met.
-At `n = 2`, the one-sided Wilson bound FR-GND-150 computes at the default `confidence` of `0.95` reaches 0.575 even when both answers are no — so `verdict_owed` returns `supported` for a threshold as generous as `proportion < 0.50 at n >= 2`, and for every stricter one as well.
-Refuting needs the threshold to sit above that bound — above three in five of them doing the thing — which is not the shape a hypothesis about whether something works for people takes.
-A maintainer who talks to both, concludes it does not hold, and writes `refuted` gets an error naming a comparison nobody could have won.
+**What it does not touch.** Nothing the tooling does depends on it.
+Installs and upgrades clone by tag — `git clone --branch vX.Y.Z`, `srs_upgrade.py --ref` — and a release page is a page for people over a tag that already exists.
+Starting or not starting changes no procedure and no requirement.
 
-That error is arithmetic nobody did, which is what FR-GND-140's own rationale was written against — inverted.
-There the danger was a verdict overruling the number; here it is the number overruling the reading the class exists to admit.
-Every threshold below that bound returns the same verdict however far apart they are written, and the register records a judgement as its opposite.
+**What would have to hold when it starts, settled now so that the decision is not re-derived:**
 
-This repository walked around it rather than into it.
-ADR-0018 predicted the register here would come out mostly class III with named owners and no instruments, and it did; the population that was first proposed for `H-010` was two people, and at that size the bound above reaches 0.575 — which a threshold refutes only by sitting above, and no claim about half of them does.
-What was written instead (2026-08-23) widened the population past this team, so `H-010` carries `proportion < 0.50 at n >= 8`, which refutes at 0 or 1 of 8 and gives real gradations above that.
-The corner is still there for the next class III hypothesis whose population genuinely is small, and widening is not always available — a claim about two people is a claim about two people, and rewriting it to be about more is a different claim.
+- The notes are the `## [X.Y.Z]` section of `CHANGELOG.md` and nothing else, extracted the way `tools/srs_init.py` parses it for an upgrade; a second text written for the page is a second source of truth for the same release.
+- The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
+- `spec/v*` tags are not releases; the trigger filters them out, or `INV-SPEC-030` is broken by the forge on the maintainer's behalf.
+- Tags are annotated from then on — the seventeen that exist are lightweight and stay so.
+- The older sections in `CHANGELOG.md` can be published for their tags after the fact in one pass, so that the page does not open with a single entry.
 
-**Run rather than reasoned, 2026-09-08.** A class III record with `refuted_if: proportion < 0.50 at n >= 2`, a measurement of 0 at n = 2 and a verdict of `refuted` fails the checker: "0 is < 0.5 by less than a sample of 2 can miss by: at 95% confidence the truth reaches 0.575, so the verdict it compels is 'supported'".
-The arithmetic above was on paper until then.
+**Decision taken 2026-09-19:** not before 1.0.0.
+A release page is a claim to be read by strangers, and the first part of the version is still zero; the first `1.` is the maintainer's claim that the shape has settled, and the releases page starts with it.
+What stays open until then is only the order of the two acts on that day — the requirement in area CI with its test on the extraction, and the step in `srs-release` that says what the pushed tag will cause.
 
-**Doors:**
+## Documents outside a repository, and whether they want a tool of their own
 
-*Make `refuted_if` optional for class III.*
-The narrowest change, and it touches the format rather than a rule: IF-GND-010 makes an addition compatible and a removal not, and a required key becoming optional is a loosening every existing record survives.
-It costs the guarantee that every hypothesis was written falsifiable before it was measured — which is most of why the field is required.
+**Found:** a working note of 2026-09-18, written after the landing page was specified (ADR-0027, `FR-DOC-010` to `FR-DOC-210`) and no requirement of that area named a file under `tools/` — the checks it needed are two suites under `tests/` — recorded here on 2026-09-20 and the note discarded.
 
-*Do not apply the verdict arithmetic to class III.*
-The threshold stays required and stays a declaration of what would count; the checker stops compelling a verdict from it where the measurement was a person's reading.
-Keeps falsifiability visible and gives up the guard against a class III verdict that flatly contradicts its own numbers.
+**What is being asked:** whether the way the landing page is described — the cut into sections recorded as a decision, each section owing its reader something and naming the sources it restates, everything machine-readable held by a test, and currency a hypothesis with a threshold (`H-030`) — should become an instrument of its own for documents that live where there is no code, no specification and no git in front of the author: a company policy over laws and decisions, an onboarding over configuration and an org chart, an API description over code and schemas, in a wiki or a cloud editor.
 
-*Leave it, and record that class III with a small population is not supported by the register.*
-Honest, and it means the layer's answer to "we asked both of them" is that this is not a hypothesis.
-Then the first entries here are `U` declarations or nothing, and ADR-0018's argument for keeping a register in this repository loses its example.
+**What is already settled.** Inside a repository that carries the framework, nothing is missing: any document can be described today with an area of its own, a requirement per section and its checks under `tests/`, and the everyday rule `FR-DOC-200` states — re-read the section when a source it restates moves — rides on the blast radius the links already compute.
+The four principles are not the open part; they are written in the DOC area's rationales.
 
-**Decision needed:** which of the three.
-The first two change `tools/srs_grounds.py` and at least one requirement; the third changes `grounds/README.md` and closes nothing else.
+**Decision taken 2026-09-20:** not a separate instrument while the question it shares with every idea of a product for people outside git — who holds the branch, and how a change reaches a document nobody edits in a repository — stays unanswered.
+Until then the instrument for such a document is this framework installed where the document is put by somebody's hand.
 
-## Where a rule binding every procedure physically lives is not settled
+**What stays open, and would have to be answered first:**
 
-**Found:** while deciding how to build FR-SKILL-200 and FR-SKILL-220 (2026-08-27), both of which bind "a procedure" rather than a named one.
+- A source outside git — an article of a law, a record in a directory, a schema kept elsewhere — is a link no checker resolves. Whether it wants a layer of external sources of its own, each carrying the date it was last read against, the way a hypothesis carries a term.
+- A document with no single owner: whose decision the cut into sections is.
+- Documents that are meant to drift — a log, a changelog, a protocol — where what can be described is the form of an entry and not a set of sections; a different shape, and possibly a different instrument.
 
-**What diverged:** this repository holds two patterns for the same problem and nothing chooses between them.
-
-FR-SKILL-170 — *An observation is reported as a finding only once it is one* — is written out in each skill it binds.
-Its `code` field names `srs`, `srs-audit` and `srs-harvest`, and each states the rule in its own idiom:
-`srs` argues the *therefore* test over three paragraphs, `srs-audit` repeats it against findings, `srs-harvest` states it about an open-issues entry.
-Three copies, three wordings, one rule.
-
-ART-030 — builds and test runs need the user's word each time — is stated once in `specs/constitution.md` and cited from four of the twelve skills in seven lines: three of them in `srs-audit`, two in `srs`, one each in `srs-check` and `srs-harvest`.
-`skeleton/AGENTS.md` carries the same shape under *The three most frequently broken rules*: cross-cutting obligations, one line each, the constitution cited where the reasoning lives.
-
-The two differ in what they cost and in how they fail.
-Restating puts the rule where the agent is already reading and lets each procedure phrase it for its own work; it also means N copies that drift, and it is what FR-SKILL-020 forbids for a standard while saying nothing about a specification.
-Citing keeps one copy and one edit; it also means an agent that never follows the citation is bound by a sentence it did not read.
-
-**Decision needed:** whether the two patterns are one rule applied to different cases — and if so, what distinguishes the cases — or whether one of them should absorb the other.
-Bringing FR-SKILL-170's family onto the cite-once pattern is the larger move and touches three skills; declaring the split deliberate costs a paragraph in `specs/README.md` and leaves the cost where it is.
-FR-SKILL-200 and FR-SKILL-220 are being built on the cite-once pattern meanwhile, which adds two more entries on that side of a split nobody has ruled on.
-
-**2026-09-08.** An audit finished `FR-SKILL-200`'s set: `srs-release` was the ninth procedure that names requirements to a person, and the only one carrying no line.
-It adds no entry to either side — the rule was already on the cite-once side, and this completes it rather than choosing again.
-
-It also does not bear on the split, and that is worth recording so nobody tries it as evidence.
-The one thing that came out of it looks like an argument at first: `srs-release` names identifiers in two places and the rule binds only one of them — the diff shown to the maintainer, not the changelog section, where the format is parsed by the installer and a citation would carry a status into a record nobody re-dates.
-An exception, in other words, and the cite-once pattern is supposed to be the one where an exception is stated where the rule lives and inherited everywhere.
-It was not: the sentence is in `srs-release` and `AGENTS.md` says nothing about it, because the exception belongs to the only procedure that writes a changelog and would sit there under either pattern.
-A case that distinguishes the two would be an exception several procedures share.
-
-**Corrected the same day.** This entry said the rule was cited from six skills in a line apiece.
-Counted over `.claude/skills/*/SKILL.md` it is four skills and seven lines, and the same count holds at the commit this entry was written on, so the number was wrong when it was written rather than overtaken.
-The comparison survives it — one statement against three restatements is still the shape — but a claim about this repository's own files went in without the `grep` that settles it, which is the entry above.
-
-## An element can carry a path that is not there
-
-**Found:** while building the architecture layer (2026-09-02), on a fixture written to test something else.
-**Corrected:** 2026-09-08 — half of what this entry claimed was already false when it was written, and the correction is below.
-
-**What diverged:** an element's `carries` may name a path that does not exist, and the architecture checker stays silent.
-The fixture: an element carrying `carries: [src, src/vanished.py]` where only the directory does.
-`tools/srs_arch.py` reported nothing at all, which is not a bug in it — no requirement asks for the reading.
-`FR-ARCH-060` holds the ownership direction and answers the question "is this file carried", which a vanished file is not asked.
-
-**What this entry got wrong.** It said the same of the specification checker, and that was never true.
-`FR-CHK-055` reports a `code` or `tests` entry naming an absent path as an **error**, and has since baseline 0.14.0 — two weeks before this entry was written.
-Run against a requirement carrying `code: [src/a.py, src/gone.py]`, `tools/srs_check.py` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
-The entry was written from the architecture layer's fixture outward, and the claim about the other checker was inferred rather than run; the requirement that answers it is one line in `10-fr-chk.md`, the file the entry had already opened to cite `FR-CHK-200`.
-That is the failure mode *A procedure states what another procedure does without reading it* names above, arriving in the register the entry itself lives in.
-
-The remaining case is ordinary rather than exotic: a file is renamed or deleted, the element's `carries` keeps the old path, and the map goes on publishing a part that owns something nobody has.
-The specification's own side of it is covered and fails the build; the layer's side is silent.
-Both halves were run on 2026-09-08 rather than read: an element carrying `carries: [src, src/vanished.py]` passes `srs_arch.py --strict` with exit 0 and no mention of the path, while a requirement carrying `code: [src/a.py, src/gone.py]` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
-
-**Decision needed:** whether a path an element names and nobody has is a finding.
-Two answers, the third having been built already.
-The architecture layer could report it for `carries`, which makes the layer say about its own field what `FR-CHK-055` already says about the specification's — the symmetric answer, and the cheap one.
-Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the description, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.
-That second answer is harder to hold now than it was: the specification checker already reads the disk for exactly this, so the cost it warns about is one this project has already accepted once.
-
-## The link graph sits exactly on the floor the checker sets
-
-**Found:** while measuring what an impact query can answer (2026-09-09).
-
-**What diverged:** nothing is broken, and that is what makes this worth recording.
-`unlinked` fires only when a requirement is "linked to nothing, **and** nothing links to it" — a floor of one link in either direction.
-Measured 2026-09-09 over this repository: 0.96 outgoing links per requirement, and **124 of 215 have nothing pointing at them at all**.
-Over Crellian the same day, which installed the framework and wrote its own 571: 1.04 and 318 of 571.
-The two projects use the fields in opposite proportions — `depends_on` carries 177 of 206 edges here, `derives_from` carries 404 of 595 there — and still land on the same number.
-
-The consequence is not tidiness.
-An impact query answers from these links, so a radius computed today is worth exactly what the links are worth, and nobody knows what that is.
-The transitive radius has a median of 0.
-
-**Two readings, and they are not distinguishable from the data.**
-Either a specification of this shape genuinely is that loosely coupled, or the links are under-written — every requirement carrying the one link the rule demands and stopping there, because an agent writing them satisfies the stated bar and no more.
-A missing link is invisible by construction, so no rule can tell them apart.
-
-Two mechanical proxies were tried and both fail on volume, which is the argument `FR-CHK-160` makes about a rule nobody can afford to read: "two requirements name the same file and link to neither" fires **3648** times over this repository, and the narrower "annotated in adjacent regions and not linked" fires **319** of 382.
-Neither is a rule; both were run rather than reasoned.
-
-**Why it is recorded rather than fixed:** the fix is a pass over what is already written, one area at a time, with a person settling each link — and that is planned work rather than a decision.
-What is not settled is which of the two readings is true.
-
-**What would settle the reading:** the density of the links on requirements authored *after* the authoring procedure is made to show its search, against the 0.96 measured here.
-If the number does not move, the specification is loosely coupled and the floor was never a ceiling.
-If it moves, the retrieval at authoring time was the cause, and the same repair is owed to everything already written.
-
-**Decision needed:** what the link graph is for, and therefore what would count as enough of it.
-`unlinked` states a floor of one and nothing states a target, so "under-written" has no meaning here that anybody wrote down — which is why the measurement above can be read two ways at all.
-Either say what the graph is expected to carry, or accept that only the floor is stated and the rest is a judgement made one requirement at a time, and say that instead.
-
-**Settled 2026-09-16.** The measurement the entry asked for came in.
-Thirteen requirements were authored after the procedure was made to show its search (`FR-SKILL-250`, 2026-09-09); they carry 1.54 outgoing links apiece, against 1.07 over the 213 written before — and that 1.07 is itself after two passes over what was already written, which took it up from the 0.96 above.
-The number moved, so the second reading held: the links were under-written because they were never looked for, not because the specification is loosely coupled.
-Thirteen is a small sample and all of it was written under one procedure, which is said here so that nobody reads more into the ratio than it carries.
-
-The repair the entry says would then be owed is the pass `FR-SKILL-260` describes, and it has been made once over every area and twice over the two that changed since.
-
-The decision is the second of the two offered: only the floor is stated.
-No target is written into a rule, because the one candidate — an outgoing link on every requirement — is false on the requirement each area hangs from, and "the root of an area" is not a thing the format can name.
-What a requirement should stand on is a judgement made one requirement at a time, by whoever authors it and by whoever passes over the area afterwards, and the standard says under *Links* that the checker never proves the graph whole.
-
-## An element's dependency is never resolved against the elements
-
-**Found:** while planning a cycle rule for the architecture layer (2026-09-09).
-
-**What diverged:** `check_records` in `tools/srs_arch.py` resolves an element's `requirements:` against the specification and reports what does not exist — that is `FR-ARCH-040`.
-Nothing does the same for `depends_on`.
-An element may declare a dependency on `E-999`, which no element carries, and the layer says nothing.
-
-The specification's own side of this is covered from both directions: a link to a requirement that does not exist is an error, and `FR-CHK-055` reports a path that is not there.
-The architecture layer resolves one of its two identifier-bearing fields and not the other.
-
-**Why it is recorded rather than fixed:** it was found while building something else, and a rule is not written in passing.
-Its cost is one comparison against a set the checker already holds, so this is cheap rather than hard — which is a reason to decide it deliberately rather than to slip it in.
-
-The cycle rule has since been built (`FR-ARCH-220`, 2026-09-16) and walked around this rather than through it: a dependency naming no element ends the path and is not reported, and its rationale says the answer is not that rule's to give.
-Two readers of `depends_on` now tolerate the same unresolved name in silence, which is one more than when this was written.
-
-**Decision needed:** report an element dependency naming no element, by the pattern `FR-ARCH-040` already set for `requirements:` — or say that `depends_on` is deliberately unresolved, and why one field is checked and the other is not.
-
-**Settled 2026-09-16.** The first, as an error: `FR-ARCH-230`, authored and built the same day.
-
-## The page's links to the source are promised in one area and built in another
-
-**Found:** while passing over the links of area CI (2026-09-10).
-
-**What diverged:** `FR-CI-040` obliges the pipeline to publish the page "with links back to the source at the built revision", and that is the only statement in the specification which mentions them.
-It is a CI requirement, so it describes what the pipeline does.
-
-The pipeline does not do it. The viewer does: `--repo-url` on the command line, `repo_url` in `specs/srs-config.json`, and the code that turns a path from a `code` field into a link at a pinned revision.
-No requirement of area VIEW describes any of that — the nearest `implements:` above that code names `FR-VIEW-050`, which is about comparing against a baseline.
-The `code` field of `FR-CI-040` names the two pipeline files and not `tools/srs_view.py`.
-
-Nothing mechanical can see this. The file is claimed by other requirements, the annotation is not wrong about the code it sits over, and a statement that describes another area's tool breaks no rule.
-
-**Why it is recorded rather than fixed:** which side is wrong is not the auditor's call.
-Either area VIEW is missing a requirement for a capability that has its own flag and its own configuration key, or `FR-CI-040` is claiming behaviour that belongs to the viewer and should say only that the pipeline passes the revision in.
-
-**Decision needed:** write the missing viewer requirement and narrow `FR-CI-040` to what the pipeline actually does — or declare the source links a detail of the page already described by `FR-VIEW-060`, and say why a flag and a configuration key of their own do not make them behaviour.
-
-**Settled 2026-09-16.** The first.
-`FR-VIEW-310` describes the links, the flag and the key; `FR-CI-040` now says the pipeline hands the viewer the URL at the built revision and stands on 310.
-The suite had never exercised `--repo-url` in the six weeks the three pipelines had passed it, and does now.
+What would be measured, if this were ever taken up, is drafted and not recorded, by the register's rule that a threshold and an owner are set by whoever will answer for the measurement: the currency of a described document against an undescribed one on another corpus, the hours a first description costs per thousand words, and the share of sections whose sources the author named rather than an agent inferred afterwards.

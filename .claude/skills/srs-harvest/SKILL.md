@@ -8,8 +8,8 @@ description: Mine (extract) a specification from an existing codebase — for pr
 The project is initialized (there is a `specs/srs-config.json`) but the code holds behavior the specification does not describe.
 This skill turns that behavior into requirements — always as proposals, never as decisions.
 
-Read `specs/README.md` first if you have not in this session.
-Read `specs/srs-config.json`: the `areas` partition the work, `code_roots` say where to look, and the lexicon defines the modal verbs and the **language the requirements must be written in**.
+The rules live in `specs/README.md` — *Requirement block*, *Lifecycle* and *How to phrase* are the sections this procedure uses; `python3 tools/srs_view.py --vocabulary` prints the words a block may use.
+Read first: `specs/srs-config.json` — the `areas` partition the work, `code_roots` say where to look, and the lexicon defines the modal verbs and the **language the requirements must be written in**.
 
 ## Procedure
 
@@ -19,6 +19,7 @@ Read `specs/srs-config.json`: the `areas` partition the work, `code_roots` say w
 2. **One batch per area.**
    Read the area's code.
    For each observable behavior, draft a requirement: EARS phrasing in the specification language, one bolded modal verb from the lexicon, `status: draft`, `verification` chosen honestly, `code` listing the real paths (`tests` only when matching tests actually exist — never invent them).
+   A batch whose numbers cross a thousand is written into the directory form — `srs-new`, step 3, says how — before the batch is written.
 3. **Judge the batch, then show it — BEFORE writing it.**
    Every drafted statement goes through the same judgement `srs-new` gives a new one, against the qualities `specs/README.md` requires of a statement, and what you found is said alongside the batch.
    Mined statements are where this bites hardest — a sentence read off an `if` arrives sounding precise and describing how rather than what, and a batch is where a bad one is least likely to be noticed.
@@ -31,8 +32,8 @@ Read `specs/srs-config.json`: the `areas` partition the work, `code_roots` say w
     The words of the statement are the only sweep that reaches outside both, which is where the duplicate hides that carries another area's number or names a file the draft does not:
 
    ```
-   python3 tools/srs_view.py --list --area <AREA>
-   python3 tools/srs_view.py --code <path the draft names>
+   python3 tools/srs_view.py --list --area <AREA> --statements
+   python3 tools/srs_view.py --code <path the draft names> --statements
    python3 tools/srs_view.py --grep <word from the drafted statement>
    ```
 

@@ -137,7 +137,7 @@ Then it lays out `specs/`, writes the config, generates a placeholder requiremen
 
 **Already have an SRS?** The installer detects it and switches to adopt mode:
 your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical.
-Your specification files are never modified.
+Your requirements are never modified; your own `specs/README.md`, if you had one, is set aside in `specs/archive/` and the standard takes its place.
 Where its requirements carry no `created` dates, you are offered `tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
 
 **Already run a pre-commit hook?** It is never displaced — the installer says so instead of advising the `core.hooksPath` switch that would silently disable it.
@@ -215,9 +215,12 @@ What a linter cannot check — behaviour over implementation, verifiability, una
 ```
 python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
 python3 tools/srs_view.py --code src/app.py  which requirements describe a file
+python3 tools/srs_view.py --code src/app.py --statements   the same, with what each obliges — to choose by
+python3 tools/srs_view.py FR-CORE-020 --where  where it is realized, by line; --source prints the code
 python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
 python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
 python3 tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
+python3 tools/srs_view.py --vocabulary       the words a block may use, from the checker
 python3 tools/srs_view.py --diff 0.14.0      working tree against a baseline
 python3 tools/srs_view.py --json             the model, for your own tooling
 python3 tools/srs_view.py --html             a page for people who do not grep

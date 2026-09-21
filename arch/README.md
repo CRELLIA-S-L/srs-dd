@@ -33,7 +33,7 @@ Nothing in `specs/` mentions this directory, so removing `arch/` removes the lay
 
 ## Identifier
 
-`E-<NNN>`, numbered in steps of 10 so there is room to insert a neighbour.
+`E-<NNN>`, three digits or more, numbered in steps of 10 so there is room to insert a neighbour; after `E-990` comes `E-1000`, written without a leading zero, and the tools order elements by the number.
 
 An identifier is immutable and never reused.
 A part that is dissolved gets status `withdrawn`, or `superseded` with its successor named; the number stays dead either way, because a reference from an old review has to keep leading to the same place.
@@ -143,6 +143,8 @@ python3 tools/srs_arch.py --cite ID…   name elements to a person: identifier, 
 
 Errors are the readings that make the rest meaningless: a repeated identifier, a missing required key, a requirement that does not exist.
 Everything else is a warning, because the honest resolution differs case by case and the checker cannot choose it.
+A path an element carries that is not in the repository is one of those warnings, under `carrier-missing`: the record still reads, and it went stale the commonest way — a file renamed or deleted with the element left behind.
+Where git can tell, the warning says where the file went — renamed to what, in which commit, or deleted in which — so the record is fixed with one edit; the layer never edits it, because the record is the project's and a file that moved may have moved between parts.
 
 What a rule costs is the project's to set, in `arch/arch-config.json`, beside the `requirements` key described above:
 

@@ -40,7 +40,31 @@ import re
 # ADR-0019 refuses to let the grounds checker import srs_check, which is
 # where the number used to live. Both re-export it, so everything that
 # read it from there reads it still (ADR-0021).
-__version__ = "0.18.0"
+__version__ = "0.19.0"
+
+# implements: INV-SPEC-080, INV-SPEC-090
+# The one thing every identifier grammar shares is its tail: a number of
+# three digits or more, written without a leading zero beyond the third,
+# so that `0100` is not a number and `100` and `1000` are. It lives here
+# because the three checkers and the viewer all read it, and a number
+# that widens in one grammar and not another would part them at the
+# thousandth (ADR-0028). The same is true of the order: a wider number
+# sorts wrongly as a string, so every tool orders by id_key and not by
+# the identifier itself.
+NUMBER = r"(?:\d{3}|[1-9]\d{3,})"
+RE_NUMBER_TAIL = re.compile(r"-(\d+)$")
+
+
+def id_key(rid):
+    """The order of identifiers: the prefix as a string, then the number
+    as a number, so that FR-CORE-1000 follows FR-CORE-990 rather than
+    FR-CORE-100. An identifier with no number tail sorts by itself, after
+    nothing in particular."""
+    match = RE_NUMBER_TAIL.search(rid)
+    if not match:
+        return (rid, -1)
+    return (rid[:match.start()], int(match.group(1)))
+
 
 RE_ANY_HEADING = re.compile(r"^#{1,6}\s")
 RE_FENCE = re.compile(r"^\s*(`{3,})")

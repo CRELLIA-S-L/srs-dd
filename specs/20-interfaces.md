@@ -291,3 +291,27 @@ created: 2026-09-17
 JSON because the standard library reads it and a line format with free text in it does not survive a space in the text.
 File paths because the checker resolves them and the extractor then knows nothing about elements; a value that is an element identifier is refused when the file is read, with the reason, since a list of parts depending on parts is the declared model and has a field of its own.
 `via` is where the extractor says what it saw — a symbol, a line — and it is printed, not parsed, so that no project has to agree with another about what evidence looks like.
+
+### IF-SPEC-030 — A decision's head is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: [IF-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py, specs/README.md]
+tests: [tests/view-smoke.sh]
+created: 2026-09-20
+```
+
+A decision **shall** be a markdown file under `adr/` whose first heading is `# ADR-NNNN — <title>`, preceded by nothing but an optional front matter between two `---` lines and blank lines, and whose status is the front matter's `status` key or a `- **Status:**` line among the first lines after the heading.
+
+**Rationale.** The viewer cites a decision from its head (`FR-VIEW-330`) and read the head in the one shape the shipped template has — heading on the first line, status as a bullet.
+The first project to write its decisions in its own language opened each with a front matter, `status: принято` above the heading, and `--cite ADR-0019` answered "no decision" for a file that was one.
+Nothing said which shapes a decision may take, so the reader's shape was the rule by accident; this says it.
+A front matter is the commonest way a markdown file carries its own keys, and a status is what such a file puts there, so both are read; the bullet keeps working because the template ships it.
+The status is cited as written, because it is the project's word for its own decision and the citation quotes, never translates.
+A file under `adr/` without the heading is not a decision, which is what an index and a template under `adr/` need to be.
+

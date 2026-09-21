@@ -487,7 +487,7 @@ When a procedure first names a record — a requirement, an element, a grounds r
 It is exactly right inside a link field, where a machine resolves it and a person is not reading; in a paragraph written for somebody it costs them a lookup per mention, and a report full of them gets skimmed rather than read.
 The title is one clause, the file is clickable in a terminal and in an editor, and the status says whether this is still something to build against, so what the reader owes the report drops to nothing.
 
-**The side effect is worth more than the rule.** Naming a requirement in full means resolving it, and an identifier cited without being resolved is how a procedure ends up asserting what another procedure does without reading it — the failure recorded in `91-open-issues.md` under that name.
+**The side effect is worth more than the rule.** Naming a requirement in full means resolving it, and an identifier cited without being resolved is how a procedure ends up asserting what another procedure does without reading it — the failure `FR-SKILL-280` was written against.
 A rule that says "give the title" is the cheapest available form of "open it first".
 It does not make an invented title impossible — a plausible one can be written from memory — but the three parts check each other: a title that was guessed is contradicted by the file and the status standing beside it, and one command settles which.
 A bare identifier offers nothing to contradict.
@@ -695,6 +695,8 @@ The one rule that touches this fires only on total isolation — a requirement l
 Measured here on 2026-09-10: 217 links of all four kinds over 222 requirements, and 126 of those requirements with nothing pointing at them at all.
 The first project that installed this framework lands within a hair of both from 571 requirements — 1.05 links each against 0.98 here, 55% with no incoming link against 57% — while using the fields in opposite proportions, `depends_on` carrying 188 of the edges here and 150 of 600 there.
 What that leaves is an impact query answering from links nobody has ever read as a set.
+Whether the floor was a ceiling was measured rather than argued: the thirteen requirements authored after the authoring procedure was made to show its search (`FR-SKILL-250`, 2026-09-09) carry 1.54 outgoing links apiece against 1.07 over the 213 written before — a small sample under one procedure, said so that the ratio is not read for more than it carries — so the links were under-written because they were never looked for, not because the specification is loosely coupled; and no target is written into a rule, because the one candidate, an outgoing link on every requirement, is false on the requirement each area hangs from.
+Two mechanical proxies for a missing link were run and rejected on volume, which is the argument `FR-CHK-160` makes about a rule nobody can afford to read: "two requirements name the same file and link to neither" fired 3 648 times over this repository on 2026-09-09, and the narrower "annotated in adjacent regions and not linked" fired on 319 pairs of 382; a pass by a reader is what remains.
 
 **Area by area, because that is the unit a reader can hold at once.** The eight areas here run from 12 requirements to 63, and one area's titles are between 872 and 4550 bytes — against 15.9 KB for every title at once here, and 55.9 KB in the project that installed this framework.
 A link is proposed between two requirements that were read together, so the size of what can be read together is the size of what can be proposed.
@@ -792,4 +794,73 @@ The instance is asked through an agent's command-line client, which needs an acc
 And what it measures is the guides, not the agent: a result below the threshold is a reason to change `AGENTS.md`, which is why the maintainer asked for it beside the everyday build loop rather than beside the pipeline.
 
 The scoring is what the test holds, over canned answers, so that the test itself asks nobody.
+
+### FR-SKILL-300 — A procedure keeps its instructions when it is shortened
+
+```yaml
+status: implemented
+verification: T
+derives_from: [NFR-SKILL-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tests/skill-instructions]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-19
+```
+
+For every procedure the framework ships, the suite **shall** hold its text to a list of what the procedure must name — commands, constitution articles, files and other procedures — and fail when one of them is missing.
+
+**Rationale.** A budget says how short a procedure must be and nothing about what it may lose on the way there; the two instructions most often lost are the ones that read as explanation — the command run before a file is edited, the article that forbids running a test unasked.
+The list is what a person writes off the original before the cut, one line per thing the procedure is for, and the test is the mechanical half of the check that every instruction survived: it proves that the command is still named, and a person reads whether the sentence around it still tells the reader to run it.
+Commands, articles, files and procedures because those are what a grep can find without knowing the language the procedure is written in; the reason beside each of them is what the list cannot hold and the measurement of `FR-SKILL-310` is for.
+A list naming a procedure that does not ship is a stale list, and is reported as such rather than passing empty.
+
+### FR-SKILL-310 — What a procedure costs a fresh agent, and what it yields, is measured
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-290]
+depends_on: [NFR-SKILL-020]
+refines: []
+conflicts_with: []
+code: [tools/srs_proc_eval.py, tests/eval/scenarios]
+tests: [tests/proc-eval-smoke.sh]
+created: 2026-09-19
+```
+
+The framework **shall** carry a command that runs a fresh agent instance through each scenario in a set — a task put to one of the shipped procedures, in this repository — and reports, per run, the tokens the run added to the context beyond its first turn, the tokens it burned over all its turns, its turns, and whether every check the scenario states was met, as a measurement run on request and never as a gate.
+
+**Rationale.** `FR-SKILL-290` measures one rule, citation, over answers to questions; this measures a procedure as a whole, over a task, and the two numbers that decide whether a procedure may be shortened: what it cost the instance to follow, and whether following it still produced what the procedure is for.
+Neither is knowable from the file — a procedure of six hundred words costs more than six hundred words because of what it tells the reader to open, and a procedure cut to a third may lose the one sentence that made the instance run `--code` before editing.
+A check is what the scenario says a good run leaves behind — a tool it ran, a tool it did not, a phrase in its answer, a file it did not write — read off the run's own trace, so that the scoring asks nobody; the tokens are read off the same trace, which the client reports per turn.
+Tokens and never money: a price is the client's number for a tariff that moves, and a row that says what a run cost in a currency says nothing once the tariff has; what was burned — everything that went into the model and came out of it over all the turns, each turn re-reading the context before it — is what any tariff multiplies, and is what the rows keep.
+Beyond the first turn, because the first turn is the session's floor — the client's prompt, its tools, the guides — which belongs to the client and varies between clients by more than a procedure costs; it is the quantity `H-040` in the register is measured on.
+The cost of the procedure's own text is the file's and is counted from the file, not inferred from the trace: the turn after the procedure is loaded also carries whatever else the client wrote to its cache that turn, and on a cache miss it carries the whole context.
+Every run's trace is kept, so that a claim about what an instance read can be checked after the fact; the first runs this framework had were not, and the claim that a fresh instance reads specification files whole could not be.
+Never a gate, for the reasons `FR-SKILL-290` gives: a run varies, the client needs an account and a network, and the number is read against the number before a change by whoever made it.
+The scoring over saved traces is what the test holds.
+
+### FR-SKILL-320 — What is put to a person for a decision is in the message that asks
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-200]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md]
+tests: []
+created: 2026-09-20
+```
+
+When a procedure asks a person to decide on something — a sentence for a document, a requirement's text, a step of a plan — it **shall** carry in that message the text it asks them to decide on, as it would be written, and never a reference to an earlier message in its place.
+
+**Rationale.** The person reads the message in front of them, not the transcript.
+"The three sentences I showed above" sends them back through the conversation to find what they are being asked to approve, and what they find may not be what the message meant, because the text moved in between.
+A pointer to an earlier message is the failure `FR-SKILL-200` names for a record — a key handed over instead of the thing — turned on the proposal itself.
+Restating costs the length of the proposal once; the alternative costs the reader a search and the writer the chance that the approval covers a text nobody re-read.
+A long text is quoted in a block rather than shortened: what is approved is what was pasted.
 

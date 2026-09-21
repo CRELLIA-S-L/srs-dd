@@ -1447,4 +1447,89 @@ grep -q "no record H-990" /tmp/srs-grounds-cite.err \
 rule "FR-GND-540 --cite with nothing to cite is a setup fault" 2 "needs at least one" --cite
 passes=$((passes + 4))
 
+# --- verifies: INV-SPEC-080 — a record's number widens like a requirement's:
+# --- B-1000 is an identifier, B-0100 is not.
+# --- verifies: INV-SPEC-090 — and the dashboard orders requirements by their
+# --- number: FR-CORE-1000 after FR-CORE-990 in the debt table, not after 100.
+cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
+for n in 100 990 1000; do
+    printf '\n### FR-CORE-%s — Wide %s\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-CORE-010]\n```\n\nThe system **shall** act %s.\n' "$n" "$n" "$n" >> "$LAB/specs/10-fr-core.md"
+done
+ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
+           rec B-100 "Hundred" 'status: active
+requirement: FR-CORE-100
+all_of: [H-010]' 'Rests on it.'
+           rec B-990 "Nine ninety" 'status: active
+requirement: FR-CORE-990
+all_of: [H-010]' 'Rests on it too.'
+           rec B-1000 "Thousand" 'status: active
+requirement: FR-CORE-1000
+all_of: [H-010]' 'And so does this.')
+silent "INV-SPEC-080 a wide bet number is accepted" 0 "identifier does not match"
+( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1 \
+    || { echo "FAIL INV-SPEC-090 — the wide fixture does not pass"; cat /tmp/srs-grounds.log; exit 1; }
+python3 - "$LAB/grounds/90-dashboard.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the dashboard orders requirements as strings"; exit 1; }
+import re, sys
+text = open(sys.argv[1], encoding="utf-8").read()
+rows = re.findall(r"^\| (FR-CORE-\d+) \| H-010 \|", text, re.M)
+assert rows == ["FR-CORE-100", "FR-CORE-990", "FR-CORE-1000"], rows
+PY
+cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
+passes=$((passes + 1))
+ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
+           rec B-0100 "A leading zero" 'status: active
+requirement: FR-CORE-010
+all_of: [H-010]' 'Rests on it.')
+rule "INV-SPEC-080 a leading zero is refused" 1 "identifier does not match"
+
+# --- verifies: FR-GND-550 — a class III verdict is the reader's: the same
+# --- row that FR-GND-140 refuses under class I — 0 of 2 called refuted,
+# --- where the interval reaches 0.575 — passes under class III with the
+# --- reader named, while a row that is no measurement at all, or a word
+# --- that is neither verdict, is refused for class III as for any class.
+HYP_SMALL="${HYP/refuted_if: proportion < 0.25 at n >= 200/refuted_if: proportion < 0.50 at n >= 2}"
+ground < <(rec H-010 "Both said no" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 2 | refuted | @maintainer |')
+silent "FR-GND-550 a class III reading of two is not overruled" 0 "the verdict it compels"
+HYP_SMALL_I="${HYP_SMALL/class: III/class: I}"
+ground < <(rec H-010 "Both said no, by an instrument" "$HYP_SMALL_I" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 2 | refuted | telemetry |')
+rule "FR-GND-550 the same row under class I is still compelled" 1 "the verdict it compels is 'supported'"
+ground < <(rec H-010 "Not a measurement" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | both | 2 | refuted | @maintainer |')
+rule "FR-GND-550 a class III row that cannot be compared is still refused" 1 "no threshold can be compared against"
+ground < <(rec H-010 "Not a verdict" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 2 | disproved | @maintainer |')
+rule "FR-GND-550 a class III word that is no verdict is still refused" 1 "not one a measurement can reach"
+ground < <(rec H-010 "Refuted on the safe side" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0.8 | 2 | refuted | @maintainer |')
+rule "FR-GND-550 a class III refutation on the safe side contradicts its own threshold" 1 "on the safe side of < 0.5"
+ground < <(rec H-010 "Refuted below the gate" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 1 | refuted | @maintainer |')
+rule "FR-GND-550 a class III refutation below the gate contradicts its own threshold" 1 "smaller than the threshold's own at n >= 2"
+
 echo "grounds-rules: $passes fixtures pass"

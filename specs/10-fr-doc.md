@@ -163,7 +163,7 @@ When not to keep one is the paragraph that makes the rest credible: a register o
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-INIT-010, FR-INIT-020, FR-INIT-030, FR-INIT-040, FR-INIT-070, FR-INIT-080, FR-INIT-090, FR-INIT-170, FR-SPEC-020]
+depends_on: [FR-INIT-010, FR-INIT-020, FR-INIT-030, FR-INIT-040, FR-INIT-070, FR-INIT-080, FR-INIT-090, FR-INIT-170, FR-INIT-230, FR-SPEC-020]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -173,7 +173,7 @@ created: 2026-09-18
 
 *Install* **shall** carry the clone command and the installer's invocation, name what the installer asks for, name the flags that answer for a person and that write nothing, say what adoption of an existing specification does and does not touch, and link to the installation and upgrade documents.
 
-**Rationale.** This is the section a person copies from, so what it carries is commands and the facts a person needs before running them: the questions coming — name, areas, roots, extensions, a CI template, the lexicon (`FR-INIT-090`), the register and its period, the layer; `--defaults` and `--dry-run` (`FR-INIT-070`); that an existing specification is validated first, never modified (`FR-INIT-040`) and left byte-identical on failure (`FR-INIT-030`); that undated requirements are offered a date from the history (`FR-INIT-170`, `FR-SPEC-020`); that a pre-commit hook already in place is not displaced (`FR-INIT-080`).
+**Rationale.** This is the section a person copies from, so what it carries is commands and the facts a person needs before running them: the questions coming — name, areas, roots, extensions, a CI template, the lexicon (`FR-INIT-090`), the register and its period, the layer; `--defaults` and `--dry-run` (`FR-INIT-070`); that an existing specification is validated first, its requirements never modified (`FR-INIT-040`), its own standard set aside for ours (`FR-INIT-230`) and the whole left byte-identical on failure (`FR-INIT-030`); that undated requirements are offered a date from the history (`FR-INIT-170`, `FR-SPEC-020`); that a pre-commit hook already in place is not displaced (`FR-INIT-080`).
 The details, the modes and the exit codes are in `docs/install.md` and the upgrade path in `docs/upgrade.md`, linked rather than repeated, and `FR-DOC-190` holds the links.
 
 ### FR-DOC-090 — The agent section carries the entry point, the exit codes and the two decisions
@@ -242,7 +242,7 @@ The same five steps are in `skeleton/AGENTS.md`, so the page restates the guide 
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-240, FR-VIEW-330, FR-VIEW-340, IF-VIEW-010, FR-VIEW-080, FR-GND-310, FR-ARCH-270, FR-GND-540]
+depends_on: [FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-240, FR-VIEW-330, FR-VIEW-340, IF-VIEW-010, FR-VIEW-080, FR-GND-310, FR-ARCH-270, FR-GND-540, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -250,10 +250,10 @@ tests: []
 created: 2026-09-18
 ```
 
-*Reading the specification* **shall** list the viewer's commands one per question a reader asks — one requirement, a file, a tree, the gaps, a citation, a baseline, the model, the page, a picture of a selection — say that the viewer writes nothing and gates nothing, and name what the register and the layer answer with their own commands.
+*Reading the specification* **shall** list the viewer's commands one per question a reader asks — one requirement, a file, where a requirement is realized, a tree, the gaps, a citation, the words a block may use, a baseline, the model, the page, a picture of a selection — say that the viewer writes nothing and gates nothing, and name what the register and the layer answer with their own commands.
 
 **Rationale.** The viewer is how the specification is read once it exists, and a reader who knows its nine questions never greps.
-Each line is a requirement's answer — one requirement with its links (`FR-VIEW-010`), a file (`FR-VIEW-020`), a tree (`FR-VIEW-030`), the gaps (`FR-VIEW-040`), a citation of a requirement or a decision (`FR-VIEW-240`, `FR-VIEW-330`), a baseline (`FR-VIEW-050`), the model (`IF-VIEW-010`), the page (`FR-VIEW-060`), a picture of a selection (`FR-VIEW-340`) — and `FR-DOC-020` holds every flag on the page to the tool.
+Each line is a requirement's answer — one requirement with its links (`FR-VIEW-010`), a file (`FR-VIEW-020`; with the statements beneath, `FR-VIEW-350`), where a requirement is realized, by line and with its source (`FR-VIEW-370`, `FR-VIEW-380`), a tree (`FR-VIEW-030`), the gaps (`FR-VIEW-040`), a citation of a requirement or a decision (`FR-VIEW-240`, `FR-VIEW-330`), the words a block may use (`FR-VIEW-360`), a baseline (`FR-VIEW-050`), the model (`IF-VIEW-010`), the page (`FR-VIEW-060`), a picture of a selection (`FR-VIEW-340`) — and `FR-DOC-020` holds every flag on the page to the tool.
 That the viewer never writes (`FR-VIEW-080`) is said because a stranger assumes a tool that reads a repository might change it; what a file's requirements stand on (`FR-GND-310`) and how an element or a record is cited (`FR-ARCH-270`, `FR-GND-540`) are the layers' own commands, named here because the viewer reads the specification and nothing else.
 
 ### FR-DOC-130 — The map section names every top-level path and what it is

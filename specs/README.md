@@ -17,7 +17,7 @@ The decision log follows **MADR**.
 | `constitution.md` | Standing engineering principles, `ART-*`. Changed only via its own amendment procedure |
 | `01-introduction.md` | §1: purpose, scope, boundaries, audience |
 | `02-overview.md` | §2: product perspective, user classes, environment, assumptions |
-| `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area |
+| `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area holding its first thousand numbers; from the thousandth on, a directory `10-fr-<area>/` of files by the thousand — `000-999.md`, `1000-1999.md`, … — each holding the numbers its name states |
 | `20-interfaces.md` | §5, `IF-*` — protocols, external APIs, storage schemas |
 | `30-nfr.md` | `NFR-*` — responsiveness, resource limits, privacy, reliability |
 | `40-invariants.md` | `INV-*`, `CON-*` — invariants, prohibitions, platform constraints |
@@ -32,6 +32,10 @@ The decision log follows **MADR**.
 The file names are a convention, and the checker reads every `.md` file in `specs/` for requirements except these: this file, the glossary, the constitution, the three that record rather than state — the matrix, the open issues and the baseline log — and everything under `adr/` and `archive/`.
 Everything else is read whether or not it holds any, so a section file still empty is read and yields nothing.
 Split the `10-fr-*` files by area as your system grows.
+An area's first number past a thousand is the moment its file becomes a directory: `git mv specs/10-fr-<area>.md specs/10-fr-<area>/000-999.md` — the whole file, history with it — then `1000-1999.md` opens beside it with the area's heading and the new requirement, and nothing already written moves.
+The checker reports a number outside the range its file's name states as a warning named `file-range`, naming the file it belongs in; a requirements file directly under `specs/` holds `000-999`.
+A `README.md` inside such a directory is for people and is never read as requirements, like every reserved name at any depth.
+A file may also be cut by subject and its pieces named as the project likes; `python3 tools/srs_view.py --diff HEAD` after any move names a requirement the move lost, because it compares by identifier and never by file.
 
 ## Identifier
 
@@ -42,7 +46,9 @@ Split the `10-fr-*` files by area as your system grows.
 **Areas** partition the system by subject matter and are project-specific.
 They are declared in `srs-config.json` — see *Configuration*.
 
-Numbers go in steps of 10 within an area, so there is room to insert a neighbor later.
+Numbers go in steps of 10 within an area, so there is room to insert a neighbor later — a convention, not a rule: the checker does not enforce the step, and `FR-CORE-025` between 020 and 030 is a valid identifier.
+A number has three digits or more, written without a leading zero beyond the third: after `990` comes `1000`, in the next file (see *Map*), and the tools order identifiers by their number, so nothing already written is renamed and an area never runs out.
+The sequence runs in tens and does not break; a number between tens is for a requirement written beside an existing one, and goes in the file of its thousand whenever it is written.
 
 **An identifier is immutable and never reused.** A cancelled requirement is not deleted: it gets status `superseded` and a pointer to its replacement.
 The freed number stays dead forever — otherwise a reference from an old discussion will one day lead to the wrong place.
@@ -214,6 +220,13 @@ If there is no requirement — create it first rather than writing code silently
 
 An architecture decision (choosing a storage engine, rejecting an approach, working around a platform limitation) is recorded separately in `adr/`.
 A requirement says “what”; a decision says “why this path and not the neighboring one”.
+A decision is a markdown file under `adr/` whose first heading is `# ADR-NNNN — <title>`; nothing but a front matter — a block between two `---` lines of `key: value` pairs — and blank lines may stand before it.
+Its status is the front matter's `status` key or a `- **Status:** <status>` line among the first lines after the heading, whichever the file carries, and is cited as written, in whatever language the project writes.
+A file under `adr/` with no such heading — an index, a template — is not a decision.
+The number in the heading is the decision's name; the file name is a convention, and renaming the file changes nothing.
+
+A rule that binds every procedure is written once, where the procedure's reader can open it: in this standard or in the constitution, which travel with the procedure, and the procedure points at it with a line that says what it asks.
+A rule that lives only in a requirement of the framework that ships the procedure does not travel with it, so the procedure carries that rule in its own words, and the requirement names the procedure in its `code` field — the one pointer that can be written.
 
 ## Annotations
 

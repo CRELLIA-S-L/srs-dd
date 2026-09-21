@@ -1,0 +1,27 @@
+# What the `srs-audit` procedure must name — written off the original on 2026-09-19,
+# before any cut, and extended on 2026-09-20 with the viewer flag the
+# rewritten procedure names. One literal token per line; the suite fails when one is
+# missing from the procedure's text. Add a line when a procedure gains an
+# instruction; remove one only with the sentence that says why.
+
+# commands
+tools/srs_check.py
+tools/srs_check.py --no-write
+tools/srs_view.py
+tools/srs_view.py --area
+tools/srs_view.py --areas
+tools/srs_view.py --coverage
+tools/srs_view.py --list
+tools/srs_view.py --statements
+
+# articles
+ART-010
+ART-030
+ART-050
+
+# files
+AGENTS.md
+specs/50-verification.md
+specs/90-traceability.md
+specs/91-open-issues.md
+tools/srs_check.py

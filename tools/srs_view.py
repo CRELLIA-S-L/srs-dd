@@ -51,6 +51,7 @@ import webbrowser                                          # noqa: E402
 from urllib.parse import quote                              # noqa: E402
 
 import srs_check                                           # noqa: E402
+import srs_parse                                           # noqa: E402
 
 if not hasattr(srs_check, "parse_text"):
     sys.stderr.write("tools/srs_check.py predates this viewer — refresh "
@@ -168,12 +169,13 @@ def build_model(requirements, problems, with_code_scan=True):
     """Projects parsed requirements into the one structure the terminal
     renderers, the HTML generator and --json all consume."""
     entries = [_requirement_dict(req) for req in requirements]
-    entries.sort(key=lambda e: (e["id"], e["path"], e["line"]))
+    # implements: INV-SPEC-090
+    entries.sort(key=lambda e: (srs_parse.id_key(e["id"]), e["path"], e["line"]))
 
     seen = {}
     for entry in entries:
         seen[entry["id"]] = seen.get(entry["id"], 0) + 1
-    for rid in sorted(k for k, n in seen.items() if n > 1):
+    for rid in sorted((k for k, n in seen.items() if n > 1), key=srs_parse.id_key):
         problems.append("duplicate identifier %s — the checker treats "
                         "this as an error" % rid)
 
@@ -377,7 +379,7 @@ RE_ADR_STATUS = re.compile(r"^- \*\*Status:\*\* (.+?)\s*$")
 
 
 def decisions():
-    # implements: FR-VIEW-330
+    # implements: FR-VIEW-330, IF-SPEC-030
     """Every decision in specs/adr/ as {id: entry}, shaped like a
     requirement entry as far as a citation needs: id, title, path, status.
 
@@ -399,14 +401,28 @@ def decisions():
                 lines = handle.read().splitlines()
         except (OSError, UnicodeDecodeError):
             continue
+        # A file may open with a front matter — `---`, `key: value` lines,
+        # `---` — before its heading: the shape a project writing decisions
+        # in its own language chose, and the status is then one of its
+        # keys. Skipped to find the heading, read for the status.
+        front = {}
+        body = lines
+        if lines and lines[0].strip() == "---":
+            for index, line in enumerate(lines[1:], 1):
+                if line.strip() == "---":
+                    body = lines[index + 1:]
+                    break
+                key, _, value = line.partition(":")
+                if _ and key.strip():
+                    front[key.strip().lower()] = value.strip()
         # The first line that says anything: a file may open with a blank
         # line, and the heading is what makes it a decision, not its row.
-        first = next((line for line in lines if line.strip()), "")
+        first = next((line for line in body if line.strip()), "")
         heading = RE_ADR_HEADING.match(first)
         if not heading:
             continue
-        status = "?"
-        for line in lines[1:12]:
+        status = front.get("status", "?")
+        for line in body[1:12]:
             matched = RE_ADR_STATUS.match(line)
             if matched:
                 status = matched.group(1)
@@ -609,6 +625,33 @@ def print_areas(model, style):
                         style.d(" · ".join(parts))))
 
 
+def print_vocabulary(style):
+    """The words the checker accepts in a requirement's block, and nothing
+    of what the standard says about them.
+
+    Read off the checker's own constants and the project's configuration,
+    never spelled here: the standard says what the words mean and when to
+    use them, the checker refuses a block written outside them, and this
+    prints the checker's list so that a procedure that needs a status or a
+    field name asks for forty words instead of the standard.
+    In the order the checker keeps them — the lifecycle for the statuses,
+    the block's own order for the fields — which is the order a reader
+    meets them in.
+    """
+    # implements: FR-VIEW-360
+    rows = (
+        ("types", srs_check.TYPES),
+        ("statuses", STATUSES),
+        ("verification", srs_check.VERIFICATIONS),
+        ("fields", srs_check.SCALAR_FIELDS + srs_check.LIST_FIELDS),
+        ("required", srs_check.REQUIRED_FIELDS),
+        ("areas", srs_check.AREAS),
+        ("modal verbs", srs_check.CFG["modal_verbs"]),
+    )
+    for label, words in rows:
+        out("%s %s" % (style.d("%-13s" % label), " ".join(words)))
+
+
 def prose_path_hint(needle):
     """The text searched for, where it names a path the project carries.
 
@@ -673,24 +716,31 @@ def print_prose(model, args, style):
                     % (hint, hint)))
 
 
-def print_line(entry, style):
+def print_line(entry, style, statements=False):
     # implements: FR-VIEW-320
     # Identifier, status, title, file — the four parts of a citation, in
     # the order they are read; the file is the path alone, never the line.
     out("%s  %-12s %s  %s" % (style.b("%-14s" % entry["id"]),
                               entry["status"] or "?", entry["title"],
                               style.d(entry["path"])))
+    if statements and entry["statement"]:
+        # implements: FR-VIEW-350
+        # The statement beneath the line, on request: what the requirement
+        # obliges, so that the reader chooses by it rather than by the
+        # title — and never the rationale, which is read once the choice
+        # is made, in the card.
+        out(emphasize(wrap(entry["statement"], indent="    "), style))
 
 
-def print_list(entries, style):
+def print_list(entries, style, statements=False):
     if not entries:
         out(style.d("nothing matches"))
         return
     for entry in entries:
-        print_line(entry, style)
+        print_line(entry, style, statements)
 
 
-def print_line_answer(model, path, line, style, listing):
+def print_line_answer(model, path, line, style, listing, statements=False):
     # implements: FR-VIEW-300
     """What a line of a file marks, and how many the whole file answers
     for — the second from the path mode, so the two never disagree about
@@ -701,17 +751,141 @@ def print_line_answer(model, path, line, style, listing):
         print_counts(model, style)
         out()
     index = by_id(model)
-    entries = [index[rid] for rid in sorted(marked) if rid in index]
-    unknown = sorted(rid for rid in marked if rid not in index)
+    entries = [index[rid] for rid in sorted(marked, key=srs_parse.id_key) if rid in index]
+    unknown = sorted((rid for rid in marked if rid not in index), key=srs_parse.id_key)
     if not entries and not unknown:
         out(style.d("no annotation covers %s:%d" % (path, line)))
     for entry in entries:
-        print_line(entry, style)
+        print_line(entry, style, statements)
     for rid in unknown:
         out("%-15s %s" % (rid, style.d("annotated here, not in the "
                                        "specification")))
     out(style.d("the whole file answers for %d requirement(s) — "
                 "--code %s without a line lists them" % (len(whole), path)))
+
+
+def where_realized(entry):
+    """Every annotation naming the requirement, and every file its fields
+    name that carries none: [(path, line or None, keyword or None)], the
+    annotated ones in file order, the unannotated files after them.
+
+    Two sources, because the specification points at code on two levels:
+    the fields name files, the annotations name lines, and a file the
+    field claims that no line speaks for is part of the answer — it is
+    the one the reader will have to open whole.
+    """
+    # implements: FR-VIEW-370
+    found = []
+    seen = set()
+    named = list(entry["code"]) + [p for p in entry["tests"] if p not in entry["code"]]
+    candidates = []
+    for rel in named:
+        full = os.path.join(ROOT, rel)
+        if os.path.isdir(full):
+            for current, dirs, files in os.walk(full):
+                dirs[:] = [d for d in dirs if not d.startswith(".")]
+                for name in sorted(files):
+                    candidates.append(os.path.relpath(os.path.join(current, name), ROOT)
+                                      .replace(os.sep, "/"))
+        else:
+            candidates.append(rel)
+    for rel in srs_check.iter_source_files():
+        if rel not in candidates:
+            candidates.append(rel)
+    annotated_files = set()
+    for rel in candidates:
+        full = os.path.join(ROOT, rel)
+        if rel in seen or not os.path.isfile(full):
+            continue
+        seen.add(rel)
+        try:
+            annotations = srs_check.read_annotations(full)
+        except (OSError, UnicodeError):
+            continue
+        for lineno, keyword, rid in annotations:
+            if rid == entry["id"]:
+                found.append((rel, lineno, keyword))
+                annotated_files.add(rel)
+    for rel in named:
+        full = os.path.join(ROOT, rel)
+        if os.path.isfile(full) and rel not in annotated_files:
+            found.append((rel, None, None))
+        elif os.path.isdir(full) and not any(
+                f.startswith(rel.rstrip("/") + "/") for f in annotated_files):
+            found.append((rel, None, None))
+    return found
+
+
+def region_of(rel, lineno, bound=60):
+    """The lines an annotation marks, as (first, last), 1-based inclusive.
+
+    A Python file has a structure the standard library parses: the region
+    is the innermost function or class whose span holds the line, or whose
+    definition starts within three lines below it — an annotation sits
+    on the line above `def`, or as the body's first comment. Any other
+    file has none the tool can read: the region runs from the annotation
+    to the line before the next one, or `bound` lines, whichever is first.
+    """
+    # implements: FR-VIEW-380
+    full = os.path.join(ROOT, rel)
+    with open(full, "r", encoding="utf-8", errors="replace") as handle:
+        text = handle.read()
+    # splitlines, not split: a file ending in a newline has no empty last
+    # line, and a region bounded by the file's end must not print one.
+    lines = text.splitlines()
+    total = len(lines)
+    if rel.endswith(".py"):
+        import ast
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            tree = None
+        if tree is not None:
+            best = None
+            for node in ast.walk(tree):
+                if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    continue
+                start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                end = node.end_lineno
+                if start <= lineno <= end or lineno < start <= lineno + 3:
+                    span = end - start
+                    if best is None or span < best[2]:
+                        best = (start, end, span)
+            if best is not None:
+                return min(best[0], lineno), best[1]
+    last = min(total, lineno + bound - 1)
+    for other, _kw, _rid in srs_check.read_annotations(full):
+        if lineno < other <= last:
+            last = other - 1
+            break
+    return lineno, last
+
+
+def print_where(entry, style, source=False):
+    # implements: FR-VIEW-370
+    places = where_realized(entry)
+    if not places:
+        out(style.d("%s names no file and no annotation names it" % entry["id"]))
+        return
+    # The files no line speaks for first: under --source the regions run
+    # long, and the one fact the reader must not miss is which file they
+    # will have to open whole.
+    for rel, lineno, keyword in places:
+        if lineno is None:
+            out("%s  %s" % (rel, style.d("named in the fields, no annotation for %s" % entry["id"])))
+    for rel, lineno, keyword in places:
+        if lineno is None:
+            continue
+        out("%s:%d  %s" % (rel, lineno, keyword))
+        if source:
+            # implements: FR-VIEW-380
+            first, last = region_of(rel, lineno)
+            with open(os.path.join(ROOT, rel), "r", encoding="utf-8", errors="replace") as handle:
+                lines = handle.read().splitlines()
+            width = len(str(last))
+            for number in range(first, last + 1):
+                out("  %s  %s" % (style.d(str(number).rjust(width)), lines[number - 1]))
+            out()
 
 
 def wrap(text, width=76, indent="  "):
@@ -1142,7 +1316,7 @@ def as_deltas(snapshots):
             now = snap["requirements"]
             entry["put"] = dict((rid, fields) for rid, fields in now.items()
                                 if before.get(rid) != fields)
-            entry["drop"] = sorted(rid for rid in before if rid not in now)
+            entry["drop"] = sorted((rid for rid in before if rid not in now), key=srs_parse.id_key)
         out.append(entry)
     return out
 
@@ -1166,10 +1340,10 @@ def compute_diff(old_model, new_model):
     """Working tree against the revision — not HEAD against it."""
     old = by_id(old_model)
     new = by_id(new_model)
-    added = [new[rid] for rid in sorted(set(new) - set(old))]
-    removed = [old[rid] for rid in sorted(set(old) - set(new))]
+    added = [new[rid] for rid in sorted(set(new) - set(old), key=srs_parse.id_key)]
+    removed = [old[rid] for rid in sorted(set(old) - set(new), key=srs_parse.id_key)]
     changed = []
-    for rid in sorted(set(old) & set(new)):
+    for rid in sorted(set(old) & set(new), key=srs_parse.id_key):
         fields = []
         for field in DIFF_FIELDS:
             if old[rid][field] != new[rid][field]:
@@ -2284,7 +2458,7 @@ def build_graph(model):
             for target in entry[field]:
                 if target in known:
                     edges.append((entry["id"], target, field))
-    nodes = sorted({rid for edge in edges for rid in edge[:2]})
+    nodes = sorted({rid for edge in edges for rid in edge[:2]}, key=srs_parse.id_key)
     # The identifiers rather than their number: the page has to say what
     # was left out, and a count says how many. Sorted order means the cut
     # falls at one place in the alphabet, so whole families go at once —
@@ -2823,6 +2997,11 @@ def parse_args(argv):
     parser.add_argument("--areas", action="store_true",
                         help="the areas this project is divided into, "
                              "with how many requirements each holds")
+    parser.add_argument("--vocabulary", action="store_true",
+                        help="the words the checker accepts in a requirement's "
+                             "block — types, statuses, verification methods, "
+                             "fields and which are required — with the areas "
+                             "and modal verbs this project declares")
     parser.add_argument("--type", help="filter by type (FR, NFR, IF, …)")
     parser.add_argument("--verification", help="filter by method (T, D, I, A)")
     parser.add_argument("--grep",
@@ -2834,6 +3013,19 @@ def parse_args(argv):
                              "implements:/verifies: annotations; with :LINE, "
                              "only what the annotation covering that line "
                              "marks, and how many the whole file answers for")
+    parser.add_argument("--where", action="store_true",
+                        help="with a requirement: where it is realized — every "
+                             "annotation naming it as path:line, and each file "
+                             "its fields name that carries none")
+    parser.add_argument("--source", action="store_true",
+                        help="with --where: print the region under each "
+                             "annotation — a Python function or class whole, "
+                             "otherwise up to the next annotation or 60 lines")
+    parser.add_argument("--statements", action="store_true",
+                        help="with a listing: print each requirement's "
+                             "statement beneath its line — what it obliges, "
+                             "to choose by; the rationale stays in the "
+                             "single-requirement view")
     parser.add_argument("--tree", metavar="ID",
                         help="what derives from this requirement")
     parser.add_argument("--up", action="store_true",
@@ -2873,7 +3065,23 @@ def parse_args(argv):
                              "repo_url in specs/srs-config.json; in CI the "
                              "revision is usually known, e.g. "
                              "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA")
-    return parser.parse_args(argv)
+    # implements: FR-VIEW-010
+    # One requirement at a time is what the card shows, and two identifiers
+    # on the line are the commonest way of asking for more: answered with a
+    # sentence rather than the usage block, so that whoever asked — an
+    # agent chaining calls, a person at the terminal — knows what to do
+    # next without a second attempt.
+    args, extra = parser.parse_known_args(argv)
+    if extra:
+        # implements: INV-SPEC-080
+        stray = [a for a in extra if re.match(r"^[A-Z]+-[A-Z0-9]+-%s$" % srs_parse.NUMBER, a)]
+        if args.requirement and stray and len(stray) == len(extra):
+            parser.exit(2, "srs_view.py shows one requirement at a time — %s is %d; call it "
+                           "once per identifier, or --cite %s for the citations\n"
+                        % (" ".join([args.requirement] + stray), 1 + len(stray),
+                           " ".join([args.requirement] + stray)))
+        parser.error("unrecognized arguments: %s" % " ".join(extra))
+    return args
 
 
 def main(argv=None):
@@ -2993,6 +3201,9 @@ def main(argv=None):
         if entry is None:
             sys.stderr.write("no requirement %s\n" % args.requirement)
             return 1
+        if args.where:
+            print_where(entry, style, args.source)
+            return 0
         print_card(entry, model, style)
         return 0
 
@@ -3013,6 +3224,10 @@ def main(argv=None):
         print_areas(model, style)
         return 0
 
+    if args.vocabulary:
+        print_vocabulary(style)
+        return 0
+
     if diff:
         print_diff(diff, style)
         return 0
@@ -3025,7 +3240,8 @@ def main(argv=None):
     if args.code:
         path, line = split_line_spec(args.code)
         if line is not None:
-            print_line_answer(model, path, line, style, args.list)
+            print_line_answer(model, path, line, style, args.list,
+                              args.statements)
             return 0
         head, sep, tail = args.code.rpartition(":")
         if sep and tail.isdigit() and os.path.isdir(os.path.join(ROOT, head)):
@@ -3037,7 +3253,7 @@ def main(argv=None):
     if not args.list:
         print_counts(model, style)
         out()
-    print_list(entries, style)
+    print_list(entries, style, args.statements)
     print_prose(model, args, style)
     return 0
 

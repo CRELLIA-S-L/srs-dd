@@ -225,3 +225,74 @@ instrument: yes
 
 Holds the image the page shows to the file the pipeline publishes; the picture itself is regenerated at every deploy, which is the whole point of not keeping one.
 
+
+### B-220 — The listing carries statements so that the file is not opened
+
+```yaml
+status: active
+requirement: FR-VIEW-350
+all_of: [H-040]
+```
+
+A statement beneath each listed requirement is worth printing only if the agent that reads it then opens the requirement instead of the file; whether the run stays within its cost is what H-040 measures.
+
+### B-230 — The vocabulary is printed so that the standard is not read for it
+
+```yaml
+status: active
+requirement: FR-VIEW-360
+all_of: [H-040]
+```
+
+Forty words from the checker replace three thousand from the standard in every session that writes a block; whether that keeps a run within its cost is what H-040 measures.
+
+### B-240 — The budget is the floor under the cost
+
+```yaml
+status: active
+requirement: NFR-SKILL-020
+all_of: [H-040]
+```
+
+A budget on the words a procedure carries and sends the reader to is what stops a run's cost growing back between measurements; whether the runs then stay within their cost is what H-040 measures.
+
+### B-250 — The instruction list is what a cut may not lose
+
+```yaml
+status: active
+requirement: FR-SKILL-300
+all_of: [H-040]
+```
+
+Holding a shortened procedure to the commands and articles it must name is what makes a cut safe to take; the second half of H-040 — that the run still meets its checks — is what says the list was enough.
+
+### B-260 — The measurement instrument
+
+```yaml
+status: active
+requirement: FR-SKILL-310
+all_of: [H-040]
+instrument: yes
+```
+
+The command that runs the scenarios and reads the tokens and the checks off the traces is how the rows of H-040 are obtained; it survives a refutation because the next claim about what a procedure costs is measured with it.
+
+### B-270 — The lines are printed so that the file is not searched
+
+```yaml
+status: active
+requirement: FR-VIEW-370
+all_of: [H-040]
+```
+
+An annotation printed with its line replaces the search an agent makes for it — measured at ten calls a run — and whether that keeps a run within its cost is what H-040 measures.
+
+### B-280 — The source is printed so that the file is not opened
+
+```yaml
+status: active
+requirement: FR-VIEW-380
+all_of: [H-040]
+```
+
+The region under an annotation, printed, replaces the read that follows the search; the same hypothesis, the same measurement.

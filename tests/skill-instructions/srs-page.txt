@@ -1,0 +1,9 @@
+# What the `srs-page` procedure must name — written off the original on 2026-09-19,
+# before any cut. One literal token per line; the suite fails when one is
+# missing from the procedure's text. Add a line when a procedure gains an
+# instruction; remove one only with the sentence that says why.
+
+# commands
+tools/srs_view.py
+tools/srs_view.py --html
+tools/srs_view.py --open

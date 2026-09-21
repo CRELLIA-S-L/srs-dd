@@ -75,9 +75,10 @@ tests: [tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
 
-While adopting, the installer **shall** write only the tooling and the service files the target lacks, leaving every existing specification file untouched.
+While adopting, the installer **shall** write only the tooling and the service files the target lacks, leaving every file that carries requirements untouched.
 
 **Rationale.** Their requirements are theirs; we bring rules and scripts, not edits.
+The project's own standard is the one file this does not cover — it is set aside, not edited, and FR-INIT-230 says where (2026-09-21; until then the statement covered every file under `specs/`, the standard included).
 
 ### FR-INIT-050 — A specification without requirements is refused
 
@@ -120,6 +121,7 @@ The standard was in neither list until 0.14.0, so it was installed once and neve
 That is worse than a stale CI file, because `CON-SPEC-020` lets a shipped procedure cite the standard's sections by name on the grounds that it is the same document in every project — a claim nothing maintained.
 
 It joins the second list rather than the first because adopt deliberately keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing without a flag would undo that at the first upgrade.
+Since 2026-09-21 adopt sets that file aside and installs the standard in its place (`FR-INIT-230`), so a project adopted after that holds a standard with the marker and `--force` reaches it like any other; the standard stays in this list because the marker in it promises a maintainer that local edits survive until asked for.
 `grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
 `arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
 The code had it right from the layer's first commit — the same flag the grounds standard travels under — so what lagged was the enumeration, and an enumeration that lags is invisible: every path it names exists, and nothing reports the one it does not.
@@ -480,3 +482,23 @@ One guide and not both.
 No gate goes with it, deliberately.
 Checking the width of a project's code is a linter's job and most projects already have one; the framework arrives for the specification and would be overstepping if it started refusing commits over source formatting.
 Where the width is not recorded, the guide says nothing about it rather than naming a default.
+
+### FR-INIT-230 — Adoption sets the project's own standard aside
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-030]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/adopt-smoke.sh]
+created: 2026-09-21
+```
+
+While adopting a specification that has its own `specs/README.md`, the installer **shall** move that file to `specs/archive/README-before-srs-dd.md`, install the framework's standard in its place and name both paths in its output.
+
+**Rationale.** After adoption the checker enforces the standard's rules whatever the project's own document says, so leaving that document in place leaves a file that claims authority it no longer has.
+The archive is where the standard sends absorbed documents, and nothing reads it as requirements; the former document survives there byte for byte, for the adopt procedure to sort and for history.
+A stale copy already at that path stops the run before anything is written, so that no archive of somebody else's is overwritten.

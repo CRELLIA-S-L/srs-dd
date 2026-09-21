@@ -53,7 +53,7 @@ SKIP_FILES = {"README.md", "90-map.md"}
 # Loose enough to catch a heading that meant to be a record and failed, so that
 # the identifier rule can say so instead of passing it over in silence.
 RE_HEADING = re.compile(r"^###\s+([A-Za-z][A-Za-z0-9]*-\d+(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
-RE_ID = re.compile(r"^E-\d{3}$")
+RE_ID = re.compile(r"^E-%s$" % srs_parse.NUMBER)   # implements: INV-SPEC-080
 
 REQUIRED_KEYS = ("status", "carries", "requirements")
 STATUSES = ("proposed", "built", "superseded", "withdrawn")
@@ -64,7 +64,7 @@ REALIZED = ("implemented", "partial")
 # Published names: a project writes them into arch/arch-config.json, so one is never renamed and
 # never given to a different rule.
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
-         "dependency-undeclared", "element-cycle")
+         "dependency-undeclared", "element-cycle", "carrier-missing")
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
 SEVERITIES = ("warn", "report", "off")
@@ -314,6 +314,57 @@ def check_ownership(records, model, warnings, reports, cfg):
                              % (path, requirement["id"]))
 
 
+def where_git_put(path):
+    """Where git says a path went, as a clause for the finding, or "" where it cannot tell:
+    a rename in the working tree, a rename in the history, a deletion in the history — asked
+    in that order, since the first is what the reader is in the middle of. Read-only, and
+    silent where there is no git, no history or no answer: a finding must not depend on a
+    tool that may be absent."""
+    def git(*args):
+        try:
+            # quotePath off: a path outside ASCII would otherwise come back quoted and
+            # octal-escaped, and never equal the one the record wrote.
+            run = subprocess.run(["git", "-c", "core.quotePath=false"] + list(args),
+                                 capture_output=True, text=True, cwd=ROOT)
+        except OSError:
+            return ""
+        return run.stdout if run.returncode == 0 else ""
+    # Uncommitted: `R100\told\tnew` lines, against the index and the tree.
+    for scope in (["diff", "--name-status", "-M", "HEAD"], ["diff", "--name-status", "-M", "--cached"]):
+        for line in git(*scope).splitlines():
+            parts = line.split("\t")
+            if len(parts) == 3 and parts[0].startswith("R") and parts[1] == path:
+                return "; renamed to %s in the working tree" % parts[2]
+    # Committed: the newest commit that touched the path, then that commit's whole diff with
+    # rename detection — a pathspec on the log would hide the other end of a rename and report
+    # every rename as a deletion (git-log(1): rename detection needs both sides in the diff).
+    commit = git("log", "-1", "--format=%h", "--", path).strip()
+    if commit:
+        for line in git("show", "--name-status", "-M", "--format=", commit).splitlines():
+            parts = line.split("\t")
+            if parts[0].startswith("R") and len(parts) == 3 and parts[1] == path:
+                return "; git renamed it to %s in %s" % (parts[2], commit)
+            if parts[0] == "D" and len(parts) == 2 and parts[1] == path:
+                return "; git deleted it in %s" % commit
+    return ""
+
+
+def check_carriers_exist(records, warnings, reports, cfg):
+    # implements: FR-ARCH-280
+    """A path an element carries that nobody has: the record still reads, and it lies in the
+    commonest way a map goes stale, so a named warning with where git says the file went."""
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        for path in as_list(record.fields.get("carries")):
+            clean = path.rstrip("/")
+            if os.path.exists(os.path.join(ROOT, clean)):
+                continue
+            rule_finding(warnings, reports, cfg, "carrier-missing",
+                         "%s — %s carries %s, which does not exist%s"
+                         % (record.where, record.id, clean, where_git_put(clean)))
+
+
 def live_carriers(records):
     # implements: FR-ARCH-240, FR-ARCH-260
     """Every carrier a live element claims, as carrier -> [elements]: the map owner_of resolves
@@ -492,7 +543,7 @@ def check_cycles(records, warnings, reports, cfg):
     def walk(node):
         colour[node] = "grey"
         stack.append(node)
-        for target in sorted(declared.get(node, ())):
+        for target in sorted(declared.get(node, ()), key=srs_parse.id_key):
             # Cancelled or never declared: a path ends here, and the name stays out of the
             # walk's own bookkeeping so a circle is never reported through it.
             if target not in declared:
@@ -514,7 +565,7 @@ def check_cycles(records, warnings, reports, cfg):
         stack.pop()
         colour[node] = "black"
 
-    for node in sorted(declared):
+    for node in sorted(declared, key=srs_parse.id_key):
         if node not in colour:
             walk(node)
 
@@ -623,7 +674,7 @@ def render_map(records, model, cfg):
                 "an entry in plain text one computed from what the element owns.", ""]
     out += ["| Element | Status | Carries | Requirements |", "|---|---|---|---|"]
     carrying = set()
-    for record in sorted(records, key=lambda r: r.id):
+    for record in sorted(records, key=lambda r: srs_parse.id_key(r.id)):   # implements: INV-SPEC-090
         if not RE_ID.match(record.id):
             continue
         carries = ", ".join("`%s`" % p for p in as_list(record.fields.get("carries"))) or "—"
@@ -711,6 +762,7 @@ def main(argv=None):
     check_records(records, model, errors, warnings, reports, cfg)
     check_dependencies_resolve(records, errors)
     check_ownership(records, model, warnings, reports, cfg)
+    check_carriers_exist(records, warnings, reports, cfg)
     check_conformance(records, edges, warnings, reports, cfg)
     check_cycles(records, warnings, reports, cfg)
 

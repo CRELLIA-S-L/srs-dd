@@ -44,7 +44,9 @@ def identifier_pattern(areas):
     span): the bare alternation, the pattern for one mention of it, and the
     pattern for a span written with it at either end."""
     area = "|".join(re.escape(a) for a in areas)
-    core = r"(?:FR|NFR|IF|INV|CON)-(?:%s)-\d{3}|ADR-\d{4}|[EHBUIF]-\d{3}" % area
+    # implements: INV-SPEC-080
+    number = r"(?:\d{3}|[1-9]\d{3,})"   # as tools/srs_parse.py spells it; this tool runs where that module may not be beside it
+    core = r"(?:FR|NFR|IF|INV|CON)-(?:%s)-%s|ADR-\d{4}|[EHBUIF]-%s" % (area, number, number)
     mention = re.compile(r"\b(%s)\b" % core)
     span = re.compile(SPAN.replace("ID", core))
     return mention, span
@@ -77,7 +79,7 @@ def citations(ids):
 # The far end may be a number alone — "FR-GND-010…540" — which is how a
 # span is written when both ends share the area. Assembled with the core
 # alternation by identifier_pattern.
-SPAN = r"`?(ID)`?\s*(?:through|to|…|\.\.\.|–|—|-)\s*`?(?:(ID)|\d{3})`?"
+SPAN = r"`?(ID)`?\s*(?:through|to|…|\.\.\.|–|—|-)\s*`?(?:(ID)|\d{3,})`?"
 
 
 def mentions(answer, mention, span):

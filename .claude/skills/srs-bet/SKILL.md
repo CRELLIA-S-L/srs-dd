@@ -5,180 +5,56 @@ description: Working with the grounds register — writing a hypothesis, staking
 
 # Working with the grounds register
 
-**The format lives in `grounds/README.md`.** It is deliberately not restated here: two descriptions of the same rules would eventually diverge.
-Read it if you have not in this session.
-
-The register answers a question the specification does not: not what the system must do, but on what ground anyone decided it should.
-That ground is of three kinds — an ideology says who the product is for, a frame says what it will not do for anyone, and a hypothesis says something about the world that could turn out to be false.
-
-Only the last one is measured, and most of the work here is about it.
+The format lives in `grounds/README.md` and is not restated here.
+Read first: `grounds/README.md`, whole, in one call — it is the one file this procedure needs, and one read costs less than three.
+Every record named to a person — a hypothesis, a bet, a requirement — is cited at its first mention from `python3 tools/srs_grounds.py --cite <ID>…` or `python3 tools/srs_view.py --cite <ID>…`, pasted as printed, never typed from the file.
+The register answers what the specification does not — not what the system must do, but on what ground anyone decided it should: an ideology says who the product is for, a frame what it will not do for anyone, a hypothesis something about the world that could turn out to be false.
+Only the last is measured.
 
 ## Writing a hypothesis
 
-1. **What is claimed, and about whom?**
-   The population is bounded or the claim is not falsifiable: "studios of five to fifty already tracking time", not "users".
-2. **What action would show it?**
-   Attitudes do not measure.
-   "Studios need time roll-up" cannot be false.
-   What can is an action somebody takes:
-   exports, returns, pays, invites a colleague.
-3. **What magnitude?**
-   A claim with no size is a claim that survives any result.
-   Say what proportion, what mean, what count.
-4. **The threshold, before the first measurement.**
-   `refuted_if` in the grammar the format defines.
-   Declared afterwards it turns every outcome into an encouraging one.
-5. **What it is worth if true.**
-   `impact` in the size of a business outcome, not a score out of five.
-   True and unimportant is an ordinary combination, and this is the field that tells them apart.
-6. **Its term and its owner.**
-   A date, and a person rather than a team.
-7. **Which frames does it run into?**
-   Read the frames the register holds before the record is written.
-   A frame is what the product will not do whatever the evidence says, so a hypothesis it refuses does not get admitted and does not get measured — refusing costs nothing here and costs a bet, its requirements and whatever shipped against them later.
-   Where one refuses it, add the row to *that frame's* journal — `date`, `what was refused`, `who asked` — and stop; the hypothesis is not written.
-   Where none does, say so in a clause and go on.
-   Nothing mechanical can do this step: whether a claim falls under a frame is a judgement about meaning, and a frame narrow enough for a checker to match has stopped being a frame.
+Section *`H` — hypothesis* and *The threshold* in `grounds/README.md`.
 
-   The journal is the point.
-   A frame with an empty one for a year is a slogan rather than a rule, and that reading is only worth anything if refusals actually land in it.
+1. **What is claimed, and about whom.** A bounded population — "studios of five to fifty already tracking time", not "users" — or the claim is not falsifiable.
+2. **What action would show it.** An action somebody takes — exports, returns, pays, invites — never an attitude; "studios need roll-up" cannot be false, and distrust the word *need*.
+3. **What magnitude.** A proportion, a mean or a count; a claim with no size survives any result.
+4. **The threshold**, `refuted_if`, in the grammar of *The threshold*, declared before the first measurement — afterwards every outcome is encouraging.
+5. **What it is worth if true** — `impact`, as a business outcome, not a score; true and unimportant is the ordinary case this field tells apart.
+6. **Term and owner** — a date, and a person rather than a team.
+7. **The frames.** Read the frames the register holds first. Where one refuses the claim, add the row — `date`, `what was refused`, `who asked` — to that frame's journal and stop; the hypothesis is not written. Where none does, say so in a clause and go on. Nothing mechanical does this step.
 
-Then judge what no checker reaches, and say what you found before the text is recorded.
-Four things, and two of them are where hypotheses usually go wrong.
-
-**The population has an edge.** Whoever is not in it is what makes a measurement possible.
-
-**The claim is about an action, not an attitude.** See step 2, and distrust the word "need".
-
-**The magnitude is there and it is not the threshold.** Those are two numbers: what the thing is being built for, and the line below which the claim is false.
-A result between them refutes nothing — it says the claim survived and its size was wrong, which is a fact about the plan rather than about the world.
-
-**No solution is smuggled into the need.** "We need a comparison screen" is already an answer, and a hypothesis written that way measures whether the idea was popular instead of whether the problem was real.
-Write the claim from the person's side — "buyers cannot compare offers across suppliers" — and the competing solutions stay outside it, where they can be compared instead of being settled by the wording.
-
-Where the statement is sound, say that too, in a clause.
-
-**A rewording goes through all four again.** Narrowing a population, sharpening the action, restating the need — each is the sentence being written, and the judgement is owed before the new text is recorded exactly as it was before the first.
-This is where it is easiest to skip: the record already exists, so nothing feels like authoring, and a claim quietly loses its edge while somebody is repairing its wording.
-What may not be reworded is the threshold once a measurement has been taken — see *What not to do*; that one is a new hypothesis and the old one is retired.
+Then judge what no checker reaches, and say what you found before the text is recorded — the population has an edge; the claim is an action, not an attitude; the magnitude is there and is not the threshold (a result between them refutes nothing — the claim survived and its size was wrong); no solution is smuggled into the need ("we need a comparison screen" is an answer, and measures whether the idea was popular). Where it is sound, say that too. A rewording goes through all four again; what may not be reworded is the threshold once a measurement has been taken — that is a new hypothesis, and the old one is retired.
 
 ## Choosing the class
 
-Ask how the number will actually be obtained, then check that the class says the same thing:
-
-| Class | What it is | What it costs each time |
-|---|---|---|
-| I | an instrument already running produces the number | nothing |
-| II | somebody runs an experiment | a piece of work |
-| III | interviews, observation, judgement | a person's time |
-
-**Check that the declared measurement can produce a number the threshold compares against, and say where it cannot.** Class I claims the measurement is passive and automatic; declared over a quantity nothing instruments, it produces a hypothesis that will sit unconfirmed until its term runs out with nothing saying why.
-This costs nothing to ask now and surfaces late otherwise — when somebody has to take a measurement that cannot be taken.
-
-Only class I is affordable to re-confirm continuously.
-For the other two, the honest status between measurements is `assumed` with a named owner, never `supported`.
+Section *How a hypothesis is confirmed*. Ask how the number will be obtained, then check the class says the same: I — an instrument already running produces it; II — somebody runs an experiment; III — interviews, observation, judgement. Say where the declared measurement cannot produce a number the threshold compares against — class I over a quantity nothing instruments sits unconfirmed until its term runs out. Only class I is re-confirmed continuously; between measurements the honest status of II and III is `assumed`, with an owner, never `supported`.
 
 ## Staking a requirement on it
 
-A bet names one requirement and the hypotheses it rests on.
-Which list a hypothesis goes in is the whole content of the record:
+Section *`B` — bet*. One requirement, the hypotheses it rests on: `all_of` needed together, refute one and the ground is gone; `any_of` alternatives, the strongest carries it. Two independent sets of alternatives are two bets, and the checker asks whether that was deliberate.
 
-- `all_of` — needed together.
-  Refute any one and the ground is gone.
-- `any_of` — alternatives.
-  The strongest carries the requirement.
+Before the bet is recorded, read the hypothesis back against its own three numbers — the magnitude the statement claims, the threshold that refutes it, the sample it names — and say what you found even when nothing is wrong: they are meant to differ, and they must not differ by an order of magnitude ("three in ten" beside `proportion < 0.025` is a decimal point that moved, and passes every check).
 
-Two independent sets of alternatives are two bets naming the same requirement.
-The checker will ask whether that was deliberate, because the same shape is what a duplicate looks like.
+A requirement that exists so the measurement can be taken — the event, the cohort tag, the attribution — is marked `instrument: yes` on its bet; it survives the refutation.
 
-**Before recording the bet, read the hypothesis back against its own numbers, and say what you found.** Three of them, together:
-
-- the magnitude the statement claims — "at least three studios in ten";
-- the threshold that would refute it — `proportion < 0.25 at n >= 200`;
-- the sample that threshold names — 200.
-
-They are meant to differ: the first is what the thing is being built for, the second is the line below which the claim is false.
-What they must not do is disagree by an order of magnitude.
-"Three in ten" beside `proportion < 0.025` is a decimal point that moved, and it will pass every check this layer has, because a record that lost a digit is still consistent with itself.
-
-This is the cheapest moment there will be.
-Where the requirement is new, nothing rests on the claim yet and what follows is requirements and then code.
-Where it already exists — a bet recorded after the fact, explaining why something was built — this is the first time anyone has asked whether it should be standing there, which is worth more, not less.
-
-Say what you found even when nothing is wrong.
-One clause is enough, and the alternative is a step nobody can tell was taken.
-
-**A requirement that exists so the measurement can be taken is marked `instrument: yes` on its bet** — the event, the cohort tag, the attribution.
-It is not a lesser requirement; it is the one that survives the refutation, and the section below says why.
-
-**Nothing obliges a requirement to be named by a bet, and nothing ever will.** Where a link is mandatory it gets invented, and an invented link is worse than an absent one because it looks like knowledge.
-What may be asked is a declaration: one record saying this requirement rests on nothing, and why.
-It retires itself the moment a real bet appears.
-
-How often that is worth looking at is the dashboard's business: it counts unclaimed arrivals by period, and **what a period is comes from `period` in `grounds/grounds-config.json`** — `month`, `quarter` or `year`, and `quarter` where nothing says otherwise.
-The dashboard names the unit it used in that section, so the answer is in front of whoever is reading it.
-
-**What holds the declaration up is a price, and you are not charged it.** For a person, inventing a bet means inventing a hypothesis — a bounded population, a threshold, a date, and an owner who gets asked about it next quarter — and that is dearer than admitting there is nothing.
-Written by an agent the same record costs nothing, arrives well-formed, and passes every check the layer has, because the checks are on the shape and the shape is right.
-`owner` is the plainest of it: filling it in commits a person who was never asked.
-
-So: **stake only on hypotheses that are already in the register.**
-Where none of them carries the claim, offer a `U` declaration or offer nothing.
-Never write an `H`.
-If the claim looks worth making, say so to the person and let them make it — a hypothesis nobody chose to own is the invented link this section is about, wearing better clothes.
+Nothing obliges a requirement to be named by a bet. **Stake only on hypotheses already in the register.** Where none carries the claim, offer a `U` declaration — this requirement rests on nothing, and why; it retires itself when a real bet appears — or offer nothing. Never write an `H`: for a person it costs a population, a threshold, a date and an owner asked about it next quarter; written by an agent it costs nothing, and `owner` commits a person who was never asked. If the claim looks worth making, say so and let them make it. How often the unclaimed are looked at is the dashboard's — `period` in `grounds/grounds-config.json`, `quarter` where nothing says otherwise.
 
 ## When a measurement lands
 
-Append a row to the evidence table.
-Never edit one: a measurement that turned out to be wrong gets a later row saying so, because a register whose inconvenient rows disappear only ever agrees with the present.
+Section *Evidence*. Append a row; never edit one — a measurement that turned out wrong gets a later row saying so. The verdict is against `refuted_if`, not the magnitude, and is `supported` or `refuted` and nothing else; the other statuses are things that happen to a hypothesis. Do not write `refuted` because the value crossed the threshold — a sample of that size can miss by that much (`proportion < 0.25 at n >= 200` against `0.24` on 200 is two people); write what you believe and let the checker work out the interval — except for class III, where no interval is computed and the verdict is yours by name, bound only by the threshold's own words. A `mean` has no interval the row can carry, cannot be class I, and its verdict is argued in the rationale.
 
-The verdict is against `refuted_if`, not against the target magnitude — see the third judgement above.
-It is `supported` or `refuted` and nothing else; the four other words in a hypothesis's `status` are things that happen to a hypothesis, not things a measurement found.
-
-**Do not write `refuted` because the value crossed the threshold.** A measurement is the truth plus however far a sample of that size can miss, so crossing by less than that has refuted nothing.
-`proportion < 0.25 at n >= 200` against a measurement of `0.24` on 200 is forty-eight people where fifty were wanted — two the other way and the hypothesis lives.
-The checker works the verdict out and reports the row where the two disagree, so the rule to follow is simply to write what you believe and let it be checked, rather than computing an interval by hand.
-
-Where the threshold names a `mean`, nothing works it out: how far a mean can miss needs the spread behind it and the row carries only the mean and the sample size.
-Such a hypothesis cannot be class I, and the verdict is yours to argue in the rationale.
-
-**Confirmed is not the same as ours.** Admission to the core is a separate decision and it belongs to the maintainer: absorb it, spin it off as a second product, or refuse.
-Put it to them as its own question.
-A register that admits whatever confirms has a core that cannot decline anything, which is the one thing a core is for.
-
-**A refusal is recorded, with its reason and its date.** Without that record nobody can tell a hypothesis nobody tested from one tested, confirmed and turned down, and the same argument returns every six months to be had from scratch.
+Confirmed is not ours: admission to the core is the maintainer's separate decision — absorb, spin off, refuse — put to them as its own question. A refusal is recorded with its reason and date.
 
 ## When a hypothesis is refuted
 
-The requirements standing on it do not evaporate.
-They are shipped, people use them, their data is in the schema.
-What refutation takes away is the ground, not the code — and the difference between those two is a project with a date rather than a deletion.
+The requirements standing on it keep their code and lose their ground.
 
-1. **Read what stood on it.**
-   The bets name the requirements; a requirement whose other grounds still hold is not affected.
-   Name each as `AGENTS.md` asks at its first mention — the requirements from the viewer's `--cite`, the hypothesis and its bets from `python3 tools/srs_grounds.py --cite <ID>…`: the maintainer is about to take removal as the default one requirement at a time, and a bare number decides nothing.
-2. **Settle each one with the maintainer, taking removal as the default.**
-   The opposite default is how dead features survive for years.
-3. **Somebody still uses it is not a reason to keep it.**
-   It is a new fact: something other than the refuted hypothesis is holding it up.
-   Naming that hypothesis is the price of keeping the code, and where nobody will name it, the code goes.
-4. **Leave the instruments alone.**
-   A requirement its bet marks as an instrument is not put up for removal.
-   It exists to make the measurement possible, refutation is that measurement answering its question, and the funnel and the attribution are what the next bet will be measured with.
-   A project that tears down its measuring after every refutation ends up unable to ask anything twice.
-5. **Cancel the requirements through the usual procedure**, not by deleting them.
-   The specification has one, and this changes nothing about it.
+1. Read what stood on it — the bets name the requirements; one whose other grounds hold is not affected. Name each as `AGENTS.md` asks at first mention: requirements from `python3 tools/srs_view.py --cite <ID>…`, the hypothesis and its bets from `python3 tools/srs_grounds.py --cite <ID>…`.
+2. Settle each with the maintainer, taking removal as the default.
+3. "Somebody still uses it" is a new fact — something else holds it up; naming that hypothesis is the price of keeping the code.
+4. Leave the instruments alone: a requirement its bet marks `instrument` is not put up for removal.
+5. Cancel through the specification's usual procedure, not by deletion.
 
 ## What not to do
 
-- **Do not invent a bet to make a number look better.**
-  The list of requirements standing on nothing is the point, not the debt.
-- **Do not edit a record to agree with a result.**
-  Everything in the register is authored; the dashboard is the one file a machine writes.
-- **Do not move a threshold once measurement has begun.**
-  Write a new hypothesis and retire the old one, so both stay visible.
-- **Do not let an expiry decide anything.**
-  A term running out is not a verdict.
-  It says the confirmation is old, and only a measurement can say what the status is now.
-- **Do not write a hypothesis on somebody's behalf.**
-  Propose a bet on one that exists, or a declaration that there is none, and leave the claim about the world to whoever will answer for it.
+Section *What not to do* in `grounds/README.md`: no bet invented to make a number look better; no record edited to agree with a result — the dashboard is the one file a machine writes; no threshold moved once measurement began; no expiry deciding anything; no hypothesis written on somebody's behalf. Check with `python3 tools/srs_grounds.py`.

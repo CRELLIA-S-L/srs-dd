@@ -68,6 +68,7 @@ import subprocess                                          # noqa: E402
 from srs_check import (DEFAULTS, __version__, parse_file,  # noqa: E402
                        RE_ANNOTATION, TYPES, RE_AREA_NAME, SKIP_FILES,
                        SKIP_DIRS)
+import srs_parse                                           # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -76,7 +77,7 @@ RE_AREA = re.compile(r"^[A-Z][A-Z0-9]*$")
 # Strict requirement identifier: composed from the framework's TYPES and
 # the area grammar, NOT from srs_check.RE_ID (that one is bound to the
 # framework's own configured areas).
-RE_STRICT_ID = re.compile(r"^(?:%s)-[A-Z][A-Z0-9]*-\d{3}$" % "|".join(TYPES))
+RE_STRICT_ID = re.compile(r"^(?:%s)-[A-Z][A-Z0-9]*-%s$" % ("|".join(TYPES), srs_parse.NUMBER))   # implements: INV-SPEC-080
 RE_VERSION = re.compile(r'^__version__\s*=\s*"([^"]+)"', re.M)
 
 TEMP_CHECKER = ".srs_check_adopt.py"
@@ -100,6 +101,10 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 # there. It carries no requirements (srs_check.SKIP_FILES), so nothing
 # framework-specific can leak through it.
 SPEC_STANDARD = os.path.join("specs", "README.md")
+# implements: FR-INIT-230
+# Where adopt puts a project's own standard: the archive, which the
+# standard's map keeps for absorbed documents and no tool reads.
+ARCHIVED_STANDARD = os.path.join("specs", "archive", "README-before-srs-dd.md")
 
 # The grounds register: optional, and the same single-copy arrangement for
 # its standard. Its presence in a target is read from the configuration
@@ -387,6 +392,10 @@ class Installer(object):
         self.created = []
         self.refreshed = []
         self.skipped = []
+        self.set_aside = []
+        # Paths move() vacated: a --dry-run leaves the file on disk, and
+        # put() must still classify what lands there as created.
+        self.vacated = set()
 
     def carries_marker(self, dst_rel):
         """Whether the target's copy of this file is one of ours. The
@@ -407,13 +416,13 @@ class Installer(object):
         Existing tooling files are refreshed in adopt/upgrade modes (or
         with --force); existing specification content is never
         overwritten. `precious` marks files that may already be the
-        project's own (CI config, agent docs, and the standard, which
-        adopt leaves them): those are refreshed only when --force is
-        given AND the existing file carries the marker — a file we did
-        not install is never clobbered.
+        project's own (CI config, agent docs, and the standard, whose
+        marker promises that local edits survive): those are refreshed
+        only when --force is given AND the existing file carries the
+        marker — a file we did not install is never clobbered.
         """
         dst = os.path.join(self.target, dst_rel)
-        exists = os.path.exists(dst)
+        exists = os.path.exists(dst) and dst_rel not in self.vacated
         if exists:
             if precious:
                 ours = self.carries_marker(dst_rel)
@@ -463,10 +472,25 @@ class Installer(object):
             self.put(dst_rel, raw, tooling, precious=precious,
                      executable=executable)
 
+    def move(self, src_rel, dst_rel):
+        """Moves one of the target's own files out of the way, byte for
+        byte, and records it under its own heading: a move is neither a
+        creation nor a refresh, and a --dry-run lists it without doing
+        it like everything else."""
+        # implements: FR-INIT-230
+        self.set_aside.append("%s -> %s" % (src_rel, dst_rel))
+        self.vacated.add(src_rel)
+        if self.dry_run:
+            return
+        dst = os.path.join(self.target, dst_rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        os.replace(os.path.join(self.target, src_rel), dst)
+
     def summary(self):
         lines = []
         for label, items in (("created", self.created),
                              ("refreshed", self.refreshed),
+                             ("set aside", self.set_aside),
                              ("skipped", self.skipped)):
             if items:
                 lines.append("%s:" % label)
@@ -1327,17 +1351,29 @@ def install_adopt_files(installer, settings, substitute, target,
     Shared by the real run, which reaches it past its point of no
     return, and by --dry-run, which never reaches that point at all.
     """
+    # implements: FR-INIT-230
+    # The project's own standard goes to the archive before the service
+    # files are laid down, so that the standard is then simply a file
+    # the target lacks. The checker enforces the standard's rules from
+    # this run on whatever that document said, and a document claiming
+    # authority it no longer has is worse than none; what it said beyond
+    # the standard is the adopt procedure's to sort, not this script's.
+    if had_own_readme:
+        installer.move(SPEC_STANDARD, ARCHIVED_STANDARD)
     for service in ADOPT_SERVICE_FILES:
         rel = os.path.join("specs", service)
-        if not os.path.exists(os.path.join(target, rel)):
+        if not os.path.exists(os.path.join(target, rel)) \
+                or (rel == SPEC_STANDARD and had_own_readme):
             installer.copy(skeleton_src(rel), rel, tooling=False,
                            substitute=substitute)
-    if had_own_readme:
+    if had_own_readme and not installer.dry_run:
         sys.stdout.write(
-            "\nNote: your existing specs/README.md was kept. It may "
-            "predate framework features (draft lifecycle, annotations, "
-            "baselines) — consider merging the relevant sections from "
-            "the framework's specs/README.md.\n")
+            "\nNote: your %s was set aside as %s and the framework's "
+            "standard now stands in its place. The checker enforces the "
+            "standard's rules from now on; whatever your former document "
+            "said beyond them — a rule of your own, a description of the "
+            "system — is sorted by the adopt procedure, not lost.\n"
+            % (SPEC_STANDARD, ARCHIVED_STANDARD))
     if os.path.join("specs", "constitution.md") in installer.created \
             and settings["modal_verbs"] != DEFAULTS["modal_verbs"]:
         sys.stdout.write(
@@ -1387,6 +1423,18 @@ def run_adopt(args, target, batch, found_areas):
     temp_path = os.path.join(tools_dir, TEMP_CHECKER)
     checker_dst = os.path.join(tools_dir, "srs_check.py")
     had_own_readme = os.path.exists(os.path.join(specs_dir, "README.md"))
+    # implements: FR-INIT-230
+    # Refused before anything is written, --dry-run included: the
+    # archive path is where their standard goes, and a file already
+    # there is somebody's — nothing of theirs is overwritten to make
+    # room for something else of theirs.
+    if had_own_readme and os.path.exists(os.path.join(target,
+                                                      ARCHIVED_STANDARD)):
+        sys.stdout.write(
+            "%s already exists, and adopt would set your %s aside "
+            "there. Move or remove it and re-run; nothing was "
+            "changed.\n" % (ARCHIVED_STANDARD, SPEC_STANDARD))
+        return 3
 
     if args.dry_run:
         # The transactional block below is skipped whole: validating the
@@ -1547,9 +1595,9 @@ def run_upgrade(args, target):
                    precious=True)
     # implements: FR-INIT-060
     # The standard moves with the framework like the tooling does, but
-    # under --force: adopt leaves a project its own specs/README.md on
-    # purpose (FR-INIT-040), and refreshing unasked would undo that at
-    # the first upgrade.
+    # under --force: the marker in it promises a maintainer that local
+    # edits survive until asked for, and refreshing unasked would break
+    # that at the first upgrade.
     installer.copy(SPEC_STANDARD, SPEC_STANDARD, tooling=True,
                    precious=True)
     # implements: FR-GND-290

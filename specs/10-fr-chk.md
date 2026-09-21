@@ -615,3 +615,45 @@ Measured on 2026-09-10 over the two projects there are: 185 `depends_on` edges h
 A tunable warning was the alternative and it buys nothing here, because a specification that is circular about what rests on what is wrong in a way no project would choose to keep.
 
 Before the pass that fills in missing links, not after: that pass exists to add `depends_on` edges, which is exactly the work able to close a circle, and a rule landing afterwards would find the cycle two hundred edits later instead of inside the edit that made it.
+
+### FR-CHK-250 — An area is read from a file or a directory alike
+
+```yaml
+status: implemented
+verification: T
+derives_from: [IF-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh, tests/adopt-smoke.sh]
+created: 2026-09-20
+```
+
+The checker **shall** read requirements from every markdown file under `specs/` at any depth, except the decision log, the archive and the files whose names are reserved, so that an area written as one file and an area written as a directory of files are the same specification.
+
+**Rationale.** The file names are a convention and the identifier does not know its file: the area is the unit, and a file that grew past what a person opens is split into a directory of files without a single identifier moving (ADR-0028).
+The checker has walked `specs/` recursively since it was written, and this states it so that the directory form is a right and not an accident of the walk.
+The reserved names — the standard, the glossary, the constitution, the three that record rather than state — are reserved at any depth, so that a `README.md` inside an area's directory is for people and the forge and never read as requirements.
+What the file is named says nothing to the checker except through `FR-CHK-260`, and a project that cuts a file by subject rather than by the thousand loses nothing but the range in the name.
+
+### FR-CHK-260 — A number outside its file's range is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CHK-250]
+depends_on: [FR-CHK-160]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-09-20
+```
+
+If a requirement's number lies outside the range its file's name states — `NNNN-NNNN.md` under an area's directory, or `000-999` for the area's single file — the checker **shall** report it as a warning named `file-range`, naming the file the number belongs in.
+
+**Rationale.** A range in a file name is what lets a reader open the right file by eye, and it is only worth that if it is true; a number filed in the wrong thousand is a name that lies.
+The plain file `10-fr-<area>.md` holds the first thousand by the standard's convention, so its first number past `999` is the moment the area becomes a directory — the warning says which file to move the file to and which to open, so that whoever did not come through `srs-new` gets the same instruction the procedure gives.
+A warning with a name rather than an error, because a project that cuts its files by subject and names one `1000-1999.md` for its own reasons may say so and turn the rule off (`FR-CHK-160`); a file whose name is not a range is bound by nothing here.
+

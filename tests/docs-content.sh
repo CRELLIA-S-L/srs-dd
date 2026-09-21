@@ -92,8 +92,8 @@ else:
         os.makedirs(os.path.join(lab, "specs"))
         for tool in ("srs_check.py", "srs_parse.py", "srs_view.py"):
             shutil.copy(os.path.join("tools", tool), os.path.join(lab, "tools", tool))
-        ids = set(re.findall(r"\b[A-Z]+-[A-Z]+-\d{3}\b", example))
-        own = re.search(r"^### ([A-Z]+-[A-Z]+-\d{3})", example, re.M)
+        ids = set(re.findall(r"\b[A-Z]+-[A-Z]+-\d{3,}\b", example))
+        own = re.search(r"^### ([A-Z]+-[A-Z]+-\d{3,})", example, re.M)
         own = own.group(1) if own else ""
         area = own.split("-")[1] if own else "CORE"
         with open(os.path.join(lab, "specs", "srs-config.json"), "w", encoding="utf-8") as handle:

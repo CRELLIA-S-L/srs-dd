@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/srs_dates.py: the one command that writes requirement blocks.
 #
-# verifies: FR-SPEC-020
+# verifies: FR-SPEC-020, INV-SPEC-090
 #
 # It is run by a person, on purpose, once — so what matters is that it
 # writes the date the history holds and not today's, that a second run
@@ -117,5 +117,13 @@ rc=0
 [ "$rc" = 2 ] || { echo "FAIL FR-SPEC-020 — no history, exit $rc, expected 2"
                    cat /tmp/dates-nogit.log; exit 1; }
 absent "created:" "$NOGIT/specs/10-fr-core.md"
+
+# --- verifies: INV-SPEC-090 — what has never been committed is named in the
+# --- order of its numbers, FR-CORE-1000 after FR-CORE-200 and not before it.
+{ block FR-CORE-1000 "Wide"; block FR-CORE-200 "Narrow"; } >> "$LAB/specs/10-fr-core.md"
+( cd "$LAB" && python3 tools/srs_dates.py --dry-run ) > /tmp/dates-order.log 2>&1
+grep -qF "not dated: FR-CORE-200, FR-CORE-1000." /tmp/dates-order.log \
+    || { echo "FAIL INV-SPEC-090 — undated identifiers are not ordered by number"
+         cat /tmp/dates-order.log; exit 1; }
 
 echo "dates-smoke: a specification is dated from its own history, once"

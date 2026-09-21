@@ -860,7 +860,7 @@ published = (
     'unknown-key', 'draft-with-code', 'rests-on-draft', 'rests-on-withdrawn',
     'test-missing', 'unlinked', 'annotation-unknown-area',
     'annotation-superseded', 'annotation-unlisted', 'annotation-unpaired',
-    'annotation-absent', 'baseline-without-row',
+    'annotation-absent', 'baseline-without-row', 'file-range',
 )
 gone = [name for name in published if name not in srs_check.RULES]
 if gone:
@@ -1094,5 +1094,124 @@ rm -rf "$LAB/.git"
 
 rm -f "$LAB/specs/92-baselines.md"
 passes=$((passes + 2))
+
+# --- verifies: INV-SPEC-080 — a number widens, and nothing is renamed: three
+# --- digits or more, no leading zero beyond the third. FR-CORE-1000 is an
+# --- identifier and FR-CORE-0100 is not; the two link so that neither is
+# --- isolated and the run judges the grammar alone.
+config "{$BASE}"
+WIDE='status: deferred
+verification: I
+depends_on: [FR-CORE-020]'
+spec < <(block FR-CORE-1000 "The thousandth" "$WIDE" 'The system **shall** go on.'
+         block FR-CORE-020 "The partner" "$PARTNER" 'The system **shall** respond.')
+silent "INV-SPEC-080 four digits accepted" 0 "identifier does not match"
+spec < <(block FR-CORE-0100 "A leading zero" "$WIDE" 'The system **shall** not be.'
+         block FR-CORE-020 "The partner" "$PARTNER" 'The system **shall** respond.')
+rule "INV-SPEC-080 leading zero refused" 1 "identifier does not match"
+# An annotation reaches a wide number too, and stops at the digit boundary:
+# `FR-CORE-1000` annotated is not `FR-CORE-100` with a stray digit.
+spec < <(block FR-CORE-1000 "The thousandth" "$WIDE" 'The system **shall** go on.'
+         block FR-CORE-020 "The partner" "$PARTNER" 'The system **shall** respond.')
+printf '# implements: FR-CORE-1000\n' > "$LAB/src/wide.py"    # srs-ignore
+python3 - "$LAB" <<'PY' || { echo "FAIL INV-SPEC-080 — the annotation grammar did not read a wide number whole"; exit 1; }
+import os, sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.join(sys.argv[1], "tools"))
+import srs_check
+found = srs_check.read_annotations(os.path.join(sys.argv[1], "src/wide.py"))
+assert found == [(1, "implements", "FR-CORE-1000")], found
+PY
+rm -f "$LAB/src/wide.py"
+passes=$((passes + 1))
+
+# --- verifies: INV-SPEC-090 — identifiers are ordered by their number wherever
+# --- a tool orders them: in the matrix FR-CORE-1000 follows FR-CORE-990 and
+# --- not FR-CORE-100, in the table, in the incoming links and in the
+# --- coverage list. The one-line-per-row grep is what a review tool reads.
+printf 'x = 1\n' > "$LAB/src/a.py"
+spec < <(block FR-CORE-100 "Hundred" "$PARTNER" 'The system **shall** a.'
+         block FR-CORE-1000 "Thousand" 'status: implemented
+verification: T
+depends_on: [FR-CORE-100]
+code: [src/a.py]' 'The system **shall** b.'
+         block FR-CORE-990 "Nine ninety" 'status: implemented
+verification: T
+depends_on: [FR-CORE-100]
+code: [src/a.py]' 'The system **shall** c.')
+( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+    || { echo "FAIL INV-SPEC-090 — the fixture does not pass the checker"; cat /tmp/srs-rules.log; exit 1; }
+python3 - "$LAB/specs/90-traceability.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the matrix orders identifiers as strings"; exit 1; }
+import re, sys
+text = open(sys.argv[1], encoding="utf-8").read()
+rows = re.findall(r"^\| \*\*(FR-CORE-\d+)\*\* ", text, re.M)
+assert rows[:3] == ["FR-CORE-100", "FR-CORE-990", "FR-CORE-1000"], rows
+incoming = re.search(r"\| \*\*FR-CORE-100\*\* \| (.*?) \|", text).group(1)
+assert incoming == "FR-CORE-990 (depends_on), FR-CORE-1000 (depends_on)", incoming
+untested = re.findall(r"^- \*\*(FR-CORE-\d+)\*\*", text, re.M)
+assert untested == ["FR-CORE-990", "FR-CORE-1000"], untested
+PY
+rm -f "$LAB/src/a.py"
+passes=$((passes + 1))
+
+# --- verifies: FR-CHK-250 — an area is read from a file or a directory alike:
+# --- requirements under specs/10-fr-core/ at any depth are the area's, a
+# --- README.md inside is not read, and the listing names each file.
+rm -f "$LAB/specs/10-fr-core.md"
+mkdir -p "$LAB/specs/10-fr-core/deeper"
+{ printf '# Core — the first thousand\n\n'
+  block FR-CORE-010 "In the first file" "$PARTNER" 'The system **shall** a.'; } > "$LAB/specs/10-fr-core/000-999.md"
+{ printf '# Core — the second thousand\n\n'
+  block FR-CORE-1000 "In the second file" 'status: deferred
+verification: I
+depends_on: [FR-CORE-010]' 'The system **shall** b.'; } > "$LAB/specs/10-fr-core/1000-1999.md"
+{ printf '# Core — deeper\n\n'
+  block FR-CORE-020 "Deeper still" 'status: deferred
+verification: I
+depends_on: [FR-CORE-010]' 'The system **shall** c.'; } > "$LAB/specs/10-fr-core/deeper/notes.md"
+{ printf '# About this directory\n\n'
+  block FR-CORE-030 "Must not be read" "$PARTNER" 'The system **shall** hide.'; } > "$LAB/specs/10-fr-core/README.md"
+( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+    || { echo "FAIL FR-CHK-250 — a directory area does not pass the checker"; cat /tmp/srs-rules.log; exit 1; }
+grep -q "Requirements: 3\." /tmp/srs-rules.log \
+    || { echo "FAIL FR-CHK-250 — a directory area was not read as three requirements"; cat /tmp/srs-rules.log; exit 1; }
+grep -q "FR-CORE-030" "$LAB/specs/90-traceability.md" \
+    && { echo "FAIL FR-CHK-250 — a README.md inside the area was read as requirements"; exit 1; }
+# The file each requirement is written in is the viewer's to print (FR-VIEW-320);
+# the viewer is copied in for this one fixture.
+cp tools/srs_view.py "$LAB/tools/"
+( cd "$LAB" && python3 tools/srs_view.py --list ) > /tmp/srs-rules-list.log 2>&1
+grep -q "FR-CORE-1000 .*specs/10-fr-core/1000-1999.md" /tmp/srs-rules-list.log \
+    && grep -q "FR-CORE-020 .*specs/10-fr-core/deeper/notes.md" /tmp/srs-rules-list.log \
+    || { echo "FAIL FR-CHK-250 — the listing does not name the files of a directory area"; cat /tmp/srs-rules-list.log; exit 1; }
+rm -f "$LAB/tools/srs_view.py"
+passes=$((passes + 1))
+
+# --- verifies: FR-CHK-260 — a number outside its file's range is a warning
+# --- named file-range, saying where the number belongs. Three fixtures: the
+# --- plain file's first number past 999 (the move is in the message), a
+# --- range-named file holding a number outside its range, and a file whose
+# --- name is no range, which is bound by nothing. Then the rule turned off.
+rm -rf "$LAB/specs/10-fr-core"
+spec < <(block FR-CORE-1000 "Past the thousand" "$WIDE" 'The system **shall** go on.'
+         block FR-CORE-020 "The partner" "$PARTNER" 'The system **shall** respond.')
+rule "FR-CHK-260 plain file past 999" 0 "FR-CORE-1000 is past the thousand this file holds; move the file whole to specs/10-fr-core/000-999.md and open 1000-1999.md there"
+rule "FR-CHK-260 fails a strict gate" 1 "treated as errors" --strict
+rm -f "$LAB/specs/10-fr-core.md"
+mkdir -p "$LAB/specs/10-fr-core"
+{ printf '# Core\n\n'; block FR-CORE-020 "Filed in the wrong thousand" "$PARTNER" 'The system **shall** a.'
+  block FR-CORE-1000 "Filed right" "$WIDE" 'The system **shall** b.'; } > "$LAB/specs/10-fr-core/1000-1999.md"
+rule "FR-CHK-260 named file, wrong number" 0 "FR-CORE-020 is outside the range this file's name states (1000-1999); it belongs in 000-999.md beside it"
+silent "FR-CHK-260 named file, right number, says nothing of it" 0 "FR-CORE-1000 is"
+rm -rf "$LAB/specs/10-fr-core"; mkdir -p "$LAB/specs/10-fr-core"
+{ printf '# Core — by subject\n\n'; block FR-CORE-020 "Any number" "$PARTNER" 'The system **shall** a.'
+  block FR-CORE-1000 "Any number too" "$WIDE" 'The system **shall** b.'; } > "$LAB/specs/10-fr-core/storage.md"
+silent "FR-CHK-260 a file named by subject is bound by nothing" 0 "file-range"
+rm -rf "$LAB/specs/10-fr-core"
+spec < <(block FR-CORE-1000 "Past the thousand" "$WIDE" 'The system **shall** go on.'
+         block FR-CORE-020 "The partner" "$PARTNER" 'The system **shall** respond.')
+config "{$BASE, \"rules\": {\"file-range\": \"off\"}}"
+silent "FR-CHK-260 turned off says nothing" 0 "file-range"
+config "{$BASE}"
 
 echo "checker-rules: $passes fixtures pass"
