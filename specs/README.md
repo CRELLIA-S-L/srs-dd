@@ -225,6 +225,9 @@ Its status is the front matter's `status` key or a `- **Status:** <status>` line
 A file under `adr/` with no such heading — an index, a template — is not a decision.
 The number in the heading is the decision's name; the file name is a convention, and renaming the file changes nothing.
 
+A rule that binds every procedure is written once, where the procedure's reader can open it: in this standard or in the constitution, which travel with the procedure, and the procedure points at it with a line that says what it asks.
+A rule that lives only in a requirement of the framework that ships the procedure does not travel with it, so the procedure carries that rule in its own words, and the requirement names the procedure in its `code` field — the one pointer that can be written.
+
 ## Annotations
 
 Source and test files may carry traceability annotations in comments:

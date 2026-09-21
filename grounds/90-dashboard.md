@@ -70,11 +70,11 @@ Counted by quarter, which is what `period` says in the register's configuration.
 
 | quarter | arrived unclaimed | areas |
 |---|---|---|
-| 2026-Q3 | 246 | ARCH 32, CHK 29, CI 13, GND 64, INIT 22, SKILL 32, SPEC 19, VIEW 35 |
+| 2026-Q3 | 247 | ARCH 33, CHK 29, CI 13, GND 64, INIT 22, SKILL 32, SPEC 19, VIEW 35 |
 
 ## Requirements resting on no hypothesis
 
-246 of 274 requirements. Weight is what stands on them: how many
+247 of 275 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -82,7 +82,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-200 | 8 | 14 | 22 |
 | FR-VIEW-060 | 20 | 1 | 21 |
 | IF-SPEC-010 | 17 | 2 | 19 |
-| FR-ARCH-010 | 16 | 1 | 17 |
+| FR-ARCH-010 | 17 | 1 | 18 |
 | FR-SKILL-020 | 1 | 15 | 16 |
 | NFR-SPEC-010 | 2 | 12 | 14 |
 | CON-SPEC-030 | 2 | 11 | 13 |
@@ -110,6 +110,7 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-030 | 3 | 3 | 6 |
 | INV-SPEC-040 | 3 | 3 | 6 |
 | INV-SPEC-050 | 3 | 3 | 6 |
+| FR-ARCH-090 | 4 | 1 | 5 |
 | FR-ARCH-240 | 2 | 3 | 5 |
 | FR-CI-040 | 2 | 3 | 5 |
 | FR-GND-280 | 4 | 1 | 5 |
@@ -127,7 +128,6 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-SPEC-020 | 4 | 1 | 5 |
 | CON-SPEC-020 | 2 | 2 | 4 |
 | FR-ARCH-060 | 3 | 1 | 4 |
-| FR-ARCH-090 | 3 | 1 | 4 |
 | FR-ARCH-120 | 3 | 1 | 4 |
 | FR-ARCH-170 | 1 | 3 | 4 |
 | FR-CHK-070 | 3 | 1 | 4 |
@@ -260,6 +260,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-220 | 0 | 1 | 1 |
 | FR-ARCH-230 | 0 | 1 | 1 |
 | FR-ARCH-250 | 0 | 1 | 1 |
+| FR-ARCH-280 | 0 | 1 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
 | FR-CHK-100 | 0 | 1 | 1 |

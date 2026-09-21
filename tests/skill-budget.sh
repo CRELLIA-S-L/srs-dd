@@ -24,16 +24,18 @@ cd "$(dirname "$0")/.."
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
-#               a line beginning `Read first:`. 6 400 is where `srs-bet`
+#               a line beginning `Read first:`. 6 500 is where `srs-bet`
 #               stands with the register's standard, which it tells the
-#               reader to open whole and once (1 218 + 5 143): measured on
-#               2026-09-20, one whole read in one turn burned fewer tokens
-#               over the run than three section reads in three, because
-#               every turn re-reads the context before it. The number is
-#               a ceiling on what a procedure sends the reader to, not a
-#               verdict on reading it.
+#               reader to open whole and once (1 218 + 5 257 on 2026-09-21,
+#               after the standard gained the two sentences on what the
+#               layer promises about a minimum): measured on 2026-09-20,
+#               one whole read in one turn burned fewer tokens over the run
+#               than three section reads in three, because every turn
+#               re-reads the context before it. The number is a ceiling on
+#               what a procedure sends the reader to, not a verdict on
+#               reading it.
 OWN=1300
-TRANSITIVE=6400
+TRANSITIVE=6500
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

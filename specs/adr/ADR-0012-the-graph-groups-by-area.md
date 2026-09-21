@@ -61,4 +61,5 @@ And the layout is arithmetic: a lane index from the area, a row index from the n
   The rule has to be written twice — once where the page is generated and once in the script that recomputes an edge — and the two must agree, or an edge changes shape the moment an area is collapsed.
 - What limits the drawing is now the tallest area rather than the total number of requirements.
   An area is capped at 99 by the identifier grammar (`specs/91-open-issues.md`), which puts a floor under how bad this can get and makes `GRAPH_NODE_LIMIT` measure the wrong thing.
+  *Since 2026-09-20 (ADR-0028):* the cap is gone — a number widens past 999 — so the tallest area is bounded by nothing but its own growth, and `GRAPH_NODE_LIMIT` is the one bound that remains.
 - Should this specification ever grow a real derivation hierarchy — deep chains, most requirements with a parent — the axis it deserves is the one ADR-0010 argued for, and this decision is what to revisit.

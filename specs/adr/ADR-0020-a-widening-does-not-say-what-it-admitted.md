@@ -50,4 +50,5 @@ That is a smaller promise than the concept makes, and it is the whole of what a 
 Phase 4 therefore delivers two mechanisms of four, and the unbuilt two are not waiting for the same thing.
 Decoupling from the prompt waits for what this decision is about: a way to say what a widening admitted, which nobody has.
 The unchangeable minimum waits for something else entirely — a file no procedure may amend, which a repository cannot offer at all, and which `specs/91-open-issues.md` already records under its own heading.
+*Settled 2026-09-21:* it is not waited for. The register makes an edit to a minimum visible, attributable and diffable and never prevents it; preventing it is the forge's and the team's, and the *`I` — ideology* section of `grounds/README.md` says so.
 Neither is deferred work waiting for time, and they are not one backlog item.

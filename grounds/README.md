@@ -160,6 +160,8 @@ Nobody did, and it was not a revision — it was a capture, written up as learni
 **Widening the set costs something and narrowing it does not**, which is the asymmetry a self-amending rule needs to survive: capture runs through widening, one admissible argument admitting the next.
 The record keeps enough history to notice a set that grew, and a growth arriving without an amendment naming what it opens is said out loud.
 What the register cannot do is stop the other failure — a set narrowed until nothing can move the ideology at all — because the answer to that is a minimum no procedure may amend, and a file is a file.
+That is the whole of what this layer promises about a minimum: an edit to it is visible, attributable and diffable, and never prevented.
+Preventing it belongs to where the repository lives — a protected branch, a required review, a signed commit — and to the team, which the framework does not configure for any project: it gives the frame, and a project that needs the harder guard adds it where its other guards are and says so in the ideology's own text.
 
 ### `F` — frame
 

@@ -143,6 +143,8 @@ python3 tools/srs_arch.py --cite ID…   name elements to a person: identifier, 
 
 Errors are the readings that make the rest meaningless: a repeated identifier, a missing required key, a requirement that does not exist.
 Everything else is a warning, because the honest resolution differs case by case and the checker cannot choose it.
+A path an element carries that is not in the repository is one of those warnings, under `carrier-missing`: the record still reads, and it went stale the commonest way — a file renamed or deleted with the element left behind.
+Where git can tell, the warning says where the file went — renamed to what, in which commit, or deleted in which — so the record is fixed with one edit; the layer never edits it, because the record is the project's and a file that moved may have moved between parts.
 
 What a rule costs is the project's to set, in `arch/arch-config.json`, beside the `requirements` key described above:
 

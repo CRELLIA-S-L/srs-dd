@@ -1342,4 +1342,92 @@ Not an identifier.
 MD
 rule "INV-SPEC-080 a leading zero is refused" 1 "identifier does not match"
 
+# --- verifies: FR-ARCH-280 — a path an element carries and nobody has is a
+# --- warning named carrier-missing, naming the element and the path. The lab
+# --- is no git repository, so the warning stands without a hint; a git lab
+# --- below gets the hint for a committed rename, a committed deletion and a
+# --- rename still in the working tree, and nothing for a file git never saw.
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+elements <<'MD'
+# Elements
+
+### E-010 — Everything
+
+```yaml
+status: built
+carries: [src, src/vanished.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries the whole of it, and one file nobody has.
+MD
+rule "FR-ARCH-280 a carried path that does not exist" 0 "E-010 carries src/vanished.py, which does not exist"
+silent "FR-ARCH-280 says nothing of where it went outside git" 0 "git renamed\|git deleted\|in the working tree"
+rule "FR-ARCH-280 fails a strict gate" 1 "treated as errors" --strict
+printf '{"rules": {"carrier-missing": "off"}}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-280 turned off says nothing" 0 "does not exist"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+# A directory is a carrier too, and one that is there is not reported.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything
+
+```yaml
+status: built
+carries: [src, src/]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries a directory, spelled both ways.
+MD
+silent "FR-ARCH-280 a directory that exists is not reported" 0 "does not exist"
+
+# The git lab: a file renamed and committed, a file deleted and committed, a
+# file renamed in the working tree, and a file git never saw.
+GITLAB=/tmp/srs-arch-git
+rm -rf "$GITLAB"; mkdir -p "$GITLAB/tools" "$GITLAB/specs" "$GITLAB/arch" "$GITLAB/src"
+cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py "$GITLAB/tools/"
+cp "$LAB/specs/srs-config.json" "$GITLAB/specs/"
+cp "$LAB/specs/10-fr-core.md" "$GITLAB/specs/"
+printf '{"rules": {}}\n' > "$GITLAB/arch/arch-config.json"
+printf 'a = 1\n' > "$GITLAB/src/a.py"; printf 'b = 1\n' > "$GITLAB/src/b.py"
+printf 'old = 1\n' > "$GITLAB/src/old.py"; printf 'gone = 1\n' > "$GITLAB/src/gone.py"; printf 'wt = 1\n' > "$GITLAB/src/wt.py"
+printf 'x = 1\n' > "$GITLAB/src/файл.py"    # a path outside ASCII, which git quotes unless told not to
+cat > "$GITLAB/arch/00-elements.md" <<'MD'
+# Elements
+
+### E-010 — Everything
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py, src/old.py, src/gone.py, src/wt.py, src/never.py, src/файл.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries files that will move.
+MD
+( cd "$GITLAB" && git init -q && git add -A \
+  && git -c user.email=ci@example.com -c user.name=CI commit -qm base \
+  && git mv src/old.py src/new.py && git rm -q src/gone.py && git mv src/файл.py src/файл2.py \
+  && git -c user.email=ci@example.com -c user.name=CI commit -qm moved \
+  && git mv src/wt.py src/wt2.py )
+( cd "$GITLAB" && python3 tools/srs_arch.py --no-write ) > /tmp/srs-arch-git.log 2>&1 || true
+grep -q "E-010 carries src/old.py, which does not exist; git renamed it to src/new.py in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \
+    || { echo "FAIL FR-ARCH-280 — a committed rename is not named with its new path and commit"; cat /tmp/srs-arch-git.log; exit 1; }
+grep -q "E-010 carries src/gone.py, which does not exist; git deleted it in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \
+    || { echo "FAIL FR-ARCH-280 — a committed deletion is not named with its commit"; cat /tmp/srs-arch-git.log; exit 1; }
+grep -q "E-010 carries src/wt.py, which does not exist; renamed to src/wt2.py in the working tree$" /tmp/srs-arch-git.log \
+    || { echo "FAIL FR-ARCH-280 — a rename in the working tree is not named"; cat /tmp/srs-arch-git.log; exit 1; }
+grep -q "E-010 carries src/never.py, which does not exist$" /tmp/srs-arch-git.log \
+    || { echo "FAIL FR-ARCH-280 — a file git never saw got a hint, or no warning"; cat /tmp/srs-arch-git.log; exit 1; }
+grep -q "E-010 carries src/файл.py, which does not exist; git renamed it to src/файл2.py in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \
+    || { echo "FAIL FR-ARCH-280 — a rename of a path outside ASCII is not named as git wrote it"; cat /tmp/srs-arch-git.log; exit 1; }
+grep -q "src/a.py, which does not exist\|src/b.py, which does not exist" /tmp/srs-arch-git.log \
+    && { echo "FAIL FR-ARCH-280 — a file that exists was reported"; cat /tmp/srs-arch-git.log; exit 1; }
+passes=$((passes + 1))
+
 echo "arch-rules: $passes fixtures pass"

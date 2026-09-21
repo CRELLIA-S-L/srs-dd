@@ -1225,7 +1225,7 @@ A finding under `rules` costs a warning, and a warning is what `--strict` fails 
 
 Narrowing is silent, and deliberately: the concept prices it cheap, so a rule reporting it would be charging for the move the asymmetry exists to make free.
 The gap is elsewhere and it is worth naming, because a later reader who finds narrowing unwatched will be tempted to close it here.
-Narrowing carried far enough is the concept's other failure — closure, the set narrowed until nothing can move the ideology at all — and the only answer to that is a minimum no procedure may amend, which `specs/91-open-issues.md` already records as something a repository can make loud and cannot prevent.
+Narrowing carried far enough is the concept's other failure — closure, the set narrowed until nothing can move the ideology at all — and the only answer to that is a minimum no procedure may amend, which a repository can make loud and cannot prevent — decided as the whole of the layer's promise on 2026-09-21, and said in the *`I` — ideology* section of `grounds/README.md`.
 So this rule covers one of the two failures, and reporting narrowings would not cover the second; it would only make the first look covered twice.
 
 Read from history for the reason FR-GND-190 is: the ordering exists nowhere else.

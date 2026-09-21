@@ -85,21 +85,6 @@ What is missing is the layer's standard — the word calibration does not occur 
 
 **Decision needed:** say in the layer's standard that calibration stops at the reversal count and the weighting is deliberately not attempted; or carry the fuller model as intended work and name what a project would have to run to get it.
 
-## An unchangeable minimum can be made loud, not prevented
-
-**Found:** while planning the grounds layer (2026-08-20).
-
-**What diverged:** the concept holds that an ideology carries a minimum that changes only by dissolving the ideology itself — not amendable, whatever the evidence arrives.
-A repository delivers no such thing.
-A file is a file: the minimum can be edited by anyone who can commit, and what the framework actually offers is that the edit is visible, attributable and diffable.
-
-**Corrected 2026-09-08.** The entry ended here with "the requirements for ideology and its self-revision are not written yet, so the difference is at present written down nowhere", and that stopped being true three days after it was written.
-`FR-GND-510` and `FR-GND-520` landed on 2026-08-23 and charge for widening what may move an ideology, and `grounds/README.md` states the weaker promise in its own words: the register cannot stop the opposite failure, because a file is a file.
-So the promise is written down.
-What is not written down is anything stronger.
-
-**Decision needed:** whether immutability is placed outside the repository — protected paths, required review or signed commits, none of which this framework configures in any target today — or the loud-not-prevented promise is all this layer will ever offer, and is said once where the ideology is defined rather than in a rationale a reader arrives at by accident.
-
 ## A hypothesis carries one number where the concept carries two
 
 **Found:** while reviewing the grounds standard against the concept it is built from (2026-08-20).
@@ -238,67 +223,6 @@ Then the first entries here are `U` declarations or nothing, and ADR-0018's argu
 
 **Decision needed:** which of the three.
 The first two change `tools/srs_grounds.py` and at least one requirement; the third changes `grounds/README.md` and closes nothing else.
-
-## Where a rule binding every procedure physically lives is not settled
-
-**Found:** while deciding how to build FR-SKILL-200 and FR-SKILL-220 (2026-08-27), both of which bind "a procedure" rather than a named one.
-
-**What diverged:** this repository holds two patterns for the same problem and nothing chooses between them.
-
-FR-SKILL-170 — *An observation is reported as a finding only once it is one* — is written out in each skill it binds.
-Its `code` field names `srs`, `srs-audit` and `srs-harvest`, and each states the rule in its own idiom:
-`srs` argues the *therefore* test over three paragraphs, `srs-audit` repeats it against findings, `srs-harvest` states it about an open-issues entry.
-Three copies, three wordings, one rule.
-
-ART-030 — builds and test runs need the user's word each time — is stated once in `specs/constitution.md` and cited from four of the twelve skills in seven lines: three of them in `srs-audit`, two in `srs`, one each in `srs-check` and `srs-harvest`.
-`skeleton/AGENTS.md` carries the same shape under *The three most frequently broken rules*: cross-cutting obligations, one line each, the constitution cited where the reasoning lives.
-
-The two differ in what they cost and in how they fail.
-Restating puts the rule where the agent is already reading and lets each procedure phrase it for its own work; it also means N copies that drift, and it is what FR-SKILL-020 forbids for a standard while saying nothing about a specification.
-Citing keeps one copy and one edit; it also means an agent that never follows the citation is bound by a sentence it did not read.
-
-**Decision needed:** whether the two patterns are one rule applied to different cases — and if so, what distinguishes the cases — or whether one of them should absorb the other.
-Bringing FR-SKILL-170's family onto the cite-once pattern is the larger move and touches three skills; declaring the split deliberate costs a paragraph in `specs/README.md` and leaves the cost where it is.
-FR-SKILL-200 and FR-SKILL-220 are being built on the cite-once pattern meanwhile, which adds two more entries on that side of a split nobody has ruled on.
-
-**2026-09-08.** An audit finished `FR-SKILL-200`'s set: `srs-release` was the ninth procedure that names requirements to a person, and the only one carrying no line.
-It adds no entry to either side — the rule was already on the cite-once side, and this completes it rather than choosing again.
-
-It also does not bear on the split, and that is worth recording so nobody tries it as evidence.
-The one thing that came out of it looks like an argument at first: `srs-release` names identifiers in two places and the rule binds only one of them — the diff shown to the maintainer, not the changelog section, where the format is parsed by the installer and a citation would carry a status into a record nobody re-dates.
-An exception, in other words, and the cite-once pattern is supposed to be the one where an exception is stated where the rule lives and inherited everywhere.
-It was not: the sentence is in `srs-release` and `AGENTS.md` says nothing about it, because the exception belongs to the only procedure that writes a changelog and would sit there under either pattern.
-A case that distinguishes the two would be an exception several procedures share.
-
-**Corrected the same day.** This entry said the rule was cited from six skills in a line apiece.
-Counted over `.claude/skills/*/SKILL.md` it is four skills and seven lines, and the same count holds at the commit this entry was written on, so the number was wrong when it was written rather than overtaken.
-The comparison survives it — one statement against three restatements is still the shape — but a claim about this repository's own files went in without the `grep` that settles it, which is what `FR-SKILL-280` was later written against.
-
-## An element can carry a path that is not there
-
-**Found:** while building the architecture layer (2026-09-02), on a fixture written to test something else.
-**Corrected:** 2026-09-08 — half of what this entry claimed was already false when it was written, and the correction is below.
-
-**What diverged:** an element's `carries` may name a path that does not exist, and the architecture checker stays silent.
-The fixture: an element carrying `carries: [src, src/vanished.py]` where only the directory does.
-`tools/srs_arch.py` reported nothing at all, which is not a bug in it — no requirement asks for the reading.
-`FR-ARCH-060` holds the ownership direction and answers the question "is this file carried", which a vanished file is not asked.
-
-**What this entry got wrong.** It said the same of the specification checker, and that was never true.
-`FR-CHK-055` reports a `code` or `tests` entry naming an absent path as an **error**, and has since baseline 0.14.0 — two weeks before this entry was written.
-Run against a requirement carrying `code: [src/a.py, src/gone.py]`, `tools/srs_check.py` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
-The entry was written from the architecture layer's fixture outward, and the claim about the other checker was inferred rather than run; the requirement that answers it is one line in `10-fr-chk.md`, the file the entry had already opened to cite `FR-CHK-200`.
-That is the failure mode `FR-SKILL-280` was later written against — a statement about what the project's files say, made without reading them — arriving in the register the entry itself lives in.
-
-The remaining case is ordinary rather than exotic: a file is renamed or deleted, the element's `carries` keeps the old path, and the map goes on publishing a part that owns something nobody has.
-The specification's own side of it is covered and fails the build; the layer's side is silent.
-Both halves were run on 2026-09-08 rather than read: an element carrying `carries: [src, src/vanished.py]` passes `srs_arch.py --strict` with exit 0 and no mention of the path, while a requirement carrying `code: [src/a.py, src/gone.py]` answers `error: code points to a nonexistent path src/gone.py` and exits 1.
-
-**Decision needed:** whether a path an element names and nobody has is a finding.
-Two answers, the third having been built already.
-The architecture layer could report it for `carries`, which makes the layer say about its own field what `FR-CHK-055` already says about the specification's — the symmetric answer, and the cheap one.
-Or it stays unreported deliberately, on the ground that a path is a claim about a working tree rather than about the description, and a checker that reads the disk starts failing for reasons that have nothing to do with what is written — a sparse checkout, a generated file, a submodule not initialised.
-That second answer is harder to hold now than it was: the specification checker already reads the disk for exactly this, so the cost it warns about is one this project has already accepted once.
 
 ## Releases on the forge, and when to start them
 

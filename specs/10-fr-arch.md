@@ -579,3 +579,26 @@ So the layer's own checker prints the form `FR-VIEW-240` fixed, over its own rec
 Several at once, for the reason the viewer gives: the reports this exists for name several parts, and a citation that costs a call each is one that gets abbreviated back to the key.
 An unknown identifier is refused in the same run, naming it, so that a report citing five elements and misspelling one learns which.
 
+
+### FR-ARCH-280 — A path an element carries and nobody has is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-09-21
+```
+
+If an element's `carries` names a path that does not exist in the repository, the architecture checker **shall** report it as a warning named `carrier-missing`, naming the element, the path and — where git can tell — the path the file was renamed to or the commit that deleted it.
+
+**Rationale.** A part that owns a file nobody has is a map that lies, and it lies in the commonest way a map goes stale: a file renamed or deleted with the element left behind.
+The specification's side of the same fact is an error under `FR-CHK-055`, so a checker of this framework already reads the disk for exactly this and the cost of doing so — a sparse checkout, a generated file — is one the project accepted once.
+A warning rather than an error, because the record still reads: every finding the layer makes between the description and the tree is a warning with a name a project may turn off (`FR-ARCH-090`), and a path that vanished is one of those disagreements, not a record the checker cannot parse — the line `FR-ARCH-230` draws for an identifier that resolves.
+Where the file went is in git, which knows a rename from a deletion, so the warning says it: the reader fixes the record with one edit instead of a search, and the record stays theirs to fix — the layer writes the map and nothing else (`CON-ARCH-010`).
+Where there is no git, or no history, the warning stands without the hint.
+

@@ -38,7 +38,7 @@ Every choice that could have gone another way goes into an ADR in `specs/adr/`: 
 
 ## Redrawing a part
 
-The same act as writing one, with two additions: the number of a dissolved part stays dead — `withdrawn`, or `superseded` with the successor named — and the checker is run afterwards and its findings read again: a file left behind is a carrier nobody claims, a caller moved away from what it calls is an undeclared dependency.
+The same act as writing one, with two additions: the number of a dissolved part stays dead — `withdrawn`, or `superseded` with the successor named — and the checker is run afterwards and its findings read again: a file left behind is a carrier nobody claims, a caller moved away from what it calls is an undeclared dependency, and a file renamed or deleted with its element left behind is a carrier that does not exist — the warning says where git put it, and the record moves with the file in the same set of edits.
 
 ## What this procedure does not do
 
