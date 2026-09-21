@@ -137,7 +137,7 @@ Then it lays out `specs/`, writes the config, generates a placeholder requiremen
 
 **Already have an SRS?** The installer detects it and switches to adopt mode:
 your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical.
-Your specification files are never modified.
+Your requirements are never modified; your own `specs/README.md`, if you had one, is set aside in `specs/archive/` and the standard takes its place.
 Where its requirements carry no `created` dates, you are offered `tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
 
 **Already run a pre-commit hook?** It is never displaced — the installer says so instead of advising the `core.hooksPath` switch that would silently disable it.

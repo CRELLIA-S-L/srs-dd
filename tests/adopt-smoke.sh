@@ -5,7 +5,7 @@
 #
 # verifies: FR-INIT-010, FR-INIT-030, FR-INIT-040, FR-INIT-050
 # verifies: FR-INIT-070, FR-INIT-090, FR-CHK-090, FR-CHK-210, IF-CI-010
-# verifies: FR-GND-480
+# verifies: FR-GND-480, FR-INIT-230
 #
 # One scenario answers for all of them, which is what an end-to-end suite
 # is: the mode is detected, the lexicon comes from the flags, a wrong one
@@ -64,6 +64,13 @@ test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
 # Correct lexicon adopts cleanly; skills land, matrix generated.
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" \
     --grounds yes --period year "${LEXICON[@]}" | tee /tmp/adopt-real.log
+
+# verifies: FR-INIT-230 — a project with no standard of its own has nothing
+# to set aside: no archive appears and the summary has no such heading.
+test ! -e /tmp/srs-adopt/specs/archive
+if grep -q "set aside" /tmp/adopt-real.log; then
+    echo "FAIL FR-INIT-230 — adopt set aside a standard the project never had"; exit 1
+fi
 
 # verifies: FR-GND-480 — the adoption path takes the answer too, and the
 # comparison below is what proves the dry run listed the file it writes.
@@ -152,3 +159,53 @@ echo "just docs" > /tmp/srs-docs/specs/notes.md
 rc=0; python3 tools/srs_init.py /tmp/srs-docs --defaults || rc=$?
 test "$rc" -eq 2
 test ! -e /tmp/srs-docs/specs/srs-config.json
+
+# verifies: FR-INIT-230
+# A project with a standard of its own. Adopt sets it aside in the archive
+# byte for byte, installs ours in its place with the marker, names both
+# paths, and touches no other README; the dry run lists the move without
+# making it; a file already at the archive path stops the run before
+# anything is written; and the target's checker never reads the archive.
+OWN=/tmp/srs-adopt-own
+rm -rf "$OWN"; mkdir -p "$OWN/specs"
+cp -r /tmp/srs-adopt/specs/10-fr-app "$OWN/specs/"
+printf '# Как мы пишем требования\n\nЭтот файл главный: если что-то ему противоречит, прав он.\nОтменённые требования удаляются.\n' > "$OWN/specs/README.md"
+cp "$OWN/specs/README.md" /tmp/own-readme.orig
+find "$OWN" -type f | sort | xargs cksum > /tmp/own-before.sum
+
+python3 tools/srs_init.py "$OWN" --defaults --dry-run --areas "APP" "${LEXICON[@]}" > /tmp/own-dry.log
+grep -qF "specs/README.md -> specs/archive/README-before-srs-dd.md" /tmp/own-dry.log \
+    || { echo "FAIL FR-INIT-230 — the dry run does not list the standard being set aside"; cat /tmp/own-dry.log; exit 1; }
+grep -qF "  specs/README.md" /tmp/own-dry.log \
+    || { echo "FAIL FR-INIT-230 — the dry run does not list the standard being installed"; cat /tmp/own-dry.log; exit 1; }
+if grep -q "never overwritten" /tmp/own-dry.log; then
+    echo "FAIL FR-INIT-230 — the dry run classified the vacated path as specification content"; cat /tmp/own-dry.log; exit 1
+fi
+find "$OWN" -type f | sort | xargs cksum > /tmp/own-after.sum
+diff /tmp/own-before.sum /tmp/own-after.sum
+
+mkdir -p "$OWN/specs/archive"
+printf 'not ours\n' > "$OWN/specs/archive/README-before-srs-dd.md"
+find "$OWN" -type f | sort | xargs cksum > /tmp/own-before.sum
+rc=0; python3 tools/srs_init.py "$OWN" --defaults --areas "APP" "${LEXICON[@]}" > /tmp/own-stale.log || rc=$?
+test "$rc" -eq 3 || { echo "FAIL FR-INIT-230 — a stale archive did not stop adopt with exit 3 (got $rc)"; cat /tmp/own-stale.log; exit 1; }
+grep -q "already exists" /tmp/own-stale.log \
+    || { echo "FAIL FR-INIT-230 — the refusal does not say why"; cat /tmp/own-stale.log; exit 1; }
+find "$OWN" -type f | sort | xargs cksum > /tmp/own-after.sum
+diff /tmp/own-before.sum /tmp/own-after.sum
+rm -r "$OWN/specs/archive"
+
+python3 tools/srs_init.py "$OWN" --defaults --areas "APP" "${LEXICON[@]}" > /tmp/own-real.log
+cmp /tmp/own-readme.orig "$OWN/specs/archive/README-before-srs-dd.md" \
+    || { echo "FAIL FR-INIT-230 — the archived standard is not the project's own, byte for byte"; exit 1; }
+grep -q "SRS-DD-[0-9]" "$OWN/specs/README.md" \
+    || { echo "FAIL FR-INIT-230 — the installed standard carries no marker"; exit 1; }
+grep -q "set aside as specs/archive/README-before-srs-dd.md" /tmp/own-real.log \
+    || { echo "FAIL FR-INIT-230 — the output does not name where the standard went"; cat /tmp/own-real.log; exit 1; }
+grep -qF "specs/README.md -> specs/archive/README-before-srs-dd.md" /tmp/own-real.log \
+    || { echo "FAIL FR-INIT-230 — the summary does not list the move"; cat /tmp/own-real.log; exit 1; }
+grep -qF 'Об этой папке' "$OWN/specs/10-fr-app/README.md" \
+    || { echo "FAIL FR-INIT-230 — an area directory's README was touched"; exit 1; }
+(cd "$OWN" && python3 tools/srs_check.py --no-write) > /tmp/own-check.log 2>&1
+grep -q "Files scanned: 2\." /tmp/own-check.log \
+    || { echo "FAIL FR-INIT-230 — the target's checker read the archive as requirements"; cat /tmp/own-check.log; exit 1; }

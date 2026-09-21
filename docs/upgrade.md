@@ -28,7 +28,7 @@ Refreshed without a flag: the checker, the viewer, the upgrader and the skills.
 Tooling has to move with the framework or a project drifts away from the standard it says it follows.
 
 Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the pre-commit hook and `specs/README.md` — files that may be your own.
-The first four are ones a project commonly edits; the standard is there for a different reason, that adopting an existing specification leaves you the `specs/README.md` you already had.
+The first four are ones a project commonly edits; the standard is there because its marker promises that your local edits to it survive until `--force`.
 `--force` refreshes all of them, and only when the existing file carries the installer's marker — a line reading `SRS-DD-<version>` — so a file you wrote is never clobbered.
 
 Your requirements are never touched: they are the project's own, whatever flag you pass.

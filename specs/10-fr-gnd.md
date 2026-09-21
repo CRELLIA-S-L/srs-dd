@@ -1307,3 +1307,27 @@ The form is the one `FR-VIEW-240` fixed; the resolver is this checker's, because
 All five kinds, because the rule is about naming a record to a person and does not care which kind; a `U` declaration cited in full says what it stands in for, which is the whole point of citing it.
 An unknown identifier is refused in the same run, naming it.
 
+
+### FR-GND-550 — A class III verdict is the reader's, not the arithmetic's
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-GND-160]
+depends_on: [FR-GND-140]
+refines: [FR-GND-140]
+conflicts_with: []
+code: [tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-09-21
+```
+
+Where a hypothesis is of class III, the grounds checker **shall not** compel the verdict of a measurement from how far its sample can miss, reporting a row only where it cannot be compared at all, where its verdict is not a word a measurement can reach, or where the verdict contradicts the threshold's own words — a refutation on the safe side of the bound, or on a sample smaller than the threshold names.
+
+**Rationale.** `FR-GND-140` compels a verdict from the threshold so that it stops being an opinion, and for a number an instrument or an experiment produced that is right.
+A class III measurement is a person's reading of interviews, observation and judgement, and its populations are small by nature: at `n = 2` the interval `FR-GND-150` computes reaches 0.575 even when both answers were no, so the arithmetic compels `supported` for every threshold a claim about two people could carry — a maintainer who talked to both, concluded it does not hold and wrote `refuted` was told the opposite by a comparison nobody could have won.
+That is the danger `FR-GND-140` was written against, inverted: the number overruling the reading the class exists to admit.
+This repository walked around it once by widening `H-010` past its team; a claim about two people is a claim about two people, and rewriting it to be about more is a different claim.
+So the threshold stays required — a class III hypothesis still says, before it is measured, what would count as refuting it — and the verdict stays the reader's, named by `FR-GND-160`; what the checker keeps is the refusal of a row that is not a measurement at all, of a word that is neither `supported` nor `refuted`, and of a `refuted` that the threshold's own sentence contradicts — a value on its safe side, a sample below its gate — because those are the record disagreeing with its author, not the interval overruling a reading.
+The first door, a threshold made optional for class III, was refused because it gives up falsifiability declared in advance; the third, leaving the arithmetic on, gives up the class.
+

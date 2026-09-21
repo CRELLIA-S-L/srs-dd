@@ -332,12 +332,16 @@ def _crosses(op, edge, bound):
 
 
 # implements: FR-GND-140, FR-GND-150
-def verdict_owed(threshold, value, n, cfg):
+def verdict_owed(threshold, value, n, cfg, interval=True):
     """The verdict a measurement compels, with the phrase that says why.
 
     `(None, None)` where the row does not compel one: the kind carries no
     error the row can produce, and the raw value is on the refuting side, so
     whether it refuted is exactly the question nothing here can answer.
+    With `interval` off — a class III reading — the two contradictions of
+    the threshold's own words are still compelled, a sample smaller than
+    its gate and a value on its safe side, and nothing beyond them is: how
+    far a person's reading of two people can miss is not this arithmetic's.
     """
     kind, op, raw_bound, raw_gate = threshold.groups()
     bound, gate = float(raw_bound), int(raw_gate)
@@ -347,7 +351,7 @@ def verdict_owed(threshold, value, n, cfg):
     if not _crosses(op, value, bound):
         return VERDICTS[0], ("its value of %g is on the safe side of %s %g"
                              % (value, op, bound))
-    if kind not in TESTABLE_KINDS:
+    if kind not in TESTABLE_KINDS or not interval:
         return None, None
     if kind == "proportion":
         low, high = wilson_bounds(value, n, Z_ONE_SIDED[cfg["confidence"]])
@@ -830,7 +834,15 @@ def validate(records, model, model_error, cfg):
                     % (rec.where, hid, date, verdict,
                        rec.fields["refuted_if"], fault))
                 continue
-            owed, why = verdict_owed(threshold, value, sample, cfg)
+            # implements: FR-GND-550
+            # A class III measurement is a person's reading, and its
+            # populations are small: the interval at n = 2 compels
+            # `supported` whatever both people said. The threshold stays
+            # declared and its own words still bind — a sample below its
+            # gate, a value on its safe side — but how far the reading can
+            # miss is not computed, and the verdict is the reader's, who is named.
+            owed, why = verdict_owed(threshold, value, sample, cfg,
+                                     interval=rec.fields.get("class") != "III")
             if owed is not None and owed != verdict:
                 errors.append(
                     "%s — %s calls the measurement of %s %r against "

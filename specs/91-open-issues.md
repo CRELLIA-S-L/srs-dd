@@ -52,22 +52,6 @@ A test proving the first half says nothing about the second, and the status is a
 
 **Decision needed:** split it into two requirements — the second one taking a new number, since identifiers are never reused — or leave the compound and accept that its status and its tests speak for two behaviours at once.
 
-## A project that adopted the framework never receives the standard
-
-**Found:** while making upgrades refresh the standard (2026-08-18).
-
-**What diverged:** `--mode adopt` deliberately keeps a project's own `specs/README.md` (FR-INIT-040), and the file it keeps carries no `SRS-DD-<version>` marker — so `--force` will not replace it either, now or ever.
-Verified end to end: adopt on a project whose `specs/README.md` says "We follow the SRS-DD standard", then `--force`, answers `specs/README.md (no SRS-DD marker — not ours, merge manually)` and leaves the file alone.
-Re-run on 0.16.0 (2026-09-08): the answer is unchanged, and no copy of the standard reaches the target under any name.
-What the installed procedures then cite into nothing is eight references across three of them — the Baselines section three times, *How to phrase* twice, and one each to Lifecycle, What-not-to-do and the map of which file holds what.
-
-That refusal is correct in itself.
-What follows from it is that such a project has no copy of the standard at all, while the skills installed alongside cite its sections by name — a licence `CON-SPEC-020` grants on the grounds that the standard is the same document in every project.
-For an adopted project it is no document at all.
-The installer says one advisory line about merging, once, at adopt time.
-
-**Decision needed:** install the standard beside theirs under a name that cannot collide, so the citations resolve; or drop the citations from the shipped procedures and let them explain themselves; or accept that adopted projects merge the standard by hand and say so where it will be read twice rather than once.
-
 ## Calibration is built at a fraction of what the concept describes
 
 **Found:** while planning the grounds layer (2026-08-20).
@@ -180,49 +164,6 @@ The two halves are not alike.
 An ideology and a frame say what this project is for and what it will not do, and nobody but the maintainer can say either.
 A bet and a declaration follow from requirements that already exist and are written by whoever works the register — `FR-GND-500` bars an agent from inventing a hypothesis, not from recording a bet on one.
 If the kinds are not wanted, the gate should say so out loud rather than passing in silence, and that part is ordinary work.
-
-## A class III reading is overruled by arithmetic
-
-**Found:** while deciding what the register's first real entries would say (2026-08-23).
-
-**What diverged:** `refuted_if` is required of every `H` record — `srs_grounds.py:84-85` lists it beside `class`, `population`, `expires`, `owner` and `impact` — and FR-GND-140 judges every verdict row against that threshold without asking what class the hypothesis is.
-The two class-conditional rules in the file both run the other way: `class-untestable` fires for class I alone (`srs_grounds.py:718`), `verdict-unattributed` for class III alone (`srs_grounds.py:763`).
-Nothing exempts class III from the arithmetic.
-
-The standard defines class III as "outside the system: interviews, observation, judgement".
-Where the population is small the two obligations cannot both be met.
-At `n = 2`, the one-sided Wilson bound FR-GND-150 computes at the default `confidence` of `0.95` reaches 0.575 even when both answers are no — so `verdict_owed` returns `supported` for a threshold as generous as `proportion < 0.50 at n >= 2`, and for every stricter one as well.
-Refuting needs the threshold to sit above that bound — above three in five of them doing the thing — which is not the shape a hypothesis about whether something works for people takes.
-A maintainer who talks to both, concludes it does not hold, and writes `refuted` gets an error naming a comparison nobody could have won.
-
-That error is arithmetic nobody did, which is what FR-GND-140's own rationale was written against — inverted.
-There the danger was a verdict overruling the number; here it is the number overruling the reading the class exists to admit.
-Every threshold below that bound returns the same verdict however far apart they are written, and the register records a judgement as its opposite.
-
-This repository walked around it rather than into it.
-ADR-0018 predicted the register here would come out mostly class III with named owners and no instruments, and it did; the population that was first proposed for `H-010` was two people, and at that size the bound above reaches 0.575 — which a threshold refutes only by sitting above, and no claim about half of them does.
-What was written instead (2026-08-23) widened the population past this team, so `H-010` carries `proportion < 0.50 at n >= 8`, which refutes at 0 or 1 of 8 and gives real gradations above that.
-The corner is still there for the next class III hypothesis whose population genuinely is small, and widening is not always available — a claim about two people is a claim about two people, and rewriting it to be about more is a different claim.
-
-**Run rather than reasoned, 2026-09-08.** A class III record with `refuted_if: proportion < 0.50 at n >= 2`, a measurement of 0 at n = 2 and a verdict of `refuted` fails the checker: "0 is < 0.5 by less than a sample of 2 can miss by: at 95% confidence the truth reaches 0.575, so the verdict it compels is 'supported'".
-The arithmetic above was on paper until then.
-
-**Doors:**
-
-*Make `refuted_if` optional for class III.*
-The narrowest change, and it touches the format rather than a rule: IF-GND-010 makes an addition compatible and a removal not, and a required key becoming optional is a loosening every existing record survives.
-It costs the guarantee that every hypothesis was written falsifiable before it was measured — which is most of why the field is required.
-
-*Do not apply the verdict arithmetic to class III.*
-The threshold stays required and stays a declaration of what would count; the checker stops compelling a verdict from it where the measurement was a person's reading.
-Keeps falsifiability visible and gives up the guard against a class III verdict that flatly contradicts its own numbers.
-
-*Leave it, and record that class III with a small population is not supported by the register.*
-Honest, and it means the layer's answer to "we asked both of them" is that this is not a hypothesis.
-Then the first entries here are `U` declarations or nothing, and ADR-0018's argument for keeping a register in this repository loses its example.
-
-**Decision needed:** which of the three.
-The first two change `tools/srs_grounds.py` and at least one requirement; the third changes `grounds/README.md` and closes nothing else.
 
 ## Releases on the forge, and when to start them
 

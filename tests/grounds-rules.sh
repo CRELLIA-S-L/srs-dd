@@ -1482,4 +1482,54 @@ requirement: FR-CORE-010
 all_of: [H-010]' 'Rests on it.')
 rule "INV-SPEC-080 a leading zero is refused" 1 "identifier does not match"
 
+# --- verifies: FR-GND-550 — a class III verdict is the reader's: the same
+# --- row that FR-GND-140 refuses under class I — 0 of 2 called refuted,
+# --- where the interval reaches 0.575 — passes under class III with the
+# --- reader named, while a row that is no measurement at all, or a word
+# --- that is neither verdict, is refused for class III as for any class.
+HYP_SMALL="${HYP/refuted_if: proportion < 0.25 at n >= 200/refuted_if: proportion < 0.50 at n >= 2}"
+ground < <(rec H-010 "Both said no" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 2 | refuted | @maintainer |')
+silent "FR-GND-550 a class III reading of two is not overruled" 0 "the verdict it compels"
+HYP_SMALL_I="${HYP_SMALL/class: III/class: I}"
+ground < <(rec H-010 "Both said no, by an instrument" "$HYP_SMALL_I" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 2 | refuted | telemetry |')
+rule "FR-GND-550 the same row under class I is still compelled" 1 "the verdict it compels is 'supported'"
+ground < <(rec H-010 "Not a measurement" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | both | 2 | refuted | @maintainer |')
+rule "FR-GND-550 a class III row that cannot be compared is still refused" 1 "no threshold can be compared against"
+ground < <(rec H-010 "Not a verdict" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 2 | disproved | @maintainer |')
+rule "FR-GND-550 a class III word that is no verdict is still refused" 1 "not one a measurement can reach"
+ground < <(rec H-010 "Refuted on the safe side" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0.8 | 2 | refuted | @maintainer |')
+rule "FR-GND-550 a class III refutation on the safe side contradicts its own threshold" 1 "on the safe side of < 0.5"
+ground < <(rec H-010 "Refuted below the gate" "$HYP_SMALL" \
+               'Both of them export weekly.
+
+| date | value | n | verdict | by |
+|---|---|---|---|---|
+| 2026-09-21 | 0 | 1 | refuted | @maintainer |')
+rule "FR-GND-550 a class III refutation below the gate contradicts its own threshold" 1 "smaller than the threshold's own at n >= 2"
+
 echo "grounds-rules: $passes fixtures pass"

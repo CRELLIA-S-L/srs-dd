@@ -41,7 +41,7 @@ Nothing obliges a requirement to be named by a bet. **Stake only on hypotheses a
 
 ## When a measurement lands
 
-Section *Evidence*. Append a row; never edit one — a measurement that turned out wrong gets a later row saying so. The verdict is against `refuted_if`, not the magnitude, and is `supported` or `refuted` and nothing else; the other statuses are things that happen to a hypothesis. Do not write `refuted` because the value crossed the threshold — a sample of that size can miss by that much (`proportion < 0.25 at n >= 200` against `0.24` on 200 is two people); write what you believe and let the checker work out the interval. A `mean` has no interval the row can carry, cannot be class I, and its verdict is argued in the rationale.
+Section *Evidence*. Append a row; never edit one — a measurement that turned out wrong gets a later row saying so. The verdict is against `refuted_if`, not the magnitude, and is `supported` or `refuted` and nothing else; the other statuses are things that happen to a hypothesis. Do not write `refuted` because the value crossed the threshold — a sample of that size can miss by that much (`proportion < 0.25 at n >= 200` against `0.24` on 200 is two people); write what you believe and let the checker work out the interval — except for class III, where no interval is computed and the verdict is yours by name, bound only by the threshold's own words. A `mean` has no interval the row can carry, cannot be class I, and its verdict is argued in the rationale.
 
 Confirmed is not ours: admission to the core is the maintainer's separate decision — absorb, spin off, refuse — put to them as its own question. A refusal is recorded with its reason and date.
 

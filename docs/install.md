@@ -32,7 +32,7 @@ The installer detects the mode itself.
 **adopt** — an SRS-shaped specification exists but `specs/srs-config.json` does not.
 Your spec is validated against the proposed configuration (areas, lexicon) **before anything is touched**; on failure the target is left byte-identical (exit 3).
 Then only the tooling and the missing service files are installed.
-Existing specification files are never modified.
+Existing requirements are never modified; a `specs/README.md` of the project's own is set aside as `specs/archive/README-before-srs-dd.md` and the standard installed in its place — the checker enforces the standard's rules from then on, and the `srs-init` procedure sorts what the former document said beyond them.
 
 **upgrade** — `specs/srs-config.json` exists: see [upgrade.md](upgrade.md).
 

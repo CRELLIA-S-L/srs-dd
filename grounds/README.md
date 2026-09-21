@@ -343,6 +343,9 @@ Declaring class I over one is reported.
 Two things need no error calculation at all and are always reported: a row claiming `refuted` while its value sits on the *safe* side of its own threshold, and one claiming `refuted` on a sample smaller than the threshold's own `at n >=`.
 Both are the record contradicting a sentence its own author wrote.
 
+A class III measurement is a person's reading — interviews, observation, judgement — and its population is often small enough that the error above swallows any answer: at `n = 2` the interval reaches 0.575 whatever both people said, and would compel `supported` over a reader who concluded the opposite.
+So for class III the checker computes no interval: the threshold is still declared before the measurement and still binds by its own words — a `refuted` on the safe side of the bound or below the gate is still the record contradicting itself — but whether the reading crossed the line is the reader's verdict, and the reader is named.
+
 A row that cannot be compared at all is reported before any of that, and the message says which of these it is:
 
 - a `value` or an `n` that is not a number, including `nan` and `inf`
