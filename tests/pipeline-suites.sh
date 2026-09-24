@@ -14,20 +14,23 @@ python3 - <<'PY'
 import glob, os, re, shutil, sys, tempfile
 
 RE_STEP = re.compile(r"^\s+run:\s+tests/([\w.-]+\.sh)\s*$", re.M)
-RE_ROW = re.compile(r"^\| `tests/([\w.-]+\.sh)` \|", re.M)
+RE_ROW = re.compile(r"^\| `tests/([\w.-]+\.sh)` \|([^|\n]*)\|", re.M)
 
 
 def check(root):
     """[problem] over root: a file in tests/ the pipeline never runs or the
-    verification table never names, and a step or a row naming a file that
-    is not there."""
+    verification table never names, a row that does not say what its file
+    covers, and a step or a row naming a file that is not there."""
     with open(os.path.join(root, ".github/workflows/srs.yml"), encoding="utf-8") as handle:
         stepped = set(RE_STEP.findall(handle.read()))
     present = {os.path.basename(p) for p in glob.glob(os.path.join(root, "tests", "*.sh"))}
     problems = ["tests/%s is not a step of the pipeline" % name for name in sorted(present - stepped)]
     problems += ["the pipeline runs tests/%s, which does not exist" % name for name in sorted(stepped - present)]
     with open(os.path.join(root, "specs/50-verification.md"), encoding="utf-8") as handle:
-        tabled = set(RE_ROW.findall(handle.read()))
+        rows = RE_ROW.findall(handle.read())
+    tabled = {name for name, _ in rows}
+    problems += ["specs/50-verification.md names tests/%s without what it covers" % name
+                 for name, covers in rows if not covers.strip()]
     problems += ["tests/%s is not in the table of specs/50-verification.md" % name for name in sorted(present - tabled)]
     problems += ["specs/50-verification.md describes tests/%s, which does not exist" % name for name in sorted(tabled - present)]
     return problems
@@ -42,7 +45,7 @@ os.makedirs(os.path.join(lab, "tests"))
 os.makedirs(os.path.join(lab, "specs"))
 open(os.path.join(lab, "specs/50-verification.md"), "w").write(
     "| Suite | Covers |\n|---|---|\n| `tests/kept.sh` | x |\n| `tests/forgotten.sh` | x |\n"
-    "| `tests/mentioned.sh` | x |\n| `tests/stale.sh` | x |\n\nProse naming `tests/kept.sh` is no row.\n")
+    "| `tests/mentioned.sh` |  |\n| `tests/stale.sh` | x |\n\nProse naming `tests/kept.sh` is no row.\n")
 open(os.path.join(lab, "tests/untabled.sh"), "w").write("#!/bin/sh\n")
 for name in ("kept.sh", "forgotten.sh", "mentioned.sh"):
     open(os.path.join(lab, "tests", name), "w").write("#!/bin/sh\n")
@@ -58,9 +61,10 @@ assert "tests/mentioned.sh is not a step of the pipeline" in found, found
 assert "tests/untabled.sh is not a step of the pipeline" in found, found
 assert "tests/untabled.sh is not in the table of specs/50-verification.md" in found, found
 assert "specs/50-verification.md describes tests/stale.sh, which does not exist" in found, found
-assert len(found) == 6, found
+assert "specs/50-verification.md names tests/mentioned.sh without what it covers" in found, found
+assert len(found) == 7, found
 shutil.rmtree(lab)
-print("pipeline-suites: a suite with no step or no row, a step or row with no suite, and a suite run inside another command are each red")
+print("pipeline-suites: a suite with no step or no row, a row saying nothing, a step or row with no suite, and a suite run inside another command are each red")
 
 # --- Then the repository.
 found = check(".")

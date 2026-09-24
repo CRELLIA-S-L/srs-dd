@@ -8,7 +8,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
-## [0.20.0]
+## [0.20.0] — 2026-09-24
 
 ### Added
 
@@ -27,6 +27,11 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 - The decision template ships from `specs/adr/`, not from `skeleton/`. The file is `specs/adr/template.md`, identical in every project, so it joins the standard as a file with one copy, kept where this repository's own decisions are written; a target gets the same file as before. Anyone scripting against a framework clone finds it at the new path (`INV-SKILL-010`, ADR-0004).
 - Agent guides have a word budget of their own. `tests/skill-budget.sh` holds the two guides to 1 500 words and the procedures to 1 300 as before, so that a guide carrying every shipped rule does not loosen the number for every procedure (`NFR-SKILL-020`).
+
+### Upgrade notes
+
+- The procedures are refreshed on upgrade; the standard and the agent guides only with `--force`, and only where the file still carries the framework's marker. Without that a project keeps a `specs/README.md` with no paragraph under *Workflow* on what counts as a decision — the paragraph the refreshed `srs` procedure now points at — and an `AGENTS.md` without the loop step *Record what you chose* and the two rules the shipped guide gained: offering a requirement for a rule a conversation settles, and naming in a commit the requirements it implements.
+- An upgrade does not install starter files, so `specs/adr/template.md` keeps the sections it had. To give it the new one, add after *Decision outcome* a `### How it works` heading followed by: "Only where the chosen option is an algorithm or a mechanism: its steps in words, the invariants it keeps, the inputs where it stops working. The code is how it is done today; this is what a rewrite must keep."
 
 ## [0.19.0] — 2026-09-21
 

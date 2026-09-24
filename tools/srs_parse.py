@@ -40,7 +40,7 @@ import re
 # ADR-0019 refuses to let the grounds checker import srs_check, which is
 # where the number used to live. Both re-export it, so everything that
 # read it from there reads it still (ADR-0021).
-__version__ = "0.19.0"
+__version__ = "0.20.0"
 
 # implements: INV-SPEC-080, INV-SPEC-090
 # The one thing every identifier grammar shares is its tail: a number of

@@ -4,6 +4,17 @@ Discrepancies between the specification and the code, unfinished work, unresolve
 Each entry states what diverged, where it was found, and what decision is needed.
 Entries are removed once the maintainer decides which side is right and the fix lands.
 
+## Decisions that chose a mechanism before FR-SPEC-030 do not say how it works
+
+**Found:** by the audit before baseline 0.20.0 (2026-09-24).
+
+**What diverged:** FR-SPEC-030 obliges a decision that chose an algorithm or a mechanism to describe it in words — its steps, the invariants it keeps, the inputs where it stops working — and says nothing of when the decision was written.
+Of the decisions under `specs/adr/`, only ADR-0031 has a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
+
+**Why it is recorded rather than fixed:** a decision is the record of what was decided when it was decided, and adding a section to it afterwards changes that record; narrowing the statement to decisions written from now on is the other way out, and it is a change to what the requirement obliges.
+
+**Decision needed:** narrow FR-SPEC-030 to decisions recorded from 2026-09-24 on; add *How it works* to the earlier decisions that chose a mechanism, as dated notes the way ADR-0012 carries one; or leave both as they are and let the statement stand as the rule for what is written next.
+
 ## The graph cannot be pinched
 
 **Found:** while reviewing the explorable graph (2026-08-08).

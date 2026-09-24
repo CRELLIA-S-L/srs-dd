@@ -26,4 +26,5 @@ The target-only lines that no requirement carries — the upgrade command, the w
 ### Consequences
 
 - An exception is a code change to the test, reviewed as one.
+- A whole file can concern a target alone too: the starter files under `skeleton/specs/`, `skeleton/grounds/` and `skeleton/arch/` teach a project how to fill its first files, so they are left out of the test's table of pairs rather than excused one rule at a time, and `INV-SKILL-010`'s rationale says why.
 - The requirement's rationale does not say it is excused; the test does, by identifier, so a search for the identifier finds the exception — `--where` does not, since it reads annotations and the entry is not one.

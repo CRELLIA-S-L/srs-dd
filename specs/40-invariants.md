@@ -561,6 +561,7 @@ What rests on it is more than tidiness.
 
 The counterpart may say more — ADR-0004 still frees it to describe this repository — and may say it in its own words; what it may not do is lack a rule.
 What concerns a target alone is excepted by name in the test, with its reason: a line the installer fills in, a procedure that exists only for a target, such as upgrading from a framework this repository is.
+The starter files under `skeleton/specs/`, `skeleton/grounds/` and `skeleton/arch/` are of that kind as a whole: what they state teaches a project that has not started how to fill its first files — "define every word a newcomer would stumble on" — and this repository filled its own long ago, so they are no pair and the test holds none; the audit before baseline 0.20.0 asked, and this is the answer.
 
 A file identical in every project is not a pair at all: it ships from this repository's own tree, as `specs/README.md` does under ADR-0004, and the decision template joined it when a rule went into the shipped copy that this repository, having none, never saw.
 The constitution is not a pair either: its own text says the two copies diverge as either side is amended.
