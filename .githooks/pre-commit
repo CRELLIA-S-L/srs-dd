@@ -4,4 +4,16 @@
 # Runs the local gate: YAML validation of the pipeline and the shipped
 # templates, then every suite in tests/ — the same scripts CI runs. See
 # tools/ci_selftest.sh for details.
+# implements: FR-GND-310, INV-SKILL-010
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+# First what the requirements this commit touches are standing on, as the
+# hook a target gets says it (ci/pre-commit): this repository keeps a
+# register too. A report and never a verdict, so nothing here can fail the
+# commit; every staged path, NUL-separated, for the reasons given there.
+if [ -f grounds/grounds-config.json ]; then
+    git diff --cached --name-only -z --diff-filter=ACM \
+        | xargs -0 python3 tools/srs_grounds.py --blast || true
+fi
+
 exec tools/ci_selftest.sh

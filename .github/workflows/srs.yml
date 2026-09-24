@@ -84,6 +84,27 @@ jobs:
       - name: Documented content
         run: tests/docs-content.sh
 
+      - name: Guide parity
+        run: tests/guide-parity.sh
+
+      - name: Line width
+        run: tests/line-width.sh
+
+      - name: Procedure budget
+        run: tests/skill-budget.sh
+
+      - name: Procedure instructions
+        run: tests/skill-instructions.sh
+
+      - name: Citation eval smoke
+        run: tests/cite-eval-smoke.sh
+
+      - name: Procedure eval smoke
+        run: tests/proc-eval-smoke.sh
+
+      - name: Pipeline runs every suite
+        run: tests/pipeline-suites.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \

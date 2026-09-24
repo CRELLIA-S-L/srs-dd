@@ -8,8 +8,9 @@ It explains that this is the framework itself rather than a project using it, wh
 
 Claude-specific additions:
 
-- **Invoke the `srs` skill** before any code change that alters behavior of the checker, the viewer or the installer, when planning a task, and when the question is how this repository works rather than a change to it — it is itself an SRS-DD project.
+- **Invoke the `srs` skill** before any code change that alters behavior — of a tool, a procedure, a guide, the payload or a CI template — when planning a task, and when the question is how this repository works rather than a change to it — it is itself an SRS-DD project.
 - To set SRS-DD up in another repository, use the `srs-init` skill; it is available only here and is never copied into targets.
 - To author a new requirement through a dialog, use `srs-new`; to audit spec ↔ code drift, test adequacy and the links between requirements, use `srs-audit`.
+- To check a finished change, use the `srs-check` skill — it reads what each touched requirement asks for and offers to run exactly that; to read the specification as a page, `srs-page`.
 - To freeze the specification at a milestone, use `srs-baseline`; to cut a release of the framework, `srs-release`.
   They are separate acts with separate numbers, and neither command commits or tags — that is left to the git client this repository is driven by.

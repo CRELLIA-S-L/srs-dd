@@ -1,0 +1,46 @@
+# What both agent guides must name — AGENTS.md and skeleton/AGENTS.md —
+# written on 2026-09-23 off the shipped guide, one literal token per line,
+# each found in both files. Add a line when the shipped guide gains a rule;
+# remove one only with the sentence that says why. Target-only lines stay
+# out: the upgrade command and the width line the installer fills in.
+
+# the standard, the principles, the generated matrix
+specs/README.md
+specs/constitution.md
+ART-030
+specs/90-traceability.md
+never edit
+
+# the tools
+tools/srs_check.py
+--vocabulary
+--code
+--statements
+--where
+--source
+--areas
+--open
+--cite
+tools/srs_arch.py --cite
+tools/srs_grounds.py --cite
+tools/srs_baseline.py
+specs/92-baselines.md
+
+# the procedures
+srs-check
+srs-page
+srs-baseline
+plain markdown
+
+# the way in, and the rules most easily broken
+specs/00-glossary.md
+specs/01-introduction.md
+specs/02-overview.md
+`code` and `tests` fields
+a list or a table
+match the sentence to it
+as shown above
+specs/adr/
+offer to author
+ART-060
+trailing parenthesis

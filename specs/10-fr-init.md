@@ -502,3 +502,26 @@ While adopting a specification that has its own `specs/README.md`, the installer
 **Rationale.** After adoption the checker enforces the standard's rules whatever the project's own document says, so leaving that document in place leaves a file that claims authority it no longer has.
 The archive is where the standard sends absorbed documents, and nothing reads it as requirements; the former document survives there byte for byte, for the adopt procedure to sort and for history.
 A stale copy already at that path stops the run before anything is written, so that no archive of somebody else's is overwritten.
+
+### FR-INIT-240 — A skipped file says whether it differs from what ships
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-060]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-24
+```
+
+On upgrade, the installer **shall** mark each file carrying its marker that it skipped for want of `--force` as either the same as what this version ships or different from it, the marker's version aside.
+
+**Rationale.** An upgrade without `--force` listed every precious file it left alone under one reason, "use --force to refresh".
+From 0.19.0 to 0.20.0, in a project installed without a CI template, that was seven files, of which three had changed — the standard, the grounds standard and the agent guide — and the list could not say which; the first project to read the release notes called a partial install the danger of the release, since a refreshed procedure then points at a paragraph its standard does not have.
+Marking the difference is what turns the list into something to act on: a file the same as what ships needs nothing, a file that differs is either one the framework changed or one the project edited, and either way it is the one to look at before `--force`.
+
+The marker's version is set aside because every release restamps it: a comparison that counted it would call every skipped file changed, and the list would say nothing again (ADR-0033).
+A file without the marker is not compared — it is not ours, and it keeps the reason it had.

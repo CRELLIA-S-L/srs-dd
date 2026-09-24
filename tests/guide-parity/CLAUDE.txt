@@ -1,0 +1,11 @@
+# What both per-agent entry files must name — CLAUDE.md and
+# skeleton/CLAUDE.md. Target-only: `srs-upgrade`.
+@AGENTS.md
+`srs` skill
+alters behavior
+when planning a task
+srs-new
+srs-audit
+srs-check
+srs-page
+srs-baseline

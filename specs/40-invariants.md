@@ -535,3 +535,36 @@ Wherever a tool of the framework orders identifiers — a listing, the matrix, t
 Every place a tool orders identifiers is bound, not only the ones a reader sees: a listing is read by a person, the matrix by a review tool, and a finding names "both occurrences" in an order somebody relies on.
 The published model carries the identifier as written and no order of its own, so a consumer that orders it as strings is misplacing the number by its own choice, and this invariant does not reach it.
 
+### INV-SKILL-010 — The framework's own counterpart carries what the shipped file carries
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [AGENTS.md, CLAUDE.md, .githooks/pre-commit, tools/srs_init.py, specs/adr/template.md]
+tests: [tests/guide-parity.sh]
+created: 2026-09-23
+```
+
+Where this repository keeps its own counterpart of a file the framework ships — an agent guide, the pre-commit hook — every rule the shipped file states **shall** hold in the counterpart as well, except what concerns a target alone.
+
+**Rationale.** The framework is the first project it is applied to, and its own `AGENTS.md`, `CLAUDE.md` and `.githooks/pre-commit` are its instances of what `skeleton/` and `ci/` hand every target.
+Nothing said so.
+ADR-0004 recorded the opposite half — the root guides "became free to describe this repository" — and the map of the repository called the shipped guides "target-facing", so a reader took the two for independent files with two audiences, and an agent proposed taking a rule out of the root guide on the ground that a procedure covered it here.
+The relation existed only as a habit in the `code` fields, decided afresh for each requirement, and nothing checked it: on 2026-09-23 the root guide lacked the constitution, the rule on the generated matrix, the one on ART-030, and the lines on `srs-check`, `srs-page`, `srs-baseline` and the procedures being plain markdown; the root `CLAUDE.md` sent only changes to the checker, the viewer and the installer through `srs`; and the hook here did not print the bets a commit touches, although this repository keeps a register.
+
+What rests on it is more than tidiness.
+`FR-SKILL-290` and `FR-SKILL-310` run a fresh agent in this repository, with the root guides loaded, and read the result as a measurement of the guides a target gets — true only while each counterpart holds the rules its shipped file states.
+
+The counterpart may say more — ADR-0004 still frees it to describe this repository — and may say it in its own words; what it may not do is lack a rule.
+What concerns a target alone is excepted by name in the test, with its reason: a line the installer fills in, a procedure that exists only for a target, such as upgrading from a framework this repository is.
+The starter files under `skeleton/specs/`, `skeleton/grounds/` and `skeleton/arch/` are of that kind as a whole: what they state teaches a project that has not started how to fill its first files — "define every word a newcomer would stumble on" — and this repository filled its own long ago, so they are no pair and the test holds none; the audit before baseline 0.20.0 asked, and this is the answer.
+
+A file identical in every project is not a pair at all: it ships from this repository's own tree, as `specs/README.md` does under ADR-0004, and the decision template joined it when a rule went into the shipped copy that this repository, having none, never saw.
+The constitution is not a pair either: its own text says the two copies diverge as either side is amended.
+
+Two instruments hold it, because a rule reaches a guide by two roads.
+A requirement naming the shipped file in its `code` field names the counterpart too, which catches a rule on the day it is written; and a list of literal tokens per pair, each found in both files, holds the rules no requirement carries, the ones the constitution and the standard put there.

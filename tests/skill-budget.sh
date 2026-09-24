@@ -34,16 +34,24 @@ cd "$(dirname "$0")/.."
 #               re-reads the context before it. The number is a ceiling on
 #               what a procedure sends the reader to, not a verdict on
 #               reading it.
+#   GUIDE       OWN for the two agent guides, which carry more than a
+#               procedure does: every session reads them, whatever it was
+#               asked. 1 500 is where this repository's guide stands on
+#               2026-09-23 once it carries every rule the shipped guide
+#               states (INV-SKILL-010) — the constitution, the generated
+#               files, ART-030, three procedures — beside its own.
 OWN=1300
 TRANSITIVE=6700
+GUIDE=1500
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by
 # every session whether or not a procedure is invoked.
-python3 - "$OWN" "$TRANSITIVE" <<'PY'
+python3 - "$OWN" "$TRANSITIVE" "$GUIDE" <<'PY'
 import glob, os, re, sys
 
-own_budget, transitive_budget = int(sys.argv[1]), int(sys.argv[2])
+own_budget, transitive_budget, guide_budget = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+GUIDES = ("AGENTS.md", "skeleton/AGENTS.md")
 RE_PATH = re.compile(r"`([^`\s]+\.(?:md|json))`")
 
 
@@ -99,8 +107,9 @@ def judge(rows):
     for name, own, transitive, opens, missing in rows:
         for path in missing:
             over.append("%s: tells the reader to open %s, which does not exist" % (name, path))
-        if own > own_budget:
-            over.append("%s: %d words of its own, budget %d" % (name, own, own_budget))
+        budget = guide_budget if name in GUIDES else own_budget
+        if own > budget:
+            over.append("%s: %d words of its own, budget %d" % (name, own, budget))
         if transitive > transitive_budget:
             over.append("%s: %d words with %s, budget %d"
                         % (name, transitive, ", ".join(opens) or "nothing opened",
@@ -126,6 +135,11 @@ with open(os.path.join(lab, ".claude/skills/lean/SKILL.md"), "w") as handle:
                  + "word " * 20 + "\n")
 with open(os.path.join(lab, ".claude/skills/lost/SKILL.md"), "w") as handle:
     handle.write("---\ndescription: x\n---\n\n# Lost\n\nRead `specs/gone.md` first.\n\n## Step\n\nword\n")
+os.makedirs(os.path.join(lab, "skeleton"))
+with open(os.path.join(lab, "AGENTS.md"), "w") as handle:           # past a procedure's budget, within a guide's
+    handle.write("word " * (own_budget + 10) + "\n")
+with open(os.path.join(lab, "skeleton/AGENTS.md"), "w") as handle:  # past a guide's
+    handle.write("word " * (guide_budget + 1) + "\n")
 lab_rows = {name: (own, tr, opens, missing) for name, own, tr, opens, missing in measure(lab)}
 assert lab_rows["fat"][0] == own_budget + 1 + 6, lab_rows["fat"]      # the frontmatter and the heading count too
 assert lab_rows["lean"][2] == ["specs/README.md"], lab_rows["lean"]  # once, and not the mention
@@ -136,13 +150,15 @@ assert any(l.startswith("fat: ") and "of its own" in l for l in lab_over), lab_o
 assert any(l.startswith("lean: ") and "with specs/README.md" in l for l in lab_over), lab_over
 assert any(l.startswith("lost: ") and "does not exist" in l for l in lab_over), lab_over
 assert not any(l.startswith("lean: ") and "of its own" in l for l in lab_over), lab_over
+assert any(l.startswith("skeleton/AGENTS.md: ") and "of its own" in l for l in lab_over), lab_over
+assert not any(l.startswith("AGENTS.md: ") for l in lab_over), lab_over
 import shutil
 shutil.rmtree(lab)
-print("skill-budget: a lab procedure over either budget, or opening a file that is not there, is red")
+print("skill-budget: a lab procedure over either budget, a guide over its own, or opening a file that is not there, is red")
 
 # --- Then the repository.
 rows = measure(".")
-if not [r for r in rows if r[0] not in ("AGENTS.md", "skeleton/AGENTS.md")]:
+if not [r for r in rows if r[0] not in GUIDES]:
     print("skill-budget: no procedure under .claude/skills — nothing measured")
     sys.exit(1)
 print("%-20s %6s %10s  %s" % ("file", "own", "transitive", "told to open first"))
@@ -154,6 +170,6 @@ if over:
     for line in over:
         print("  " + line)
     sys.exit(1)
-print("skill-budget: %d files within %d own / %d transitive words"
-      % (len(rows), own_budget, transitive_budget))
+print("skill-budget: %d files within %d own (%d for a guide) / %d transitive words"
+      % (len(rows), own_budget, guide_budget, transitive_budget))
 PY

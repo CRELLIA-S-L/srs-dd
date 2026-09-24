@@ -30,6 +30,7 @@ Tooling has to move with the framework or a project drifts away from the standar
 Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the pre-commit hook and `specs/README.md` — files that may be your own.
 The first four are ones a project commonly edits; the standard is there because its marker promises that your local edits to it survive until `--force`.
 `--force` refreshes all of them, and only when the existing file carries the installer's marker — a line reading `SRS-DD-<version>` — so a file you wrote is never clobbered.
+The skipped list says of each such file whether it is the same as what this version ships or differs from it; the ones that differ are the ones to read before passing `--force`.
 
 Your requirements are never touched: they are the project's own, whatever flag you pass.
 The standard is the one file under `specs/` that moves, and only under `--force` — worth knowing before you pass it, because a standard you edited is replaced rather than merged.
