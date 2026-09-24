@@ -8,6 +8,20 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.20.1] — 2026-09-24
+
+### Added
+
+- An upgrade says which skipped files differ from what it ships. Each file with the marker that an upgrade leaves alone for want of `--force` is marked "same as this version ships" or "differs from what this version ships", the marker's version aside, so the files to read before `--force` are the ones named rather than all of them (`FR-INIT-240`, ADR-0033).
+
+### Changed
+
+- A tuned value is not a decision. The standard's *Workflow* now says that a value a decision leaves to tuning — a speed, a radius, a timing kept where the project keeps its tunables — is governed by that decision, so a change that tunes one records no ADR; "a threshold or a constant" in the list of decisions read as an ADR for every number (`FR-SKILL-350`).
+
+### Upgrade notes
+
+- The sentence on tuned values is in `specs/README.md`, which an upgrade refreshes only with `--force` and only where the file still carries the framework's marker; without it, a project's agents keep reading every threshold or constant as a decision to record. From this version on, the skipped list says whether `specs/README.md` differs from what ships.
+
 ## [0.20.0] — 2026-09-24
 
 ### Added

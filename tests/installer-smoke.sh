@@ -199,12 +199,22 @@ cp -R "$PT" /tmp/srs-pristine
 precious() {
     local rel=$1; shift
     cp "/tmp/srs-pristine/$rel" "$PT/$rel"
-    printf 'theirs, edited\n' >> "$PT/$rel"
 
+    # verifies: FR-INIT-240
+    # A skipped file says whether it differs from what this version ships:
+    # the copy it installed does not, the same copy edited does. Without the
+    # first half every skipped file could be reported as changed and this
+    # would stay green.
+    python3 tools/srs_init.py "$PT" --defaults "$@" > /tmp/prec-same.log
+    grep -qF "$rel (same as this version ships)" /tmp/prec-same.log \
+        || { echo "FAIL FR-INIT-240 — $rel: an untouched copy was not reported"
+             echo "as the same as what this version ships"; cat /tmp/prec-same.log; exit 1; }
+
+    printf 'theirs, edited\n' >> "$PT/$rel"
     python3 tools/srs_init.py "$PT" --defaults "$@" > /tmp/prec-keep.log
-    grep -qF "$rel (use --force to refresh)" /tmp/prec-keep.log \
+    grep -qF "$rel (differs from what this version ships; use --force to refresh)" /tmp/prec-keep.log \
         || { echo "FAIL FR-INIT-060 — $rel: an upgrade did not report it as"
-             echo "kept behind --force"; cat /tmp/prec-keep.log; exit 1; }
+             echo "kept behind --force, and as differing (FR-INIT-240)"; cat /tmp/prec-keep.log; exit 1; }
     grep -qF 'theirs, edited' "$PT/$rel" \
         || { echo "FAIL FR-INIT-060 — $rel was refreshed without --force"
              exit 1; }

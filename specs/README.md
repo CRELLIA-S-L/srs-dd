@@ -221,6 +221,7 @@ If there is no requirement — create it first rather than writing code silently
 An architecture decision is recorded separately in `adr/`, and it is not only a choice somebody weighed — a storage engine chosen, an approach rejected, a platform limitation worked around.
 Where a requirement could have been met another way, the way the change took is a decision too, whether or not alternatives were weighed — an algorithm or an order of steps, a heuristic, a threshold or a constant, a format, a fallback.
 What the requirement or an existing decision already fixes, and what is plain idiom, is not.
+A value such a decision leaves to tuning — a speed, a radius, a timing kept where the project keeps its tunables — is not a decision either: the decision is where those values live and how they are tuned, and it is written once.
 Where the requirement could be read two ways, the reading taken is not a decision but a gap in the requirement, and it is written into the statement.
 When the loop is closed, each decision the change made is written into `adr/`, or the report says the change made none.
 A requirement says “what”; a decision names the path taken and says why it and not the neighboring one.

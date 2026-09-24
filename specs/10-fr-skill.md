@@ -944,6 +944,7 @@ The test is put to the requirement, not to whoever built it.
 "Would another author have done it differently" asks the agent to imagine a person, and it answers that anyone would have written the same; "could the requirement have been met another way" is answered from the statement and the diff.
 An algorithm or an order of steps, a heuristic, a threshold or a constant, a format, a fallback — each is a decision under it, whether or not alternatives were weighed.
 What the requirement or an existing decision already fixes is not, and neither is plain idiom; without that line every loop would leave an ADR behind and the log would stop being read.
+A tuned value is the case that line was least clear about, and the first project to read it asked: a game carries speeds, radii and timings by the hundred, and "a threshold or a constant" in the list read as an ADR for each. Such a value is fixed by the decision that says where tunables live and how they are tuned, so it is that decision's to govern, and the standard says so rather than leaving it to be derived.
 
 A reading is not a decision.
 Where the requirement could be read two ways, the reading taken is what the system does, not how, and it goes into the statement — the re-reading `FR-SKILL-010` already asks for — rather than into `specs/adr/`.

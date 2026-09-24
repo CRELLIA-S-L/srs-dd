@@ -414,6 +414,23 @@ class Installer(object):
         except OSError:
             return False
 
+    def same_as_shipped(self, dst_rel, content):
+        """Whether the target's copy of a file matches what this version
+        would write there, the marker's version aside: every release
+        restamps the marker, so a byte comparison would call every
+        skipped file changed and the list would say nothing again."""
+        # implements: FR-INIT-240
+        shipped = content if isinstance(content, str) else \
+            content.decode("utf-8", errors="replace")
+        try:
+            with open(os.path.join(self.target, dst_rel), "r",
+                      encoding="utf-8", errors="replace") as handle:
+                present = handle.read()
+        except OSError:
+            return False
+        return (RE_MARKER.sub(MARKER_TOKEN, present)
+                == RE_MARKER.sub(MARKER_TOKEN, shipped))
+
     def put(self, dst_rel, content, tooling, precious=False,
             executable=False):
         """Writes one file. `content` is str (utf-8) or bytes.
@@ -434,8 +451,13 @@ class Installer(object):
                 if self.force and ours:
                     self.refreshed.append(dst_rel)
                 else:
-                    reason = ("use --force to refresh" if ours else
-                              "no SRS-DD marker — not ours, merge manually")
+                    if not ours:
+                        reason = "no SRS-DD marker — not ours, merge manually"
+                    elif self.same_as_shipped(dst_rel, content):
+                        reason = "same as this version ships"
+                    else:
+                        reason = ("differs from what this version ships; "
+                                  "use --force to refresh")
                     self.skipped.append("%s (%s)" % (dst_rel, reason))
                     return
             elif tooling and (self.force or self.refresh_tooling):
