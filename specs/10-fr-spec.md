@@ -77,3 +77,46 @@ The code shows what the algorithm does today, not what a rewrite may not stop do
 The three parts are one description, not three obligations — what a rewrite must keep — and none of them is done without the others: steps with no invariants are a paraphrase of the code, invariants with no limits promise more than the algorithm gives.
 
 The shipped decision template had *Context*, *Considered options*, *Decision outcome* and *Consequences*, and nowhere for this; an agent filling the template leaves out what it has no heading for, so the template carries a section for it, used only where the decision chose a mechanism.
+
+### FR-SPEC-040 — An annotation stands where the requirement is carried out
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-CHK-200]
+depends_on: [FR-VIEW-380]
+refines: []
+conflicts_with: []
+code: [specs/README.md]
+tests: []
+created: 2026-09-24
+```
+
+An annotation **shall** stand at the declaration that carries out the requirement it names, except in a file that carries the requirement as a whole, which carries it at its top.
+
+**Rationale.** Since `FR-VIEW-380` an annotation's place is what a reader is shown: `--where --source` prints the region under it, and a line parked at the top of a file answers "where is this realized" with the imports.
+The checker counts per file and cannot hold this, so it is verified by inspection, the way the language of a statement is (ADR-0034).
+The first project to use the framework kept the rule in its own copy of the standard from 0.14 on and asked for it on 2026-09-24; its finer points — a doc comment, an attribute, a computed property — are its language's, and the standard keeps what holds in any.
+
+The exception is the case where the top is the place: a suite that verifies a requirement, or a tool every part of which serves one — nothing to install, no git history written — is carried by the file as a whole, and the region under a line at its top is that file.
+When this was written, twenty-one of this repository's twenty-two suites carried their `verifies:` lines at the top, as a suite that verifies a requirement whole should, and the tools carried lists above their first function naming what the whole file answers for — nothing to install, no git history written. Two of those lists named something a single place carries — the ordering of identifiers in `tools/srs_dates.py`, the exit codes in `tools/srs_arch.py` — so those two lines moved to where the thing is done.
+
+### FR-SPEC-050 — The standard names every rule the checker reports by name
+
+```yaml
+status: implemented
+verification: T
+derives_from: [IF-SPEC-020]
+depends_on: [FR-CHK-160]
+refines: []
+conflicts_with: []
+code: [specs/README.md]
+tests: [tests/standard-rules.sh]
+created: 2026-09-24
+```
+
+The standard **shall** name every rule the checker reports by name, with what it reports.
+
+**Rationale.** A project sets what a rule costs in `rules` and excuses a requirement from one in `exempt`, and both take the rule's name; the standard named one rule of thirteen, pointed `exempt` at a section that never mentioned it, and said of annotations that "unannotated files are never reported" while two rules reported exactly that.
+The names are a published contract (`IF-SPEC-020`) that a project could learn only by getting one wrong and reading the checker's refusal.
+A list of names kept by hand beside a tuple in code is the list that falls behind — the third found in a week, after the pipeline's steps and the table of suites — so a suite holds the table to `RULES` in `tools/srs_check.py`, both ways, and holds the *Annotations* section to every rule it restates.

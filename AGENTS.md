@@ -55,6 +55,9 @@ This repository is itself an SRS-DD project: behavior changes go through `specs/
 - **Check a finished change** — the `srs-check` procedure reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those; it runs nothing unasked.
 - **Procedures** — `.claude/skills/*/SKILL.md` are plain markdown; an agent without a skill system reads them directly.
 - **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the row into `specs/92-baselines.md`, through the `srs-baseline` procedure; nothing commits or tags for you.
+- **Date requirements** — `python3 tools/srs_dates.py` writes into each requirement the date its identifier first appeared in the history; `--dry-run` says what it would write. Run on purpose, never by a gate.
+- **Grounds register** — `python3 tools/srs_grounds.py` checks `grounds/` and regenerates its dashboard; `--blast <path>` says what the requirements behind a file stand on. The procedure is `srs-bet`.
+- **Architecture layer** — `python3 tools/srs_arch.py` checks `arch/` against the specification and regenerates its map. The procedure is `srs-arch`.
 - **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does; `git config core.hooksPath .githooks` wires it into `pre-commit`.
 - **Cut a release** — the `srs-release` procedure; it decides nothing about the version or the notes on its own.
 - **Contribution and release rules** — `CONTRIBUTING.md`.

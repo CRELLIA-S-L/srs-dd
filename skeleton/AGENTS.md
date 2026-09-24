@@ -14,6 +14,9 @@ System behavior is described in `specs/` as numbered requirements with links bet
 - **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those; it runs nothing unasked.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain markdown; an agent without a skill system reads them directly as workflow guides.
 - **Freeze a baseline** — `python3 tools/srs_baseline.py X.Y.Z` writes the row into `specs/92-baselines.md`; the commit that carries it is the baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure. Nothing here commits or tags for you.
+- **Date requirements** — `python3 tools/srs_dates.py` writes into each requirement the date its identifier first appeared in the history; `--dry-run` says what it would write. Run on purpose, never by a gate.
+- **Grounds register**, where the project keeps `grounds/` — `python3 tools/srs_grounds.py` checks it and regenerates `grounds/90-dashboard.md`; `--blast <path>` says what the requirements behind a file stand on. `.claude/skills/srs-bet/SKILL.md` is the procedure.
+- **Architecture layer**, where the project keeps `arch/` — `python3 tools/srs_arch.py` checks it against the specification and regenerates `arch/90-map.md`. `.claude/skills/srs-arch/SKILL.md` is the procedure.
 - **Upgrade the framework** — `python3 tools/srs_upgrade.py` shows the version transition, the upgrade notes and the file list, then asks; `.claude/skills/srs-upgrade/SKILL.md` is the procedure. No framework clone, no address to look up.
 
 ## Two ways in

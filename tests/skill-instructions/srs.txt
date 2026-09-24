@@ -50,3 +50,4 @@ srs-new
 Name what you chose
 then the `srs-check` procedure
 the checker and the `srs-check` procedure
+the files in its `code` that restate it

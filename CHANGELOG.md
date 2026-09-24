@@ -8,6 +8,26 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.21.0]
+
+### Added
+
+- The standard names every rule the checker reports. A table under *Configuration* gives each rule's name and what it reports — the names `rules` sets the cost of and `exempt` excuses a requirement from — and `tests/standard-rules.sh` holds it to the checker's own list both ways (`FR-SPEC-050`).
+- An annotation stands where the requirement is carried out. At the declaration whose deletion would break the requirement, never inside a string literal, and never to quiet a warning; a file that carries a requirement whole — a suite, a tool every part of which serves it — carries it at its top, the one place a list of identifiers stands. Since `--where --source` prints the region under an annotation, its place is what a reader is shown (`FR-SPEC-040`, ADR-0034).
+- The shipped guide names every command the installer ships. It gained lines for `srs_dates.py`, the grounds register and the architecture layer — the layers' opening with "where the project keeps", so one guide serves a project with them and without — and a test reads the installer's own list of commands (`FR-SKILL-380`).
+- A file that restates a changed requirement is re-read with it. The `srs` procedure's closing lookup now takes in the files a requirement's `code` field names that restate it, and the standard is named in the fields of the rules it restates (`FR-SKILL-370`).
+
+### Changed
+
+- The standard's *Annotations* section matches the checker. It said unannotated files were never reported, while `annotation-unpaired` and `annotation-absent` have reported them since 0.14.0; it now says the field and the annotation are two claims compared both ways, and names all five annotation rules (`FR-CHK-080`, `FR-CHK-200`, `FR-CHK-210`).
+- `exempt` is explained where the fields table points. *Configuration* now says that `rules` sets a rule's cost across the project and `exempt` excuses one requirement, under the same names, with the reason in its rationale (`FR-CHK-160`).
+- The agent guides may run to 1 600 words. The shipped guide's new lines are carried by this repository's guide too, and the procedures stay at 1 300 (`NFR-SKILL-020`, ADR-0030).
+
+### Upgrade notes
+
+- The standard and the agent guide changed, and an upgrade refreshes them only with `--force` and only where the file still carries the framework's marker; the skipped list says which of them differ. A project whose `AGENTS.md` is its own adds the lines headed *Date requirements*, *Grounds register* and *Architecture layer* from `skeleton/AGENTS.md` of the framework it upgrades from — the address is `framework_url` in `specs/srs-config.json`.
+- Nothing checks where an annotation stands, so nothing turns red: a list of identifiers at the top of a file that does not carry each of them whole now reads against the standard, and moves to the declarations that carry them out when the file is next edited.
+
 ## [0.20.1] — 2026-09-24
 
 ### Added

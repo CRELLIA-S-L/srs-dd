@@ -247,8 +247,16 @@ Source and test files may carry traceability annotations in comments:
 `implements:` maps to the requirement's `code` field, `verifies:` to its `tests` field — by keyword, regardless of where the file lives.
 Multiple IDs are separated by commas.
 
-The `code`/`tests` fields remain the single source of truth; annotations are an optional cross-check, and unannotated files are never reported.
-The checker errors on an annotation referencing a nonexistent requirement in a known area, and warns on: an unknown type or area (likely an example), an annotation pointing at a cancelled requirement, and an annotated file missing from the requirement's corresponding field.
+The `code` and `tests` fields and the annotations are two claims about one link — the field is the specification's, the annotation is the file's — and the checker compares them both ways.
+It errors on an annotation naming a nonexistent requirement in a declared area, and warns on an unknown type or area (`annotation-unknown-area`, likely an example), an annotation naming a cancelled requirement (`annotation-superseded`), a file naming a requirement that does not list it (`annotation-unlisted`), a file a realized requirement lists that does not name it back (`annotation-unpaired`), and a file under the code roots that neither end claims (`annotation-absent`).
+
+**Where an annotation stands.** At the declaration that carries out the requirement — the one whose deletion would break it; `srs_view.py <ID> --where --source` prints the region under each annotation, so its place is what a reader is shown.
+Inside a function, at the top of its body, after the doc comment where the language puts one there; above a constant, a type or an enumeration, and above its doc comment where it has one; for behavior with no declaration of its own — a branch, a guard — on the line above it.
+Never inside a string literal: that is data, not a comment.
+A file that carries a requirement as a whole — a suite that verifies it, a tool every part of which serves it — carries the annotation at its top, and that is the only place a list of identifiers stands.
+An annotation is a claim, not bookkeeping: a file that does not carry out a requirement gets no annotation to quiet a warning, and the field is corrected instead.
+A requirement met by the absence of code — a prohibition — has no declaration to stand at; its `exempt` field excuses it from `annotation-unpaired`, with the reason in its rationale.
+The line itself is copied from the warning, which prints it ready to paste.
 A line containing `srs-ignore` is exempt from annotation checking.
 
 ## Baselines
@@ -316,6 +324,25 @@ A Russian project, for illustration, would set:
 
 Which of your words carries which binding force (mandatory / recommended / allowed) is your project's convention — record it in `00-glossary.md`.
 
+**Rules.** Each warning the checker gives carries a name.
+`rules` sets what a rule costs across the project; a requirement's `exempt` field excuses that one requirement from it, under the same names, and the reason is written in its rationale, where review and the rendered page show it.
+
+| Rule | What it reports |
+|---|---|
+| `unknown-key` | A field the requirement block does not define |
+| `draft-with-code` | A `draft` requirement whose `code` field is not empty — implementation ahead of approval |
+| `rests-on-draft` | An `implemented` or `partial` requirement that derives from, depends on or refines a `draft` one |
+| `rests-on-withdrawn` | A requirement still in force that derives from, depends on or refines a `withdrawn` one |
+| `test-missing` | `verification: T` with an empty `tests` field |
+| `unlinked` | A requirement linked to nothing that nothing links to |
+| `annotation-unknown-area` | An annotation naming an identifier whose type or area the project does not declare — likely an example |
+| `annotation-superseded` | An annotation naming a `superseded` or `withdrawn` requirement |
+| `annotation-unlisted` | A file naming a requirement that does not list it in its `code` or `tests` field |
+| `annotation-unpaired` | A file an `implemented` or `partial` requirement lists that does not name it back |
+| `annotation-absent` | A file under the code roots that no requirement names and that names none |
+| `baseline-without-row` | A `spec/v*` tag the baseline log has no row for |
+| `file-range` | A requirement whose number lies outside the range its file's name states |
+
 ## Checking
 
 ```
@@ -341,3 +368,5 @@ Backtick fences follow the CommonMark length rule (a block opened with N backtic
 - Do not describe implementation details in a requirement — behavior only.
 - Do not create a requirement without a way to verify it.
 - Do not keep two sources of truth: if something is described here, other documents must not restate it.
+- Do not put a list of identifiers at the top of a file that does not carry each of them as a whole.
+- Do not annotate a file that does not carry out the requirement.

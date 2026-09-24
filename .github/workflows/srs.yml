@@ -105,6 +105,9 @@ jobs:
       - name: Pipeline runs every suite
         run: tests/pipeline-suites.sh
 
+      - name: Standard names every rule
+        run: tests/standard-rules.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \

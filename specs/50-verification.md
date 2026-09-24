@@ -34,6 +34,7 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/skill-instructions.sh` | Every shipped procedure still names the commands, articles, files, procedures and instructions its list says it must |
 | `tests/guide-parity.sh` | This repository's guides and hook carry every rule their shipped counterparts state, and the decision template has one copy |
 | `tests/pipeline-suites.sh` | The pipeline runs every file in `tests/` as a step of its own, and this table names every one of them |
+| `tests/standard-rules.sh` | The standard names every rule the checker reports by name, with what it reports, and its *Annotations* section every annotation rule |
 | `tests/line-width.sh` | Not a suite: the gate `FR-CI-100` names as its own code, refusing a source line wider than 120 columns that no string literal on it answers for |
 
 Every file in the table runs in CI, one step each, and locally through `tools/ci_selftest.sh`, which executes everything in `tests/` rather than a copy of it; `tests/pipeline-suites.sh` holds both the pipeline's steps and this table to the directory.

@@ -192,7 +192,7 @@ Both ends are named because both are what the reader acts on: one of them gets a
 
 `conflicts_with` is not counted here, as it is not in FR-CHK-190: diverging from a draft is a position, not a dependency, and nothing about it is waiting on approval.
 
-### FR-CHK-080 — Annotations are cross-checked, never required
+### FR-CHK-080 — The annotations present are cross-checked
 
 ```yaml
 status: implemented
@@ -201,7 +201,7 @@ derives_from: []
 depends_on: [FR-CHK-050]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [tools/srs_check.py, specs/README.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -218,6 +218,7 @@ This carried the clause "never reporting a file that carries none" while annotat
 ADR-0014 settles that a file a requirement names is obliged to say so, which the prohibition stood in the way of.
 What this requirement covers is unchanged: the annotations that are there, judged against the specification.
 What is asked of a file that carries none belongs to FR-CHK-200 and FR-CHK-210, where it can be argued on its own terms and priced by the rules those two carry.
+The title kept saying "never required" after ADR-0014 took the clause out, and the standard kept the sentence the title echoed — "unannotated files are never reported" — until a project that read both against the checker asked which was true; the title now says what the statement does.
 
 ### FR-CHK-090 — The lexicon, not a language
 
@@ -378,7 +379,7 @@ derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_view.py]
+code: [tools/srs_check.py, tools/srs_view.py, specs/README.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```
@@ -472,7 +473,7 @@ derives_from: []
 depends_on: [FR-CHK-080, FR-CHK-055]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [tools/srs_check.py, specs/README.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -508,7 +509,7 @@ derives_from: []
 depends_on: [FR-CHK-080]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_init.py]
+code: [tools/srs_check.py, tools/srs_init.py, specs/README.md]
 tests: [tests/checker-rules.sh, tests/adopt-smoke.sh, tests/installer-smoke.sh]
 created: 2026-08-17
 ```

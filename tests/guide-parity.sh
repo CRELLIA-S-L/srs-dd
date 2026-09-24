@@ -10,7 +10,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: INV-SKILL-010
+# verifies: INV-SKILL-010, FR-SKILL-380
 python3 - <<'PY'
 import glob, os, re, sys
 
@@ -109,6 +109,25 @@ if (template, template) not in srs_init.collect_spec_skeleton():
     found.append((template, "is not shipped from this repository's own tree"))
 if os.path.exists(os.path.join("skeleton", template)):
     found.append((os.path.join("skeleton", template), "is a second copy of %s" % template))
+
+# The shipped guide names every command the installer ships: a layer or a
+# tool added later reaches a project's agents only through the guide they
+# read in every session. `srs_parse.py` is a module the checkers import,
+# not a command anybody runs, so it is not asked for.
+NOT_COMMANDS = {"srs_parse.py": "a module the checkers import, not a command"}
+
+
+def unnamed(text, commands):
+    return ["tools/%s" % name for name in commands
+            if name not in NOT_COMMANDS and "tools/%s" % name not in text]
+
+
+assert unnamed("run `python3 tools/srs_check.py`", ("srs_check.py", "srs_parse.py", "srs_dates.py")) \
+    == ["tools/srs_dates.py"], "a command the guide leaves out must be reported"
+shipped = srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS
+with open("skeleton/AGENTS.md", encoding="utf-8") as handle:
+    for command in unnamed(handle.read(), shipped):
+        found.append(("skeleton/AGENTS.md", "does not name %s, which the installer ships" % command))
 
 for path, why in found:
     print("  %s: %s" % (path, why))

@@ -983,3 +983,47 @@ The names help the confusion along — `srs_check.py` is a tool, `srs-check` a p
 
 Handing over is not running: the check procedure offers and waits (ART-030), so the build ends at an offer.
 What holds the step against a later shortening is the list `FR-SKILL-300` binds, and the name alone would not: the procedure is named in the build step and in the plan's last step, so the list carries each of the two phrases, and losing either one is red.
+
+### FR-SKILL-370 — A file that restates a changed requirement is re-read with it
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-24
+```
+
+When a requirement's statement changes, the build procedure **shall** have every file its `code` field names that restates it re-read against the new statement in the same set of edits.
+
+**Rationale.** `FR-DOC-200` does this for the landing page, whose sections name what they restate in `depends_on`; the standard restates requirements too and nothing led back to it.
+On 2026-08-17 `FR-CHK-200` and `FR-CHK-210` began reporting files that carry no annotation, and the commit that added them edited three other sections of `specs/README.md` and left *Annotations* saying "unannotated files are never reported" for five weeks, until a project reading both against the checker asked which was true.
+The requirements a section restates now name `specs/README.md` in their `code` field, so the file is on the route the loop already walks; this makes the procedure read it there.
+What holds the step is its phrase in the list `FR-SKILL-300` binds.
+
+### FR-SKILL-380 — The shipped guide names every command the installer ships
+
+```yaml
+status: implemented
+verification: T
+derives_from: [NFR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [skeleton/AGENTS.md, AGENTS.md]
+tests: [tests/guide-parity.sh]
+created: 2026-09-24
+```
+
+The agent guide the framework ships **shall** name every command the installer copies into a project.
+
+**Rationale.** A project's agents learn what they can run from the guide they read in every session, and the procedures reach them by path through it (`NFR-SKILL-010`).
+The optional layers and the dating command were added after the guide was written, each with its requirements, its procedure and its CI step, and none named the guide: on 2026-09-24 it mentioned the two layers only through their `--cite` commands, and `tools/srs_dates.py` not at all, so a project that kept a layer added the lines by hand and turned its guide into a fork that `--force` would overwrite.
+The lines for the layers open with "where the project keeps", the way the guide's rule on naming records already does, so one guide serves a project with the layer and one without, and the installer needs no condition.
+
+The list is read from the installer's own tuples, so a command added there is asked of the guide on the day it ships; `srs_parse.py` is excepted in the test as a module the checkers import, not a command.
+This repository's guide carries the same lines by `INV-SKILL-010`, and its budget of words was raised for them (ADR-0030).

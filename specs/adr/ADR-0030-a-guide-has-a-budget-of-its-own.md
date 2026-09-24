@@ -28,4 +28,5 @@ A guide is not a procedure in the respect that matters here: every session reads
 
 - The guide's number stands beside its reason in the test, and raising it is the same visible act as raising the procedures'.
 - 1 500 leaves three words of room; the next rule the shipped guide gains is a decision about the number again, not a silent overrun.
+  *Since 2026-09-24 (FR-SKILL-380):* it was — the shipped guide gained lines for the date command and the two optional layers, this repository's guide carries them by `INV-SKILL-010` and stood at 1 575, and the number is 1 600. The alternative was cutting measured lines to make room, the one ADR-0030 ruled out.
 - The two guides share the number, and the shipped one stands at about 1 070, so the number is set by this repository's guide, which says more.

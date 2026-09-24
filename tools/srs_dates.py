@@ -18,7 +18,7 @@ hook or an installer.
 Standard library only, compatible with Python 3.9.
 """
 
-# implements: NFR-SPEC-010, FR-SPEC-020, CON-SPEC-030, INV-SPEC-090
+# implements: NFR-SPEC-010, FR-SPEC-020, CON-SPEC-030
 
 import os
 import re
@@ -166,6 +166,7 @@ def main():
     undated = [rid for _full, rel in files
                for rid in [r.id for r in srs_check.parse_file(_full, rel, [])]
                if rid not in born]
+    # implements: INV-SPEC-090
     if undated:
         sys.stdout.write(
             "\nNot in the history and therefore not dated: %s. A requirement "

@@ -39,10 +39,13 @@ cd "$(dirname "$0")/.."
 #               asked. 1 500 is where this repository's guide stands on
 #               2026-09-23 once it carries every rule the shipped guide
 #               states (INV-SKILL-010) — the constitution, the generated
-#               files, ART-030, three procedures — beside its own.
+#               files, ART-030, three procedures — beside its own. 1 600
+#               since 2026-09-24, when the shipped guide gained the date
+#               command and the two optional layers and this repository's
+#               had to carry them too (1 575), ADR-0030's note says why.
 OWN=1300
 TRANSITIVE=6700
-GUIDE=1500
+GUIDE=1600
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by
