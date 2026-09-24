@@ -18,3 +18,6 @@ AGENTS.md
 arch/90-map.md
 grounds/90-dashboard.md
 specs/constitution.md
+
+# instructions
+offer the whole set again

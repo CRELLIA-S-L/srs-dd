@@ -693,7 +693,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, tools/srs_grounds.py]
+code: [ci/pre-commit, .githooks/pre-commit, tools/srs_grounds.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-08-20
 ```

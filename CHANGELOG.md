@@ -8,6 +8,26 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.20.0]
+
+### Added
+
+- A repaired check is followed by the whole set. The check procedure, having named the checks a change calls for and reported a failure, offers the same list again once the failure is repaired rather than the check that was red — a fix is a change like any other, and what it broke beside itself is what the list is for; offered, never run unasked (`FR-SKILL-340`).
+- The shipped guide names what a commit owes. A commit that alters behavior names the requirement identifiers it implements, bare, in a trailing parenthesis — `ART-060` asked for it and no shipped text said so.
+- A rule settled in conversation is offered as a requirement. Where something agreed will bind the work after the task at hand is over and no requirement says it, the agent says so in that same exchange and offers to author it, naming what it would oblige and the area it belongs to — offered, never written, since a status is approval. Both agent guides carry it and no procedure does: the sentence that settles a rule is said wherever the conversation happens, and a guide is read in every session. A scenario under `tests/eval/scenarios/` measures whether a fresh agent offers (`FR-SKILL-330`).
+- A change records the decisions its requirement left open. Where a change met a requirement that could have been met another way — an algorithm, an order of steps, a heuristic, a threshold, a format, a fallback — the way it took is a decision whether or not alternatives were weighed, and before the loop is closed it goes into `specs/adr/`, or the report says the change made none; a reading of an ambiguous requirement is not a decision and goes into the statement. The standard's *Workflow* defines what counts, and the `srs` procedure and both agent guides point at it. A scenario under `tests/eval/scenarios/` measures whether a fresh agent does it (`FR-SKILL-350`).
+- A decision that chose a mechanism says how it works. Where the path a decision took is an algorithm or a mechanism, the decision describes it in words — its steps, the invariants it keeps, the inputs where it stops working — and the shipped decision template has a *How it works* section for it (`FR-SPEC-030`).
+- The framework's own guides carry what the shipped guides carry. This repository is the first project the framework is applied to, and its `AGENTS.md`, `CLAUDE.md` and pre-commit hook are its instances of what a target gets: each now states every rule its shipped counterpart does — the constitution, the generated files, ART-030, `srs-check`, `srs-page`, `srs-baseline`, the procedures being plain markdown, `srs` for any change to behavior, and the report of the bets a commit touches — and `tests/guide-parity.sh` holds the pairs, by the requirements that name a shipped guide and by a list of tokens per pair; the measurements of `FR-SKILL-290` and `FR-SKILL-310` run on these files and stand for the shipped ones only while they do (`INV-SKILL-010`).
+- The pipeline runs every suite the local gate runs. Five suites — the line width, the procedure budget and instructions, and the two evaluation smokes — ran only in the local gate, each added without a step; they are steps now, and `tests/pipeline-suites.sh` holds the pipeline's list of steps to `tests/`, so the next suite cannot be left out (`FR-CI-120`).
+- Where a rationale ends and a decision begins is said. A rationale explains why a requirement says what it says; a decision, why the system meets it the way it does — and a choice between ways of meeting a requirement goes to `specs/adr/` even where a rationale mentions it (`FR-SKILL-350`). The three such choices the guide changes made are ADR-0030, ADR-0031 and ADR-0032.
+- A build ends at the check procedure, not at the checker. The `srs` procedure's last build step, and its plan's last step, now hand the change to `srs-check` — the suites the touched requirements name, offered, and what a person has to inspect — where they used to end at `python3 tools/srs_check.py`, which proves the specification's form and verifies nothing a requirement asks for (`FR-SKILL-360`).
+- The verification document names every file in `tests/`. `specs/50-verification.md` listed thirteen suites of twenty-two and said all thirteen ran in CI; it names each now, and `tests/pipeline-suites.sh` holds its table to the directory beside the pipeline's steps (`FR-CI-130`).
+
+### Changed
+
+- The decision template ships from `specs/adr/`, not from `skeleton/`. The file is `specs/adr/template.md`, identical in every project, so it joins the standard as a file with one copy, kept where this repository's own decisions are written; a target gets the same file as before. Anyone scripting against a framework clone finds it at the new path (`INV-SKILL-010`, ADR-0004).
+- Agent guides have a word budget of their own. `tests/skill-budget.sh` holds the two guides to 1 500 words and the procedures to 1 300 as before, so that a guide carrying every shipped rule does not loosen the number for every procedure (`NFR-SKILL-020`).
+
 ## [0.19.0] — 2026-09-21
 
 ### Added

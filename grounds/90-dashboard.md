@@ -70,11 +70,11 @@ Counted by quarter, which is what `period` says in the register's configuration.
 
 | quarter | arrived unclaimed | areas |
 |---|---|---|
-| 2026-Q3 | 249 | ARCH 33, CHK 29, CI 13, GND 65, INIT 23, SKILL 32, SPEC 19, VIEW 35 |
+| 2026-Q3 | 257 | ARCH 33, CHK 29, CI 15, GND 65, INIT 23, SKILL 37, SPEC 20, VIEW 35 |
 
 ## Requirements resting on no hypothesis
 
-249 of 277 requirements. Weight is what stands on them: how many
+257 of 285 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -90,13 +90,14 @@ requirements link to them, plus how many files their `code` field names.
 | IF-GND-010 | 10 | 2 | 12 |
 | FR-GND-010 | 10 | 1 | 11 |
 | FR-INIT-010 | 10 | 1 | 11 |
+| FR-SKILL-010 | 10 | 1 | 11 |
 | FR-CI-020 | 5 | 3 | 8 |
 | FR-GND-140 | 7 | 1 | 8 |
-| FR-SKILL-010 | 7 | 1 | 8 |
 | INV-GND-020 | 6 | 2 | 8 |
 | INV-SPEC-080 | 1 | 7 | 8 |
 | CON-GND-020 | 5 | 2 | 7 |
 | FR-CHK-030 | 6 | 1 | 7 |
+| INV-SKILL-010 | 2 | 5 | 7 |
 | CON-SPEC-010 | 4 | 2 | 6 |
 | FR-CHK-050 | 5 | 1 | 6 |
 | FR-CHK-080 | 5 | 1 | 6 |
@@ -104,6 +105,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-010 | 3 | 3 | 6 |
 | FR-INIT-020 | 5 | 1 | 6 |
 | FR-INIT-030 | 5 | 1 | 6 |
+| FR-SKILL-100 | 4 | 2 | 6 |
 | FR-SKILL-120 | 3 | 3 | 6 |
 | FR-VIEW-010 | 5 | 1 | 6 |
 | FR-VIEW-020 | 5 | 1 | 6 |
@@ -116,15 +118,18 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-240 | 2 | 3 | 5 |
 | FR-CI-040 | 2 | 3 | 5 |
 | FR-GND-280 | 4 | 1 | 5 |
+| FR-GND-310 | 2 | 3 | 5 |
 | FR-INIT-060 | 4 | 1 | 5 |
 | FR-SKILL-170 | 2 | 3 | 5 |
 | FR-SKILL-220 | 2 | 3 | 5 |
 | FR-SKILL-250 | 1 | 4 | 5 |
+| FR-SKILL-350 | 1 | 4 | 5 |
 | FR-VIEW-220 | 4 | 1 | 5 |
 | IF-SKILL-010 | 3 | 2 | 5 |
 | INV-GND-030 | 4 | 1 | 5 |
 | INV-SPEC-020 | 3 | 2 | 5 |
 | INV-SPEC-070 | 1 | 4 | 5 |
+| NFR-SKILL-010 | 2 | 3 | 5 |
 | NFR-SPEC-020 | 4 | 1 | 5 |
 | CON-SPEC-020 | 2 | 2 | 4 |
 | FR-ARCH-060 | 3 | 1 | 4 |
@@ -134,7 +139,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-120 | 3 | 1 | 4 |
 | FR-CHK-160 | 2 | 2 | 4 |
 | FR-CI-050 | 1 | 3 | 4 |
-| FR-GND-310 | 2 | 2 | 4 |
 | FR-GND-330 | 3 | 1 | 4 |
 | FR-GND-370 | 1 | 3 | 4 |
 | FR-INIT-070 | 3 | 1 | 4 |
@@ -145,7 +149,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-050 | 3 | 1 | 4 |
 | FR-SKILL-080 | 2 | 2 | 4 |
 | FR-SKILL-090 | 2 | 2 | 4 |
-| FR-SKILL-100 | 2 | 2 | 4 |
 | FR-SKILL-210 | 1 | 3 | 4 |
 | FR-SKILL-320 | 0 | 4 | 4 |
 | FR-VIEW-040 | 3 | 1 | 4 |
@@ -156,7 +159,6 @@ requirements link to them, plus how many files their `code` field names.
 | IF-ARCH-010 | 3 | 1 | 4 |
 | INV-GND-010 | 2 | 2 | 4 |
 | INV-SPEC-060 | 3 | 1 | 4 |
-| NFR-SKILL-010 | 2 | 2 | 4 |
 | CON-ARCH-020 | 2 | 1 | 3 |
 | FR-ARCH-110 | 2 | 1 | 3 |
 | FR-ARCH-150 | 1 | 2 | 3 |
@@ -164,6 +166,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-270 | 2 | 1 | 3 |
 | FR-CHK-055 | 2 | 1 | 3 |
 | FR-CHK-240 | 2 | 1 | 3 |
+| FR-CI-030 | 2 | 1 | 3 |
 | FR-GND-060 | 2 | 1 | 3 |
 | FR-GND-110 | 2 | 1 | 3 |
 | FR-GND-160 | 2 | 1 | 3 |
@@ -207,10 +210,10 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-200 | 1 | 1 | 2 |
 | FR-CHK-210 | 0 | 2 | 2 |
 | FR-CHK-250 | 1 | 1 | 2 |
-| FR-CI-030 | 1 | 1 | 2 |
 | FR-CI-060 | 1 | 1 | 2 |
 | FR-CI-070 | 1 | 1 | 2 |
 | FR-CI-110 | 1 | 1 | 2 |
+| FR-CI-120 | 1 | 1 | 2 |
 | FR-GND-030 | 1 | 1 | 2 |
 | FR-GND-040 | 1 | 1 | 2 |
 | FR-GND-070 | 1 | 1 | 2 |
@@ -241,6 +244,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-180 | 1 | 1 | 2 |
 | FR-SKILL-190 | 1 | 1 | 2 |
 | FR-SKILL-260 | 1 | 1 | 2 |
+| FR-SKILL-330 | 0 | 2 | 2 |
+| FR-SPEC-030 | 0 | 2 | 2 |
 | FR-VIEW-030 | 1 | 1 | 2 |
 | FR-VIEW-070 | 1 | 1 | 2 |
 | FR-VIEW-100 | 1 | 1 | 2 |
@@ -272,6 +277,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-260 | 0 | 1 | 1 |
 | FR-CI-080 | 0 | 1 | 1 |
 | FR-CI-100 | 0 | 1 | 1 |
+| FR-CI-130 | 0 | 1 | 1 |
 | FR-GND-020 | 0 | 1 | 1 |
 | FR-GND-050 | 0 | 1 | 1 |
 | FR-GND-080 | 0 | 1 | 1 |
@@ -304,6 +310,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-140 | 0 | 1 | 1 |
 | FR-SKILL-150 | 0 | 1 | 1 |
 | FR-SKILL-230 | 0 | 1 | 1 |
+| FR-SKILL-340 | 0 | 1 | 1 |
+| FR-SKILL-360 | 0 | 1 | 1 |
 | FR-VIEW-090 | 0 | 1 | 1 |
 | FR-VIEW-130 | 0 | 1 | 1 |
 | FR-VIEW-150 | 0 | 1 | 1 |

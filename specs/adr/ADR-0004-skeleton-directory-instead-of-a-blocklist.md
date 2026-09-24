@@ -37,3 +37,4 @@ Option 2 was rejected because the framework should be read the way a target is �
 - Anyone scripting against a framework clone has to know the new locations — recorded in the 0.7.0 upgrade notes.
   Installed targets are unaffected.
 - The root `AGENTS.md` and `CLAUDE.md` became free to describe this repository, which is what an agent handed the URL reads first.
+  *Since 2026-09-23 (INV-SKILL-010):* free to describe more, not free to lack a rule — each is this repository's instance of the guide a target gets, and carries every rule that guide states. The decision template joined the exception above for the same reason `specs/README.md` is one: identical in every project, it ships from `specs/adr/`.

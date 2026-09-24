@@ -54,3 +54,26 @@ Leaving dated requirements untouched is what makes it safe to run twice.
 A second pass over a specification that has already been dated changes nothing, so nobody has to remember whether it was done.
 
 Read from the history and not from today: a requirement written a year ago and dated now would carry a date that is simply wrong, and wrong in the direction that makes the reading useless — every requirement looking new.
+
+### FR-SPEC-030 — A decision that chose a mechanism says how it works
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-350]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md, specs/adr/template.md]
+tests: []
+created: 2026-09-23
+```
+
+Where a decision chose an algorithm or a mechanism, the decision **shall** describe it in words — its steps, the invariants it keeps, and the inputs where it stops working.
+
+**Rationale.** A decision says why this path and not the neighbouring one, and a path that is an algorithm can be compared with its neighbour only once it is written down; the standard's wording, "why", read as leaving the path itself to the code.
+The code shows what the algorithm does today, not what a rewrite may not stop doing: an invariant the code happens to keep looks the same as one the system depends on.
+
+The three parts are one description, not three obligations — what a rewrite must keep — and none of them is done without the others: steps with no invariants are a paraphrase of the code, invariants with no limits promise more than the algorithm gives.
+
+The shipped decision template had *Context*, *Considered options*, *Decision outcome* and *Consequences*, and nowhere for this; an agent filling the template leaves out what it has no heading for, so the template carries a section for it, used only where the decision chose a mechanism.

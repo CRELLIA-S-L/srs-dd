@@ -101,6 +101,11 @@ SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 # there. It carries no requirements (srs_check.SKIP_FILES), so nothing
 # framework-specific can leak through it.
 SPEC_STANDARD = os.path.join("specs", "README.md")
+# The decision template: identical for the framework and for every target
+# in the same way, and kept beside the decisions it shapes so that this
+# repository's own authors see the copy a target gets.
+# implements: INV-SKILL-010
+ADR_TEMPLATE = os.path.join("specs", "adr", "template.md")
 # implements: FR-INIT-230
 # Where adopt puts a project's own standard: the archive, which the
 # standard's map keeps for absorbed documents and no tool reads.
@@ -544,11 +549,11 @@ def scan_target_spec(target):
 def skeleton_src(rel):
     """Where a specs/-relative payload file lives in the framework clone.
 
-    Everything comes from skeleton/, except the standard itself, which
-    has one canonical copy under specs/ and would otherwise have to be
-    maintained twice.
+    Everything comes from skeleton/, except the standard itself and the
+    decision template, which each have one canonical copy under specs/
+    and would otherwise have to be maintained twice.
     """
-    if rel == SPEC_STANDARD:
+    if rel in (SPEC_STANDARD, ADR_TEMPLATE):
         return rel
     return os.path.join(SKELETON, rel)
 
@@ -573,6 +578,7 @@ def collect_spec_skeleton():
                                   os.path.join(ROOT, SKELETON))
             result.append((src, dst))
     result.append((SPEC_STANDARD, SPEC_STANDARD))
+    result.append((ADR_TEMPLATE, ADR_TEMPLATE))
     return sorted(result, key=lambda pair: pair[1])
 
 

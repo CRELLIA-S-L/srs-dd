@@ -1,0 +1,6 @@
+# What both hooks must do — .githooks/pre-commit and ci/pre-commit. The
+# hook here runs the whole local gate, which runs the checker, so only the
+# report the gate does not make is listed.
+core.hooksPath .githooks
+grounds/grounds-config.json
+srs_grounds.py --blast

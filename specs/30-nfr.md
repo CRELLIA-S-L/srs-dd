@@ -94,7 +94,7 @@ derives_from: [NFR-SPEC-020]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [.claude/skills, skeleton/AGENTS.md]
+code: [.claude/skills, AGENTS.md, skeleton/AGENTS.md]
 tests: []
 created: 2026-09-18
 ```
@@ -129,4 +129,5 @@ Two measures because they fail differently: a procedure grows back into an essay
 The second counts only what the procedure tells the reader to open, not what an instance happens to read — that is the procedure's doing, and the rest is measured by `FR-SKILL-310`.
 The budget is written in the test beside the reason for each number, so that raising one is a visible act with a sentence attached; it starts where the procedures stand and is lowered as they are shortened, so that the gate is never red for the work it exists to guard.
 A guide counts as a procedure here because it is loaded the same way and more often; the `description` a procedure carries in its header is part of the file and is counted with it, since it sits in the prompt of every session.
+A guide is measured the same way against a number of its own: once this repository's guide carried every rule the shipped one states (`INV-SKILL-010`), it stood past the procedures' number, and raising that number for a guide would have loosened it for every procedure too.
 

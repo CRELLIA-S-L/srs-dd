@@ -771,7 +771,7 @@ A checker cannot tell a sentence written from a file from one written from memor
 status: implemented
 verification: T
 derives_from: [FR-SKILL-200]
-depends_on: [FR-VIEW-240, FR-ARCH-270, FR-GND-540, FR-VIEW-330]
+depends_on: [FR-VIEW-240, FR-ARCH-270, FR-GND-540, FR-VIEW-330, INV-SKILL-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_cite_eval.py, tests/eval/citation-questions.txt]
@@ -822,7 +822,7 @@ A list naming a procedure that does not ship is a stale list, and is reported as
 status: implemented
 verification: T
 derives_from: [FR-SKILL-290]
-depends_on: [NFR-SKILL-020]
+depends_on: [NFR-SKILL-020, INV-SKILL-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_proc_eval.py, tests/eval/scenarios]
@@ -864,3 +864,121 @@ A pointer to an earlier message is the failure `FR-SKILL-200` names for a record
 Restating costs the length of the proposal once; the alternative costs the reader a search and the writer the chance that the approval covers a text nobody re-read.
 A long text is quoted in a block rather than shortened: what is approved is what was pasted.
 
+### FR-SKILL-330 — What a conversation settles is offered as a requirement
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [AGENTS.md, skeleton/AGENTS.md]
+tests: []
+created: 2026-09-23
+```
+
+Where a conversation with a person settles something that will oblige the system or whoever works on it after the task at hand is over, and no requirement says it, the agent **shall** offer in that same exchange to author the requirement, naming what it would oblige and the area it belongs to.
+
+**Rationale.** The loop this framework runs on starts at a change to the code (`FR-SKILL-010`), and an obligation is usually settled long before that — in a sentence somebody says in passing, agreed to and never written down.
+Whoever heard it is the only one who can notice, and by the next session nobody remembers there was anything to notice.
+`FR-SKILL-320` is the evidence: the rule it states was settled in conversation, recorded where only the session that heard it would see it, and became a requirement only because the maintainer said it should be one.
+
+The test is what the thing binds.
+A choice made for the work at hand — this file rather than that one, the wording of one commit — binds nobody afterwards and is not a requirement.
+A rule that would bind the next person doing the same work, when nobody remembers this conversation, is one, and that is what gets offered.
+An offer is a finding like any other, so `FR-SKILL-170` already binds it: what follows from it is said with it, which is the whole of the offer here, and where nothing follows there is nothing to offer.
+
+Offered, never written: authoring is a dialog and a status is approval (ART-020), so this ends at the offer and what the requirement would oblige.
+The lookup comes first, because the commonest answer is that it is already written — a rule that feels new is usually one somebody stated in another area's words, and saying so is worth more than a second requirement saying the same thing.
+
+Both agent guides carry it and no procedure does: the sentence that settles a rule is said wherever the conversation happens, most often under no procedure at all, and a guide is read in every session while a procedure is read when somebody invoked it.
+A scenario under `tests/eval/scenarios/` measures whether a fresh agent offers — a rule stated in passing beside an ordinary change, the run scored on whether the offer came (`FR-SKILL-310`); a measurement, not a gate.
+
+The subject is the agent rather than a procedure, and the widening is deliberate: the sentence that settles a rule is said wherever the conversation happens, most often under no procedure at all, and a rule binding only the procedures would miss exactly the case it was written for.
+
+### FR-SKILL-340 — A repaired check is followed by the whole set
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-100]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-check/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-23
+```
+
+After a check it named has failed and been repaired, the check procedure **shall** offer the whole set again rather than the check that failed.
+
+**Rationale.** A repair is a change like any other, and the set the check came from is what says whether it broke something beside it; running the one that was red proves only that it is no longer red.
+The list costs nothing to name a second time — it is the one the procedure already derived from the requirements the change touched (`FR-SKILL-100`) — and the offer stands where ART-030 leaves it, with the user.
+
+What holds the step against a later shortening is the list in `tests/skill-instructions/` that `FR-SKILL-300` binds: the instruction is a literal phrase there, so a cut that loses it is red rather than silent.
+
+Offered rather than run, and the whole set rather than the suite the repair touched: which suites a change calls for is the procedure's first act, and a repair does not narrow the change it belongs to.
+
+### FR-SKILL-350 — A change records the decisions its requirement left open
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md, .claude/skills/srs/SKILL.md, AGENTS.md, skeleton/AGENTS.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-23
+```
+
+When the loop on a change is closed, the agent **shall** record in `specs/adr/` each way the change met a requirement where the requirement could have been met another way, or state in its report that the change made no such decision.
+
+**Rationale.** Important algorithms were being written into the code and described nowhere else.
+The rule sending decisions to `specs/adr/` existed in six places — the standard's *Workflow*, the `srs`, `srs-new` and `srs-arch` procedures, the rationale of `FR-SKILL-090`, and ART-040 — and every one of them triggered on a choice: an engine chosen, an approach rejected, a platform worked around.
+An agent that wrote a matching or ordering algorithm weighed no alternatives, so it did not recognise a choice, and no step of the loop asked it to look.
+
+The test is put to the requirement, not to whoever built it.
+"Would another author have done it differently" asks the agent to imagine a person, and it answers that anyone would have written the same; "could the requirement have been met another way" is answered from the statement and the diff.
+An algorithm or an order of steps, a heuristic, a threshold or a constant, a format, a fallback — each is a decision under it, whether or not alternatives were weighed.
+What the requirement or an existing decision already fixes is not, and neither is plain idiom; without that line every loop would leave an ADR behind and the log would stop being read.
+
+A reading is not a decision.
+Where the requirement could be read two ways, the reading taken is what the system does, not how, and it goes into the statement — the re-reading `FR-SKILL-010` already asks for — rather than into `specs/adr/`.
+The architecture layer is not where an algorithm goes either: it records the cut into parts, and an algorithm reaches it only when it moves a responsibility between parts or adds a dependency between them, which `srs-arch` already covers.
+
+The line between a rationale and a decision is drawn by what each explains, and it had to be drawn: the standard said a rationale answers "why this way" and a decision "why this path and not the neighbouring one", and the first build under this requirement put three choices of how to meet a requirement into rationales and a test's comment, where nobody looking in `specs/adr/` would find them.
+A rationale says why the requirement says what it says; a decision says why the system meets it the way it does, and a choice of the second kind goes to `specs/adr/` even where a rationale mentions it.
+
+The null outcome is part of the obligation.
+"The change made none" said in the report is what turns a skipped step into a visible one; a step that can pass in silence is the one that was skipped before.
+
+The subject is the agent rather than a procedure for the reason `FR-SKILL-330` gives: a change is built as often under no procedure as under `srs`, so the standard defines what counts once, under *Workflow*, and the `srs` procedure and both agent guides point at it (`FR-SKILL-020`).
+What holds the procedure's step against a later shortening is its literal phrase in the list `FR-SKILL-300` binds.
+A scenario under `tests/eval/scenarios/` — a requirement whose building needs an algorithm it does not dictate, scored on whether a decision was recorded or its absence stated — measures whether a fresh agent does it (`FR-SKILL-310`); a measurement, not a gate.
+
+### FR-SKILL-360 — A build ends at the check procedure, not at the checker
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-010]
+depends_on: [FR-SKILL-100]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-24
+```
+
+When a change is built, the build procedure **shall** end by handing it to the check procedure rather than at the checker.
+
+**Rationale.** The checker proves the specification's form; it runs no suite and inspects nothing, and a requirement verified by inspection is verified only once a person has looked (`FR-SKILL-100`).
+The `srs` procedure ended its build at `python3 tools/srs_check.py`, and its plan's last step at "run the checker", and named `srs-check` nowhere.
+On 2026-09-23 and 24 a build under it, and the reviews that followed, ran the checker and every suite, called the result clean, and never produced the list of what a person had to inspect — four of the requirements it touched are verified by inspection; the agent that did it named three causes, and the first was that the procedure it followed ended where it stopped.
+The names help the confusion along — `srs_check.py` is a tool, `srs-check` a procedure — and renaming either would break every project that calls it (ADR-0009); naming the procedure in the step leaves no room to mistake one for the other.
+
+Handing over is not running: the check procedure offers and waits (ART-030), so the build ends at an offer.
+What holds the step against a later shortening is the list `FR-SKILL-300` binds, and the name alone would not: the procedure is named in the build step and in the plan's last step, so the list carries each of the two phrases, and losing either one is red.

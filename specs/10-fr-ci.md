@@ -60,6 +60,7 @@ created: 2026-08-07
 The self-test **shall** run every suite in `tests/` and validate the YAML of the pipeline and of the shipped templates, so that a green pre-commit and a green pipeline mean the same thing.
 
 **Rationale.** The suites are files, not fragments of a CI configuration, so both the runner and the hook execute the same scripts and cannot drift apart.
+That holds for what a suite does, not for which suites run: the pipeline lists its suites by hand, and `FR-CI-120` holds that list to the directory.
 What is deliberately not run here — publishing the page, reaching the example over the network — verifies nothing about this repository.
 The YAML check runs before the suites, because a suite fails routinely on a matrix that has been regenerated but not staged, and a run that stops there must not swallow a broken template; a missing parser costs that check alone rather than turning the whole run into a green tick.
 
@@ -293,3 +294,46 @@ A fixed name, because the landing page addresses it by URL and a name that moved
 The documentation area and not the whole specification, because the picture illustrates the section it sits in — the requirements of the page itself — and a reader who wants more is one click from the page.
 The same revision as the page, so that the two agree about what the specification holds.
 
+### FR-CI-120 — The pipeline runs every suite the local gate runs
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CI-030]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.github/workflows/srs.yml]
+tests: [tests/pipeline-suites.sh]
+created: 2026-09-24
+```
+
+The pipeline **shall** run every suite in `tests/` as a step of its own.
+
+**Rationale.** `FR-CI-030` has the local gate run every suite by listing the directory, and its rationale said the two could not drift apart because the suites are files rather than fragments of a CI configuration.
+That holds for what a suite does and not for which suites run: the pipeline names its suites one step each, so that a failure carries the suite's name in the summary, and a list written by hand is one a new suite is left out of.
+On 2026-09-24 five of twenty-one were missing — `line-width`, `skill-budget`, `skill-instructions`, `cite-eval-smoke` and `proc-eval-smoke`, each added by a commit that did not touch the pipeline, while the local gate picked each up by itself, so nothing told its author there was a second list.
+`FR-CI-100` held only on a machine whose hook was wired, and every pull request passed without it.
+
+One step per suite stays, because the name in the summary is worth having; the list is held to the directory by a suite instead, which is itself one of the steps.
+
+### FR-CI-130 — The verification document names every file in `tests/`
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CI-120]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/50-verification.md]
+tests: [tests/pipeline-suites.sh]
+created: 2026-09-24
+```
+
+The verification document **shall** name every file in `tests/` in its table of suites, with what it covers.
+
+**Rationale.** `specs/50-verification.md` is where a reader learns what `T` means in this repository, suite by suite, and it listed thirteen and said "All thirteen run in CI" while `tests/` held twenty-two.
+It was the third list kept by hand beside the same directory — after the agent guides and the pipeline's steps — to have fallen behind it, and for the same reason: the local gate reads the directory and nothing reads the list.
+The suite that holds the pipeline's steps to the directory holds this table too, since both are the same question asked of a different file.
+`tests/line-width.sh` is named although it is not a suite, because the table is where a reader looks for what a file in `tests/` is for.

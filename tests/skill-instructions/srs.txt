@@ -42,5 +42,11 @@ specs/srs-config.json
 
 # procedures
 srs-arch
+srs-check
 srs-bet
 srs-new
+
+# instructions
+Name what you chose
+then the `srs-check` procedure
+the checker and the `srs-check` procedure

@@ -8,10 +8,10 @@ After cloning, point git at the repository's hooks:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs `tools/ci_selftest.sh`: a YAML parse of the pipeline and of the templates shipped to target projects, then every suite in `tests/` — the specification gate, the installer smoke, the adopt smoke, the viewer smoke.
+The pre-commit hook first prints the bets the staged files touch, as the hook a target gets does, then runs `tools/ci_selftest.sh`: a YAML parse of the pipeline and of the templates shipped to target projects, then every suite in `tests/` — the specification gate, the installer smoke, the adopt smoke, the viewer smoke.
 The parse goes first because a suite fails routinely on a matrix that has been regenerated but not staged, and that must not hide a broken template.
 
-These are the same scripts `.github/workflows/srs.yml` runs, so the local gate and CI cannot drift apart, and any suite can also be run on its own:
+These are the same scripts `.github/workflows/srs.yml` runs, one step each, and `tests/pipeline-suites.sh` holds that list of steps to the directory, so the local gate and CI cannot drift apart; any suite can also be run on its own:
 `tests/adopt-smoke.sh`.
 
 Two things the pipeline does are deliberately not run locally: rendering the page, which would leave a site in the working tree on every commit, and the advisory check against the example project, which reaches the network.
