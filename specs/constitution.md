@@ -4,8 +4,9 @@ Standing engineering principles of the SRS-DD framework itself.
 Every plan and every diff is checked against them.
 Unlike requirements (what the system does) and ADRs (single decisions with their context), articles apply to all work at all times and change only through the amendment procedure in ART-090.
 
-- **Version:** 1.2.0
+- **Version:** 1.3.0
 - **Ratified:** 2026-08-06 — this repository's own constitution, adopted from the skeleton it ships (v1.1.0)
+- **Amended:** 2026-09-25 — v1.3.0: ART-070 covers everything the installer copies into a project rather than the four things it listed; the standards, the tooling beyond the checker and the viewer, the decision template, the CI templates, the hook and `.gitattributes` were shipped and unnamed (widening an article's reach tightens it, MINOR per ART-090)
 - **Amended:** 2026-08-06 — v1.2.0: ART-070 added, so that keeping framework content out of installed projects is a standing principle rather than a note in a guide (adding an article is MINOR per ART-090)
 
 Articles are numbered in steps of 10 and referenced from plans, reviews, and ADRs the same way requirements are: “rejected per ART-040”.
@@ -44,7 +45,7 @@ A change merges only when `python3 tools/srs_check.py` passes and, if the change
 
 ## ART-070 — Nothing of ours in other people's repositories
 
-What this repository ships — the payload in `skeleton/`, the checker, the viewer and the skills — carries no content specific to the framework:
+What this repository ships — everything the installer copies into a project — carries no content specific to the framework:
 no requirement identifiers of ours, no annotations naming them, no paths that exist only here.
 A stranger's first install must pass their own checker on the first run.
 
