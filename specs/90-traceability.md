@@ -90,7 +90,7 @@ Total requirements: 309.
 | **FR-CI-030** The local self-test runs the real pipeline | `implemented` | I | `tools/ci_selftest.sh` | — |
 | **FR-CI-040** The rendered specification is published from the default branch | `implemented` | I | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`.github/workflows/srs.yml` | — |
 | **FR-CI-050** A target gets a pipeline, not our pipeline | `implemented` | T | `ci/gitlab-ci.yml`<br>`ci/github-workflow.yml`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-CI-060** The example project is checked as a downstream consumer | `implemented` | I | `.github/workflows/srs.yml` | — |
+| **FR-CI-060** A project that uses the framework is checked as a downstream consumer | `implemented` | I | `.github/workflows/srs.yml` | — |
 | **FR-CI-070** Cutting a release is one command | `implemented` | T | `tools/srs_release.py` | `tests/release-smoke.sh` |
 | **FR-CI-080** An assertion that something is absent can fail | `implemented` | T | `tools/test_lib.sh` | `tests/checker-rules.sh` |
 | **FR-CI-090** A suite working on a target leaves this repository alone | `implemented` | T | `tests/view-smoke.sh`<br>`tests/baseline-smoke.sh`<br>`tests/release-smoke.sh`<br>`tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh`<br>`tests/upgrade-smoke.sh`<br>`tests/checker-rules.sh`<br>`tests/dates-smoke.sh`<br>`tests/arch-check.sh`<br>`tests/arch-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/grounds-check.sh`<br>`tools/ci_selftest.sh` | `tests/checker-rules.sh` |
@@ -522,7 +522,7 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-CI-020** (`implemented`, method `I`) — The same gate runs before a commit
 - **FR-CI-030** (`implemented`, method `I`) — The local self-test runs the real pipeline
 - **FR-CI-040** (`implemented`, method `I`) — The rendered specification is published from the default branch
-- **FR-CI-060** (`implemented`, method `I`) — The example project is checked as a downstream consumer
+- **FR-CI-060** (`implemented`, method `I`) — A project that uses the framework is checked as a downstream consumer
 - **FR-CI-110** (`implemented`, method `I`) — The graph image is published beside the page
 - **FR-CI-160** (`implemented`, method `I`) — The local gate refuses a suite that leaves bytecode behind
 - **FR-DOC-010** (`implemented`, method `I`) — The landing page consists of eleven sections, in the order a reader's questions arise

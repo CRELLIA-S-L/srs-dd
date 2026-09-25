@@ -20,7 +20,7 @@
 # fails when the committed traceability matrix is stale.
 #
 # The jobs that are not suites — publishing the rendered page, and the
-# advisory run against the example project — are deliberately not run
+# advisory run against a project that uses the framework — are deliberately not run
 # here: the first would leave a rendered site in the working tree on
 # every commit, the second reaches the network, and neither verifies
 # anything about this repository.

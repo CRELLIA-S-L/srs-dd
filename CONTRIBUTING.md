@@ -14,7 +14,7 @@ The parse goes first because a suite fails routinely on a matrix that has been r
 These are the same scripts `.github/workflows/srs.yml` runs, one step each, and `tests/pipeline-suites.sh` holds that list of steps to the directory, so the local gate and CI cannot drift apart; any suite can also be run on its own:
 `tests/adopt-smoke.sh`.
 
-Two things the pipeline does are deliberately not run locally: rendering the page, which would leave a site in the working tree on every commit, and the advisory check against the example project, which reaches the network.
+Two things the pipeline does are deliberately not run locally: rendering the page, which would leave a site in the working tree on every commit, and the advisory check against a project that uses the framework, which reaches the network.
 Neither verifies anything about this repository.
 
 It takes a few seconds and can be run manually at any time:

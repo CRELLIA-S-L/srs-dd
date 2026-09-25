@@ -23,7 +23,8 @@ The dry run prints the exact list of what would be created; drop the flag to ins
 Handing this to an agent instead? The procedure it needs is one file, `.claude/skills/srs-init/SKILL.md`, and [Handing this to an agent](#handing-this-to-an-agent) has its URL and what to tell it.
 
 This repository is its own example: [`specs/`](specs/) describes the checker, the viewer and the installer as numbered requirements, and the pipeline publishes them as [a page](https://crellia-s-l.github.io/srs-dd/).
-For what an ordinary product looks like after adopting the standard — a small service, a superseded requirement kept for the record, tests named from both directions — see [srs-dd-example-urlshortener](https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener).
+For what the standard does to a real product, see [Crawl Call: Chomp Company](https://github.com/CRELLIA-S-L/crawl-call) — very nearly the classic snake game, dressed up as a cartoon: two teams of little bots play at war across a toy-box arena, and the snake weaves between them, growing as it goes, on iPhone and Mac.
+It adopted the framework in the commit that first wrote its concept down, and keeps everything the framework offers: requirements for every part of the game from the snake to its release, the decisions behind them, a register of the hypotheses they rest on, and an architecture layer naming which part carries what.
 
 ## What breaks without it
 

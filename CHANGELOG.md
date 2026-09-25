@@ -35,6 +35,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 - A line is answered from the narrowest region holding it. `--code <path>:<line>` used the nearest annotation above, which answered a line of an unannotated function with the requirements of the one before it and a line under a block of two with only the second; it now reads the regions `--where --source` prints, falls back to the file's `file` annotations, and says where the region has no end marker (`FR-VIEW-300`).
 - The installer takes `srs-end:` out of the tooling it copies. It does so as it takes out annotations, leaving the line where it was (`FR-INIT-180`).
+- The downstream check runs against a real product. The pipeline's advisory job now checks Crawl Call, a cartoon snake game built with the framework and keeping both optional layers, with every checker and the viewer, instead of an example written for the purpose (`FR-CI-060`, `FR-DOC-030`).
 
 ### Fixed
 

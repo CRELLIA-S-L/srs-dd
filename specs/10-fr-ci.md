@@ -103,7 +103,7 @@ The installer **shall** offer the CI templates for GitHub and GitLab and install
 
 **Rationale.** Our pipeline tests the framework: smoke-installing into temporary directories would be meaningless noise in somebody else's project.
 
-### FR-CI-060 — The example project is checked as a downstream consumer
+### FR-CI-060 — A project that uses the framework is checked as a downstream consumer
 
 ```yaml
 status: implemented
@@ -117,9 +117,10 @@ tests: []
 created: 2026-08-07
 ```
 
-The pipeline **shall** run the working tree's checker and viewer against the published example project, without letting that result fail the pipeline.
+The pipeline **shall** run the working tree's checkers and viewer against a published project that uses the framework, without letting that result fail the pipeline.
 
-**Rationale.** The example is a real target: a change that stops accepting a specification which was valid shows up here rather than in a stranger's repository.
+**Rationale.** A consumer is a real target: a change that stops accepting a specification which was valid shows up here rather than in somebody's repository.
+The project checked is Crawl Call, a product in development whose specification is worked in every day and keeps both optional layers, so the register's checker and the layer's are asked the question too; until 2026-09-25 it was an example written for the purpose, which could only ever pass what it was written to pass.
 Advisory on purpose — an external repository, reachable only over the network, must not be able to block a release.
 
 ### FR-CI-090 — A suite working on a target leaves this repository alone
