@@ -343,6 +343,16 @@ assert n_after == n_before + 1, (
     'a file only a withdrawn requirement names must still count as '
     'unreferenced: %d -> %d of %d' % (n_before, n_after, total))
 PY2
+# verifies: INV-SPEC-050
+# While it stands: a requirement cancelled with no successor is kept, as
+# `withdrawn` — the checker accepts it with no `superseded_by`, and the page
+# still carries it, under that status. The half of the invariant a suite can
+# hold; that nobody deletes one instead is the other half, read in review.
+python3 tools/srs_check.py --no-write > /tmp/v-withdrawn.log 2>&1 \
+    || { echo "FAIL INV-SPEC-050 — the checker refused a withdrawn requirement"; cat /tmp/v-withdrawn.log; exit 1; }
+python3 tools/srs_view.py --html >/dev/null
+grep -q '<article id="FR-CORE-090" data-id="FR-CORE-090" data-status="withdrawn"' .srs-site/index.html \
+    || { echo "FAIL INV-SPEC-050 — the page does not keep the withdrawn requirement as withdrawn"; exit 1; }
 # Put the fixture back: everything below reads a specification of four.
 python3 - <<'PY2'
 path = 'specs/10-fr-core.md'
@@ -520,6 +530,25 @@ if grep -q "https://cdn" .srs-site/index.html; then
     echo "the page must not reference a CDN"
     exit 1
 fi
+# A CDN is one way to reach the network; every way a page can load
+# something is refused. A link a reader follows is not a request the page
+# makes, so <a href> to the repository stays.
+python3 - <<'PY_NET'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+loads = [(name, rx) for name, rx in (
+    ("a script loaded from elsewhere", r"<script[^>]*\bsrc="),
+    ("a stylesheet or resource linked in", r"<link[^>]*\bhref="),
+    ("an image fetched over the network", r"<img[^>]*\bsrc=[\"']?https?:"),
+    ("a CSS url() over the network", r"url\(\s*['\"]?https?:"),
+    ("a CSS @import", r"@import"),
+    ("a fetch", r"\bfetch\("),
+    ("an XMLHttpRequest", r"XMLHttpRequest"),
+    ("a dynamic import", r"\bimport\("),
+    ("an embedded frame or object", r"<(iframe|object|embed)\b"),
+) if re.search(rx, page)]
+assert not loads, 'FR-VIEW-060 — the page requests something over the network: %s' % [n for n, _ in loads]
+PY_NET
 test -f .srs-site/.gitignore
 
 # verifies: FR-VIEW-310
@@ -613,10 +642,10 @@ cp .srs-site/index.html /tmp/first.html
 python3 tools/srs_view.py --html >/dev/null
 cmp /tmp/first.html .srs-site/index.html
 
-# verifies: FR-VIEW-190, INV-SPEC-050
+# verifies: FR-VIEW-190
 # The dashboard counts every status (FR-VIEW-190). `withdrawn` is one of
 # them, and a lifecycle that lost it would show up here as a census the
-# page cannot render — which is the half of INV-SPEC-050 a suite can hold.
+# page cannot render.
 # The fixture stands at
 # two deferred and one implemented, which leaves three statuses carried by
 # nobody — and those are the half of the rule that matters, because a
@@ -700,7 +729,11 @@ python3 tools/srs_view.py --html
 # verifies: FR-VIEW-090
 # The page says what it is showing (FR-VIEW-090).
 grep -q "baseline 0.0.2" .srs-site/index.html
-grep -q "srs_check " .srs-site/index.html
+# The version that generated it, not any version: a fixed "srs_check " is
+# in the footer whatever number follows.
+version=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); import srs_parse; print(srs_parse.__version__)")
+grep -qF "srs_check $version" .srs-site/index.html \
+    || { echo "FAIL FR-VIEW-090 — the page does not name the version that generated it ($version)"; exit 1; }
 
 # verifies: FR-VIEW-100
 # And carries a snapshot per baseline, with a picker over them
@@ -909,7 +942,7 @@ assert re.search(r'#graph-controls \{[^}]*flex-direction: column', page), \
 for field in ('derives_from', 'refines', 'depends_on', 'conflicts_with'):
     assert '<line class="edge %s"' % field in page, \
         'the legend has no swatch for %s' % field
-    # verifies: FR-VIEW-150
+    # verifies: FR-VIEW-160
     # And the reader can leave that kind out (FR-VIEW-160). The suite runs
     # no browser, so what is asserted is the mechanism end to end: a swatch
     # that is a control, a rule that hides the kind when the drawing carries
@@ -963,8 +996,12 @@ PY2
 # (FR-VIEW-160). The class is the only thing on an edge: nothing marks a
 # direction any more, because with a lane for an area and a row for a
 # number no direction claims to be the forward one (ADR-0012).
-grep -q 'class="edge derives_from"' .srs-site/index.html
-grep -q 'class="edge depends_on"' .srs-site/index.html
+# A drawn edge is a <path>; the legend draws a <line> for every kind
+# whether or not an edge of it exists, so the element has to be named.
+grep -q '<path class="edge derives_from"' .srs-site/index.html \
+    || { echo "FAIL FR-VIEW-160 — no derives_from edge is drawn"; exit 1; }
+grep -q '<path class="edge depends_on"' .srs-site/index.html \
+    || { echo "FAIL FR-VIEW-160 — no depends_on edge is drawn"; exit 1; }
 python3 - <<'PY3'
 import re
 page = open('.srs-site/index.html', encoding='utf-8').read()
@@ -977,6 +1014,7 @@ bowed = re.findall(r'<path class="edge [^"]*"[^>]*d="M [^"]*Q', page)
 assert bowed, 'no intra-lane edge bows past what is between its ends'
 assert 'Math.min(BOW_MAX' in page, 'the script lost its copy of the bow'
 PY3
+# verifies: FR-VIEW-150
 # And the reader can narrow the drawing to one requirement's surroundings
 # (FR-VIEW-150): the controls and the walk that hides the rest are there.
 grep -q 'id="graph-root"' .srs-site/index.html
@@ -1243,7 +1281,8 @@ PY2
 echo "view-smoke: every mark on a requirement card is explained"
 
 # A viewer run must not litter the target with bytecode.
-test -z "$(find . -name __pycache__)"
+test -z "$(find . -name __pycache__)" \
+    || { echo "FAIL FR-VIEW-080 — a viewer run left bytecode behind"; find . -name __pycache__; exit 1; }
 
 # verifies: FR-VIEW-080
 # Nor may it write into specs/ (FR-VIEW-080). That half of the prohibition
@@ -1255,7 +1294,10 @@ find specs -type f | sort | xargs cksum > /tmp/v-specs-before
 for mode in "--list" "FR-CORE-010" "--tree FR-CORE-010" "--up FR-CORE-020" \
             "--code src/app.py" "--coverage" "--diff spec/v0.0.1" \
             "--baseline 9.9.9 --date 2026-01-01" "--json /tmp/v-nowrite.json" \
-            "--html /tmp/v-nowrite.html"; do
+            "--html /tmp/v-nowrite.html" "--grep shall" "--areas" \
+            "--cite FR-CORE-010" "--vocabulary" "--list --statements" \
+            "FR-CORE-010 --where" "FR-CORE-010 --where --source" \
+            "--svg /tmp/v-nowrite.svg"; do
     # Word splitting is the point — each entry is a whole invocation. Errors
     # are not swallowed: a mode that fails writes nothing, so tolerating it
     # would leave this comparison passing for exactly the mode that broke.
@@ -1265,6 +1307,10 @@ done
 find specs -type f | sort | xargs cksum > /tmp/v-specs-after
 diff /tmp/v-specs-before /tmp/v-specs-after \
     || { echo "the viewer modified specs/"; exit 1; }
+# And the bytecode half over the same runs: the check above this block ran
+# before most of them.
+test -z "$(find . -name __pycache__)" \
+    || { echo "FAIL FR-VIEW-080 — a viewer mode left bytecode behind"; find . -name __pycache__; exit 1; }
 
 # --- verifies: IF-VIEW-010 — every field of the block, not only the ones
 # --- this viewer has heard of. The format permits a key it declares

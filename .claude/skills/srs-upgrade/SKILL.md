@@ -17,12 +17,13 @@ There is no clone to keep around and no address to look up.
    python3 tools/srs_upgrade.py
    ```
 
-   It prints the version transition, the upgrade notes for the versions being crossed, and the exact created / refreshed / skipped list — then asks.
+   It prints the version transition, the upgrade notes for the versions being crossed, and the exact created / refreshed / set aside / skipped list — then asks.
    Nothing has been written at that point.
 
 2. **Read the upgrade notes to the user, not just the file list.**
    They are the only place that says what a new version expects of this project.
    Where a note calls for an action here, say so plainly.
+   The identifiers in a note are the framework's, not this project's: relay them as written, never through `--cite`, which would find this project's requirement under the same number.
 
 3. **Apply on their word.**
    In a terminal, answer the prompt.
@@ -36,7 +37,7 @@ There is no clone to keep around and no address to look up.
 
 ## What it does and does not touch
 
-Refreshed without asking: the checker, the viewer, the upgrader itself, the commands that freeze a baseline and date requirements from the history, the checker of any optional layer the project keeps, and the skills.
+Refreshed without asking: the checker and its parser, the viewer, the upgrader itself, the commands that freeze a baseline and date requirements from the history, the checker of any optional layer the project keeps, and the skills.
 Left alone: the CI configuration, `AGENTS.md`/`CLAUDE.md`, `.gitattributes`, the pre-commit hook, and the standards — `specs/README.md`, plus the standard of any optional layer the project keeps.
 All of them are files that may already be the project's own, which is why none is replaced without being asked for.
 To refresh those too, add `--force`; it only replaces files that carry the `SRS-DD` marker, so anything hand-written stays.
@@ -51,6 +52,6 @@ Requirements are the project's own.
 
 ## When it refuses
 
-Exit code 2 means nothing was written: no `specs/` beside `tools/`, no `git`, an unreachable address, or no terminal to confirm at and no `--yes`.
+Exit code 2 means nothing was written: no `specs/` beside `tools/`, the framework repository itself, `--ref` given with `--from`, a `--from` path that is no framework clone, no `git`, an unreachable address, or no terminal to confirm at and no `--yes`. Any other code is the installer's own — 1 where the project's checker rejects the result.
 Exit 3 means the installer rolled back and the project is untouched.
 Both are safe to retry once the cause is fixed.

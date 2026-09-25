@@ -1,9 +1,9 @@
 #!/bin/sh
-# implements: FR-CI-020, FR-CI-030
+# implements: FR-CI-020, FR-CI-030, CON-SPEC-030
 # Local gate. Run manually or via the pre-commit hook
 # (git config core.hooksPath .githooks).
 #
-# Two checks:
+# Four checks:
 #   1. YAML syntax of the pipeline and of the templates shipped to target
 #      projects — shell quoting does not protect ": " sequences from a
 #      YAML parser, and a broken template is a stranger's problem.
@@ -11,6 +11,10 @@
 #      green pre-commit and a green pipeline mean the same thing. Each
 #      suite sets its own shell semantics (bash, set -eo pipefail); an
 #      interactive shell without set -e hides aborted-line bugs.
+#   3. After each suite, that the git index it was handed is unchanged —
+#      a suite that reaches this repository's index from a hook would
+#      stage its target's files into the commit being made (FR-CI-090).
+#   4. After each suite, that it left no bytecode under tools/ (FR-CI-160).
 #
 # The suites include the specification gate: it runs the checker and
 # fails when the committed traceability matrix is stale.
@@ -62,6 +66,7 @@ for suite in tests/*.sh; do
     # matrix on purpose, so a single snapshot would leave every suite after
     # it comparing against a state that legitimately moved.
     [ -f "$index" ] && cksum < "$index" > "$tmpdir/index.before"
+    bytecode_before=no; [ -d tools/__pycache__ ] && bytecode_before=yes
     if ! "$suite" >"$tmpdir/$name.log" 2>&1; then
         echo "ci-selftest: $name FAILED; last output:" >&2
         tail -20 "$tmpdir/$name.log" >&2
@@ -73,6 +78,13 @@ for suite in tests/*.sh; do
             echo "ci-selftest: $name altered this repository's index" >&2
             exit 1
         fi
+    fi
+    # implements: FR-CI-160
+    # A suite that imports a tool without sys.dont_write_bytecode leaves
+    # tools/__pycache__ behind; named per suite, so the one that did is found.
+    if [ "$bytecode_before" = no ] && [ -d tools/__pycache__ ]; then
+        echo "ci-selftest: $name left bytecode in tools/__pycache__" >&2
+        exit 1
     fi
 done
 echo "ci-selftest: all suites pass"

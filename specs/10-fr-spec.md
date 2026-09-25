@@ -120,3 +120,43 @@ The standard **shall** name every rule the checker reports by name, with what it
 **Rationale.** A project sets what a rule costs in `rules` and excuses a requirement from one in `exempt`, and both take the rule's name; the standard named one rule of thirteen, pointed `exempt` at a section that never mentioned it, and said of annotations that "unannotated files are never reported" while two rules reported exactly that.
 The names are a published contract (`IF-SPEC-020`) that a project could learn only by getting one wrong and reading the checker's refusal.
 A list of names kept by hand beside a tuple in code is the list that falls behind — the third found in a week, after the pipeline's steps and the table of suites — so a suite holds the table to `RULES` in `tools/srs_check.py`, both ways, and holds the *Annotations* section to every rule it restates.
+
+### FR-SPEC-060 — A dry run of the baseline command writes nothing
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_baseline.py]
+tests: [tests/baseline-smoke.sh]
+created: 2026-09-24
+```
+
+Run with `--dry-run`, the baseline command **shall** write no file, the traceability matrix included.
+
+**Rationale.** The command's help promised "print the row and write nothing", the `srs-baseline` procedure told its reader the same, and the dry run ran the checker without `--no-write`, so it rewrote `specs/90-traceability.md` and then printed "Dry run: nothing was written".
+The suite asserted a clean working tree after the dry run, which a fresh matrix rewritten into itself leaves clean, so the assertion held for the wrong reason; it now makes the matrix stale first and holds it byte for byte.
+`FR-INIT-070` said this of the installer and nothing said it of this command, so the promise lived in a help string and nobody checked it.
+
+### FR-SPEC-070 — The standards name every value their tools define
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-050]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md, specs/50-verification.md, grounds/README.md, arch/README.md]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-09-25
+```
+
+The standards **shall** name every value their tools define for the reader to write — the requirement types, the verification methods, the files the checker reads no requirement from, the specification's configuration keys, the severities a rule can be set to, the register's kinds, keys, statuses, grades, classes, periods, confidence levels and configuration, and the layer's statuses and required keys.
+
+**Rationale.** These lists matched the code on 2026-09-25 — all but the map of `specs/`, which left out the standard itself — and nothing held them: each is a line or a table a person keeps beside a tuple in a tool, which is the shape every list this release found behind had.
+A value a reader cannot find in the standard is one they learn by writing it wrong and reading the refusal.
+The suite compares both ways where a list claims to be the whole set, and asks that each value be named at all where the standard names it in prose.

@@ -201,7 +201,7 @@ depends_on: [FR-ARCH-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_arch.py]
-tests: [tests/arch-rules.sh, tests/arch-check.sh]
+tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 
@@ -602,3 +602,21 @@ A warning rather than an error, because the record still reads: every finding th
 Where the file went is in git, which knows a rename from a deletion, so the warning says it: the reader fixes the record with one edit instead of a search, and the record stays theirs to fix — the layer writes the map and nothing else (`CON-ARCH-010`).
 Where there is no git, or no history, the warning stands without the hint.
 
+### FR-ARCH-290 — The layer's standard names every rule its checker reports
+
+```yaml
+status: implemented
+verification: T
+derives_from: [IF-ARCH-030]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [arch/README.md]
+tests: [tests/standard-rules.sh]
+created: 2026-09-24
+```
+
+The architecture layer's standard **shall** name every rule its checker reports by name, with what it reports.
+
+**Rationale.** The standard said of the rule names that "this file is written against them" (`IF-ARCH-030`), and on 2026-09-24 it named two of the seven — one in an example, one in passing — so a project setting a rule's cost in `arch/arch-config.json` learned the names by getting one wrong.
+The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `tools/srs_arch.py`.

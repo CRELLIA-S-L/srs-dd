@@ -9,8 +9,8 @@ the project actually gives them.
 
 A measurement, not a gate: the answers of a model vary run to run, and the
 number this prints is read by whoever changes the guides, against the number
-before the change. It never runs in CI, and it says so and stops where no
-agent CLI is on the path.
+before the change. Asking never runs in CI — its suite scores canned answers —
+and it says so and stops where no agent CLI is on the path.
 
     python3 tools/srs_cite_eval.py                       # the default questions
     python3 tools/srs_cite_eval.py --questions FILE      # another set
@@ -25,6 +25,10 @@ import re
 import shutil
 import subprocess
 import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import srs_parse                                           # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUESTIONS = os.path.join(ROOT, "tests", "eval", "citation-questions.txt")
@@ -45,7 +49,7 @@ def identifier_pattern(areas):
     pattern for a span written with it at either end."""
     area = "|".join(re.escape(a) for a in areas)
     # implements: INV-SPEC-080
-    number = r"(?:\d{3}|[1-9]\d{3,})"   # as tools/srs_parse.py spells it; this tool runs where that module may not be beside it
+    number = srs_parse.NUMBER
     core = r"(?:FR|NFR|IF|INV|CON)-(?:%s)-%s|ADR-\d{4}|[EHBUIF]-%s" % (area, number, number)
     mention = re.compile(r"\b(%s)\b" % core)
     span = re.compile(SPAN.replace("ID", core))
@@ -67,7 +71,8 @@ def citations(ids):
         path = os.path.join(ROOT, "tools", tool)
         if not os.path.exists(path):
             continue
-        run = subprocess.run([sys.executable, path, "--cite"] + sorted(wanted),
+        # implements: INV-SPEC-090
+        run = subprocess.run([sys.executable, path, "--cite"] + sorted(wanted, key=srs_parse.id_key),
                              capture_output=True, text=True, cwd=ROOT)
         for line in run.stdout.splitlines():
             rid = line.split(" — ", 1)[0].strip()

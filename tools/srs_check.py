@@ -47,8 +47,8 @@ except ImportError:
         "the tooling.\n")
     sys.exit(2)
 
-# Re-exported: the number lives in srs_parse, the one file this checker
-# and the grounds checker both must have beside them (ADR-0021).
+# Re-exported: the number lives in srs_parse (ADR-0021), the one file
+# every checker — this one, the grounds and the architecture — must have.
 __version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

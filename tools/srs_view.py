@@ -20,7 +20,7 @@ is a projection of the same data for people to read.
     srs_view.py --html [PATH]      self-contained page, default .srs-site/
     srs_view.py --json [PATH]      the model as JSON, for your own scripts
 
-The parser lives in srs_check.py — one parser for the whole framework.
+The parser lives in srs_parse.py — one parser for the whole framework.
 A broken specification is still worth reading, so parse errors and
 duplicate identifiers are reported as a banner rather than a failure;
 judging the specification remains the checker's job.
@@ -67,6 +67,7 @@ LINK_FIELDS = srs_check.LINK_FIELDS
 STATUSES = srs_check.STATUSES
 
 # How an incoming link reads from the target's side.
+# implements: FR-VIEW-390
 INCOMING_LABEL = {
     "derives_from": "derived by",
     "refines": "refined by",
@@ -1278,20 +1279,9 @@ def baseline_snapshots():
             continue
         requirements = {}
         for entry in model["requirements"]:
-            requirements[entry["id"]] = {
-                "title": entry["title"],
-                "status": entry["status"],
-                "verification": entry["verification"],
-                "code": entry["code"],
-                "tests": entry["tests"],
-                "derives_from": entry["derives_from"],
-                "depends_on": entry["depends_on"],
-                "refines": entry["refines"],
-                "conflicts_with": entry["conflicts_with"],
-                "superseded_by": entry["superseded_by"],
-                "exempt": entry["exempt"],
-                "statement": fingerprint(entry["statement"]),
-            }
+            requirements[entry["id"]] = dict(
+                [(field, entry[field]) for field in DIFF_FIELDS]
+                + [("statement", fingerprint(entry["statement"]))])
         snapshots.append({"tag": "spec/v%s" % version, "version": version,
                           "requirements": requirements})
     return as_deltas(snapshots)
@@ -1321,6 +1311,9 @@ def as_deltas(snapshots):
     return out
 
 
+# Every field a requirement carries, and its title, except `created`: the
+# date a requirement was born is written once and never changes, so it is
+# never a difference between two revisions.
 DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
                "code", "tests", "exempt") + LINK_FIELDS
 
@@ -1403,6 +1396,7 @@ def print_diff(diff, style):
 # HTML
 # --------------------------------------------------------------------
 
+# implements: FR-VIEW-390
 CSS = """
 :root {
   --bg: #ffffff; --fg: #1a1d21; --muted: #6b7280; --line: #e2e5e9;
@@ -2151,6 +2145,7 @@ class Links(object):
 # gives them, and in its order rather than alphabetical. A letter is not a
 # word, and this page is the one that reaches a reader who has neither that
 # file nor `specs/50-verification.md` to look it up in.
+# implements: FR-VIEW-390
 METHODS = (("T", "test"), ("D", "demonstration"),
            ("I", "inspection"), ("A", "analysis"))
 METHOD_WORD = dict(METHODS)

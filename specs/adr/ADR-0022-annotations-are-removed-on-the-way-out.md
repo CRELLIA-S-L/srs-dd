@@ -52,6 +52,8 @@ What leaves is precisely what the checker would have read as a claim — `RE_ANN
 The line survives the removal, replaced rather than deleted.
 A traceback from a target names the line it happened on, a bug report is read against the source here, and deleting the lines would shift every number after them by an amount nobody can see.
 
+*Since 2026-09-25 (FR-INIT-260):* the same way out is taken by the tooling's citations of this framework's decisions — `(ADR-NNNN)` after a sentence — which point at nothing in a project, or at the project's own decision under that number.
+
 ## Consequences
 
 Measured on a fresh target with `tools` added to its code roots: 78 warnings before, 7 after, and the 7 are of a different kind — `no requirement names this file and it claims none`, which is FR-CHK-210 correctly reporting files the project put on its own code roots and never described.

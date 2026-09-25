@@ -6,6 +6,8 @@
     python3 tools/srs_arch.py              read, report, regenerate arch/90-map.md
     python3 tools/srs_arch.py --no-write   report only
     python3 tools/srs_arch.py --strict     treat warnings as errors
+    python3 tools/srs_arch.py --cite E-NNN… name elements to a person
+    python3 tools/srs_arch.py --drivers    the requirements that drive the cut
 
 The requirement model is read by running tools/srs_view.py as a subprocess and parsing what it
 publishes, which the framework promises to keep stable, so this file never learns the requirement
@@ -34,8 +36,8 @@ except ImportError:
         "re-run tools/srs_init.py to refresh the tooling.\n")
     sys.exit(2)
 
-# Re-exported: the number lives in srs_parse, the one file every checker must have beside it
-# (ADR-0021).
+# Re-exported: the number lives in srs_parse (ADR-0021), the one file every checker must
+# have beside it.
 __version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

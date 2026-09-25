@@ -33,7 +33,9 @@ cd "$(dirname "$0")/.."
 #               than three section reads in three, because every turn
 #               re-reads the context before it. The number is a ceiling on
 #               what a procedure sends the reader to, not a verdict on
-#               reading it.
+#               reading it. 7 000 since 2026-09-24, when the register's
+#               standard gained the table of its checker's rules
+#               (FR-GND-560) and `srs-bet` with it stood at 6 944.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -44,7 +46,7 @@ cd "$(dirname "$0")/.."
 #               command and the two optional layers and this repository's
 #               had to carry them too (1 575), ADR-0030's note says why.
 OWN=1300
-TRANSITIVE=6700
+TRANSITIVE=7000
 GUIDE=1600
 
 # What is measured: every shipped procedure, and the two agent guides —

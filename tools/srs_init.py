@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# implements: FR-INIT-250
 """Install, adopt, or upgrade the SRS-DD skeleton in a target repository.
 
 Run from a clone of the framework repository:
@@ -16,14 +17,14 @@ Three modes, detected automatically:
   configuration BEFORE anything else changes; on validation failure the
   target is left untouched (exit 3). Only tooling and missing service
   files are installed — existing specification files are never modified.
-- **upgrade** — `specs/srs-config.json` exists: the tooling (checker and
-  viewer) and the skills are refreshed (no --force needed), the version
+- **upgrade** — `specs/srs-config.json` exists: the tooling and the
+  skills are refreshed (no --force needed), the version
   transition and relevant CHANGELOG upgrade notes are printed.
 
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
 files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
-hook, specs/README.md, grounds/README.md) — and only when the existing
+hook, specs/README.md, grounds/README.md, arch/README.md) — and only when the existing
 file carries the "SRS-DD-<version>" marker; a file the installer did not
 install is never overwritten. The project's requirements are never
 touched under any flag.
@@ -43,7 +44,7 @@ skill, which generates and confirms them for you.
 Exit codes: 0 — success; 1 — checker errors in the target, or a failure
 after adopt's point of no return (partial completion, see output);
 2 — refused before any change (usage, ambiguous target, config errors);
-3 — adopt rolled back, the target is byte-identical (modulo removal of a
+3 — adopt refused or rolled back, the target is byte-identical (modulo removal of a
 stale temp file from a previously crashed adopt run).
 """
 
@@ -237,10 +238,10 @@ def parse_args():
                         help="also refresh existing SRS-DD-marked precious "
                              "files (CI config, CLAUDE.md/AGENTS.md, "
                              ".gitattributes, the pre-commit hook, "
-                             "specs/README.md, grounds/README.md); a "
-                             "file "
+                             "specs/README.md, grounds/README.md, "
+                             "arch/README.md); a file "
                              "without the marker is still never touched; "
-                             "the checker and skills are "
+                             "the tooling and skills are "
                              "refreshed without it in adopt/upgrade modes; "
                              "specification content is never overwritten")
     parser.add_argument("--period", choices=("month", "quarter", "year"),
@@ -339,7 +340,7 @@ def outbound(raw, rel):
     # Stripped here rather than in the source, because the two-way check
     # those lines exist for is checked in this repository.
     if rel.endswith(".py") and rel.startswith("tools" + os.sep):
-        raw = strip_annotations(raw.decode("utf-8")).encode("utf-8")
+        raw = strip_decisions(strip_annotations(raw.decode("utf-8"))).encode("utf-8")
     return raw
 
 
@@ -359,6 +360,25 @@ def substitutions(name, settings):
     out[WIDTH_TOKEN] = (WIDTH_LINE % settings["line_width"]
                         if settings.get("line_width") else "")
     return out
+
+
+# A citation of one of this framework's decisions, as a comment in the
+# shipped tooling carries it: the number in brackets after the sentence it
+# supports.
+RE_DECISION = re.compile(r" ?\(ADR-\d{4}\)")
+
+
+def strip_decisions(text):
+    """Takes this framework's decision numbers out of the shipped tooling on
+    the way into a target, leaving the sentence they supported.
+
+    In a target `ADR-0009` points at nothing, or at the project's own
+    decision under that number, which is worse; the reasoning stays in the
+    comment and the number stays here, where the decision is. Lines keep
+    their place, as they do when an annotation is taken out.
+    """
+    # implements: FR-INIT-260
+    return RE_DECISION.sub("", text)
 
 
 def strip_annotations(text):
@@ -532,7 +552,9 @@ class Installer(object):
                 sys.stdout.write(
                     "\nHint: your .gitattributes was kept; consider adding\n"
                     "  specs/90-traceability.md text eol=lf\n"
-                    "so autocrlf cannot break the CI freshness gate.\n")
+                    "and, for a layer you keep, grounds/90-dashboard.md or\n"
+                    "arch/90-map.md the same way, so autocrlf cannot break\n"
+                    "the CI freshness gate.\n")
 
 
 def scan_target_spec(target):
@@ -604,9 +626,20 @@ def collect_spec_skeleton():
     return sorted(result, key=lambda pair: pair[1])
 
 
-def install_ci(installer, choice):
-    keys = {"github": ("github",), "gitlab": ("gitlab",),
-            "both": ("github", "gitlab"), "none": ()}[choice]
+def installed_ci(installer):
+    """The CI templates a target already carries as ours: an upgrade told
+    nothing about CI refreshes these, under the rules every precious file
+    follows, and leaves a pipeline the project wrote itself unmentioned."""
+    # implements: FR-INIT-060
+    return tuple(key for key, (_src, dst) in sorted(CI_TEMPLATES.items())
+                 if os.path.exists(os.path.join(installer.target, dst))
+                 and installer.carries_marker(dst))
+
+
+def install_ci(installer, choice, keys=None):
+    if keys is None:
+        keys = {"github": ("github",), "gitlab": ("gitlab",),
+                "both": ("github", "gitlab"), "none": ()}[choice]
     for key in keys:
         src, dst = CI_TEMPLATES[key]
         installer.copy(src, dst, tooling=True, precious=True)
@@ -1682,8 +1715,12 @@ def run_upgrade(args, target):
     # was recorded falls back to its directory, because a guide under a
     # slightly wrong title beats one nothing refreshes at all.
     install_agent_docs(installer, substitutions(*guide_answers(target)))
+    # An upgrade run through srs_upgrade.py has no --ci to pass, and the
+    # template the project already carries is the one it chose.
     if args.ci:
         install_ci(installer, args.ci)
+    else:
+        install_ci(installer, None, keys=installed_ci(installer))
     install_hook(installer)
     sys.stdout.write(installer.summary() + "\n")
     if args.dry_run:

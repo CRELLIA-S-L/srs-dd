@@ -49,7 +49,7 @@ Drift between the spec and the code becomes a build error rather than a discover
 
 Every box is a requirement, coloured by its status; every line is a link — what derives from what, what depends on what.
 The right-hand lane is this page's own requirements — the ones that say what each section must contain and what holds it to the repository — reaching into every other area they restate.
-The picture is drawn by the pipeline from the specification at every deploy, so it is never older than the page; click it for the live page — search, filters, the coverage gaps, the whole graph of 250-odd requirements, and any two baselines compared.
+The picture is drawn by the pipeline from the specification at every deploy, so it is never older than the page; click it for the live page — search, filters, the coverage gaps, the whole graph of every requirement, and any two baselines compared.
 
 ## A requirement, and what the tooling does with it
 
@@ -136,7 +136,7 @@ Then it lays out `specs/`, writes the config, generates a placeholder requiremen
 `--defaults` answers everything; `--dry-run` writes nothing and prints the exact created / refreshed / skipped list first.
 
 **Already have an SRS?** The installer detects it and switches to adopt mode:
-your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical.
+your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical, but for a crashed earlier run's temporary copy of the checker, which is removed.
 Your requirements are never modified; your own `specs/README.md`, if you had one, is set aside in `specs/archive/` and the standard takes its place.
 Where its requirements carry no `created` dates, you are offered `tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
 
@@ -240,7 +240,7 @@ Each layer's checker cites its own records in the same form — `srs_arch.py --c
 | `skeleton/` | What the installer copies into your project |
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
 | `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py` (stay here) |
+| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
 | `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |

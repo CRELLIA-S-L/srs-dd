@@ -27,14 +27,16 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/arch-check.sh` | This repository's own layer passes strictly, its committed map is what the elements say now, and a run rewrites the map and nothing else in the layer |
 | `tests/dates-smoke.sh` | The one command that writes requirement blocks: the date it writes is the one the history holds and not today's, a second run costs nothing, and where the history cannot be read it refuses rather than inventing one |
 | `tests/docs-commands.sh` | Every command the documentation names with a flag is one the tool accepts |
-| `tests/docs-content.sh` | What the landing page derives from the repository is held to it: its headings, its example requirement, its skills table, its map of the top level, the installer's exit codes, and every relative link in `README.md` and `docs/` |
+| `tests/docs-content.sh` | What the landing page derives from the repository is held to it: its headings, its example requirement, its skills table, its map of the top level, the installer's exit codes, and every relative link in `README.md` and `docs/`, and every list of this repository's tools |
 | `tests/cite-eval-smoke.sh` | The citation evaluation scores canned answers exactly and refuses to run with no agent to ask; the live run is a measurement, not a suite |
 | `tests/proc-eval-smoke.sh` | The procedure evaluation reads every shipped scenario against the specification as it stands, accounts and scores a trace exactly, refuses a malformed scenario, and stops with no agent to ask |
 | `tests/skill-budget.sh` | Every shipped procedure, and each agent guide, fits its budget of words, on its own and with what it tells the reader to open first |
 | `tests/skill-instructions.sh` | Every shipped procedure still names the commands, articles, files, procedures and instructions its list says it must |
 | `tests/guide-parity.sh` | This repository's guides and hook carry every rule their shipped counterparts state, and the decision template has one copy |
-| `tests/pipeline-suites.sh` | The pipeline runs every file in `tests/` as a step of its own, and this table names every one of them |
-| `tests/standard-rules.sh` | The standard names every rule the checker reports by name, with what it reports, and its *Annotations* section every annotation rule |
+| `tests/pipeline-suites.sh` | The pipeline runs every file in `tests/` as a step of its own, this table names every one of them, and `.gitattributes` pins every file a shipped gate compares byte for byte |
+| `tests/standard-rules.sh` | Each of the three standards names every rule its checker reports by name, with what it reports, and the specification's *Annotations* section every annotation rule |
+| `tests/standard-vocabulary.sh` | The standards name the values their tools define — types, methods, unread files, the register's and the layer's vocabularies and configuration, the specification's configuration keys, the severities — every copy one file keeps of a list another defines matches it, the viewer's tables cover the checker's vocabulary, and every account of what an upgrade leaves alone names each kind |
+| `tests/code-field-sets.sh` | The requirements its table names as claiming a set — every procedure, every Python tool, every command, the procedures that name records, the tools that read or order identifiers — name every member of it in their `code` fields |
 | `tests/line-width.sh` | Not a suite: the gate `FR-CI-100` names as its own code, refusing a source line wider than 120 columns that no string literal on it answers for |
 
 Every file in the table runs in CI, one step each, and locally through `tools/ci_selftest.sh`, which executes everything in `tests/` rather than a copy of it; `tests/pipeline-suites.sh` holds both the pipeline's steps and this table to the directory.

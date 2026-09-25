@@ -96,9 +96,16 @@ git add -A
 git commit -qm "release notes for 9.9.9"
 clean=$(git rev-parse HEAD)
 
-# --dry-run says what it would do and writes nothing at all.
+# --dry-run says what it would do and writes nothing at all — the matrix
+# included, which a fresh one would hide, so it is made stale first.
+# verifies: FR-CI-140
+printf 'stale\n' >> specs/90-traceability.md
+cp specs/90-traceability.md /tmp/rel-matrix.before
 python3 tools/srs_release.py 9.9.9 --dry-run --date 2026-01-02 > /tmp/rel-dry.log
 grep -q "Dry run: nothing was written" /tmp/rel-dry.log
+cmp -s specs/90-traceability.md /tmp/rel-matrix.before \
+    || { echo "FAIL FR-CI-140 — a release dry run rewrote the matrix"; exit 1; }
+git checkout -- specs/90-traceability.md
 test "$(git rev-parse HEAD)" = "$clean"
 test -z "$(git status --porcelain)"
 

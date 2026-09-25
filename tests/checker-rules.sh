@@ -80,6 +80,17 @@ rule() {
 }
 
 # silent <name> <expected exit> <fragment that must NOT appear>
+# as_warning <name> <fragment>
+# The finding of the last run was printed as a warning, not lowered to a
+# note: a strict fixture that also carries some other warning fails --strict
+# whatever this rule does, so "treated as errors" alone proves nothing
+# about it.
+as_warning() {
+    grep -q "^warning: .*$2" /tmp/srs-rules.log \
+        || { echo "FAIL $1 — the finding was not a warning: $2"; cat /tmp/srs-rules.log; exit 1; }
+    passes=$((passes + 1))
+}
+
 silent() {
     local name=$1 want=$2 msg=$3 rc=0
     ( cd "$LAB" && python3 tools/srs_check.py --no-write ) \
@@ -255,6 +266,7 @@ spec < <(block FR-CORE-010 "Draft with code" \
                'The system **shall** act.')
 rule "FR-CHK-070 warns" 0 "implementation ahead of approval"
 rule "FR-CHK-070 strict fails" 1 "treated as errors" --strict
+as_warning "FR-CHK-070" "implementation ahead of approval"
 # Each warning names what it is about. File and line locate a requirement
 # and identify nothing: the number moves with the next edit above it, and a
 # plan that references numbers cannot cite it.
@@ -296,6 +308,7 @@ rule "FR-CHK-075 covers derives_from, at partial" 0 \
 rule "FR-CHK-075 covers refines" 0 \
      "FR-CORE-040 is implemented and rests on draft FR-CORE-010 (refines)"
 rule "FR-CHK-075 strict fails" 1 "treated as errors" --strict
+as_warning "FR-CHK-075" "rests on draft FR-CORE-010"
 
 # --- verifies: FR-CHK-080 — annotations are cross-checked against the specification.
 printf '# implements: FR-CORE-990\n' > "$LAB/src/app.py"  # srs-ignore: a fixture, not our claim
@@ -513,6 +526,10 @@ sys.exit(srs_check.main())
 grep -qF "key 'depends' was withdrawn in 9.9.9" /tmp/srs-rules.log \
     || { echo "FAIL FR-CHK-180 withdrawn — wrong message"
          cat /tmp/srs-rules.log; exit 1; }
+# An error, as the statement says: a report the gate lets through is the
+# silent failure a retired key exists to prevent.
+[ "$rc" = 1 ] || { echo "FAIL FR-CHK-180 withdrawn — exit $rc, expected 1 (an error)"
+                   cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
 
 # --- verifies: FR-CHK-140 — only a requirement that says it is verified by test and
@@ -633,8 +650,14 @@ rule "FR-CHK-160 and fails a strict gate" 1 "treated as errors" --strict
 
 config "{$BASE, \"rules\": {\"unknown-key\": \"report\"}}"
 rule "FR-CHK-160 lowered to a report" 0 "note: "
+# "note: " alone proves nothing — a lab outside git always carries the note
+# that the history could not be read — so the finding itself must be the note.
+grep -q "^note: .*unknown field" /tmp/srs-rules.log \
+    || { echo "FAIL FR-CHK-160 — the lowered finding was not printed as a note"; cat /tmp/srs-rules.log; exit 1; }
 # The point of lowering: the gate survives it.
 rule "FR-CHK-160 a report does not fail --strict" 0 "note: " --strict
+grep -q "^note: .*unknown field" /tmp/srs-rules.log \
+    || { echo "FAIL FR-CHK-160 — under --strict the lowered finding was not a note"; cat /tmp/srs-rules.log; exit 1; }
 
 config "{$BASE, \"rules\": {\"unknown-key\": \"off\"}}"
 silent "FR-CHK-160 silenced says nothing" 0 "unknown field"
@@ -719,6 +742,7 @@ spec < <(block FR-CORE-010 "Names a file that stays silent about it" \
 rule "FR-CHK-200 names both ends" 0 \
      "FR-CORE-010 names src/app.py in code and the file does not carry"
 rule "FR-CHK-200 strict fails" 1 "treated as errors" --strict
+as_warning "FR-CHK-200" "names src/app.py in code and the file does not carry"
 
 # Annotated, and the rule goes quiet. Both keywords, because `implements`
 # pairs with `code` and `verifies` with `tests`, and a rule that checked one
@@ -749,6 +773,7 @@ printf 'print("nobody wants me")\n' > "$LAB/src/orphan.py"
 rule "FR-CHK-210 names the unclaimed file" 0 \
      "src/orphan.py — no requirement names this file and it claims none"
 rule "FR-CHK-210 strict fails" 1 "treated as errors" --strict
+as_warning "FR-CHK-210" "src/orphan.py — no requirement names this file"
 
 # Claimed from either end and it goes quiet — the field alone is enough,
 # because pairing is FR-CHK-200's business and not this rule's.
@@ -956,10 +981,13 @@ cmp -s "$LAB4/before" "$LAB4/after" \
          exit 1; }
 
 # Cleared, as every target-making suite does before it starts: the same
-# command cannot reach it.
+# command, handed the same index the same way, cannot reach it. The
+# variable is set first — this suite cleared it at the top, and an unset of
+# something never set protects nothing and could not fail.
 cp "$(git rev-parse --git-dir)/index" "$LAB4/index"
 cksum < "$LAB4/index" > "$LAB4/before"
-( cd "$LAB4/target" \
+( export GIT_INDEX_FILE="$LAB4/index"
+  cd "$LAB4/target" \
   && unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY \
   && git add -A ) >/dev/null 2>&1
 cksum < "$LAB4/index" > "$LAB4/after"
@@ -1206,12 +1234,27 @@ silent "FR-CHK-260 named file, right number, says nothing of it" 0 "FR-CORE-1000
 rm -rf "$LAB/specs/10-fr-core"; mkdir -p "$LAB/specs/10-fr-core"
 { printf '# Core — by subject\n\n'; block FR-CORE-020 "Any number" "$PARTNER" 'The system **shall** a.'
   block FR-CORE-1000 "Any number too" "$WIDE" 'The system **shall** b.'; } > "$LAB/specs/10-fr-core/storage.md"
-silent "FR-CHK-260 a file named by subject is bound by nothing" 0 "file-range"
+silent "FR-CHK-260 a file named by subject is bound by nothing" 0 "FR-CORE-1000 is"
 rm -rf "$LAB/specs/10-fr-core"
 spec < <(block FR-CORE-1000 "Past the thousand" "$WIDE" 'The system **shall** go on.'
          block FR-CORE-020 "The partner" "$PARTNER" 'The system **shall** respond.')
 config "{$BASE, \"rules\": {\"file-range\": \"off\"}}"
-silent "FR-CHK-260 turned off says nothing" 0 "file-range"
+silent "FR-CHK-260 turned off says nothing" 0 "FR-CORE-1000 is"
 config "{$BASE}"
+
+# verifies: IF-CI-020
+# The fourth way the checker cannot run: its parser is not beside it, as a
+# copy by hand leaves it. Exit 2 and the file named, not a traceback.
+NOPARSE=/tmp/srs-no-parser
+rm -rf "$NOPARSE"; mkdir -p "$NOPARSE/tools" "$NOPARSE/specs"
+cp tools/srs_check.py "$NOPARSE/tools/"
+rc=0; ( cd "$NOPARSE" && python3 tools/srs_check.py --no-write ) > /tmp/srs-noparse.log 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "FAIL IF-CI-020 — without its parser the checker exited $rc, expected 2"; cat /tmp/srs-noparse.log; exit 1; }
+grep -qF "tools/srs_parse.py: missing" /tmp/srs-noparse.log \
+    || { echo "FAIL IF-CI-020 — the refusal does not name the missing parser"; cat /tmp/srs-noparse.log; exit 1; }
+grep -q "Traceback" /tmp/srs-noparse.log \
+    && { echo "FAIL IF-CI-020 — a missing parser crashed the checker"; exit 1; }
+rm -rf "$NOPARSE"
+passes=$((passes + 1))
 
 echo "checker-rules: $passes fixtures pass"

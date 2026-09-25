@@ -6,7 +6,7 @@ Where a word is also an SRS term of art, the meaning here is the one that binds.
 | Term | Meaning |
 |---|---|
 | Target | A project SRS-DD is installed into, as opposed to this repository |
-| Payload | What the installer copies into a target: `skeleton/`, the checker, the viewer, the shipped skills, the CI templates |
+| Payload | What the installer copies into a target: `skeleton/`, the standards, the decision template, the tooling, the shipped skills, the CI templates, the hook and `.gitattributes` |
 | Skeleton | The starter specification files in `skeleton/specs/`, meant to be edited by the target |
 | Standard | `specs/README.md` — the normative document on the specification format, identical in every project |
 | Area | The middle segment of an identifier; a project-declared partition of the system by subject matter |
@@ -18,7 +18,7 @@ Where a word is also an SRS term of art, the meaning here is the one that binds.
 | Agent guide | `AGENTS.md`, read by every agent session, with a per-agent entry file such as `CLAUDE.md` that imports it. A target gets its pair from `skeleton/`; this repository's own pair is its instance of that one, and carries every rule it states |
 | Precious file | A file that may already be the project's own — CI config, agent guides, `.gitattributes`, the hook, the standards of the specification and of each optional layer — refreshed only with `--force` and only when it carries the SRS-DD marker |
 | Marker | A line reading `SRS-DD-<version>` in a file the installer wrote; how it tells its own files from a project's. Versioned because the bare name occurs in ordinary prose |
-| Gate | A check that fails the build: the checker's exit code and the matrix freshness comparison |
+| Gate | A check that fails the build: each checker's exit code, and the freshness of what each generates — the matrix, and where a project keeps them the register's dashboard and the architecture map |
 | Grounds register | `grounds/`, optional and a sibling of `specs/`: what the requirements rest on. Declining it costs nothing and leaves no trace |
 | Record | An entry in the grounds register — an ideology, a frame, a hypothesis, a bet, or a requirement declared unclaimed. Authored by a person; generated output that lives in the register, the dashboard among it, is not a record |
 | Hypothesis | A record in that register claiming something about the world that could turn out to be false, with a population, a threshold declared in advance, a term and an owner |

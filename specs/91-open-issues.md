@@ -9,7 +9,7 @@ Entries are removed once the maintainer decides which side is right and the fix 
 **Found:** by the audit before baseline 0.20.0 (2026-09-24).
 
 **What diverged:** FR-SPEC-030 obliges a decision that chose an algorithm or a mechanism to describe it in words — its steps, the invariants it keeps, the inputs where it stops working — and says nothing of when the decision was written.
-Of the decisions under `specs/adr/`, only ADR-0031 has a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
+Of the decisions under `specs/adr/`, only those written from 2026-09-24 on — ADR-0031, ADR-0033 and ADR-0034 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
 
 **Why it is recorded rather than fixed:** a decision is the record of what was decided when it was decided, and adding a section to it afterwards changes that record; narrowing the statement to decisions written from now on is the other way out, and it is a change to what the requirement obliges.
 
@@ -51,15 +51,16 @@ Whatever is decided here, the two should agree: a requirement the checker has st
 
 **Found:** while putting the standard into the precious bucket (2026-08-18).
 
-**What diverged:** the statement says the installer refreshes the checker, the viewer and the skills without a flag, *and* that files which may be the project's own are refreshed only with `--force` and only when marked.
+**What diverged:** the statement says the installer refreshes the tooling and the skills without a flag, *and* that files which may be the project's own are refreshed only with `--force` and only when marked.
 Two capabilities, one identifier, one `verification` field, one status.
 It reads as a single sentence because the second half is written as a `while` clause, which is a subordinate grammatical form doing the work of a second requirement.
 
 Nothing about this is new — the compound has stood since the requirement was written — but 0.14.0 added the standard to the second half, so the number now answers for one more thing than it did.
-0.16.0 did it again on 2026-09-08 with the architecture standard: the second half now enumerates seven kinds of file against the first half's three, under one identifier, one status and one `tests` field.
+0.16.0 did it again on 2026-09-08 with the architecture standard: the second half now enumerates seven kinds of file against the first half's tooling and skills, under one identifier, one status and one `tests` field.
 
 The cost is not tidiness.
 A test proving the first half says nothing about the second, and the status is a single word for both: `implemented` was true of this requirement while its second half had a gap the size of the standard, which is exactly how that gap survived to 0.14.0 unseen.
+It happened again: until 0.21.0 an upgrade run through `tools/srs_upgrade.py` never reached the CI configuration, `--force` or not, while the requirement stood `implemented` and its suite passed — the fixture passed `--ci`, which the command a project runs cannot.
 
 **Decision needed:** split it into two requirements — the second one taking a new number, since identifiers are never reused — or leave the compound and accept that its status and its tests speak for two behaviours at once.
 
@@ -191,7 +192,7 @@ Starting or not starting changes no procedure and no requirement.
 - The notes are the `## [X.Y.Z]` section of `CHANGELOG.md` and nothing else, extracted the way `tools/srs_init.py` parses it for an upgrade; a second text written for the page is a second source of truth for the same release.
 - The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
 - `spec/v*` tags are not releases; the trigger filters them out, or `INV-SPEC-030` is broken by the forge on the maintainer's behalf.
-- Tags are annotated from then on — the seventeen that exist are lightweight and stay so.
+- Tags are annotated from then on — the ones made before that are lightweight and stay so.
 - The older sections in `CHANGELOG.md` can be published for their tags after the fact in one pass, so that the page does not open with a single entry.
 
 **Decision taken 2026-09-19:** not before 1.0.0.

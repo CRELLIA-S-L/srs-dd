@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 python3 - <<'PY'
 import glob, re, subprocess, sys
 
-TOOL = re.compile(r"\bsrs_[a-z]+\.py\b")
+TOOL = re.compile(r"\bsrs_[a-z_]+\.py\b")
 FLAG = re.compile(r"(?<![\w-])--[a-z][a-z-]*")
 
 accepted = {}

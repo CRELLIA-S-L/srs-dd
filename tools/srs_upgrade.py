@@ -77,9 +77,11 @@ def main():
     parser.add_argument("--from", dest="source", metavar="PATH",
                         help="use an existing framework clone instead of "
                              "fetching one")
+    # implements: FR-INIT-250
     parser.add_argument("--force", action="store_true",
                         help="also refresh precious files (CI config, agent "
-                             "guides, .gitattributes, the hook)")
+                             "guides, .gitattributes, the hook, the "
+                             "standards)")
     # implements: FR-GND-290, FR-GND-480
     # Asking has to be possible with the command a project actually has.
     # Without this the only way to add the register is the framework

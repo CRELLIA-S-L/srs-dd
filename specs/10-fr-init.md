@@ -112,7 +112,7 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When run against an initialized target, the installer **shall** refresh the checker, the viewer and the skills without a flag, while files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — are refreshed only with `--force` and only when they carry the SRS-DD marker.
+When run against an initialized target, the installer **shall** refresh the tooling and the skills without a flag, while files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — are refreshed only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Tooling has to move with the framework or targets drift;
 everything a maintainer has edited must not, and the marker is how we tell a file we installed from one they wrote.
@@ -132,6 +132,8 @@ The agent guides were in this list and behaved unlike the other six: an upgrade 
 
 The marker carries the framework version — `SRS-DD-0.14.0`, matched as a pattern — because the bare name appears in ordinary prose.
 A project that adopted the framework and wrote "we follow the SRS-DD standard" in its own `specs/README.md` would otherwise be told its document is ours and have it replaced.
+
+The statement named the checker, the viewer and the skills while the installer refreshed every tool it ships, and it said the CI configuration is refreshed with `--force` while an upgrade refreshed it only when `--ci` was passed — which `tools/srs_upgrade.py`, the command a project runs, has no way to pass, so `--force` there never reached the pipeline at all. On 2026-09-24 the statement was brought to the tooling it covers, and the upgrade finds the template the project already carries as ours and treats it like every other file here.
 
 ### FR-INIT-070 — A dry run writes nothing and tells the truth
 
@@ -525,3 +527,43 @@ Marking the difference is what turns the list into something to act on: a file t
 
 The marker's version is set aside because every release restamps it: a comparison that counted it would call every skipped file changed, and the list would say nothing again (ADR-0033).
 A file without the marker is not compared — it is not ours, and it keeps the reason it had.
+
+### FR-INIT-250 — Every account of what an upgrade leaves alone names each kind
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-060]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [docs/install.md, docs/upgrade.md, tools/srs_init.py, tools/srs_upgrade.py, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-upgrade/SKILL.md]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-09-25
+```
+
+Every place that says which files an upgrade refreshes only with `--force` **shall** name each kind of file `FR-INIT-060` lists.
+
+**Rationale.** Nine places say it — the installer's `--force` help among them since the audit that found it saying six — each in its own words, and on 2026-09-24 five of them left out a kind: the layers' standards in `docs/install.md` and `docs/upgrade.md`, the architecture standard in the installer's docstring, the hook in the installer's procedure, and the three standards in the upgrader's help.
+Whoever reads one of them decides from it whether `--force` is safe, so a kind it leaves out is a file overwritten by surprise or a refresh never asked for.
+The suite reads each place and asks each kind of it, allowing the words each place uses — "the standards" names all three; the glossary's entry is one of the places it reads, and is not in the field because the specification is not a part of the system.
+
+### FR-INIT-260 — The tooling arrives without this framework's decision numbers
+
+```yaml
+status: implemented
+verification: T
+derives_from: [CON-SPEC-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-25
+```
+
+When the installer copies a tool into a project, it **shall** take out each citation of one of this framework's decisions, leaving the sentence it supported and every line where it was.
+
+**Rationale.** The shipped tooling's comments cited this repository's decisions by number — seventeen of them on 2026-09-25 — and in a project `ADR-0009` points at nothing, or at the project's own ninth decision, the harm `CON-SPEC-020` names for a requirement's identifier.
+The numbers are useful here, to whoever edits the tooling beside the decisions they cite, so they stay in the source and go on the way out, the way annotations do (`FR-INIT-180`, ADR-0022); the procedures and the standards, which are read rather than edited, state the reason instead of the number.
+A citation is taken out where it stands in brackets after its sentence, which is how every one in the tooling is written; the suite scans the installed target for any number at all, so one written some other way is red rather than shipped.

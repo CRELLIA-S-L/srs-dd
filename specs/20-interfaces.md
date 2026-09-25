@@ -35,7 +35,7 @@ tests: [tests/spec-check.sh, tests/checker-rules.sh]
 created: 2026-08-07
 ```
 
-The checker **shall** exit 0 where it found no error and, under `--strict`, no warning either; 1 on errors — or on warnings under `--strict` — and 2 when it could not run at all: an unusable configuration, an unknown flag, or no `specs/` directory.
+The checker **shall** exit 0 where it found no error and, under `--strict`, no warning either; 1 on errors — or on warnings under `--strict` — and 2 when it could not run at all: an unusable configuration, an unknown flag, no `specs/` directory, or no `srs_parse.py` beside it.
 
 **Rationale.** CI distinguishes "your specification is wrong" from "the checker never got as far as reading it": the second is not something a contributor's change to the specification can cause.
 

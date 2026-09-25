@@ -35,11 +35,11 @@ import re
 
 # The framework's version, and not this module's: one number, stamped
 # by the installer into every file it writes and bumped by
-# tools/srs_release.py. It lives here because this is the one file both
-# checkers must have beside them — each exits 2 without it — and
-# ADR-0019 refuses to let the grounds checker import srs_check, which is
-# where the number used to live. Both re-export it, so everything that
-# read it from there reads it still (ADR-0021).
+# tools/srs_release.py. It lives here because this is the one file every
+# checker must have beside it — each exits 2 without it — and the grounds
+# checker may not import srs_check (ADR-0019), which is where the number
+# used to live. Each re-exports it, so everything that read it from there
+# reads it still (ADR-0021).
 __version__ = "0.20.1"
 
 # implements: INV-SPEC-080, INV-SPEC-090

@@ -41,17 +41,22 @@ python3 /tmp/srs-target/tools/srs_check.py --strict
 # It also has to leave the maintainer knowing what to do next: where the
 # first requirement goes, what reads and checks the specification, and how
 # the framework is upgraded later.
+# Read in the steps alone: the list of created files above them names every
+# one of these paths too, and a grep over the whole log would pass on it.
 grep -q "First steps:" /tmp/fresh.log
-grep -q "specs/10-fr-core.md" /tmp/fresh.log
-grep -q "tools/srs_check.py" /tmp/fresh.log
-grep -q "tools/srs_view.py --html" /tmp/fresh.log
-grep -q "tools/srs_upgrade.py" /tmp/fresh.log
-grep -q "AGENTS.md" /tmp/fresh.log
+sed -n '/First steps:/,$p' /tmp/fresh.log > /tmp/fresh-steps.log
+for said in "specs/10-fr-core.md" "tools/srs_check.py" "tools/srs_view.py --html" \
+            "tools/srs_upgrade.py" "AGENTS.md"; do
+    grep -qF "$said" /tmp/fresh-steps.log \
+        || { echo "FAIL FR-INIT-150 — the first steps do not name $said"; cat /tmp/fresh-steps.log; exit 1; }
+done
 # verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
 # Every skill that ships is named, and none that does not. The last of
 # those is named by its absence: srs-release stays here.
-for skill in srs srs-new srs-audit srs-harvest srs-upgrade srs-baseline \
-             srs-check srs-page; do
+# Read from the installer rather than written here: a list in the suite is
+# one more copy that falls behind the tuple it copies.
+shipped_skills=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); import srs_init; print(' '.join(srs_init.SKILLS))")
+for skill in $shipped_skills; do
     grep -qE "^       $skill +" /tmp/fresh.log
 done
 for framework_only in srs-init srs-release; do
@@ -67,9 +72,10 @@ done
 
 # The agent procedures come first: the framework exists so that code
 # written with agents still has requirements behind it.
-agents=$(grep -n "AGENTS.md" /tmp/fresh.log | head -1 | cut -d: -f1)
-first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh.log | head -1 | cut -d: -f1)
-test "$agents" -lt "$first"
+agents=$(grep -n "AGENTS.md" /tmp/fresh-steps.log | head -1 | cut -d: -f1)
+first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh-steps.log | head -1 | cut -d: -f1)
+[ -n "$agents" ] && [ -n "$first" ] && [ "$agents" -lt "$first" ] \
+    || { echo "FAIL FR-INIT-150 — the agent procedures do not come before the placeholder step"; cat /tmp/fresh-steps.log; exit 1; }
 
 # verifies: FR-INIT-060
 # Re-running on an initialized target = upgrade mode; the checker and
@@ -242,9 +248,30 @@ precious() {
     cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 }
 
-# The CI template carries its own flag because an upgrade visits it only
-# when --ci is passed; everything else below is visited on every run.
+# The CI template twice: named with --ci, and found without it — an upgrade
+# run through srs_upgrade.py has no --ci to pass, and until 0.21.0 it never
+# refreshed the pipeline at all, --force or not.
 precious .github/workflows/srs.yml --ci github
+# verifies: FR-INIT-060
+rel=.github/workflows/srs.yml
+cp "/tmp/srs-pristine/$rel" "$PT/$rel"
+printf 'theirs, edited\n' >> "$PT/$rel"
+python3 tools/srs_init.py "$PT" --defaults > /tmp/prec-ci-keep.log
+grep -qF "$rel (differs from what this version ships; use --force to refresh)" /tmp/prec-ci-keep.log \
+    || { echo "FAIL FR-INIT-060 — an upgrade without --ci did not find the pipeline it installed"
+         cat /tmp/prec-ci-keep.log; exit 1; }
+grep -qF 'theirs, edited' "$PT/$rel" \
+    || { echo "FAIL FR-INIT-060 — $rel was refreshed without --force"; exit 1; }
+python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-ci-force.log
+absent 'theirs, edited' "$PT/$rel"
+# A pipeline the project wrote itself is not one an upgrade without --ci
+# visits: nothing names it, nothing touches it.
+printf '# Ours, and no marker in it\n' > "$PT/$rel"
+python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-ci-mine.log
+absent "$rel" /tmp/prec-ci-mine.log
+grep -qF 'Ours, and no marker in it' "$PT/$rel" \
+    || { echo "FAIL FR-INIT-060 — an upgrade without --ci overwrote a pipeline that is not ours"; exit 1; }
+cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 precious .gitattributes
 precious .githooks/pre-commit
 # The standard was the half missing until 0.14.0: installed once and never
@@ -364,7 +391,7 @@ rc=0; python3 tools/srs_init.py /tmp/srs-precious --defaults \
 test "$rc" -eq 1
 grep -q "status implemented but the code field is empty" /tmp/precious-broken.log
 
-# verifies: CON-SPEC-020
+# verifies: CON-SPEC-020, FR-INIT-260
 # specs/ here is the framework's own specification, not payload (ART-070).
 # A fresh target must hold exactly one requirement — the generated
 # placeholder — and nothing of ours. Asked through the parser rather than
@@ -432,6 +459,21 @@ for root, dirs, files in os.walk(target):
 assert not found, ('something the installer shipped names a requirement the '
                    'target does not have — and may have its own requirement '
                    'under that number: %s' % found)
+# A decision's number leaks the same way: `ADR-0009` in a shipped comment
+# is the project's own ninth decision, or nothing. The installer takes them
+# out of the tooling (FR-INIT-260); anywhere else they must not be written.
+DECISION = re.compile(r'\bADR-\d{4}\b')
+cited = []
+for root, dirs, files in os.walk(target):
+    dirs[:] = [d for d in dirs if d != '.git']
+    for name in sorted(files):
+        path = os.path.join(root, name)
+        try:
+            text = open(path, encoding='utf-8').read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        cited += ['%s %s' % (os.path.relpath(path, target), n) for n in DECISION.findall(text)]
+assert not cited, 'something the installer shipped cites a decision of this framework: %s' % cited
 PY
 
 # verifies: FR-INIT-210, FR-INIT-220
@@ -476,6 +518,7 @@ test ! -e /tmp/srs-width-bad/specs/srs-config.json
 # breaks and a sum would hide it.
 python3 - <<'PY3'
 import os
+import re
 for name in sorted(os.listdir('/tmp/srs-clean/tools')):
     if not name.endswith('.py'):
         continue
@@ -487,7 +530,9 @@ for name in sorted(os.listdir('/tmp/srs-clean/tools')):
         'its line with it' % (name, mine.count(chr(10)),
                               theirs.count(chr(10))))
     header = theirs.split('"""')[0]
-    assert 'SRS-DD-' in header, '%s: no version stamp in the header' % name
+    # The source reads SRS-DD-VERSION; only a stamped number proves the
+    # installer stamped it.
+    assert re.search(r'SRS-DD-\d+\.\d+\.\d+', header), '%s: no version stamp in the header' % name
 PY3
 
 # The example annotations are what a target reads the format from, so they
@@ -579,9 +624,12 @@ all_of: [H-010]
 
 The requirement exists because that was believed.
 MD
+# rc is captured with ||, not read after the command: under set -e a bare
+# failing command ends the suite before rc=$? runs, and the message below —
+# which says what went wrong — would never print.
+rc=0
 ( cd "$GT" && git init -q . && git add -A && python3 tools/srs_grounds.py \
-  && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1
-rc=$?
+  && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL FR-GND-310 — the hook failed the commit over a"
                    echo "refuted hypothesis"; cat /tmp/grounds-hook.log; exit 1; }
 grep -qF "FR-APP-010 — B-010 rests on H-010 (refuted)" /tmp/grounds-hook.log \

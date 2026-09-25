@@ -481,7 +481,7 @@ tests: []
 created: 2026-08-27
 ```
 
-When a procedure first names a record — a requirement, an element, a grounds record or a decision — in what it reports to a person, it **shall** give that record's title, the file it is written in and its status, not the identifier alone.
+When a procedure first names one of the project's records — a requirement, an element, a grounds record or a decision — in what it reports to a person, it **shall** give that record's title, the file it is written in and its status, not the identifier alone.
 
 **Rationale.** `FR-CORE-020` is a key, not a name.
 It is exactly right inside a link field, where a machine resolves it and a person is not reading; in a paragraph written for somebody it costs them a lookup per mention, and a report full of them gets skimmed rather than read.
@@ -525,6 +525,9 @@ An import and not a rule of its own, because a rule that lives in one agent's fi
 
 **Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: ART-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
 The release procedure had already said this of the changelog; the maintainer settled the commit the same way on 2026-09-18.
+
+**Which procedures, and which not.** The field names every procedure that names a record to a person — by `--cite`, or by the guide's rule it points at — and the suite derives that set from the procedures' own text, so one that starts naming records is asked for here on the day it does.
+Three do not: `srs-init` reports to the maintainer about installing and names no record of the project; `srs-page` builds a page whose every record is its own card with its links, which is the citation in another form; and `srs-upgrade` relays the upgrade notes, whose identifiers are the framework's — the changelog's exception — and would resolve, through `--cite` in the project, to the project's own requirement under the same number, so that procedure says to relay them as written.
 
 ### FR-SKILL-210 — What is already written is read before something new is
 

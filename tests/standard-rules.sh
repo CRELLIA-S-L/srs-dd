@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
-# The standard names every rule the checker reports by name, with what it
-# reports: a project sets a rule's cost in `rules` and excuses a requirement
-# from one in `exempt`, both by name, and a table kept by hand beside a
-# tuple in code is the one that falls behind. The table under
-# *Configuration* is held to RULES both ways, and the *Annotations* section
+# Each standard names every rule its checker reports by name, with what it
+# reports — the specification's, the register's and the layer's. A project
+# sets a rule's cost in `rules` by name, and a table kept by hand beside a
+# tuple in code is the one that falls behind, so each table is held to its
+# checker's RULES both ways, and the specification's *Annotations* section
 # to every annotation rule it restates.
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: FR-SPEC-050
+# verifies: FR-SPEC-050, FR-GND-560, FR-ARCH-290
 python3 - <<'PY'
 import re, sys
 
+sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
-from srs_check import RULES
+import srs_arch
+import srs_check
+import srs_grounds
+
+# Each standard beside the checker whose rules it names.
+STANDARDS = (("specs/README.md", srs_check.RULES),
+             ("grounds/README.md", srs_grounds.RULES),
+             ("arch/README.md", srs_arch.RULES))
 
 RE_ROW = re.compile(r"^\| `([a-z][a-z-]*)` \|([^|\n]*)\|\s*$", re.M)
 
@@ -29,11 +37,23 @@ def section(text, heading):
     return text[start:end if end >= 0 else len(text)]
 
 
+def rule_table(text):
+    """The table headed `| Rule | What it reports |`, up to the first line
+    that is not a table row: a name in prose is not a row."""
+    start = text.find("| Rule | What it reports |")
+    if start < 0:
+        return ""
+    lines = []
+    for line in text[start:].splitlines():
+        if not line.startswith("|"):
+            break
+        lines.append(line)
+    return "\n".join(lines) + "\n"
+
+
 def check(text, rules):
     problems = []
-    config = section(text, "Configuration")
-    table = config[config.find("**Rules.**"):] if "**Rules.**" in config else ""
-    rows = RE_ROW.findall(table)
+    rows = RE_ROW.findall(rule_table(text))
     tabled = {name for name, _ in rows}
     problems += ["the checker reports `%s` and the standard's table does not name it" % name
                  for name in rules if name not in tabled]
@@ -67,14 +87,16 @@ assert len(found) == 5, found
 print("standard-rules: a rule the table leaves out or invents, a row saying nothing, "
       "and an annotation rule the section leaves out are each red")
 
-# --- Then the standard.
-with open("specs/README.md", encoding="utf-8") as handle:
-    found = check(handle.read(), RULES)
+# --- Then the three standards, each against its own checker.
+found = []
+for path, rules in STANDARDS:
+    with open(path, encoding="utf-8") as handle:
+        found += ["%s: %s" % (path, problem) for problem in check(handle.read(), rules)]
 for line in found:
     print("  " + line)
 if found:
     print("standard-rules: %d problem(s)" % len(found))
     sys.exit(1)
-print("standard-rules: the standard names all %d rules the checker reports, each with what it reports"
-      % len(RULES))
+print("standard-rules: each standard names every rule its checker reports, with what it reports (%s)"
+      % ", ".join("%s %d" % (path.split("/")[0], len(rules)) for path, rules in STANDARDS))
 PY

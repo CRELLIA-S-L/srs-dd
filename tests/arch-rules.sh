@@ -775,6 +775,11 @@ depends_on: [E-010]
 Needs the first.
 MD
 silent "FR-ARCH-220 an unresolved dependency ends the path, not the run" 1 "circle"
+# Exit 1 is also what a traceback exits with: the run has to have reached
+# the end and said so, the error for E-999 printed and no crash in between.
+silent "FR-ARCH-220 the walk does not crash on it" 1 "Traceback"
+grep -qF "E-010 depends on E-999, which no element carries" /tmp/srs-arch.log \
+    || { echo "FAIL FR-ARCH-220 — the run did not finish with the error for E-999"; cat /tmp/srs-arch.log; exit 1; }
 
 # --- And the degenerate circle, said in words that fit one element.
 elements <<'MD'
@@ -1363,7 +1368,10 @@ depends_on: []
 Carries the whole of it, and one file nobody has.
 MD
 rule "FR-ARCH-280 a carried path that does not exist" 0 "E-010 carries src/vanished.py, which does not exist"
-silent "FR-ARCH-280 says nothing of where it went outside git" 0 "git renamed\|git deleted\|in the working tree"
+# Where git put the file is a clause after "does not exist", opened with "; ";
+# outside git there is none. (-F takes the fragment literally, so one
+# fragment covers every clause rather than an alternation it cannot read.)
+silent "FR-ARCH-280 says nothing of where it went outside git" 0 "does not exist;"
 rule "FR-ARCH-280 fails a strict gate" 1 "treated as errors" --strict
 printf '{"rules": {"carrier-missing": "off"}}\n' > "$LAB/arch/arch-config.json"
 silent "FR-ARCH-280 turned off says nothing" 0 "does not exist"

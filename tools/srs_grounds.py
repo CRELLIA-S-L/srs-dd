@@ -6,6 +6,7 @@
     python3 tools/srs_grounds.py             check and rewrite 90-dashboard.md
     python3 tools/srs_grounds.py --no-write  check only
     python3 tools/srs_grounds.py --strict    treat warnings as errors
+    python3 tools/srs_grounds.py --cite ID…  name records to a person
     python3 tools/srs_grounds.py --blast P…  what the requirements these
                                              files belong to are staked on
 
@@ -42,8 +43,8 @@ except ImportError:
         "refresh the tooling.\n")
     sys.exit(2)
 
-# Re-exported: the number lives in srs_parse, the one file this checker
-# and the specification checker both must have beside them (ADR-0021).
+# Re-exported: the number lives in srs_parse (ADR-0021), the one file
+# every checker — this one, the specification and the architecture — must have.
 __version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

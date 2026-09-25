@@ -551,6 +551,10 @@ ground < <(rec H-010 "Term ran out" "${HYP/expires: 2099-01-01/expires: 2020-01-
                'Studios export weekly.')
 printf '{"rules": {"hypothesis-expired": "report"}}\n' > "$LAB/grounds/grounds-config.json"
 rule "FR-GND-110 lowered to report" 0 "report: " --strict
+# The lab has no history, so a note that it could not be read is always
+# there; the finding itself has to be the report.
+grep -q "^report: .*ran out of term" /tmp/srs-grounds.log \
+    || { echo "FAIL FR-GND-110 — the lowered finding was not printed as a report"; cat /tmp/srs-grounds.log; exit 1; }
 printf '{"rules": {"hypothesis-expired": "off"}}\n' > "$LAB/grounds/grounds-config.json"
 silent "FR-GND-110 silenced" 0 "ran out of term"
 printf '{"rules": {"no-such-rule": "warn"}}\n' > "$LAB/grounds/grounds-config.json"

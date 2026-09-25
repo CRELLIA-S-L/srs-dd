@@ -265,7 +265,7 @@ derives_from: [INV-SPEC-040]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_baseline.py, tools/srs_release.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_init.py, tools/srs_upgrade.py, tools/srs_view.py, tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py]
+code: [tools/srs_baseline.py, tools/srs_release.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_init.py, tools/srs_upgrade.py, tools/srs_view.py, tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/ci_selftest.sh]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
 created: 2026-08-09
 ```
@@ -346,7 +346,7 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-What the installer copies **shall not** cite a requirement identifier, carry an annotation naming one, or name a path that exists only in this repository; which area an identifier is in makes no difference.
+What the installer copies **shall not** cite a requirement identifier or a decision of this framework, carry an annotation naming one, or name as the project's own a path that exists only in this repository; which area an identifier is in makes no difference.
 
 **Rationale.** ART-070 of the constitution in one sentence: what we ship has to be about their project, not ours.
 
@@ -366,6 +366,9 @@ Both halves of that were read the other way once, by an agent working from this 
 The standards that travel carry identifiers inside the record examples that show the format, and a template carries one in a field waiting to be filled; neither asks anybody to look a number up, and a sentence in a procedure does.
 Nor does it help to ask whose number it is:
 `FR-CORE-020` belongs to no project here, and under the area a fresh install offers first it resolves in the reader's own specification more readily than one of ours ever would.
+
+**Decisions, and paths, since 0.21.0.** A decision's number does the same harm as a requirement's: `ADR-0009` in a shipped comment points at nothing in a project, or at the project's own ninth decision. The installer takes the numbers out of the shipped tooling on the way (`FR-INIT-260`), the procedures and the standards state the reason instead of the number, and the suite scans the installed target for any.
+A path is harmful the same way only where it is named as the project's: in a `code` or `tests` field, which the target's own checker refuses when the path is not there, and which the suite's run of it on a fresh install holds. A sentence saying the tooling was copied by the framework's installer, or telling the reader to re-run it from a framework clone, names the framework's file as the framework's, and stays.
 
 ### CON-GND-010 — The grounds layer writes nowhere else
 
@@ -524,7 +527,7 @@ derives_from: [INV-SPEC-080]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_view.py, tools/srs_grounds.py, tools/srs_arch.py, tools/srs_dates.py]
+code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_view.py, tools/srs_grounds.py, tools/srs_arch.py, tools/srs_dates.py, tools/srs_cite_eval.py]
 tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh, tests/dates-smoke.sh]
 created: 2026-09-20
 ```
@@ -568,3 +571,45 @@ The constitution is not a pair either: its own text says the two copies diverge 
 
 Two instruments hold it, because a rule reaches a guide by two roads.
 A requirement naming the shipped file in its `code` field names the counterpart too, which catches a rule on the day it is written; and a list of literal tokens per pair, each found in both files, holds the rules no requirement carries, the ones the constitution and the standard put there.
+
+### INV-SPEC-100 — A code field that claims a set names all of it
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-SPEC-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tests/code-field-sets.sh]
+tests: [tests/code-field-sets.sh]
+created: 2026-09-25
+```
+
+Where a requirement's statement claims a set — every procedure, every Python tool, every command — its `code` field **shall** name every member of that set.
+
+**Rationale.** The checker proves each path in a field exists and never that the field is complete, so an incomplete one stays green forever, and `--code` on a member it leaves out answers as if no rule governed that file.
+On 2026-09-25 `CON-SPEC-030`, "the framework's commands shall not commit", left out `tools/ci_selftest.sh`; `FR-SKILL-200` names the procedures that name records, and which those are is now read off their text.
+The suite derives each set from the repository and compares both ways; which requirements claim a set is its table, written beside the reason each set is what it is.
+The suite is the gate this names as its code, the way `FR-CI-100` names its own: what carries the property is the fields, and the fields are the specification, which no part of the system carries.
+
+### INV-SPEC-110 — A copy of a list another file defines matches it
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-SPEC-100]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tests/standard-vocabulary.sh]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-09-25
+```
+
+Where one file keeps a list of what another defines — the flags a tool accepts in its usage, an option's choices, the kinds a tool reads, the files a command edits or a guide calls generated, the prose a viewer expects — the copy **shall** match the definition.
+
+**Rationale.** Every list the audits of 2026-09-24 and 25 found behind had this shape: a copy kept by hand in one file of a set another file defines, true on the day it was written and read by nothing afterwards.
+The ones that still matched were copies all the same — the viewer's expected prose beside the standard's map, the two installers' `--period` choices beside the register's periods, the citation measurement's map of record kinds, the release procedure's list of what the command edits, the hand-written usage of the four tools that parse their own flags — and a copy that matches today is the one that is behind tomorrow.
+The suite holds each to its definition; the tools built on `argparse` are not among them, because their usage is generated from the definition and cannot drift from it.
+The suite is the gate this names as its code, as `INV-SPEC-100` does: what carries the property is the pairs of files, not one part of the system.

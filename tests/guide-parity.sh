@@ -102,6 +102,7 @@ found = check(".", PAIRS, TARGET_ONLY)
 
 # A file identical in every project is no pair: it ships from this
 # repository's own tree, so there is one copy and nothing to keep in step.
+sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
 import srs_init
 template = os.path.join("specs", "adr", "template.md")

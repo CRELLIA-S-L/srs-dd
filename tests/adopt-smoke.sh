@@ -65,6 +65,23 @@ test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" \
     --grounds yes --period year "${LEXICON[@]}" | tee /tmp/adopt-real.log
 
+# verifies: FR-INIT-040
+# Every file that carries requirements is byte for byte what it was: the
+# comparison above only runs after a rollback, and a successful adoption is
+# the one that could have edited them.
+grep "/tmp/srs-adopt/specs/10-fr-app/" /tmp/before.sum > /tmp/reqs.before.sum
+find /tmp/srs-adopt/specs/10-fr-app -type f | sort | xargs cksum > /tmp/reqs.after.sum
+diff /tmp/reqs.before.sum /tmp/reqs.after.sum \
+    || { echo "FAIL FR-INIT-040 — adoption changed a file that carries requirements"; exit 1; }
+# And the directory is read as the area, the wide number counted, and the
+# README beside them read as no requirement at all (INV-SPEC-080, FR-CHK-250).
+( cd /tmp/srs-adopt && python3 tools/srs_view.py --json /tmp/adopt.json >/dev/null )
+python3 - <<'PY'
+import json
+ids = sorted(r["id"] for r in json.load(open("/tmp/adopt.json"))["requirements"])
+assert ids == ["FR-APP-010", "FR-APP-020", "FR-APP-1000"], "adopted requirements: %s" % ids
+PY
+
 # verifies: FR-INIT-230 — a project with no standard of its own has nothing
 # to set aside: no archive appears and the summary has no such heading.
 test ! -e /tmp/srs-adopt/specs/archive

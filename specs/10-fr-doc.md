@@ -434,3 +434,22 @@ The image is the pipeline's (`FR-CI-110`), drawn by the viewer (`FR-VIEW-340`) f
 The page's own requirements with what they link to, rather than the whole graph, because the whole graph is the picture nobody reads (`FR-VIEW-110` draws it on the page for whoever wants it) and the neighbourhood of the page is the one picture a reader of the page already has a story for.
 A link to the live page, because the image is the graph without its interaction, and the page is where the interaction is.
 
+### FR-DOC-220 — Every list of this repository's tools and procedures names each of them
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-DOC-170]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [README.md, AGENTS.md, docs/install.md, docs/agents.md, CONTRIBUTING.md]
+tests: [tests/docs-content.sh]
+created: 2026-09-24
+```
+
+Every list of this repository's tools or procedures — the rows of the landing page's map and of the agent guide, the table in `docs/agents.md`, the hand install in `docs/install.md`, the contributors' list of what travels — **shall** name each member of the set it lists.
+
+**Rationale.** `FR-DOC-170` holds the map to the top level of the repository and nothing held the rows below it: on 2026-09-24 the landing page's row for `tools/` lacked four files, the agent guide's lacked one, and the hand install lacked `srs_dates.py`, each written before the file it left out.
+A reader who copies the framework by hand from that list gets a tool short, and one who learns the repository from the map does not learn that the evaluation tools exist.
+The procedures' lists had the same shape and were checked by nobody but `FR-DOC-160`, which holds one table of them. The lists stay prose for the reader; the suite reads the directory and the installer's tuple, so a tool added there is asked of each list on the day it lands.

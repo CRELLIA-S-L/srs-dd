@@ -9,7 +9,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: FR-CI-120, FR-CI-130
+# verifies: FR-CI-120, FR-CI-130, FR-CI-150
 python3 - <<'PY'
 import glob, os, re, shutil, sys, tempfile
 
@@ -66,8 +66,33 @@ assert len(found) == 7, found
 shutil.rmtree(lab)
 print("pipeline-suites: a suite with no step or no row, a row saying nothing, a step or row with no suite, and a suite run inside another command are each red")
 
+# A file a shipped gate compares byte for byte is one autocrlf can turn
+# stale on a checkout that changed nothing, so the .gitattributes the
+# framework ships pins each of them to LF. The list is read off the gates.
+RE_GATED = re.compile(r"git diff --exit-code -- ([\w./-]+)")
+RE_PINNED = re.compile(r"^(\S+)\s+text eol=lf\s*$", re.M)
+
+
+def unpinned(gates, attributes):
+    gated = set()
+    for text in gates:
+        gated.update(RE_GATED.findall(text))
+    return sorted(gated - set(RE_PINNED.findall(attributes)))
+
+
+assert unpinned(["git diff --exit-code -- a.md\n  if ! git diff --exit-code -- b.md; then"], "a.md text eol=lf\n") == ["b.md"], \
+    "a gated file .gitattributes leaves unpinned must be reported"
+print("pipeline-suites: a file a gate compares byte for byte and .gitattributes leaves unpinned is red")
+
 # --- Then the repository.
 found = check(".")
+gates = []
+for path in sorted(glob.glob("ci/*.yml")) + ["ci/pre-commit"]:
+    with open(path, encoding="utf-8") as handle:
+        gates.append(handle.read())
+with open(".gitattributes", encoding="utf-8") as handle:
+    found += [".gitattributes does not pin %s to LF, and a shipped gate compares it byte for byte" % name
+              for name in unpinned(gates, handle.read())]
 for line in found:
     print("  " + line)
 if found:

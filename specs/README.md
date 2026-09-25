@@ -13,6 +13,7 @@ The decision log follows **MADR**.
 
 | File | Contents |
 |---|---|
+| `README.md` | This standard — the one normative document on the specification's format |
 | `00-glossary.md` | Terms. Read first if the project's vocabulary is unfamiliar |
 | `constitution.md` | Standing engineering principles, `ART-*`. Changed only via its own amendment procedure |
 | `01-introduction.md` | §1: purpose, scope, boundaries, audience |
@@ -227,7 +228,7 @@ When the loop is closed, each decision the change made is written into `adr/`, o
 A requirement says “what”; a decision names the path taken and says why it and not the neighboring one.
 The two divide by what they explain: a rationale, why the requirement says what it says; a decision, why the system meets it the way it does. A choice between ways of meeting a requirement goes to `adr/` even where a rationale mentions it.
 Where the path is an algorithm or a mechanism, the decision describes it in words — its steps, the invariants it keeps, the inputs where it stops working — because the code shows what it does, not what a rewrite must keep doing.
-A decision is a markdown file under `adr/` whose first heading is `# ADR-NNNN — <title>`; nothing but a front matter — a block between two `---` lines of `key: value` pairs — and blank lines may stand before it.
+A decision is a markdown file directly in `adr/` whose first heading is `# ADR-NNNN — <title>`; nothing but a front matter — a block between two `---` lines of `key: value` pairs — and blank lines may stand before it.
 Its status is the front matter's `status` key or a `- **Status:** <status>` line among the first lines after the heading, whichever the file carries, and is cited as written, in whatever language the project writes.
 A file under `adr/` with no such heading — an index, a template — is not a decision.
 The number in the heading is the decision's name; the file name is a convention, and renaming the file changes nothing.
@@ -248,7 +249,7 @@ Source and test files may carry traceability annotations in comments:
 Multiple IDs are separated by commas.
 
 The `code` and `tests` fields and the annotations are two claims about one link — the field is the specification's, the annotation is the file's — and the checker compares them both ways.
-It errors on an annotation naming a nonexistent requirement in a declared area, and warns on an unknown type or area (`annotation-unknown-area`, likely an example), an annotation naming a cancelled requirement (`annotation-superseded`), a file naming a requirement that does not list it (`annotation-unlisted`), a file a realized requirement lists that does not name it back (`annotation-unpaired`), and a file under the code roots that neither end claims (`annotation-absent`).
+It errors on an annotation naming a nonexistent requirement in a declared area, and warns on an unknown type or area (`annotation-unknown-area`, likely an example), an annotation naming a cancelled requirement (`annotation-superseded`), a file naming a requirement that does not list it (`annotation-unlisted`), a file the checker scans that a realized requirement lists and that does not name it back (`annotation-unpaired`), and a file under the code or test roots that neither end claims (`annotation-absent`).
 
 **Where an annotation stands.** At the declaration that carries out the requirement — the one whose deletion would break it; `srs_view.py <ID> --where --source` prints the region under each annotation, so its place is what a reader is shown.
 Inside a function, at the top of its body, after the doc comment where the language puts one there; above a constant, a type or an enumeration, and above its doc comment where it has one; for behavior with no declaration of its own — a branch, a guard — on the line above it.
@@ -268,9 +269,9 @@ It is a row in `92-baselines.md`, and the commit that adds that row is the basel
 python3 tools/srs_baseline.py X.Y.Z
 ```
 
-The command writes the row — version, date, and what changed since the previous baseline — and stops there.
+The command writes the row — version, date, and what changed since the previous baseline — beside the matrix its checker run regenerates, and stops there.
 Commit it with whatever git client the project uses.
-`--dry-run` prints the row first; the command refuses where the checker reports an error, or where the log already records that version.
+`--dry-run` prints the row first and writes nothing; the command refuses a malformed version, a missing log or one with no table, an error the checker reports, and a version the log already records.
 A warning does not stop it: a project part-way through describing itself carries warnings, and a baseline is the record of where it stands.
 By hand it is the same act: `srs_view.py --baseline X.Y.Z` prints the row ready to paste.
 
@@ -301,6 +302,7 @@ All project settings live in `specs/srs-config.json`; any key absent from the fi
 |---|---|---|
 | `areas` | `["CORE", "UI", "API", "DATA", "SEC"]` | Requirement areas — the middle segment of every ID. Uppercase: `[A-Z][A-Z0-9]*` |
 | `rules` | `{}` | What a rule costs: `warn` (the default, and what `--strict` fails on), `report` (said but never fatal), `off` (not said at all). Keys are rule names; `srs_check.py` lists them when you name one it does not know |
+| `project_name` | the target directory's name | The project's name, written at install and read back on upgrade, so that the agent guides can be filled in again without asking |
 | `line_width` | absent | The width this project's code follows, in columns. Written at install from what the project already states elsewhere; absent where it states nothing, and never guessed. Read by the agent guides, not by any gate — checking source formatting is a linter's job |
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
 | `test_roots` | `["tests"]` | Additional roots scanned for annotations |
@@ -333,13 +335,13 @@ Which of your words carries which binding force (mandatory / recommended / allow
 | `draft-with-code` | A `draft` requirement whose `code` field is not empty — implementation ahead of approval |
 | `rests-on-draft` | An `implemented` or `partial` requirement that derives from, depends on or refines a `draft` one |
 | `rests-on-withdrawn` | A requirement still in force that derives from, depends on or refines a `withdrawn` one |
-| `test-missing` | `verification: T` with an empty `tests` field |
+| `test-missing` | An `implemented` or `partial` requirement with `verification: T` and an empty `tests` field |
 | `unlinked` | A requirement linked to nothing that nothing links to |
 | `annotation-unknown-area` | An annotation naming an identifier whose type or area the project does not declare — likely an example |
 | `annotation-superseded` | An annotation naming a `superseded` or `withdrawn` requirement |
 | `annotation-unlisted` | A file naming a requirement that does not list it in its `code` or `tests` field |
-| `annotation-unpaired` | A file an `implemented` or `partial` requirement lists that does not name it back |
-| `annotation-absent` | A file under the code roots that no requirement names and that names none |
+| `annotation-unpaired` | A file the checker scans that an `implemented` or `partial` requirement lists, and that does not name it back |
+| `annotation-absent` | A file under the code or test roots that no requirement names and that names none |
 | `baseline-without-row` | A `spec/v*` tag the baseline log has no row for |
 | `file-range` | A requirement whose number lies outside the range its file's name states |
 
@@ -349,8 +351,8 @@ Which of your words carries which binding force (mandatory / recommended / allow
 python3 tools/srs_check.py
 ```
 
-The script catches uniqueness and well-formedness of identifiers, dangling references, a link naming its own requirement, cycles in the derivation links (`derives_from`, `refines`) and in the dependency links (`depends_on`), an empty `code` field with status `implemented` or `partial`, nonexistent paths, `superseded` without a replacement and a replacement named by anything but a `superseded` requirement, two requirements glued into one sentence, and annotation drift (see *Annotations*).
-As a side effect it rewrites `90-traceability.md`.
+The script catches uniqueness and well-formedness of identifiers, dangling references, a link naming its own requirement, cycles in the derivation links (`derives_from`, `refines`) and in the dependency links (`depends_on`), an empty `code` field with status `implemented` or `partial`, nonexistent paths, `superseded` without a replacement and a replacement named by anything but a `superseded` requirement, two requirements glued into one sentence, a missing required key, a status or verification value outside the vocabulary, a requirement with no title, statement or bolded modal verb, a field of the wrong shape, a key the format retired, an `exempt` naming no rule, and annotation drift (see *Annotations*).
+As a side effect, where it finds no error and `--strict` finds no warning, it rewrites `90-traceability.md`.
 
 The `--no-write` flag — check only, generate nothing.
 The `--strict` flag turns warnings into a failing exit code — for CI, when warnings must not accumulate.

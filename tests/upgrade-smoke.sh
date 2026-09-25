@@ -72,8 +72,11 @@ PY2
 python3 /tmp/srs-upg/tools/srs_upgrade.py --from "$FRAMEWORK" --yes \
     > /tmp/upg-apply.log 2>&1 </dev/null
 grep -q "refreshed:" /tmp/upg-apply.log
-current=$(grep -m1 '^__version__' tools/srs_check.py)
-grep -q "^$current" /tmp/srs-upg/tools/srs_check.py
+# The number lives in srs_parse.py; srs_check.py only re-exports it, so its
+# own __version__ line is the same in every release and proves nothing.
+current=$(grep -m1 '^__version__' tools/srs_parse.py)
+grep -q "^$current" /tmp/srs-upg/tools/srs_parse.py \
+    || { echo "FAIL FR-INIT-120 — the upgrade did not bring the parser to this version"; exit 1; }
 python3 /tmp/srs-upg/tools/srs_check.py --strict --no-write >/dev/null
 
 # A path that is not a framework clone is refused before anything happens.
@@ -99,6 +102,7 @@ grep -q "framework repository itself" /tmp/upg-self.log
 # CHANGELOG.md asks for self-contained ones, and this is what enforces it.
 python3 - <<'PY2'
 import sys, importlib.util
+sys.dont_write_bytecode = True
 sys.path.insert(0, 'tools')
 spec = importlib.util.spec_from_file_location('srs_init', 'tools/srs_init.py')
 init = importlib.util.module_from_spec(spec)

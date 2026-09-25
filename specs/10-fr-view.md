@@ -90,7 +90,7 @@ depends_on: [INV-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
-tests: [tests/view-smoke.sh]
+tests: [tests/view-smoke.sh, tests/standard-vocabulary.sh]
 created: 2026-08-07
 ```
 
@@ -854,11 +854,30 @@ tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
 
-When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region of the file the annotation marks — for a Python file the innermost function or class the annotation belongs to, for any other file the lines up to the next annotation or a bounded number of them.
+When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region of the file the annotation marks — for a Python file the innermost function or class the annotation belongs to, and for a line in no function or class or in any other file the lines up to the next annotation or a bounded number of them.
 
 **Rationale.** Knowing the line saves the search; printing the region saves the read that follows it, and the two together turn three turns per requirement into one call.
-A Python file has a structure the standard library parses, and the annotation is placed at a function — on the line above its `def`, or as its first comment — so the region is that function, whole, however long; a bounded window would cut a long one in the middle.
+A Python file has a structure the standard library parses, and an annotation placed at a function — on the line above its `def`, or as its first comment — has that function for its region, whole, however long; a bounded window would cut a long one in the middle.
+Since `FR-SPEC-040` an annotation also stands above a constant or a module's docstring, where no function contains it, and there the window below it is the region, the same as in any other file.
 Other files have no structure the tool can read, so the region runs to the next annotation, which is where somebody said another requirement starts, or to a bound, so that a shell suite with one annotation at the top does not print itself entire.
 Printed as the file has it, line numbers beside, so that what the reader edits afterwards is found again without a second lookup.
 Never by default: the locations are the small answer and the source the large one, and the everyday procedure asks for the second only once the first has said which requirements the change will touch.
 
+### FR-VIEW-390 — The viewer's tables of the checker's vocabulary cover it
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-09-25
+```
+
+The viewer **shall** have a name for every verification method, a backward label for every link field, and a colour for every status the checker accepts.
+
+**Rationale.** The viewer reads the checker's parser but keeps its own tables for what it shows — the methods by name, the incoming links by label, the statuses by colour — and a value the checker gains and the viewer lacks is a card with a blank, a link with no label, or a status drawn in the page's default.
+The tables matched on 2026-09-25 and nothing compared them with the checker's tuples; the suite now does.
