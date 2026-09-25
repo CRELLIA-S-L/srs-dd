@@ -5,7 +5,7 @@
 set -eo pipefail
 cd "$(dirname "$0")/.."
 
-# verifies: FR-DOC-020
+# file verifies: FR-DOC-020
 # The pair is what is checked — a flag on its own belongs to nothing, and
 # the drift this exists to catch is a document naming the wrong tool for a
 # flag it knows. A tool says what it accepts on -h: the argparse ones print

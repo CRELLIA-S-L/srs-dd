@@ -26,7 +26,7 @@ duplicate identifiers are reported as a banner rather than a failure;
 judging the specification remains the checker's job.
 """
 
-# implements: NFR-SPEC-010, CON-SPEC-030
+# file implements: NFR-SPEC-010, CON-SPEC-030
 
 import sys
 
@@ -75,6 +75,7 @@ INCOMING_LABEL = {
     "conflicts_with": "conflicted by",
     "superseded_by": "supersedes",
 }
+# srs-end: FR-VIEW-390
 
 # implements: FR-VIEW-270
 # What a text search skips beyond what the page skips. The standard is the
@@ -85,6 +86,7 @@ INCOMING_LABEL = {
 # return one line at a time.
 PROSE_EXCLUDED = ("README.md", "90-traceability.md", "91-open-issues.md",
                   "92-baselines.md")
+# srs-end: FR-VIEW-270
 
 # implements: FR-VIEW-280
 # What the standard's map names as prose, used only to say which of them a
@@ -92,11 +94,13 @@ PROSE_EXCLUDED = ("README.md", "90-traceability.md", "91-open-issues.md",
 # project's own prose file is read without being listed here.
 PROSE_EXPECTED = ("00-glossary.md", "01-introduction.md", "02-overview.md",
                   "50-verification.md", "constitution.md")
+# srs-end: FR-VIEW-280
 
 # implements: FR-VIEW-280
 # Past this the answer stops being read. Same reading as the graph limit
 # below: what is dropped is stated rather than silently cut.
 PROSE_HIT_LIMIT = 40
+# srs-end: FR-VIEW-280
 
 # Beyond this the layered graph stops being readable; what is dropped is
 # always stated on the page rather than silently cut.
@@ -107,8 +111,8 @@ GRAPH_NODE_LIMIT = 150
 # Model
 # --------------------------------------------------------------------
 
+# implements: FR-VIEW-310
 def read_repo_url():
-    # implements: FR-VIEW-310
     """The blob-URL prefix used for links to code, e.g.
     https://gitlab.com/acme/app/-/blob/main — copied out of a browser,
     so no per-host URL shapes are guessed here.
@@ -123,6 +127,7 @@ def read_repo_url():
         return ""
     value = data.get("repo_url", "") if isinstance(data, dict) else ""
     return value.rstrip("/") if isinstance(value, str) else ""
+# srs-end: FR-VIEW-310
 
 
 def _as_list(value):
@@ -137,8 +142,8 @@ def _as_scalar(value):
     return str(value) if value else ""
 
 
+# implements: IF-VIEW-010
 def _requirement_dict(req):
-    # implements: IF-VIEW-010
     parts = req.id.split("-")
     entry = {
         "id": req.id,
@@ -164,6 +169,7 @@ def _requirement_dict(req):
         if key not in entry:
             entry[key] = value
     return entry
+# srs-end: IF-VIEW-010
 
 
 def build_model(requirements, problems, with_code_scan=True):
@@ -172,6 +178,7 @@ def build_model(requirements, problems, with_code_scan=True):
     entries = [_requirement_dict(req) for req in requirements]
     # implements: INV-SPEC-090
     entries.sort(key=lambda e: (srs_parse.id_key(e["id"]), e["path"], e["line"]))
+    # srs-end: INV-SPEC-090
 
     seen = {}
     for entry in entries:
@@ -198,6 +205,7 @@ def build_model(requirements, problems, with_code_scan=True):
     # of the gap list, and the two tools would describe one file
     # differently in the same run.
     covered = set()
+    # srs-end: FR-VIEW-040
     for entry in entries:
         if entry["status"] in srs_check.CANCELLED:
             continue
@@ -220,8 +228,8 @@ def build_model(requirements, problems, with_code_scan=True):
     }
 
 
+# implements: FR-VIEW-210
 def outlived(entries, with_code_scan):
-    # implements: FR-VIEW-210
     """What still points at a cancelled requirement.
 
     Cancelling is the one edit whose consequences outlive it, and they lie
@@ -271,8 +279,10 @@ def outlived(entries, with_code_scan):
                     annotations.append({"path": rel, "target": rid})
 
     return {"links": links, "files": files, "annotations": annotations}
+# srs-end: FR-VIEW-210
 
 
+# implements: FR-VIEW-260
 def collect_documents(entries):
     """Every file in specs/ that carries no requirements: the standard,
     the glossary, the introduction, the overview, the verification notes,
@@ -287,7 +297,6 @@ def collect_documents(entries):
     The archive is out — not normative by that map, and a link is an
     invitation to read.
     """
-    # implements: FR-VIEW-260
     carrying = set(entry["path"] for entry in entries)
     result = []
     for current, dirs, files in os.walk(SPECS):
@@ -304,8 +313,10 @@ def collect_documents(entries):
     # nobody reads to the end.
     result.sort(key=lambda path: ("/adr/" in path, path))
     return result
+# srs-end: FR-VIEW-260
 
 
+# implements: FR-VIEW-270
 def collect_prose(entries):
     """What a text search reads, and what the map names and the project
     does not have.
@@ -317,7 +328,6 @@ def collect_prose(entries):
     when it is the wrong document, and a line out of its document is what
     misleads.
     """
-    # implements: FR-VIEW-270
     # Compared as whole paths, not as names: an index of decisions is
     # commonly `adr/README.md`, and it is not the standard. Dropped by its
     # basename it would be dropped in silence, which is the one thing the
@@ -329,8 +339,10 @@ def collect_prose(entries):
     missing = [name for name in PROSE_EXPECTED
                if not os.path.exists(os.path.join(SPECS, name))]
     return present, missing
+# srs-end: FR-VIEW-270
 
 
+# implements: FR-VIEW-270
 def grep_prose(needle, paths):
     """Every line of the prose holding the text, as (path, line, text).
 
@@ -340,7 +352,6 @@ def grep_prose(needle, paths):
     Tolerant of an odd byte for the reason read_annotations is: one file
     the encoding trips over must not take the whole answer with it.
     """
-    # implements: FR-VIEW-270
     needle = needle.lower()
     hits = []
     for path in paths:
@@ -354,6 +365,7 @@ def grep_prose(needle, paths):
                 if needle in line.lower():
                     hits.append((path, lineno, line.strip()))
     return hits
+# srs-end: FR-VIEW-270
 
 
 def load_current():
@@ -379,8 +391,8 @@ RE_ADR_HEADING = re.compile(r"^# (ADR-\d{4}) — (.+?)\s*$")
 RE_ADR_STATUS = re.compile(r"^- \*\*Status:\*\* (.+?)\s*$")
 
 
+# implements: FR-VIEW-330, IF-SPEC-030
 def decisions():
-    # implements: FR-VIEW-330, IF-SPEC-030
     """Every decision in specs/adr/ as {id: entry}, shaped like a
     requirement entry as far as a citation needs: id, title, path, status.
 
@@ -433,6 +445,7 @@ def decisions():
                                    "path": _repo_relative(path),
                                    "status": status}
     return found
+# srs-end: FR-VIEW-330, IF-SPEC-030
 
 
 # --------------------------------------------------------------------
@@ -443,8 +456,8 @@ def _matches_path(candidate, wanted):
     return candidate == wanted or candidate.startswith(wanted + "/")
 
 
+# implements: FR-VIEW-020
 def requirements_for_path(model, path):
-    # implements: FR-VIEW-020
     """Which requirements describe a file — the `code`/`tests` fields
     plus any implements:/verifies: annotation carried by the file
     itself. A directory prefix matches everything under it."""
@@ -471,10 +484,11 @@ def requirements_for_path(model, path):
         found.update(rid for _line, _kw, rid
                      in srs_check.read_annotations(full))
     return found
+# srs-end: FR-VIEW-020
 
 
+# implements: FR-VIEW-300
 def split_line_spec(spec):
-    # implements: FR-VIEW-300
     """`path:line` into (path, line), or (spec, None) when it is not one.
 
     A colon is not enough to say so: `C:\\src` and a path with a colon in
@@ -492,35 +506,45 @@ def split_line_spec(spec):
     if os.path.isfile(os.path.join(ROOT, head)) or os.path.isfile(head):
         return head, int(tail)
     return spec, None
+# srs-end: FR-VIEW-300
 
 
-def requirements_for_line(path, line):
-    # implements: FR-VIEW-300
-    """The requirements the annotation covering a line marks — the one on
-    the line itself, or the nearest above it — and nothing from the
-    `code`/`tests` fields, which have no lines to be asked about.
-
-    A line before any annotation is covered by none and answers with an
-    empty set; the file-wide count the caller prints beside it is then the
-    whole of the answer. The grammar is the checker's, as in
-    requirements_for_path, and for the same reason.
-    """
+def line_path(path):
+    """The repository path of the file a `path:line` names — given from the
+    repository root or from wherever the command was run."""
     wanted = path.replace(os.sep, "/").strip()
     if not os.path.exists(os.path.join(ROOT, wanted)) and os.path.exists(path):
         wanted = _repo_relative(path) or wanted
-    full = os.path.join(ROOT, wanted)
-    covering = None
-    for lineno, _kw, rid in srs_check.read_annotations(full):
-        if lineno > line:
-            break
-        if lineno != covering:
-            covering, found = lineno, set()
-        found.add(rid)
-    return found if covering is not None else set()
+    return wanted
 
 
+# implements: FR-VIEW-300
+def requirements_for_line(path, line):
+    """The requirements of the narrowest region holding a line, with that
+    region's mark — or, failing any, those the file carries as a whole,
+    with no mark — and nothing from the `code`/`tests` fields, which have
+    no lines to be asked about.
+
+    The regions are `srs_check.annotation_regions`', the ones `--where
+    --source` prints, so a line and the source shown for it never
+    disagree. The narrowest, because what is nested belongs to what
+    encloses it and a line inside both is what the inner one marks.
+    """
+    marks, _unmatched = srs_check.annotation_regions(os.path.join(ROOT, line_path(path)))
+    holding = [m for m in marks if m["kind"] != "file" and m["first"] <= line <= m["last"]]
+    if holding:
+        mark = min(holding, key=lambda m: (m["last"] - m["first"], -m["first"]))
+        return set(mark["ids"]), mark
+    whole = set()
+    for mark in marks:
+        if mark["kind"] == "file":
+            whole.update(mark["ids"])
+    return whole, None
+# srs-end: FR-VIEW-300
+
+
+# implements: FR-VIEW-220
 def select(model, args):
-    # implements: FR-VIEW-220
     entries = model["requirements"]
     if args.status:
         entries = [e for e in entries if e["status"] == args.status]
@@ -542,6 +566,7 @@ def select(model, args):
         wanted = requirements_for_path(model, args.code)
         entries = [e for e in entries if e["id"] in wanted]
     return entries
+# srs-end: FR-VIEW-220
 
 
 # --------------------------------------------------------------------
@@ -582,8 +607,8 @@ def print_problems(model, style):
     out()
 
 
+# implements: FR-VIEW-250
 def print_counts(model, style):
-    # implements: FR-VIEW-250
     counts = {}
     for entry in model["requirements"]:
         counts[entry["status"]] = counts.get(entry["status"], 0) + 1
@@ -596,8 +621,10 @@ def print_counts(model, style):
                         "requirement" if total == 1 else "requirements",
                         style.d(" · ".join(parts))))
     print_areas(model, style)
+# srs-end: FR-VIEW-250
 
 
+# implements: FR-VIEW-250
 def print_areas(model, style):
     """The partition every identifier carries, with what each holds.
 
@@ -613,7 +640,6 @@ def print_areas(model, style):
     In the order the project declared them, not alphabetical: the same
     reading STATUSES gets in the count above it.
     """
-    # implements: FR-VIEW-250
     held = {}
     for entry in model["requirements"]:
         held[entry["area"]] = held.get(entry["area"], 0) + 1
@@ -624,8 +650,10 @@ def print_areas(model, style):
     out("%s %s   %s" % (style.b(str(len(areas))),
                         "area" if len(areas) == 1 else "areas",
                         style.d(" · ".join(parts))))
+# srs-end: FR-VIEW-250
 
 
+# implements: FR-VIEW-360
 def print_vocabulary(style):
     """The words the checker accepts in a requirement's block, and nothing
     of what the standard says about them.
@@ -639,7 +667,6 @@ def print_vocabulary(style):
     the block's own order for the fields — which is the order a reader
     meets them in.
     """
-    # implements: FR-VIEW-360
     rows = (
         ("types", srs_check.TYPES),
         ("statuses", STATUSES),
@@ -651,8 +678,10 @@ def print_vocabulary(style):
     )
     for label, words in rows:
         out("%s %s" % (style.d("%-13s" % label), " ".join(words)))
+# srs-end: FR-VIEW-360
 
 
+# implements: FR-VIEW-290
 def prose_path_hint(needle):
     """The text searched for, where it names a path the project carries.
 
@@ -660,7 +689,6 @@ def prose_path_hint(needle):
     `tests` fields — so searching for one answers nothing while the mode
     beside it answers exactly.
     """
-    # implements: FR-VIEW-290
     candidate = needle.strip()
     if not candidate:
         return None
@@ -679,15 +707,16 @@ def prose_path_hint(needle):
         if inside:
             return inside
     return None
+# srs-end: FR-VIEW-290
 
 
+# implements: FR-VIEW-270, FR-VIEW-280, FR-VIEW-290
 def print_prose(model, args, style):
     """The prose half of a text search, and what it left out.
 
     After the requirements rather than before: the cheap answer is read
     first, and a line of prose is as long as its meaning.
     """
-    # implements: FR-VIEW-270, FR-VIEW-280, FR-VIEW-290
     if not args.grep:
         return
     narrowed = [name for name in ("area", "status", "type", "verification",
@@ -715,10 +744,11 @@ def print_prose(model, args, style):
     if hint:
         out(style.d("%s is a path — `--code %s` answers about it"
                     % (hint, hint)))
+# srs-end: FR-VIEW-270, FR-VIEW-280, FR-VIEW-290
 
 
+# implements: FR-VIEW-320
 def print_line(entry, style, statements=False):
-    # implements: FR-VIEW-320
     # Identifier, status, title, file — the four parts of a citation, in
     # the order they are read; the file is the path alone, never the line.
     out("%s  %-12s %s  %s" % (style.b("%-14s" % entry["id"]),
@@ -731,6 +761,8 @@ def print_line(entry, style, statements=False):
         # title — and never the rationale, which is read once the choice
         # is made, in the card.
         out(emphasize(wrap(entry["statement"], indent="    "), style))
+        # srs-end: FR-VIEW-350
+# srs-end: FR-VIEW-320
 
 
 def print_list(entries, style, statements=False):
@@ -741,16 +773,22 @@ def print_list(entries, style, statements=False):
         print_line(entry, style, statements)
 
 
+# implements: FR-VIEW-300
 def print_line_answer(model, path, line, style, listing, statements=False):
-    # implements: FR-VIEW-300
     """What a line of a file marks, and how many the whole file answers
     for — the second from the path mode, so the two never disagree about
     the file."""
-    marked = requirements_for_line(path, line)
+    marked, mark = requirements_for_line(path, line)
     whole = requirements_for_path(model, path)
     if not listing:
         print_counts(model, style)
         out()
+    if mark is not None:
+        total = len(srs_check.read_lines(os.path.join(ROOT, line_path(path))))
+        out(style.d("%s:%d is in the region of the annotation at line %d, %s"
+                    % (path, line, mark["lines"][0], region_note(mark, total))))
+    elif marked:
+        out(style.d("%s:%d is in no region; the file carries these as a whole" % (path, line)))
     index = by_id(model)
     entries = [index[rid] for rid in sorted(marked, key=srs_parse.id_key) if rid in index]
     unknown = sorted((rid for rid in marked if rid not in index), key=srs_parse.id_key)
@@ -763,8 +801,10 @@ def print_line_answer(model, path, line, style, listing, statements=False):
                                        "specification")))
     out(style.d("the whole file answers for %d requirement(s) — "
                 "--code %s without a line lists them" % (len(whole), path)))
+# srs-end: FR-VIEW-300
 
 
+# implements: FR-VIEW-370
 def where_realized(entry):
     """Every annotation naming the requirement, and every file its fields
     name that carries none: [(path, line or None, keyword or None)], the
@@ -775,7 +815,6 @@ def where_realized(entry):
     field claims that no line speaks for is part of the answer — it is
     the one the reader will have to open whole.
     """
-    # implements: FR-VIEW-370
     found = []
     seen = set()
     named = list(entry["code"]) + [p for p in entry["tests"] if p not in entry["code"]]
@@ -815,55 +854,46 @@ def where_realized(entry):
                 f.startswith(rel.rstrip("/") + "/") for f in annotated_files):
             found.append((rel, None, None))
     return found
+# srs-end: FR-VIEW-370
 
 
-def region_of(rel, lineno, bound=60):
-    """The lines an annotation marks, as (first, last), 1-based inclusive.
-
-    A Python file has a structure the standard library parses: the region
-    is the innermost function or class whose span holds the line, or whose
-    definition starts within three lines below it — an annotation sits
-    on the line above `def`, or as the body's first comment. Any other
-    file has none the tool can read: the region runs from the annotation
-    to the line before the next one, or `bound` lines, whichever is first.
-    """
-    # implements: FR-VIEW-380
-    full = os.path.join(ROOT, rel)
-    with open(full, "r", encoding="utf-8", errors="replace") as handle:
-        text = handle.read()
-    # splitlines, not split: a file ending in a newline has no empty last
-    # line, and a region bounded by the file's end must not print one.
-    lines = text.splitlines()
-    total = len(lines)
-    if rel.endswith(".py"):
-        import ast
-        try:
-            tree = ast.parse(text)
-        except SyntaxError:
-            tree = None
-        if tree is not None:
-            best = None
-            for node in ast.walk(tree):
-                if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                    continue
-                start = min([node.lineno] + [d.lineno for d in node.decorator_list])
-                end = node.end_lineno
-                if start <= lineno <= end or lineno < start <= lineno + 3:
-                    span = end - start
-                    if best is None or span < best[2]:
-                        best = (start, end, span)
-            if best is not None:
-                return min(best[0], lineno), best[1]
-    last = min(total, lineno + bound - 1)
-    for other, _kw, _rid in srs_check.read_annotations(full):
-        if lineno < other <= last:
-            last = other - 1
-            break
-    return lineno, last
+# implements: FR-VIEW-380
+def mark_at(rel, lineno):
+    """The mark of `srs_check.annotation_regions` whose annotation stands on
+    `lineno` of `rel` — the region an annotation found by `where_realized`
+    marks. Read through the checker's grammar, so the region printed and the
+    region a line is answered from are one region."""
+    marks, _unmatched = srs_check.annotation_regions(os.path.join(ROOT, rel))
+    for mark in marks:
+        if lineno in mark["lines"]:
+            return mark
+    return None
+# srs-end: FR-VIEW-380
 
 
+# implements: FR-VIEW-400
+def region_note(mark, total):
+    """What the viewer says of a region beside the line that names it:
+    its lines, and where no `srs-end:` ends it, where it stopped instead.
+    Never among the file's lines, which each carry their number, so the
+    note cannot be read as the file's."""
+    text = "lines %d–%d" % (mark["first"], mark["last"])
+    if mark["how"] == "next":
+        text += " — no srs-end: stops at the next annotation, line %d; may be incomplete" % mark["stop"]
+    elif mark["how"] == "bound":
+        text += " — no srs-end: cut at %d lines; may be incomplete" % srs_check.REGION_BOUND
+    elif mark["how"] == "eof":
+        text += " — no srs-end: runs to the end of the file"
+    elif mark["how"] == "file":
+        text = "the whole file, %d lines" % total
+        if mark["last"] < total:
+            text += "; the first %d shown" % mark["last"]
+    return text
+# srs-end: FR-VIEW-400
+
+
+# implements: FR-VIEW-370
 def print_where(entry, style, source=False):
-    # implements: FR-VIEW-370
     places = where_realized(entry)
     if not places:
         out(style.d("%s names no file and no annotation names it" % entry["id"]))
@@ -877,16 +907,24 @@ def print_where(entry, style, source=False):
     for rel, lineno, keyword in places:
         if lineno is None:
             continue
-        out("%s:%d  %s" % (rel, lineno, keyword))
-        if source:
-            # implements: FR-VIEW-380
-            first, last = region_of(rel, lineno)
-            with open(os.path.join(ROOT, rel), "r", encoding="utf-8", errors="replace") as handle:
-                lines = handle.read().splitlines()
-            width = len(str(last))
-            for number in range(first, last + 1):
-                out("  %s  %s" % (style.d(str(number).rjust(width)), lines[number - 1]))
+        if not source:
+            out("%s:%d  %s" % (rel, lineno, keyword))
+            continue
+        # implements: FR-VIEW-380
+        lines = srs_check.read_lines(os.path.join(ROOT, rel))
+        mark = mark_at(rel, lineno)
+        if mark is None:
+            out("%s:%d  %s" % (rel, lineno, keyword))
             out()
+            continue
+        out("%s:%d  %s  %s" % (rel, lineno, keyword, style.d(region_note(mark, len(lines)))))
+        first, last = mark["first"], mark["last"]
+        width = len(str(last))
+        for number in range(first, last + 1):
+            out("  %s  %s" % (style.d(str(number).rjust(width)), lines[number - 1]))
+        out()
+        # srs-end: FR-VIEW-380
+# srs-end: FR-VIEW-370
 
 
 def wrap(text, width=76, indent="  "):
@@ -918,8 +956,8 @@ def emphasize(text, style):
                    for index, piece in enumerate(pieces))
 
 
+# implements: FR-VIEW-240
 def citation(entry):
-    # implements: FR-VIEW-240
     """The form a requirement is named in outside the specification.
 
     Assembled here and nowhere else: the identifier, the title, the file
@@ -930,10 +968,11 @@ def citation(entry):
     """
     return "%s — %s (%s, %s)" % (entry["id"], entry["title"], entry["path"],
                                  entry["status"] or "?")
+# srs-end: FR-VIEW-240
 
 
+# implements: FR-VIEW-010
 def print_card(entry, model, style):
-    # implements: FR-VIEW-010
     known = by_id(model)
     out("%s — %s" % (style.b(entry["id"]), entry["title"]))
     out("  status %s   verification %s   %s"
@@ -968,6 +1007,7 @@ def print_card(entry, model, style):
     for field in ("code", "tests"):
         for path in entry[field]:
             out("  %-14s    %s" % (field, path))
+# srs-end: FR-VIEW-010
 
 
 def children_of(model, rid):
@@ -988,8 +1028,8 @@ def parents_of(entry):
     return result
 
 
+# implements: FR-VIEW-030
 def print_tree(model, rid, upwards, style):
-    # implements: FR-VIEW-030
     known = by_id(model)
 
     def walk(node, prefix, seen):
@@ -1021,10 +1061,11 @@ def print_tree(model, rid, upwards, style):
     out("%s  %-12s %s" % (style.b(rid), root["status"], root["title"]))
     walk(rid, "", {rid})
     return True
+# srs-end: FR-VIEW-030
 
 
+# implements: FR-VIEW-040
 def print_coverage(model, style):
-    # implements: FR-VIEW-040
     known = by_id(model)
     print_counts(model, style)
     out()
@@ -1070,6 +1111,7 @@ def print_coverage(model, style):
                 % (len(model["orphan_code"]), model["code_total"])))
     for path in model["orphan_code"]:
         out("  %s" % path)
+# srs-end: FR-VIEW-040
 
 
 # --------------------------------------------------------------------
@@ -1085,8 +1127,8 @@ def git(args, cwd=ROOT):
                                    stderr=subprocess.PIPE)
 
 
+# implements: FR-VIEW-050
 def load_revision(rev):
-    # implements: FR-VIEW-050
     """Parses the specification as of `rev`. Paths come from git, i.e.
     relative to the git root, which is not necessarily this script's
     ROOT — nested repositories exist."""
@@ -1130,6 +1172,7 @@ def load_revision(rev):
         requirements.extend(srs_check.parse_text(
             blob.decode("utf-8", "replace"), rel, problems))
     return build_model(requirements, problems, with_code_scan=False)
+# srs-end: FR-VIEW-050
 
 
 BASELINE_LOG = "92-baselines.md"
@@ -1151,8 +1194,8 @@ def versions_in(text):
     return sorted(seen, key=version_key)
 
 
+# implements: INV-SPEC-040
 def logged_baselines():
-    # implements: INV-SPEC-040
     """The versions the baseline log records, oldest first.
 
     The log is what defines a baseline: a `spec/v*` tag is a bookmark
@@ -1165,6 +1208,7 @@ def logged_baselines():
             return versions_in(handle.read())
     except OSError:
         return []
+# srs-end: INV-SPEC-040
 
 
 def has_tag(version):
@@ -1261,8 +1305,8 @@ def fingerprint(text):
     return hashlib.sha1(" ".join(text.split()).encode("utf-8")).hexdigest()[:12]
 
 
+# implements: FR-VIEW-100
 def baseline_snapshots():
-    # implements: FR-VIEW-100
     """[{tag, version, requirements: {id: {fields…}}}], oldest first.
 
     A snapshot per baseline is what lets the page compare an arbitrary
@@ -1285,6 +1329,7 @@ def baseline_snapshots():
         snapshots.append({"tag": "spec/v%s" % version, "version": version,
                           "requirements": requirements})
     return as_deltas(snapshots)
+# srs-end: FR-VIEW-100
 
 
 def as_deltas(snapshots):
@@ -1318,8 +1363,8 @@ DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
                "code", "tests", "exempt") + LINK_FIELDS
 
 
+# implements: FR-VIEW-050
 def statement_words(text):
-    # implements: FR-VIEW-050
     """A statement as its words, so that where its lines end is not a difference.
 
     A line break inside a markdown paragraph renders as a space and is invisible to every reader;
@@ -1327,6 +1372,7 @@ def statement_words(text):
     statement in it as changed, which is the reading this command exists to spare its reader.
     """
     return " ".join((text or "").split())
+# srs-end: FR-VIEW-050
 
 
 def compute_diff(old_model, new_model):
@@ -1572,6 +1618,7 @@ footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 12px 20px
 .key.kind { cursor: pointer; user-select: none; border-radius: 4px; }
 .key.kind[aria-pressed="false"] { opacity: .35; }
 """
+# srs-end: FR-VIEW-390
 
 # Leaving a kind out is a class on the drawing rather than a style on each
 # edge: the script rebuilds an edge when an area folds, and a style set
@@ -2109,8 +2156,8 @@ def _pair(text, marker, tag):
     return "".join(result)
 
 
+# implements: FR-VIEW-310
 class Links(object):
-    # implements: FR-VIEW-310
     """Paths become links twice over: relative ones so the page works
     from file://, and repository ones when repo_url is configured.
 
@@ -2138,6 +2185,7 @@ class Links(object):
             anchor = "#L%d" % line if line else ""
             return "%s/%s%s" % (self.repo_url, quote(path), anchor)
         return self.local(path)
+# srs-end: FR-VIEW-310
 
 
 # implements: FR-VIEW-230
@@ -2148,11 +2196,13 @@ class Links(object):
 # implements: FR-VIEW-390
 METHODS = (("T", "test"), ("D", "demonstration"),
            ("I", "inspection"), ("A", "analysis"))
+# srs-end: FR-VIEW-390
+# srs-end: FR-VIEW-230
 METHOD_WORD = dict(METHODS)
 
 
+# implements: FR-VIEW-230
 def notation_legend():
-    # implements: FR-VIEW-230
     """What every mark on a requirement card stands for."""
     letters = "".join("<b>%s</b> %s, " % (key, word) for key, word in METHODS)
     return ('<p class="notation">Each requirement below carries its status, '
@@ -2160,10 +2210,11 @@ def notation_legend():
             '<b>?</b> where none is declared. Every other badge spells '
             'itself: a status says its own name, and a change badge says '
             'what changed.</p>' % letters)
+# srs-end: FR-VIEW-230
 
 
+# implements: FR-VIEW-130, INV-SPEC-050
 def render_card(entry, model, known, links, diff_state):
-    # implements: FR-VIEW-130, INV-SPEC-050
     classes = ["superseded"] if entry["status"] == "superseded" else []
     badge = ""
     state = diff_state.get(entry["id"])
@@ -2199,6 +2250,7 @@ def render_card(entry, model, known, links, diff_state):
         link_html.append(
             '<span class="rel">exempt</span><span></span>'
             '<span><code>%s</code></span>' % esc(name))
+    # srs-end: FR-CHK-160
 
     parts = ['<article id="%s" data-id="%s" data-status="%s" data-type="%s" '
              'data-area="%s" data-file="%s" data-search="%s"%s>'
@@ -2229,6 +2281,7 @@ def render_card(entry, model, known, links, diff_state):
         parts.append('<div class="links">%s</div>' % "".join(link_html))
     parts.append("</article>")
     return "".join(parts)
+# srs-end: FR-VIEW-130, INV-SPEC-050
 
 
 def render_chips(key, values, counts):
@@ -2243,8 +2296,8 @@ def render_chips(key, values, counts):
     return "".join(chips)
 
 
+# implements: FR-VIEW-190, FR-VIEW-200
 def render_dashboard(model, links):
-    # implements: FR-VIEW-190, FR-VIEW-200
     known = by_id(model)
     counts = {}
     for entry in model["requirements"]:
@@ -2288,6 +2341,7 @@ def render_dashboard(model, links):
     # computes this, and a local shadowing it here is how somebody later
     # calls the dict.
     left = model["outlived"]
+    # srs-end: FR-VIEW-210
     parts = []
     for item in left["links"]:
         parts.append('<li><a href="#%s">%s</a> %s — <code>%s</code> '
@@ -2323,6 +2377,7 @@ def render_dashboard(model, links):
                outlived_html,
                len(model["orphan_code"]), model["code_total"],
                orphans or "<li>None.</li>"))
+# srs-end: FR-VIEW-190, FR-VIEW-200
 
 
 def render_diff_section(diff):
@@ -2437,9 +2492,9 @@ def edge_path(ax, ay, bx, by, same_lane):
     return "M %d %d L %d %d" % (ax, a_mid, bx + NODE_W, b_mid)
 
 
+# implements: FR-VIEW-110, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180
+# implements: NFR-VIEW-010
 def build_graph(model):
-    # implements: FR-VIEW-110, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180
-    # implements: NFR-VIEW-010
     """Every link drawn; a lane per area, a row per requirement.
 
     Position is arithmetic — a lane index from the area, a row index from
@@ -2585,6 +2640,7 @@ def build_graph(model):
         '<p class="legend-title">status</p>%s'
         '</div></div></div>' % (options, link_keys, status_keys))
     return "".join(parts), dropped
+# srs-end: FR-VIEW-110, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, NFR-VIEW-010
 
 
 # --------------------------------------------------------------------
@@ -2637,8 +2693,8 @@ requirements · __VERSIONS__</div>
 RE_CSS_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}")
 
 
+# implements: FR-VIEW-340
 def graph_stylesheet():
-    # implements: FR-VIEW-340
     """The rules the drawing needs and the background colour, taken from
     the page's own stylesheet rather than kept as a second copy: every rule
     addressed to `.graph` and the status colours the nodes carry, with the
@@ -2665,10 +2721,11 @@ def graph_stylesheet():
         if selector.startswith(".graph") or selector.startswith(".st-"):
             kept.append("%s {%s}" % (selector, resolve(body.strip())))
     return "\n".join(kept), values["--bg"]
+# srs-end: FR-VIEW-340
 
 
+# implements: FR-VIEW-340
 def neighbourhood(model, chosen):
-    # implements: FR-VIEW-340
     """The selection and every requirement one link away from it, in either
     direction — what it names in a link field and what names it. One step,
     because the picture is of the selection's place in the specification,
@@ -2683,10 +2740,11 @@ def neighbourhood(model, chosen):
         elif targets & core:
             wanted.add(entry["id"])
     return [entry for entry in model["requirements"] if entry["id"] in wanted]
+# srs-end: FR-VIEW-340
 
 
+# implements: FR-VIEW-340
 def graph_image(model):
-    # implements: FR-VIEW-340
     """The graph of `model` as one self-contained SVG document, or "" where
     the selection has no edges to draw. The drawing is the page's — the
     same function, the same arithmetic — lifted out of the stage it sits in
@@ -2706,10 +2764,11 @@ def graph_image(model):
             + "<style>" + stylesheet + "</style>"
             + '<rect width="100%%" height="100%%" fill="%s"/>' % background
             + drawing[head_end:] + "\n")
+# srs-end: FR-VIEW-340
 
 
+# implements: FR-VIEW-120
 def baseline_row(version, date=None):
-    # implements: FR-VIEW-120
     """The row for `92-baselines.md`, ready to paste.
 
     Normally computed from the working tree against the newest existing
@@ -2776,6 +2835,7 @@ def baseline_row(version, date=None):
         version, date or datetime.date.today().isoformat(), version,
         changed, total, "requirement" if total == 1 else "requirements",
         shape)
+# srs-end: FR-VIEW-120
 
 
 def render_baselines(snapshots, logged=()):
@@ -2817,8 +2877,8 @@ def render_baselines(snapshots, logged=()):
             'into the page.</p>' % (options, options))
 
 
+# implements: FR-VIEW-060, FR-VIEW-090
 def render_page(model, links, diff=None, baselines=None):
-    # implements: FR-VIEW-060, FR-VIEW-090
     # From the log, not from the snapshots: which baselines exist is a
     # question the log answers on its own, and it answers it in a checkout
     # too shallow to hold the states they name.
@@ -2924,6 +2984,7 @@ def render_page(model, links, diff=None, baselines=None):
                            "rendered." % esc(model["checker_version"]))))
     pattern = re.compile("|".join(re.escape(token) for token in filled))
     return pattern.sub(lambda match: filled[match.group(0)], PAGE)
+# srs-end: FR-VIEW-060, FR-VIEW-090
 
 
 def project_title():
@@ -2956,8 +3017,8 @@ def ensure_parent(target):
     return out_dir
 
 
+# implements: FR-VIEW-070, FR-VIEW-080
 def write_site(model, target, diff=None):
-    # implements: FR-VIEW-070, FR-VIEW-080
     out_dir = ensure_parent(target)
     links = Links(model, out_dir)
     # Only here: build_model runs inside load_revision too, and a model
@@ -2972,6 +3033,7 @@ def write_site(model, target, diff=None):
                   encoding="utf-8", newline="\n") as handle:
             handle.write("*\n")
     return os.path.abspath(target)
+# srs-end: FR-VIEW-070, FR-VIEW-080
 
 
 # --------------------------------------------------------------------
@@ -3013,9 +3075,9 @@ def parse_args(argv):
                              "annotation naming it as path:line, and each file "
                              "its fields name that carries none")
     parser.add_argument("--source", action="store_true",
-                        help="with --where: print the region under each "
-                             "annotation — a Python function or class whole, "
-                             "otherwise up to the next annotation or 60 lines")
+                        help="with --where: print the region each annotation "
+                             "marks — down to its srs-end:, or without one to the "
+                             "next annotation or 60 lines, said in its header")
     parser.add_argument("--statements", action="store_true",
                         help="with a listing: print each requirement's "
                              "statement beneath its line — what it obliges, "
@@ -3067,9 +3129,11 @@ def parse_args(argv):
     # agent chaining calls, a person at the terminal — knows what to do
     # next without a second attempt.
     args, extra = parser.parse_known_args(argv)
+    # srs-end: FR-VIEW-010
     if extra:
         # implements: INV-SPEC-080
         stray = [a for a in extra if re.match(r"^[A-Z]+-[A-Z0-9]+-%s$" % srs_parse.NUMBER, a)]
+        # srs-end: INV-SPEC-080
         if args.requirement and stray and len(stray) == len(extra):
             parser.exit(2, "srs_view.py shows one requirement at a time — %s is %d; call it "
                            "once per identifier, or --cite %s for the citations\n"
@@ -3103,6 +3167,7 @@ def main(argv=None):
         # requirements does not open the decision log.
         if any(RE_ADR_ID.match(rid) for rid in args.cite):
             known = dict(known, **decisions())
+        # srs-end: FR-VIEW-330
         missing = [rid for rid in args.cite if rid not in known]
         for rid in args.cite:
             if rid in known:
@@ -3142,6 +3207,7 @@ def main(argv=None):
         if args.svg is not None:
             # implements: FR-VIEW-340
             chosen = select(model, args)
+            # srs-end: FR-VIEW-340
             if args.around:
                 chosen = neighbourhood(model, chosen)
             image = graph_image(dict(model, requirements=chosen))
@@ -3182,6 +3248,7 @@ def main(argv=None):
                 # concatenated onto the scheme is not a URL, and the
                 # standard library already knows the difference.
                 webbrowser.open(pathlib.Path(written).as_uri())
+                # srs-end: FR-VIEW-140
 
         if args.json is not None or args.html is not None:
             return 0
@@ -3218,6 +3285,7 @@ def main(argv=None):
     if args.areas:
         print_areas(model, style)
         return 0
+    # srs-end: FR-VIEW-250
 
     if args.vocabulary:
         print_vocabulary(style)
@@ -3243,6 +3311,7 @@ def main(argv=None):
             out(style.d("%s is a directory; a line belongs to a file"
                         % head))
             return 0
+    # srs-end: FR-VIEW-300
 
     entries = select(model, args)
     if not args.list:

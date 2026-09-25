@@ -3,10 +3,10 @@
 # form, a method, and what is already written — without writing the file.
 procedure: srs-new
 max_turns: 24
-free: FR-VIEW-400
+free: FR-VIEW-410
 check: skill srs-new
 check: ran python3 tools/srs_view.py
-check: answer FR-VIEW-400
+check: answer FR-VIEW-410
 check: answer \*\*shall\*\*
 check: answer FR-VIEW-240 — A citation is printed, not typed \(specs/10-fr-view\.md, implemented\)
 check: no_tool Edit

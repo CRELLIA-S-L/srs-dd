@@ -23,7 +23,7 @@ Exit codes match the installer: 0 installed · 1 checker errors or partial
 completion · 2 refused before changing anything · 3 rolled back.
 """
 
-# implements: FR-INIT-120, FR-INIT-130, NFR-SPEC-010, CON-SPEC-030
+# file implements: FR-INIT-120, FR-INIT-130, NFR-SPEC-010, CON-SPEC-030
 
 import argparse
 import json
@@ -82,6 +82,7 @@ def main():
                         help="also refresh precious files (CI config, agent "
                              "guides, .gitattributes, the hook, the "
                              "standards)")
+    # srs-end: FR-INIT-250
     # implements: FR-GND-290, FR-GND-480
     # Asking has to be possible with the command a project actually has.
     # Without this the only way to add the register is the framework
@@ -92,6 +93,7 @@ def main():
                         help="with --grounds yes: the calendar unit the "
                              "register's dashboard counts arrivals in "
                              "(default quarter)")
+    # srs-end: FR-GND-290, FR-GND-480
     parser.add_argument("--grounds", choices=("yes", "no"), default=None,
                         help="add the grounds register to this project, or "
                              "say no. Left out, an upgrade refreshes a "
@@ -149,6 +151,7 @@ def main():
         # implements: FR-ARCH-130
         if args.arch:
             extra += ["--arch", args.arch]
+        # srs-end: FR-ARCH-130
         code = run_installer(clone, extra + ["--dry-run"])
         if code != 0:
             return fail("the framework's installer refused; nothing was "

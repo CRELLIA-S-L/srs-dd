@@ -33,7 +33,7 @@ Two directories are easy to confuse, and the difference is the one rule ART-070 
   A requirement of ours landing here fails a stranger's checker on their first install, pointing at files that do not exist in their project.
   An identifier merely cited in the prose fails nothing, which is what makes it worse: in a project that declares that area it resolves, to their requirement, saying something else (CON-SPEC-020).
 
-The tooling that travels — `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_grounds.py` where a project keeps a register, and `srs_arch.py` where it keeps an architecture layer — is annotated here like everything else and arrives without it: the installer replaces every `implements:`/ `verifies:` line as it copies, leaving the line where it was (FR-INIT-180, ADR-0022).
+The tooling that travels — `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_grounds.py` where a project keeps a register, and `srs_arch.py` where it keeps an architecture layer — is annotated here like everything else and arrives without it: the installer replaces every `implements:`/ `verifies:` line and every `srs-end:` marker as it copies, leaving the line where it was (FR-INIT-180, ADR-0022).
 So annotate them freely: those lines are half of a two-way check, and it runs here, where the requirements are.
 What not to do is quiet one with `srs-ignore`, whose exemption is unconditional and would silence it here as well.
 `tools/srs_init.py`, `tools/srs_release.py`, `tools/srs_cite_eval.py`, `tools/srs_proc_eval.py`, `tools/ci_selftest.sh`, `tools/test_lib.sh` and `tests/` never leave this repository.

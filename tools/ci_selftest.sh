@@ -48,6 +48,7 @@ else
     echo "ci-selftest: ruby not found — skipping the YAML checks" >&2
 fi
 
+# srs-end: FR-CI-020, FR-CI-030, CON-SPEC-030
 # implements: FR-CI-090
 # The index is compared after every suite, here rather than in a fixture of
 # its own: this is where the suites already run, so the check costs nothing,
@@ -79,6 +80,7 @@ for suite in tests/*.sh; do
             exit 1
         fi
     fi
+    # srs-end: FR-CI-090
     # implements: FR-CI-160
     # A suite that imports a tool without sys.dont_write_bytecode leaves
     # tools/__pycache__ behind; named per suite, so the one that did is found.
@@ -88,3 +90,4 @@ for suite in tests/*.sh; do
     fi
 done
 echo "ci-selftest: all suites pass"
+# srs-end: FR-CI-160

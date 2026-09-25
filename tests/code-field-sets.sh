@@ -9,8 +9,8 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# implements: INV-SPEC-100
-# verifies: INV-SPEC-100
+# file implements: INV-SPEC-100
+# file verifies: INV-SPEC-100
 python3 tools/srs_view.py --json /tmp/srs-code-sets.json >/dev/null
 python3 - <<'PY'
 import glob, json, os, re, sys

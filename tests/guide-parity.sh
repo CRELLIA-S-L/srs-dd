@@ -10,7 +10,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: INV-SKILL-010, FR-SKILL-380
+# file verifies: INV-SKILL-010, FR-SKILL-380
 python3 - <<'PY'
 import glob, os, re, sys
 

@@ -23,6 +23,7 @@ FRAMEWORK=$(pwd)
 rm -rf /tmp/srs-view
 python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
 
+# srs-end: FR-CI-090
 # verifies: FR-VIEW-160
 # Two linked requirements, one of them the target of a refinement, and one
 # dependency across them: enough to exercise the tree, the incoming links,
@@ -88,6 +89,7 @@ git init -q . && git add -A
 git -c user.email=ci@example.com -c user.name=CI commit -qm baseline
 git tag spec/v0.0.1
 
+# srs-end: FR-VIEW-160
 # verifies: FR-VIEW-050
 # Change the specification after the baseline so the diff has content — all
 # three kinds of it. A field that differs was the only kind exercised, so
@@ -126,6 +128,7 @@ The system **shall** appear only in the second baseline.
 open(path, 'w', encoding='utf-8').write(text)
 PY
 mkdir -p tests && printf 'true\n' > tests/probe.sh
+# srs-end: FR-VIEW-050
 # verifies: FR-VIEW-020
 # A file that carries an annotation and is named by no requirement's `code`
 # field: the only way the annotation half of FR-VIEW-020 gets its own
@@ -136,6 +139,7 @@ printf '# implements: FR-CORE-030\n' > src/extra.py  # srs-ignore
 python3 tools/srs_view.py --list > /tmp/v-list.log
 grep -q "FR-CORE-030" /tmp/v-list.log
 
+# srs-end: FR-VIEW-020
 # --- verifies: FR-VIEW-250 — the areas, with what each holds.
 # Three assertions, each catching a different way to be wrong. The count
 # answers the flag at all; the zero proves the list is the declared areas
@@ -153,6 +157,7 @@ python3 tools/srs_view.py --coverage > /tmp/v-areas-sum.log
 grep -qE "CORE +[0-9]+" /tmp/v-areas-sum.log
 echo "view-smoke: the areas are named with what each holds"
 
+# srs-end: FR-VIEW-250
 # --- verifies: FR-VIEW-270 — a search reaches the prose as well.
 # The term is appended because the skeleton ships the glossary as a
 # template with no terms in it: a fixture asserting a word only the
@@ -179,6 +184,7 @@ for reg in 90-traceability 91-open-issues 92-baselines; do
     mv "/tmp/v-$reg.md" "specs/$reg.md"
 done
 
+# srs-end: FR-VIEW-270
 # --- verifies: FR-VIEW-280 — a search says what it left out.
 # Three assertions, one per case, because each fails on its own and each
 # fails silently: a suppression nobody is told about reads as "the prose
@@ -208,6 +214,7 @@ python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-c.log
 grep -q "more line(s) in the prose are not shown" /tmp/v-prose-c.log
 rm -f specs/03-notes.md
 
+# srs-end: FR-VIEW-280
 # --- verifies: FR-VIEW-290 — a path is answered by the mode for paths.
 # Two assertions: the hint, and that the results are still there. In
 # addition rather than instead, because a needle can be a path and a word
@@ -246,6 +253,7 @@ rm -rf /tmp/srs-view-elsewhere
 echo "view-smoke: a search reaches the prose and says what it left out"
 python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
+# srs-end: FR-VIEW-290
 # verifies: FR-VIEW-010
 # The whole card, not the incoming half alone (FR-VIEW-010): the metadata,
 # the statement, and the links resolved downwards as well as up. With only
@@ -258,6 +266,7 @@ grep -qE "derives_from +-> +FR-CORE-010" /tmp/v-card.log
 grep -qE "depends_on +-> +FR-CORE-030" /tmp/v-card.log
 python3 tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log
 grep -q "FR-CORE-030" /tmp/v-tree.log
+# srs-end: FR-VIEW-010
 # verifies: FR-VIEW-030
 # And the opposite direction under the upward flag (FR-VIEW-030). Only the
 # downward walk was asserted, so `--up` could have printed the same tree, or
@@ -279,6 +288,7 @@ python3 tools/srs_view.py --code src/extra.py --list > /tmp/v-annot.log
 grep -q "FR-CORE-030" /tmp/v-annot.log
 python3 tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
 grep -q "FR-CORE-080" /tmp/v-tests.log
+# srs-end: FR-VIEW-030
 # verifies: FR-VIEW-300
 # A line asks a narrower question than a file. Two annotations in one file,
 # with room between them, so that each line lands in exactly one region and
@@ -305,6 +315,7 @@ python3 tools/srs_view.py --code src:1 --list > /tmp/v-dirline.log
 grep -q "a line belongs to a file" /tmp/v-dirline.log
 python3 tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
+# srs-end: FR-VIEW-300
 # verifies: FR-VIEW-040
 # The fourth gap is a proportion, not a count (FR-VIEW-040): one
 # unreferenced file means nothing without how many there are.
@@ -343,6 +354,7 @@ assert n_after == n_before + 1, (
     'a file only a withdrawn requirement names must still count as '
     'unreferenced: %d -> %d of %d' % (n_before, n_after, total))
 PY2
+# srs-end: FR-VIEW-040
 # verifies: INV-SPEC-050
 # While it stands: a requirement cancelled with no successor is kept, as
 # `withdrawn` — the checker accepts it with no `superseded_by`, and the page
@@ -362,6 +374,7 @@ open(path, 'w', encoding='utf-8').write(
 PY2
 rm -f src/dropped.py
 
+# srs-end: INV-SPEC-050
 # verifies: FR-VIEW-040
 # The second of the four gap lists, read off standard output — and this is
 # the only place it is. The first and the fourth are asserted above; the
@@ -423,6 +436,7 @@ grep -q "status .*draft -> deferred" /tmp/v-diff.log
 grep -q "^  + FR-CORE-080" /tmp/v-diff.log
 grep -q "^  - FR-CORE-070" /tmp/v-diff.log
 
+# srs-end: FR-VIEW-040
 # --- verifies: FR-VIEW-050 — a statement counts as different by its words,
 # --- not by where its lines end. Without this the release that reflowed every
 # --- paragraph in the framework wrote a baseline row naming 176 requirements
@@ -460,6 +474,7 @@ grep -q "~ FR-CORE-010" /tmp/v-diff-word.log \
          exit 1; }
 echo "view-smoke: a reflowed statement is not a change, a changed word is"
 
+# srs-end: FR-VIEW-050
 # verifies: IF-VIEW-010
 # The model is what two suites parse — this one, and the payload-isolation
 # check that guards CON-SPEC-020 — so what it promises is asserted rather
@@ -484,6 +499,7 @@ assert ['refines', 'FR-CORE-030'] in model['incoming']['FR-CORE-020'], \
     'the computed reverse links are gone from the model'
 PY2
 
+# srs-end: IF-VIEW-010
 # verifies: FR-VIEW-220
 # Narrowing, which is the answer to almost every question asked of a
 # specification of any size. Every filter, not any: two of them together
@@ -518,6 +534,7 @@ absent "FR-CORE-010" /tmp/v-f3.log
 python3 tools/srs_view.py --list --status implemented --verification D > /tmp/v-f4.log
 absent "FR-CORE-" /tmp/v-f4.log
 
+# srs-end: FR-VIEW-220
 # verifies: FR-VIEW-060
 # One self-contained file: content, a graph, escaping, and nothing fetched
 # over the network. The other four things the statement names are asserted
@@ -551,6 +568,7 @@ assert not loads, 'FR-VIEW-060 — the page requests something over the network:
 PY_NET
 test -f .srs-site/.gitignore
 
+# srs-end: FR-VIEW-060
 # verifies: FR-VIEW-310
 # With no URL the page links relatively; told where the repository is, it
 # links there — files by path, requirements by path and line — and the
@@ -581,6 +599,7 @@ json.dump(cfg, open(path, 'w'), indent=2)
 PY_URL
 python3 tools/srs_view.py --html
 
+# srs-end: FR-VIEW-310
 # --- verifies: FR-VIEW-260 — every file that carries no requirements is offered.
 # Sliced to the Documents list rather than the aside around it: the aside
 # also holds the file filter's chips, which name every requirement file, so
@@ -636,12 +655,14 @@ assert "querySelectorAll('.chip')" in page and \
     "chip.addEventListener('click'" in page, 'the chips are not controls'
 PY2
 
+# srs-end: FR-VIEW-260
 # verifies: FR-VIEW-070
 # Deterministic output: no timestamps, so two runs must be identical.
 cp .srs-site/index.html /tmp/first.html
 python3 tools/srs_view.py --html >/dev/null
 cmp /tmp/first.html .srs-site/index.html
 
+# srs-end: FR-VIEW-070
 # verifies: FR-VIEW-190
 # The dashboard counts every status (FR-VIEW-190). `withdrawn` is one of
 # them, and a lifecycle that lost it would show up here as a census the
@@ -682,6 +703,7 @@ assert len([s for s in ('draft', 'deferred', 'partial', 'implemented',
     'the fixture no longer exercises statuses that nothing carries'
 PY2
 
+# srs-end: FR-VIEW-190
 # verifies: FR-VIEW-200
 # The coverage gaps are on the page, not only in the terminal
 # (FR-VIEW-200). The --coverage assertion above reads standard output and
@@ -726,6 +748,7 @@ git -c user.email=ci@example.com -c user.name=CI commit -qm second
 git tag spec/v0.0.2
 python3 tools/srs_view.py --html
 
+# srs-end: FR-VIEW-200
 # verifies: FR-VIEW-090
 # The page says what it is showing (FR-VIEW-090).
 grep -q "baseline 0.0.2" .srs-site/index.html
@@ -735,6 +758,7 @@ version=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.inser
 grep -qF "srs_check $version" .srs-site/index.html \
     || { echo "FAIL FR-VIEW-090 — the page does not name the version that generated it ($version)"; exit 1; }
 
+# srs-end: FR-VIEW-090
 # verifies: FR-VIEW-100
 # And carries a snapshot per baseline, with a picker over them
 # (FR-VIEW-100). The comparison itself runs in the browser; what the
@@ -859,6 +883,7 @@ for area, xs in lanes.items():
     assert len(xs) == 1, 'area %s is spread over %d columns' % (area, len(xs))
 assert len(set().union(*lanes.values())) == len(lanes), 'two areas share a column'
 
+# srs-end: FR-VIEW-100
 # verifies: FR-VIEW-110
 # Every lane declared in the configuration and holding a linked requirement
 # has a header, and the header is what folds the column away (FR-VIEW-110).
@@ -914,6 +939,7 @@ assert built.count('.push(') == 2, \
 assert "addEventListener('pointerenter'" in page, \
     'a node no longer answers a pointer resting on it'
 
+# srs-end: FR-VIEW-110
 # verifies: FR-VIEW-180
 # The status is the node's colour (FR-VIEW-180). The class alone proves
 # nothing — it sat on every node for two releases while a stroke named in
@@ -942,6 +968,7 @@ assert re.search(r'#graph-controls \{[^}]*flex-direction: column', page), \
 for field in ('derives_from', 'refines', 'depends_on', 'conflicts_with'):
     assert '<line class="edge %s"' % field in page, \
         'the legend has no swatch for %s' % field
+    # srs-end: FR-VIEW-180
     # verifies: FR-VIEW-160
     # And the reader can leave that kind out (FR-VIEW-160). The suite runs
     # no browser, so what is asserted is the mechanism end to end: a swatch
@@ -968,6 +995,7 @@ assert re.search(r'<title>[^<]+\((draft|deferred|partial|implemented|'
     'a node no longer carries its status as a word'
 PY2
 
+# srs-end: FR-VIEW-160
 # verifies: FR-VIEW-130
 # The views that name a requirement in the rendered file name it in a way
 # the page can follow (FR-VIEW-130). Baselines are not among them: that
@@ -1014,6 +1042,7 @@ bowed = re.findall(r'<path class="edge [^"]*"[^>]*d="M [^"]*Q', page)
 assert bowed, 'no intra-lane edge bows past what is between its ends'
 assert 'Math.min(BOW_MAX' in page, 'the script lost its copy of the bow'
 PY3
+# srs-end: FR-VIEW-130
 # verifies: FR-VIEW-150
 # And the reader can narrow the drawing to one requirement's surroundings
 # (FR-VIEW-150): the controls and the walk that hides the rest are there.
@@ -1026,6 +1055,7 @@ grep -q 'function narrow(' .srs-site/index.html
 grep -q 'var limit = depthSel ? +depthSel.value : 2;' .srs-site/index.html
 grep -q 'while (step < limit) {' .srs-site/index.html
 
+# srs-end: FR-VIEW-150
 # verifies: FR-VIEW-140
 # --open renders and opens in one act (FR-VIEW-140). No browser is a
 # dependency of this project, but the opening itself need not go unwatched:
@@ -1152,6 +1182,7 @@ assert 'FR-CORE-050' not in resting and 'FR-CORE-060' not in resting, \
 PY3
 )
 
+# srs-end: FR-VIEW-140
 # verifies: FR-VIEW-210
 # What outlived a cancelled requirement is on the page (FR-VIEW-210). Its
 # own target: the fixture above never cancels anything, and this project's
@@ -1245,6 +1276,7 @@ data = open('.srs-site/index.html', 'rb').read()
 assert b'\x00' not in data, 'the page carries NUL bytes'
 PY2
 
+# srs-end: FR-VIEW-210
 # verifies: FR-VIEW-230
 # The page reaches a reader who has neither specs/README.md nor
 # specs/50-verification.md, so every mark on a card answers for itself or is
@@ -1284,6 +1316,7 @@ echo "view-smoke: every mark on a requirement card is explained"
 test -z "$(find . -name __pycache__)" \
     || { echo "FAIL FR-VIEW-080 — a viewer run left bytecode behind"; find . -name __pycache__; exit 1; }
 
+# srs-end: FR-VIEW-230
 # verifies: FR-VIEW-080
 # Nor may it write into specs/ (FR-VIEW-080). That half of the prohibition
 # went unasserted while the bytecode half above stood in for it: the viewer
@@ -1312,6 +1345,7 @@ diff /tmp/v-specs-before /tmp/v-specs-after \
 test -z "$(find . -name __pycache__)" \
     || { echo "FAIL FR-VIEW-080 — a viewer mode left bytecode behind"; find . -name __pycache__; exit 1; }
 
+# srs-end: FR-VIEW-080
 # --- verifies: IF-VIEW-010 — every field of the block, not only the ones
 # --- this viewer has heard of. The format permits a key it declares
 # --- neither required nor optional, so a block legitimately carries keys
@@ -1340,6 +1374,7 @@ assert r['path'] == 'specs/10-fr-core.md' and r['title'] == 'X', \
 PY
 echo "view-smoke: an unknown block key reaches the published model"
 
+# srs-end: IF-VIEW-010
 # --- verifies: FR-VIEW-240 — the citation is printed, not typed. Its own
 # --- project, like the fixture above: the form has to be asserted character
 # --- for character, and a lab whose statuses are known is the only place
@@ -1387,6 +1422,7 @@ grep -q "FR-CORE-010 — A live one" /tmp/srs-cite-bad.out \
     || { echo "--cite dropped the requirements it could resolve"; exit 1; }
 echo "view-smoke: --cite refuses an identifier the specification does not carry"
 
+# srs-end: FR-VIEW-240
 # --- verifies: FR-VIEW-320 — a listed requirement is named where it is
 # --- written: identifier, status, title, file on one line, in that order,
 # --- the path alone and never the line.
@@ -1398,6 +1434,7 @@ grep -q "10-fr-core.md:" /tmp/srs-list-file.out \
     && { echo "--list printed a line number, which a citation leaves out"; exit 1; }
 echo "view-smoke: --list names the file a requirement is written in"
 
+# srs-end: FR-VIEW-320
 # --- verifies: FR-VIEW-350 — a listing carries the statement of each
 # --- requirement when asked, beneath its line, and never the rationale.
 # --- Its own lab: one requirement with a rationale, so that its absence
@@ -1460,6 +1497,7 @@ cmp -s /tmp/srs-stmt.out /tmp/srs-stmt-again.out \
     || { echo "--list --statements is not deterministic"; exit 1; }
 echo "view-smoke: --statements holds in the path mode, the line mode and over an empty selection"
 
+# srs-end: FR-VIEW-350
 # --- verifies: FR-VIEW-360 — the vocabulary of the block is printed by the
 # --- tool that enforces it: the checker's types, statuses, methods, fields
 # --- and required fields, with the areas and modal verbs the project
@@ -1520,6 +1558,7 @@ assert printed["verification"].split() == re.findall(r"`(\w)`", methods)
 PY
 echo "view-smoke: --vocabulary agrees with the Lifecycle section and the Fields table of the standard"
 
+# srs-end: FR-VIEW-360
 # --- verifies: FR-VIEW-370 — where a requirement is realized, by line:
 # --- every annotation naming it as path:line with its keyword, from the
 # --- files its fields name and from the annotated sources, and each file
@@ -1608,46 +1647,129 @@ rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --bogus ) > /tmp/sr
     || { echo "a stray flag is no longer refused as unrecognized"; cat /tmp/srs-bogus.out; exit 1; }
 echo "view-smoke: two identifiers get one sentence and exit 2; a stray flag is refused as before"
 
-# --- verifies: FR-VIEW-380 — the source under an annotation: for Python the
-# --- innermost function or class the annotation belongs to, whole — above
-# --- the def, or as its first comment — for any other file the lines up
-# --- to the next annotation, or sixty of them; line numbers beside.
+# srs-end: FR-VIEW-370
+# --- verifies: FR-VIEW-380, FR-VIEW-300, FR-VIEW-400 — the region an annotation
+# --- marks, read the same in every language: a block down to its end marker,
+# --- a block inside it included; without one, to the next block, the bound
+# --- or the end of the file, said in the header and never among the file's
+# --- numbered lines; an annotation after code its line; a `file` annotation
+# --- the file. A line is answered from the narrowest region holding it.
+# --- The lab is Swift, YAML and shell, assembled from parts so that this
+# --- suite carries no annotation or end marker of its own.
 ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source.out
-( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-020 --where --source ) > /tmp/srs-source-020.out
-python3 - /tmp/srs-source.out /tmp/srs-source-020.out <<'PY'
-import re, sys
-text = open(sys.argv[1], encoding="utf-8").read()
-text020 = open(sys.argv[2], encoding="utf-8").read()
-blocks = re.split(r"\n(?=\S)", text)
-def region(header):
-    for block in blocks:
-        if block.startswith(header):
-            return [l for l in block.split("\n")[1:] if l.strip()]
-    raise AssertionError("no block for " + header)
-first = region("src/app.py:4  implements")
-ann = lambda keyword: "# " + keyword + ": FR-CORE-010"      # assembled, so this suite claims nothing
-assert first[0].strip().startswith("4  ") and ann("implements") in first[0], first[0]
-assert first[-1].strip().startswith("7  ") and "return 1" in first[-1], first[-1]
-second = region("src/app.py:11  implements")
-assert "def second" in second[0] and second[0].strip().startswith("10  "), second[0]
-assert "return 3" in second[-1] and second[-1].strip().startswith("14  "), second[-1]
-assert not any("Third" in l or "after" in l for l in first + second)
-sh = region("tests/app.sh:2  verifies")
-assert [l.split(None, 1)[1] for l in sh] == [ann("verifies"), "echo one", "echo two"], sh
-long = region("tests/long.sh:2  verifies")
-assert len(long) == 60 and long[-1].split() == ["61", "echo", "59"], (len(long), long[-1])
-# The second annotation of app.sh is bounded by the end of the file, which
-# ends in a newline: the region stops at the last real line, "echo four".
-tail = text020.split("tests/app.sh:5  verifies\n", 1)[1].split("\n\n", 1)[0].split("\n")
-assert [l.split(None, 1)[1:] for l in tail] == [[ann("verifies").replace("010", "020")], ["echo three"], ["echo four"]], tail
+REG=/tmp/srs-view-regions
+rm -rf "$REG"; mkdir -p "$REG/tools" "$REG/specs" "$REG/src" "$REG/t"
+cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$REG/tools/"
+printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".swift", ".yaml", ".sh"]}\n' > "$REG/specs/srs-config.json"
+python3 - "$REG" <<'PY'
+import os, sys
+lab = sys.argv[1]
+spec = ["# c", ""]
+for n in range(10, 110, 10):
+    spec += ["### FR-CORE-%03d — Region %d" % (n, n), "", "```yaml", "status: deferred", "verification: T", "```", "",
+             "The system **shall** do %d." % n, ""]
+open(os.path.join(lab, "specs/10-fr-core.md"), "w").write("\n".join(spec))
+def ann(keyword, n, lead="// "):
+    return lead + keyword + ": FR-CORE-%03d" % n
+def end(n, lead="// "):
+    return lead + "srs" + "-end: FR-CORE-%03d" % n
+cart = [
+    "import Foundation", "",                                        # 1-2
+    ann("implements", 10), "final class Cart {",                    # 3-4
+    "    " + ann("implements", 20), "    " + ann("verifies", 30),   # 5-6
+    "    func add() {", "        guard ok else { return }",         # 7-8
+    "        " + ann("implements", 40), "        if seen { merge() }", "        " + end(40),   # 9-11
+    "        save()", "    }", "    " + end(20),                    # 12-14
+    "    let limit = 5  " + ann("implements", 50), "}", end(10), "", # 15-18
+    ann("implements", 60), "func loose() {", "    one()", "}", "",  # 19-23
+    ann("implements", 70), "func twice() {", "    " + ann("implements", 70), "    inner()",   # 24-27
+    "    " + end(70), "    outer()", "}", end(70), "",              # 28-32
+    ann("implements", 80), "func last() {", "}"]                    # 33-35
+open(os.path.join(lab, "src/Cart.swift"), "w").write("\n".join(cart) + "\n")
+yaml = ["# file " + ann("implements", 90, lead="")] + ["key_%d: %d" % (i, i) for i in range(70)]
+open(os.path.join(lab, "src/config.yaml"), "w").write("\n".join(yaml) + "\n")
+# A block inside another naming the same two requirements: its one marker
+# names both and ends it alone, not reaching past it to the block around it.
+pair = [ann("implements", 20), ann("implements", 30), "func pair() {",
+        "    " + ann("implements", 20) + ", FR-CORE-030", "    step()", "    " + end(20) + ", FR-CORE-030",
+        "    rest()", "}", end(20) + ", FR-CORE-030"]
+open(os.path.join(lab, "src/Pair.swift"), "w").write("\n".join(pair) + "\n")
+# A form feed on a line of its own above a block: every reader numbers lines
+# by newlines alone, so the annotation is on line 2 for all of them.
+open(os.path.join(lab, "src/Feed.swift"), "w").write("\x0c\n" + ann("implements", 80) + "\nfunc feed() {}\n" + end(80) + "\n")
+long = ["#!/usr/bin/env bash", ann("verifies", 100, lead="# ")] + ["echo %d" % i for i in range(99)]
+open(os.path.join(lab, "t/long.sh"), "w").write("\n".join(long) + "\n")
 PY
-echo "view-smoke: --where --source prints a Python function whole from either annotation position, and a bounded region otherwise"
+for n in 010 030 040 050 060 070 080 090 100; do
+    ( cd "$REG" && python3 tools/srs_view.py FR-CORE-$n --where --source ) > /tmp/srs-reg-$n.out
+done
+python3 - <<'PY'
+import re
+def out(n):
+    return open("/tmp/srs-reg-%s.out" % n, encoding="utf-8").read().split("\n")
+def region(n, header):
+    lines = out(n)
+    for i, line in enumerate(lines):
+        if line == header:
+            body = []
+            for l in lines[i + 1:]:
+                if not l.strip():
+                    break
+                body.append(int(l.split()[0]))
+            return body
+    raise AssertionError("no header %r in %s" % (header, lines[:3]))
+# FR-VIEW-380: the end marker ends a block; the block inside belongs to it.
+assert region("010", "src/Cart.swift:3  implements  lines 3–17") == list(range(3, 18))
+assert region("030", "src/Cart.swift:6  verifies  lines 5–14") == list(range(5, 15))
+assert region("040", "src/Cart.swift:9  implements  lines 9–11") == [9, 10, 11]
+# An annotation after code marks its line alone.
+assert region("050", "src/Cart.swift:15  implements  lines 15–15") == [15]
+# A marker ends the nearest block still open: the inner block first.
+assert region("070", "src/Cart.swift:24  implements  lines 24–31") == list(range(24, 32))
+assert region("070", "src/Cart.swift:26  implements  lines 26–28") == [26, 27, 28]
+assert region("030", "src/Pair.swift:2  implements  lines 1–9") == list(range(1, 10))
+assert region("030", "src/Pair.swift:4  implements  lines 4–6") == [4, 5, 6]
+# A `file` annotation marks the file, printed to the bound.
+assert region("090", "src/config.yaml:1  implements  the whole file, 71 lines; the first 60 shown") == list(range(1, 61))
+# FR-VIEW-400: where no marker ends a block, the header says where it stopped.
+assert region("060", "src/Cart.swift:19  implements  lines 19–23 — no srs-end: stops at the next annotation, line 24; may be incomplete") == list(range(19, 24))
+assert region("080", "src/Cart.swift:33  implements  lines 33–35 — no srs-end: runs to the end of the file") == [33, 34, 35]
+assert region("080", "src/Feed.swift:2  implements  lines 2–4") == [2, 3, 4]
+assert region("100", "t/long.sh:2  verifies  lines 2–61 — no srs-end: cut at 60 lines; may be incomplete") == list(range(2, 62))
+# The notice is the viewer's line, never one of the file's: every line that
+# is not a header carries its number, and no numbered line carries a notice.
+for n in ("010", "030", "040", "050", "060", "070", "080", "090", "100"):
+    for line in out(n):
+        if not line.strip() or not line.startswith(" "):
+            continue
+        assert re.match(r"^  +\d+  ", line), line
+        assert "no srs-end:" not in line and "may be incomplete" not in line, line
+# An ended region says nothing of itself beyond its lines.
+assert all("—" not in l for l in out("010") if l.startswith("src/"))
+PY
+echo "view-smoke: --where --source prints the region an annotation marks, the same in every language, and says in its header where no marker ended it"
+line() { ( cd "$REG" && python3 tools/srs_view.py --code "$1" --list ) > /tmp/srs-reg-line.out; }
+has()  { grep -q "$1" /tmp/srs-reg-line.out || { echo "FR-VIEW-300 — $2 lacks $1"; cat /tmp/srs-reg-line.out; exit 1; }; }
+hasnt(){ ! grep -q "$1" /tmp/srs-reg-line.out || { echo "FR-VIEW-300 — $2 carries $1"; cat /tmp/srs-reg-line.out; exit 1; }; }
+line src/Cart.swift:10; has FR-CORE-040 "a line of the inner block"; hasnt FR-CORE-020 "a line of the inner block"; hasnt FR-CORE-010 "a line of the inner block"
+line src/Cart.swift:7;  has FR-CORE-020 "a line under a block of two"; has FR-CORE-030 "a line under a block of two"; hasnt FR-CORE-040 "a line above the inner block"
+line src/Cart.swift:12; has FR-CORE-020 "a line after the inner block"; hasnt FR-CORE-040 "a line after the inner block"
+line src/Cart.swift:15; has FR-CORE-050 "a line with an annotation after code"; hasnt FR-CORE-010 "a line with an annotation after code"
+line src/Cart.swift:16; has FR-CORE-010 "a line of the outer block only"; hasnt FR-CORE-050 "a line of the outer block only"
+line src/Cart.swift:2;  has "no annotation covers" "a line in no region"
+# Asked from inside the project, with the path from there.
+( cd "$REG/src" && python3 ../tools/srs_view.py --code Cart.swift:10 --list ) > /tmp/srs-reg-line.out 2>&1
+has FR-CORE-040 "a line asked for from a subdirectory"; has "is in the region of the annotation at line 9" "a line asked for from a subdirectory"
+line src/Cart.swift:21; has FR-CORE-060 "a line of a region no marker ends"; has "no srs-end: stops at the next annotation, line 24" "a line of a region no marker ends"
+line src/config.yaml:65; has FR-CORE-090 "a line past the bound of a file annotation"; has "is in no region; the file carries these as a whole" "a line past the bound of a file annotation"
+echo "view-smoke: a line is answered from the narrowest region holding it, or else from the file, and a region no marker ends is said so"
 # Without --source only the locations print; twice, the same bytes.
 absent "def first" /tmp/srs-where.out
 ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source-again.out
 cmp -s /tmp/srs-source.out /tmp/srs-source-again.out || { echo "--where --source is not deterministic"; exit 1; }
 echo "view-smoke: --where prints no source unasked, and --source is deterministic"
 
+# srs-end: FR-VIEW-380, FR-VIEW-300, FR-VIEW-400
 # --- verifies: FR-VIEW-330 — a decision is cited like a requirement, by
 # --- the identifier in its heading rather than by its file name, with the
 # --- status its first lines carry. A file under adr/ whose heading is not
@@ -1662,6 +1784,7 @@ printf '# Decisions\n\nAn index.\n' > "$CITE/specs/adr/README.md"
 # one with no status line is cited with the status it lacks shown as such.
 printf '\n# ADR-0009 — Opens with a blank line\n\nText.\n' \
     > "$CITE/specs/adr/ADR-0009-blank-first.md"
+# srs-end: FR-VIEW-330
 # --- verifies: IF-SPEC-030 — the head a decision has: the heading first,
 # --- after nothing but an optional front matter, and the status from
 # --- either place.
@@ -1694,6 +1817,7 @@ grep -q "no decision ADR-0008" /tmp/srs-cite-adr-bad.err \
     || { echo "--cite did not say which decision it could not resolve"; exit 1; }
 echo "view-smoke: --cite prints a decision by the number in its heading"
 
+# srs-end: IF-SPEC-030
 # --- verifies: FR-VIEW-340 — the graph of a selection is written as an image
 # --- of its own: one SVG file, well-formed, carrying its styles with no
 # --- variable left unresolved, drawing the selected requirements and their
@@ -1767,3 +1891,4 @@ grep -q "nothing to draw: 1 requirement(s) selected" /tmp/srs-svg-none.out \
     || { echo "--svg did not say why it drew nothing"; cat /tmp/srs-svg-none.out; exit 1; }
 [ -f /tmp/srs-graph-3.svg ] && { echo "--svg wrote a file for a selection with nothing to draw"; exit 1; }
 echo "view-smoke: --svg writes nothing and says so where the selection has no link"
+# srs-end: FR-VIEW-340

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The line-width gate: 120 columns in code, and markdown is not looked at.
 #
-# implements: FR-CI-100
+# file implements: FR-CI-100
 #
 # The rule and its reasoning are CONTRIBUTING.md's, under Ground rules; this
 # file is the part that refuses. Prose is where a rule of this kind goes to

@@ -20,7 +20,7 @@ mandatory one's configuration before it can say anything of its own, and a
 register whose specification is broken still has plenty to report.
 """
 
-# implements: NFR-SPEC-010, CON-GND-030, CON-SPEC-030
+# file implements: NFR-SPEC-010, CON-GND-030, CON-SPEC-030
 
 import datetime
 import json
@@ -53,6 +53,7 @@ CONFIG = os.path.join(GROUNDS, "grounds-config.json")
 # implements: CON-GND-010
 # The only path this tool ever writes. Everything else it does is read.
 DASHBOARD = os.path.join(GROUNDS, "90-dashboard.md")
+# srs-end: CON-GND-010
 VIEWER = os.path.join(ROOT, "tools", "srs_view.py")
 
 # Files in grounds/ that hold no records.
@@ -64,6 +65,7 @@ SKIP_FILES = {"README.md", "90-dashboard.md"}
 RE_HEADING = re.compile(
     r"^###\s+([A-Za-z][A-Za-z0-9]*-\d+(?:-[A-Za-z0-9]+)*)"
     r"\s*(?:[—–-]\s*)?(.*)$")
+# srs-end: FR-GND-020
 RE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # The threshold grammar the standard declares, and the four comparisons
 # it names. A threshold nothing can apply twice the same way is not one.
@@ -76,10 +78,12 @@ RE_THRESHOLD = re.compile(
 # means is the standard's business; this is the standard's shape as code.
 KINDS = {"I": "ideology", "F": "frame", "H": "hypothesis",
          "B": "bet", "U": "unclaimed"}
+# srs-end: IF-GND-010
 # implements: INV-GND-010
 # One number, one meaning, forever: the checker's part of that promise is
 # that no two records in the register carry the same one.
 RE_ID = re.compile(r"^(%s)-(%s)$" % ("|".join(sorted(KINDS)), srs_parse.NUMBER))   # implements: INV-SPEC-080
+# srs-end: INV-GND-010
 
 # implements: FR-GND-030
 REQUIRED = {
@@ -90,9 +94,11 @@ REQUIRED = {
     "B": ("status", "requirement"),
     "U": ("status", "requirement"),
 }
+# srs-end: FR-GND-030
 
 # implements: FR-GND-390
 CLASSES = ("I", "II", "III")
+# srs-end: FR-GND-390
 GRADES = ("high", "moderate", "low", "very-low")
 # `declined` carries both halves because they are useless apart: a refusal
 # with no reason answers nothing next time, one with no date cannot be told
@@ -120,6 +126,7 @@ DEBT_STATUSES = ("refuted", "expired", "assumed")
 # unclaimed-file rule already take — one file described two ways in one run
 # is worse than either answer.
 CANCELLED = ("withdrawn", "superseded")
+# srs-end: FR-GND-220, FR-GND-230
 
 # implements: FR-GND-110, IF-GND-030
 # Published names: a name here keeps its meaning forever, and is never given
@@ -129,6 +136,7 @@ RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
          "relied-on-untested", "never-measured", "verdict-unattributed",
          "action-beyond-grade", "declined-leftover", "action-without-grade",
          "class-untestable", "arguments-widened", "widening-undisclosed")
+# srs-end: FR-GND-110, IF-GND-030
 SEVERITIES = ("warn", "report", "off")
 
 # implements: FR-GND-230
@@ -136,12 +144,14 @@ SEVERITIES = ("warn", "report", "off")
 # one shipping twice a year do not share a unit. Calendar periods only —
 # a window measured back from today would move this file every night.
 PERIODS = ("month", "quarter", "year")
+# srs-end: FR-GND-230
 
 # implements: FR-GND-490
 # A criterion that allows for error has to be told how much, and no answer
 # is right everywhere. Named levels rather than a free number: a confidence
 # somebody typed as 0.973 came from nowhere and cannot be discussed.
 CONFIDENCES = (0.9, 0.95, 0.99)
+# srs-end: FR-GND-490
 # One-sided, because a threshold asks whether the truth is past it, not
 # whether it sits inside a band. Two-sided quantiles here would demand more
 # of a measurement than the sentence its author wrote does.
@@ -153,6 +163,7 @@ Z_ONE_SIDED = {0.9: 1.2816, 0.95: 1.6449, 0.99: 2.3263}
 # mean, and the row holds the mean and the sample size. So a mean closes
 # class I rather than falling back to a comparison that refutes on noise.
 TESTABLE_KINDS = ("proportion", "count")
+# srs-end: FR-GND-150
 
 DEFAULTS = {"rules": {}, "grades": {}, "period": "quarter",
             "confidence": 0.95}
@@ -172,8 +183,8 @@ def _config_fail(message):
     sys.exit(2)
 
 
+# implements: FR-GND-110
 def load_config():
-    # implements: FR-GND-110
     cfg = dict(DEFAULTS)
     if not os.path.exists(CONFIG):
         return cfg
@@ -200,6 +211,7 @@ def load_config():
     # appetite, so the map is the project's and the format only says it
     # exists. A grade absent from it permits anything.
     grades = raw.get("grades", {})
+    # srs-end: FR-GND-170
     if not isinstance(grades, dict):
         _config_fail("grades must be an object of grade to permitted actions")
     for grade, actions in sorted(grades.items()):
@@ -217,11 +229,13 @@ def load_config():
     cfg["period"] = period
     # implements: FR-GND-490
     confidence = raw.get("confidence", DEFAULTS["confidence"])
+    # srs-end: FR-GND-490
     if confidence not in CONFIDENCES:
         _config_fail("confidence must be one of %s"
                      % ", ".join(str(c) for c in CONFIDENCES))
     cfg["confidence"] = confidence
     return cfg
+# srs-end: FR-GND-110
 
 
 # implements: FR-GND-150
@@ -237,6 +251,7 @@ def wilson_bounds(value, n, z):
     half = z * math.sqrt(value * (1 - value) / n
                          + z * z / (4 * n * n)) / denominator
     return centre - half, centre + half
+# srs-end: FR-GND-150
 
 
 def poisson_cdf(k, rate):
@@ -284,6 +299,7 @@ def poisson_bounds(k, confidence):
                 high = middle
         return (low + high) / 2
     return (0.0 if k == 0 else solve(1.0 - tail, k - 1)), solve(tail, k)
+# srs-end: FR-GND-150
 
 
 # Beyond this many events the exact sum is not worth its terms; see
@@ -312,6 +328,7 @@ def measurement_fault(kind, value, n):
     if kind == "count" and value != int(value):
         return "a count of %g is not a whole number of things" % value
     return None
+# srs-end: FR-GND-140
 
 
 # implements: FR-GND-140
@@ -319,6 +336,7 @@ def measurement_fault(kind, value, n):
 # four of them are things that happen to a hypothesis rather than things a
 # measurement found.
 VERDICTS = ("supported", "refuted")
+# srs-end: FR-GND-140
 
 
 def _crosses(op, edge, bound):
@@ -368,6 +386,7 @@ def verdict_owed(threshold, value, n, cfg, interval=True):
                          "by: at %g%% confidence the truth reaches %.4g"
                          % (value, op, bound, n, cfg["confidence"] * 100,
                             edge))
+# srs-end: FR-GND-140, FR-GND-150
 
 
 def rule_finding(warnings, reports, cfg, rule, text):
@@ -379,8 +398,8 @@ def rule_finding(warnings, reports, cfg, rule, text):
     (warnings if severity == "warn" else reports).append(line)
 
 
+# implements: FR-GND-010
 def collect_files():
-    # implements: FR-GND-010
     """Every record file in the register, subdirectories included.
 
     The layout in the standard is flat, and a register that grows a folder
@@ -398,10 +417,11 @@ def collect_files():
             full = os.path.join(current, name)
             out.append((full, os.path.relpath(full, ROOT)))
     return sorted(out, key=lambda pair: pair[1])
+# srs-end: FR-GND-010
 
 
+# implements: FR-GND-010, FR-GND-020
 def read_records(errors):
-    # implements: FR-GND-010, FR-GND-020
     records = {}
     seen = {}
     for full, rel in collect_files():
@@ -426,6 +446,7 @@ def read_records(errors):
             seen[entry.id] = entry.where
             records[entry.id] = entry
     return records
+# srs-end: FR-GND-010, FR-GND-020
 
 
 def read_model():
@@ -447,8 +468,8 @@ def read_model():
         return None, "tools/srs_view.py produced unreadable JSON: %s" % exc
 
 
+# implements: FR-GND-270
 def history_of(paths):
-    # implements: FR-GND-270
     """Past revisions of the register's record files, oldest first.
 
     Returns (revisions, problem). Where `problem` is a sentence the
@@ -478,6 +499,7 @@ def history_of(paths):
                 continue                          # not in the tree yet
         revisions.append(texts)
     return revisions, None
+# srs-end: FR-GND-270
 
 
 def hypotheses_in(text, path):
@@ -500,8 +522,8 @@ def ideologies_in(text, path):
     return out
 
 
+# implements: FR-GND-190, FR-GND-200, FR-GND-270, FR-GND-510, FR-GND-520
 def check_history(records, cfg, warnings, reports):
-    # implements: FR-GND-190, FR-GND-200, FR-GND-270, FR-GND-510, FR-GND-520
     """The rules that read the register's history rather than its files.
 
     Replayed from one walk: the ordering of a threshold against the
@@ -556,6 +578,7 @@ def check_history(records, cfg, warnings, reports):
                 arguments[iid] = admits
                 for row in rows:
                     amendments.setdefault(iid, {}).setdefault(row, index)
+            # srs-end: FR-GND-510, FR-GND-520
 
     # A record that is simply gone takes its measurements with it, which is
     # the easiest way to make an inconvenient one disappear and the one the
@@ -586,6 +609,7 @@ def check_history(records, cfg, warnings, reports):
                              "is a prediction somebody can go and check, "
                              "named afterwards it is whatever happened"
                              % (rec.where, iid))
+    # srs-end: FR-GND-510, FR-GND-520
 
     for hid in sorted(records, key=srs_parse.id_key):
         rec = records[hid]
@@ -612,6 +636,7 @@ def check_history(records, cfg, warnings, reports):
                              "no longer does; the older one is what the "
                              "newer is a change from"
                              % (rec.where, hid, " | ".join(row)))
+# srs-end: FR-GND-190, FR-GND-200, FR-GND-270, FR-GND-510, FR-GND-520
 
 
 def statement_of(entry):
@@ -633,6 +658,7 @@ NAMED_TABLES = {
     "what was refused": ["date", "what was refused", "who asked"],
     "what changed": ["date", "what changed", "why", "territory it opens"],
 }
+# srs-end: FR-GND-450
 
 
 def tables_of(entry):
@@ -704,19 +730,21 @@ def stakes(rec):
     """Whether this bet actually stands its requirement on something."""
     return bool(as_list(rec.fields.get("all_of"))
                 + as_list(rec.fields.get("any_of")))
+# srs-end: FR-GND-100, FR-GND-220, FR-GND-230
 
 
 # implements: FR-GND-220, FR-GND-230
 def live(entry):
     """Whether a requirement of the model has not been cancelled."""
     return entry.get("status") not in CANCELLED
+# srs-end: FR-GND-220, FR-GND-230
 
 
+# implements: FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060,
+# implements: FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-390, FR-GND-400,
+# implements: FR-GND-410, FR-GND-420, FR-GND-430, FR-GND-160,
+# implements: FR-GND-170, FR-GND-180, FR-GND-460, FR-GND-470
 def validate(records, model, model_error, cfg):
-    # implements: FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060,
-    # implements: FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-390, FR-GND-400,
-    # implements: FR-GND-410, FR-GND-420, FR-GND-430, FR-GND-160,
-    # implements: FR-GND-170, FR-GND-180, FR-GND-460, FR-GND-470
     errors, warnings, reports = [], [], []
     today = datetime.date.today()
 
@@ -800,6 +828,7 @@ def validate(records, model, model_error, cfg):
         # verdict would stop being a matter of opinion. A verdict left free
         # to disagree with it gives that back.
         threshold = RE_THRESHOLD.match(rec.fields.get("refuted_if") or "")
+        # srs-end: FR-GND-140, FR-GND-150
         if threshold and threshold.group(1) not in TESTABLE_KINDS \
                 and rec.fields.get("class") == "I":
             rule_finding(warnings, reports, cfg, "class-untestable",
@@ -844,6 +873,7 @@ def validate(records, model, model_error, cfg):
             # miss is not computed, and the verdict is the reader's, who is named.
             owed, why = verdict_owed(threshold, value, sample, cfg,
                                      interval=rec.fields.get("class") != "III")
+            # srs-end: FR-GND-550
             if owed is not None and owed != verdict:
                 errors.append(
                     "%s — %s calls the measurement of %s %r against "
@@ -883,6 +913,7 @@ def validate(records, model, model_error, cfg):
                          "%s — %s declares the action %r and no grade, so "
                          "there is nothing to say whether its evidence "
                          "carries it" % (rec.where, hid, action))
+        # srs-end: FR-GND-470
 
         # implements: FR-GND-460
         # One line says it was refused on a date and for a reason; the
@@ -895,6 +926,7 @@ def validate(records, model, model_error, cfg):
                          "measurement says the opposite of the status"
                          % (rec.where, hid,
                             rec.fields.get("status") or "without a status"))
+        # srs-end: FR-GND-460
 
         # A refusal is recorded so the same question returning in six
         # months is answered from the record instead of argued again.
@@ -903,6 +935,7 @@ def validate(records, model, model_error, cfg):
             errors.append("%s — %s is declined and carries no `declined` "
                           "value, so neither the reason nor the date of the "
                           "refusal is on the record" % (rec.where, hid))
+    # srs-end: FR-GND-160, FR-GND-170, FR-GND-180
 
     # A declaration that gives no reason is indistinguishable from a shrug.
     for rid in sorted(decls, key=srs_parse.id_key):
@@ -974,6 +1007,7 @@ def validate(records, model, model_error, cfg):
     # only retired by a bet that actually stands the requirement on
     # something.
     staking = {}
+    # srs-end: FR-GND-100
     for rid in sorted(bets, key=srs_parse.id_key):
         rec = bets[rid]
         for name in as_list(rec.fields.get("all_of")) \
@@ -1020,6 +1054,7 @@ def validate(records, model, model_error, cfg):
                          "%s — %s passed its term on %s with no measurement "
                          "recorded at all, and %s stands on it"
                          % (rec.where, name, expires.isoformat(), on))
+    # srs-end: FR-GND-420, FR-GND-430
 
     # Two bets on one requirement turn a maximum into a minimum without
     # saying so, which is the only failure the record encoding introduces.
@@ -1032,6 +1067,7 @@ def validate(records, model, model_error, cfg):
                          "are two independent sets of alternatives, and the "
                          "reduction reads them that way"
                          % (records[names[0]].where, req, ", ".join(names)))
+    # srs-end: INV-SPEC-090
 
     # A declaration retires itself when a real bet turns up.
     for rid in sorted(decls, key=srs_parse.id_key):
@@ -1051,6 +1087,7 @@ def validate(records, model, model_error, cfg):
         reports.append("the requirement model could not be read (%s); the "
                        "bets were not resolved against it" % model_error)
     return errors, warnings, reports
+# srs-end: FR-GND-030
 
 
 def _pick(hyps, names, strongest):
@@ -1068,8 +1105,8 @@ def _pick(hyps, names, strongest):
     return sorted(ranked)[0]
 
 
+# implements: FR-GND-070, INV-GND-020
 def decide(records, req):
-    # implements: FR-GND-070, INV-GND-020
     """The hypothesis that decides a requirement, as (rank, id).
 
     Nothing stores what a requirement rests on. It is read off the bets
@@ -1100,6 +1137,7 @@ def decide(records, req):
         weakest = sorted(candidates)[0]
         best = weakest if best is None else sorted([best, weakest])[0]
     return best
+# srs-end: FR-GND-070, INV-GND-020
 
 
 def confirmation_dates(rec):
@@ -1111,8 +1149,8 @@ def confirmation_dates(rec):
     return sorted(out)
 
 
+# implements: FR-GND-210
 def reversals(records):
-    # implements: FR-GND-210
     """Per author: verdicts given, and how many a later one reversed.
 
     Read from the evidence table and not from history. A verdict and the
@@ -1133,11 +1171,12 @@ def reversals(records):
             if any(later[3] != verdict for later in rows[index + 1:]):
                 turned[author] = turned.get(author, 0) + 1
     return given, turned
+# srs-end: FR-GND-210
 
 
+# implements: FR-GND-130, FR-GND-220, FR-GND-240, FR-GND-260,
+# implements: CON-GND-020
 def build_dashboard(records, model, incoming, cfg):
-    # implements: FR-GND-130, FR-GND-220, FR-GND-240, FR-GND-260,
-    # implements: CON-GND-020
     kinds = {k: [i for i, r in sorted(records.items(), key=lambda kv: srs_parse.id_key(kv[0])) if r.kind == k]
              for k in KINDS}
     out = ["# Grounds dashboard", "",
@@ -1166,6 +1205,7 @@ def build_dashboard(records, model, incoming, cfg):
 
     # implements: FR-GND-250
     out += ["## What each frame has refused", ""]
+    # srs-end: FR-GND-250
     if kinds["F"]:
         for fid in kinds["F"]:
             rec = records[fid]
@@ -1187,6 +1227,7 @@ def build_dashboard(records, model, incoming, cfg):
 
     # implements: FR-GND-210
     out += ["## Verdicts a later measurement reversed", ""]
+    # srs-end: FR-GND-210
     given, turned = reversals(records)
     if given:
         out += ["| who | verdicts | reversed |", "|---|---|---|"]
@@ -1244,6 +1285,7 @@ def build_dashboard(records, model, incoming, cfg):
             out += ["No requirement carries a bet, so there is nothing to",
                     "reduce. This is not a reading of zero debt.",
                     ""]
+        # srs-end: FR-GND-130
 
     # implements: INV-GND-030
     # The list no rule of this layer is allowed to shorten. A requirement
@@ -1260,6 +1302,8 @@ def build_dashboard(records, model, incoming, cfg):
     out += ["## Requirements that arrived standing on nothing", "",
             "Counted by %s, which is what `period` says in the register's "
             "configuration." % cfg["period"], ""]
+    # srs-end: FR-GND-230
+    # srs-end: INV-GND-030
     if model is None:
         out += ["The requirement model could not be read, so this is not a "
                 "reading of none.", ""]
@@ -1315,6 +1359,7 @@ def build_dashboard(records, model, incoming, cfg):
             # kept stands on nothing.
             links = len([1 for _field, other in incoming.get(req, [])
                          if other in model and live(model[other])])
+            # srs-end: FR-GND-220
             files = len(model[req].get("code", []))
             rows.append((links + files, links, files, req))
         out += ["%d of %d requirements. Weight is what stands on them: how "
@@ -1328,10 +1373,11 @@ def build_dashboard(records, model, incoming, cfg):
                 out.append("| %s | %d | %d | %d |" % (req, links, files, weight))
             out.append("")
     return "\n".join(out).rstrip() + "\n"
+# srs-end: FR-GND-130, FR-GND-220, FR-GND-240, FR-GND-260, CON-GND-020
 
 
+# implements: FR-GND-310
 def blast(records, model, paths):
-    # implements: FR-GND-310
     """What the requirements these files belong to are staked on.
 
     A file belongs to a requirement two ways and both count: the
@@ -1378,19 +1424,21 @@ def blast(records, model, paths):
         sys.stdout.write("  %s — %s rests on %s\n"
                          % (req, rid, ", ".join(grounds) or "nothing named"))
     return 0
+# srs-end: FR-GND-310
 
 
+# implements: FR-GND-540
 def citation(rec):
-    # implements: FR-GND-540
     """The form a record is named in to a person — the one the viewer
     prints for a requirement, over the register's own records: identifier,
     title, file, status."""
     return "%s — %s (%s, %s)" % (rec.id, rec.title, rec.path,
                                   rec.fields.get("status") or "?")
+# srs-end: FR-GND-540
 
 
+# implements: FR-GND-540
 def cite(records, wanted):
-    # implements: FR-GND-540
     """Print each record asked for, ready to paste, in the order asked; an
     identifier no record carries is named on stderr and fails the run, in
     the same run as the rest. `records` is the register keyed by identifier,
@@ -1402,10 +1450,11 @@ def cite(records, wanted):
     for rid in missing:
         sys.stderr.write("no record %s\n" % rid)
     return 1 if missing else 0
+# srs-end: FR-GND-540
 
 
+# implements: FR-GND-010, FR-GND-120, IF-GND-020
 def main():
-    # implements: FR-GND-010, FR-GND-120, IF-GND-020
     argv = sys.argv[1:]
     paths = []
     if "--blast" in argv:
@@ -1477,6 +1526,7 @@ def main():
                          % len(warnings))
         return 1
     return 0
+# srs-end: FR-GND-010, FR-GND-120, IF-GND-020
 
 
 if __name__ == "__main__":

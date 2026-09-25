@@ -29,7 +29,7 @@ closes, a record with no metadata block at all.
 Standard library only, compatible with Python 3.9.
 """
 
-# implements: NFR-SPEC-010, FR-CHK-110
+# file implements: NFR-SPEC-010, FR-CHK-110
 
 import re
 
@@ -52,6 +52,7 @@ __version__ = "0.20.1"
 # sorts wrongly as a string, so every tool orders by id_key and not by
 # the identifier itself.
 NUMBER = r"(?:\d{3}|[1-9]\d{3,})"
+# srs-end: INV-SPEC-080, INV-SPEC-090
 RE_NUMBER_TAIL = re.compile(r"-(\d+)$")
 
 

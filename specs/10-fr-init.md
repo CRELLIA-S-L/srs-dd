@@ -360,7 +360,7 @@ tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-25
 ```
 
-When copying its own tooling into a target, the installer **shall** replace every traceability annotation, leaving the line where it was and leaving an annotation marked as an example alone.
+When copying its own tooling into a target, the installer **shall** replace every traceability annotation and end marker, leaving the line where it was and leaving one marked as an example alone.
 
 **Rationale.** The shipped Python carries a hundred-odd `implements:` and `verifies:` lines.
 They exist for the two-way check this repository runs on itself — the requirement's field is the specification's claim, the annotation the file's own — and that check is checked here, where the requirements are.

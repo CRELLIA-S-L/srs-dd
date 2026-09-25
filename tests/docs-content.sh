@@ -70,6 +70,7 @@ if headings != EXPECTED:
     fail("FR-DOC-140 — the headings are not the ten sections in their order:\n  got  %s\n  want %s"
          % (headings, EXPECTED))
 
+# srs-end: FR-DOC-140
 # --- verifies: FR-DOC-150 — the example requirement passes the checker in a
 # --- project laid out as the standard asks. The neighbours it links to are
 # --- supplied, since an example shows a link on purpose; the files it names
@@ -118,6 +119,7 @@ else:
     finally:
         shutil.rmtree(lab, ignore_errors=True)
 
+# srs-end: FR-DOC-150
 # --- verifies: FR-DOC-160 — the skills table names exactly what the installer copies.
 sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
@@ -132,6 +134,7 @@ if named != shipped:
          % (sorted(named - shipped) or "nothing extra", sorted(shipped - named) or "nothing missing")
          if named ^ shipped else "FR-DOC-160 — no table rows found")
 
+# srs-end: FR-DOC-160
 # --- verifies: FR-DOC-170 — the map names exactly the top level, less the
 # --- page itself and git's own configuration.
 tracked = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split("\n")
@@ -150,6 +153,7 @@ for number, paths in rows:
 for path in sorted(top - mapped):
     fail("FR-DOC-170 — %s is at the top level and has no row in the map" % path)
 
+# srs-end: FR-DOC-170
 # --- verifies: FR-DOC-180 — the exit codes the agent document lists are the
 # --- installer's: every `N  text` line inside a fenced block of docs/agents.md
 # --- is one, and the set equals what the installer's usage text states.
@@ -189,6 +193,7 @@ if said_codes != tool_codes:
     fail("docs/upgrade.md — FR-DOC-180 — the sentence on exit codes says %s; the installer states %s"
          % (sorted(said_codes), sorted(tool_codes)))
 
+# srs-end: FR-DOC-180
 # --- verifies: FR-DOC-210 — the picture the page shows is the file the
 # --- pipeline publishes: the image's file name on the page is the name the
 # --- Pages job writes with --svg, and the image links to the page.
@@ -212,6 +217,7 @@ elif shown[0].rsplit("/", 1)[-1] != published[0]:
 if not any(re.search(r"\[!\[[^\]]*\]\([^)]*\)\]\(https://[^)]+\)", line) for _n, line in picture):
     fail("FR-DOC-210 — the picture is not wrapped in a link to the live page")
 
+# srs-end: FR-DOC-210
 # --- verifies: FR-DOC-220 — every list of this repository's tools names each
 # --- one: the row for tools/ on the landing page's map and in the agent guide
 # --- names every file tracked there, and the hand install names every tool
@@ -293,6 +299,7 @@ for name in srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS:
     if "`%s`" % name not in travels:
         fail("CONTRIBUTING.md — FR-DOC-220 — the tooling that travels does not name %s" % name)
 
+# srs-end: FR-DOC-220
 # --- verifies: FR-DOC-190 — a relative link leads to a file that exists.
 LINK = re.compile(r"\]\(([^)\s#]+)(?:#[^)]*)?\)")
 for path in ["README.md"] + sorted(glob.glob("docs/*.md")):
@@ -310,3 +317,4 @@ if failures:
     sys.exit(1)
 print("docs-content: headings, example, skills, map, exit codes, picture and links hold to the repository")
 PY
+# srs-end: FR-DOC-190

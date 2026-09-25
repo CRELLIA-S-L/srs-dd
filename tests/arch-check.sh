@@ -9,6 +9,7 @@
 # check and that exemption belongs to spec-check.
 set -eo pipefail
 
+# srs-end: FR-ARCH-010, FR-ARCH-110, FR-ARCH-170, CON-ARCH-020
 # implements: FR-CI-090
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -73,3 +74,4 @@ sys.exit(1 if problems else 0)
 PY
 
 echo "arch-check: the layer passes strictly, the map is fresh and states each element's files and status"
+# srs-end: FR-CI-090

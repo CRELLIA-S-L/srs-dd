@@ -20,6 +20,7 @@
     ".py",
     ".sh"
   ],
+  "rules": {"annotation-unended": "warn"},
   "repo_url": "https://github.com/CRELLIA-S-L/srs-dd/blob/main",
   "modal_verbs": [
     "shall",

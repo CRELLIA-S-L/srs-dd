@@ -18,7 +18,7 @@ hook or an installer.
 Standard library only, compatible with Python 3.9.
 """
 
-# implements: NFR-SPEC-010, FR-SPEC-020, CON-SPEC-030
+# file implements: NFR-SPEC-010, FR-SPEC-020, CON-SPEC-030
 
 import os
 import re
@@ -172,6 +172,7 @@ def main():
             "\nNot in the history and therefore not dated: %s. A requirement "
             "that has never been committed has no first appearance to "
             "read.\n" % ", ".join(sorted(set(undated), key=srs_parse.id_key)))
+    # srs-end: INV-SPEC-090
 
     verb = "would be dated" if "--dry-run" in flags else "dated"
     sys.stdout.write("\n%d requirement(s) %s. (srs_dates %s)\n"

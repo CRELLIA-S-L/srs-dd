@@ -4,6 +4,7 @@
 - **Date:** 2026-09-24
 - **Related requirements:** FR-SPEC-040, FR-CHK-080, FR-CHK-200, FR-VIEW-370, FR-VIEW-380
 - **Revises:** ADR-0014, on where an annotation stands; what it decided about the two claims and the rules that compare them stands
+- **Revised by:** ADR-0035, on 2026-09-25 — where inside a declaration an annotation stands, and how its region is found
 
 ## Context and problem statement
 

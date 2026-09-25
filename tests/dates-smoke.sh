@@ -9,6 +9,7 @@
 # the history cannot be read.
 set -eo pipefail
 
+# srs-end: FR-SPEC-020, INV-SPEC-090
 # implements: FR-CI-090
 # The lab below runs `git init` and commits into it; a hook hands its own
 # GIT_INDEX_FILE and GIT_DIR down to everything this suite starts, and
@@ -118,6 +119,7 @@ rc=0
                    cat /tmp/dates-nogit.log; exit 1; }
 absent "created:" "$NOGIT/specs/10-fr-core.md"
 
+# srs-end: FR-CI-090
 # --- verifies: INV-SPEC-090 — what has never been committed is named in the
 # --- order of its numbers, FR-CORE-1000 after FR-CORE-200 and not before it.
 { block FR-CORE-1000 "Wide"; block FR-CORE-200 "Narrow"; } >> "$LAB/specs/10-fr-core.md"
@@ -127,3 +129,4 @@ grep -qF "not dated: FR-CORE-200, FR-CORE-1000." /tmp/dates-order.log \
          cat /tmp/dates-order.log; exit 1; }
 
 echo "dates-smoke: a specification is dated from its own history, once"
+# srs-end: INV-SPEC-090

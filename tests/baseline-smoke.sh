@@ -8,6 +8,7 @@
 # verifies: CON-SPEC-030
 set -eo pipefail
 
+# srs-end: FR-SPEC-010, FR-VIEW-120, INV-SPEC-030, INV-SPEC-040, CON-SPEC-030
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — so a `git add`
@@ -137,6 +138,7 @@ clean=$(git rev-parse HEAD)
 # --dry-run prints the row and writes nothing at all — the matrix
 # included. A fresh matrix rewritten is invisible, so it is made stale first
 # and must come out exactly as stale as it went in.
+# srs-end: FR-CI-090
 # verifies: FR-SPEC-060
 printf 'stale\n' >> specs/90-traceability.md
 cp specs/90-traceability.md /tmp/base-matrix.before
@@ -224,3 +226,4 @@ python3 tools/srs_baseline.py 9.9.12 --date 2026-01-04 > /tmp/base-warn.log
 grep -q '`spec/v9.9.12`' specs/92-baselines.md
 git checkout -- specs/92-baselines.md specs/10-fr-chk.md \
     specs/90-traceability.md
+# srs-end: FR-SPEC-060

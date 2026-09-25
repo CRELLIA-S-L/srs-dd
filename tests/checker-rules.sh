@@ -106,6 +106,7 @@ silent() {
     passes=$((passes + 1))
 }
 
+# srs-end: FR-CI-090
 # --- verifies: FR-CHK-010 — identifiers are well-formed and unique.
 spec < <(block FR-CORE-010 "First" "$META" 'The system **shall** act.'
          block FR-CORE-010 "Same number again" "$META" \
@@ -115,6 +116,7 @@ rule "FR-CHK-010 duplicate" 1 "is already used at"
 spec < <(block FR-CORE-1 "Two digits short" "$META" 'The system **shall** act.')
 rule "FR-CHK-010 malformed" 1 "identifier does not match"
 
+# srs-end: FR-CHK-010
 # --- verifies: FR-CHK-020 — exactly one bolded modal verb.
 spec < <(block FR-CORE-010 "No verb" "$META" 'The system acts, eventually.')
 rule "FR-CHK-020 none" 1 "no bolded modal verb"
@@ -123,6 +125,7 @@ spec < <(block FR-CORE-010 "Two verbs" "$META" \
                'The system **shall** act and **should** also report.')
 rule "FR-CHK-020 two" 1 "modal verbs, expected one"
 
+# srs-end: FR-CHK-020
 # --- verifies: FR-CHK-030 — every link resolves.
 spec < <(block FR-CORE-010 "Points at nothing" \
                "${META/depends_on: \[\]/depends_on: [FR-CORE-990]}" \
@@ -144,6 +147,7 @@ spec < <(block FR-CORE-010 "Superseded by itself" \
 superseded_by: FR-CORE-010" 'The system **shall** act.')
 rule "FR-CHK-030 self-supersession" 1 "requirement links to itself"
 
+# srs-end: FR-CHK-030
 # --- verifies: FR-CHK-040 — no cycles in the derivation graph.
 spec < <(block FR-CORE-010 "Derives from the other" \
                "${META/derives_from: \[\]/derives_from: [FR-CORE-020]}" \
@@ -153,6 +157,7 @@ spec < <(block FR-CORE-010 "Derives from the other" \
                'The system **shall** respond.')
 rule "FR-CHK-040 cycle" 1 "cycle in derives_from links"
 
+# srs-end: FR-CHK-040
 # --- verifies: FR-CHK-040 — the other kind of link the statement names. The
 # --- rule walked both and only one was ever exercised, so narrowing it to
 # --- `derives_from` would have kept this file green.
@@ -164,6 +169,7 @@ spec < <(block FR-CORE-010 "Refines the other" \
                'The system **shall** respond.')
 rule "FR-CHK-040 cycle in refines" 1 "cycle in refines links"
 
+# srs-end: FR-CHK-040
 # --- verifies: FR-CHK-040 — and a cycle drawn in both at once, which is the
 # --- one two separate walks could not see: A exists because B does, and B is
 # --- a special case of A. The message names both kinds it was drawn in.
@@ -176,6 +182,7 @@ spec < <(block FR-CORE-010 "Derives from the other" \
 rule "FR-CHK-040 cycle across both kinds" 1 \
      "cycle in derives_from/refines links"
 
+# srs-end: FR-CHK-040
 # --- verifies: FR-CHK-240 — the other graph, walked on its own.
 spec < <(block FR-CORE-010 "Meaningless without the other" \
                "${META/depends_on: \[\]/depends_on: [FR-CORE-020]}" \
@@ -185,6 +192,7 @@ spec < <(block FR-CORE-010 "Meaningless without the other" \
                'The system **shall** respond.')
 rule "FR-CHK-240 cycle in depends_on" 1 "cycle in depends_on links"
 
+# srs-end: FR-CHK-240
 # --- verifies: FR-CHK-240 — and the case the separate walks exist for: a
 # --- path alternating between the two graphs is a circle in neither sense,
 # --- so neither rule reports it. This is the whole content of the decision
@@ -198,6 +206,7 @@ spec < <(block FR-CORE-010 "Derives from the other" \
                'The system **shall** respond.')
 silent "FR-CHK-240 mixed path is no cycle" 0 "cycle in"
 
+# srs-end: FR-CHK-240
 # --- verifies: FR-CHK-055 — a path a requirement names exists.
 spec < <(block FR-CORE-010 "Names a file that is not there" \
                "$(printf '%s' "${META/status: deferred/status: implemented}" \
@@ -216,6 +225,7 @@ printf 'x\n' > "$LAB/src/app.py"
 rule "FR-CHK-055 missing path in tests" 1 "points to a nonexistent path"
 rm -f "$LAB/src/app.py"
 
+# srs-end: FR-CHK-055
 # --- verifies: FR-CHK-050 — a requirement being realized names where.
 spec < <(block FR-CORE-010 "Realized without code" \
                "${META/status: deferred/status: implemented}" \
@@ -237,6 +247,7 @@ spec < <(block FR-CORE-010 "Approved, not begun" "$META" \
                'The system **shall** act.')
 silent "FR-CHK-050 spares a deferred requirement" 0 "the code field is empty"
 
+# srs-end: FR-CHK-050
 # --- verifies: FR-CHK-060 — both halves: a `superseded` without its
 # --- replacement, and a replacement named under any other status.
 spec < <(block FR-CORE-010 "Superseded by nobody" \
@@ -254,6 +265,7 @@ superseded_by: FR-CORE-020" \
 rule "FR-CHK-060 replacement under another status" 1 \
      "superseded_by present but status is"
 
+# srs-end: FR-CHK-060
 # --- verifies: FR-CHK-070, FR-CHK-120 — implementation ahead of approval is
 # --- a warning, and only --strict turns it into a failure. The strict half
 # --- is exercised by every `rule … --strict` below as well; this is where a
@@ -273,6 +285,7 @@ as_warning "FR-CHK-070" "implementation ahead of approval"
 rule "FR-CHK-070 names the requirement built early" 0 \
      "FR-CORE-010 is draft but the code field is not empty"
 
+# srs-end: FR-CHK-070, FR-CHK-120
 # --- verifies: FR-CHK-075 — a realized requirement resting on a draft. It had no
 # --- fixture while it was the second half of FR-CHK-070's statement — the
 # --- requirement read as verified because the other half was.
@@ -310,6 +323,7 @@ rule "FR-CHK-075 covers refines" 0 \
 rule "FR-CHK-075 strict fails" 1 "treated as errors" --strict
 as_warning "FR-CHK-075" "rests on draft FR-CORE-010"
 
+# srs-end: FR-CHK-075
 # --- verifies: FR-CHK-080 — annotations are cross-checked against the specification.
 printf '# implements: FR-CORE-990\n' > "$LAB/src/app.py"  # srs-ignore: a fixture, not our claim
 spec < <(block FR-CORE-010 "Nothing claims that number" "$META" \
@@ -382,6 +396,7 @@ spec < <(block FR-CORE-010 "Names no file at all" "$META" \
 silent "FR-CHK-080 silence on an unannotated file" 0 "is not listed in that"
 rm -f "$LAB/src/quiet.py"
 
+# srs-end: FR-CHK-080
 # --- verifies: FR-CHK-110 — a fenced code block is opaque. The standard itself
 # --- documents the format with example requirements inside fences; without
 # --- this rule each of them would become a requirement of its own.
@@ -433,6 +448,7 @@ silent "created is a known key" 0 "unknown field"
 spec < <(block FR-CORE-010 "Undated" "$META" 'The system **shall** act.')
 silent "created is not demanded" 0 "created"
 
+# srs-end: FR-CHK-110
 # --- verifies: FR-CHK-100 — a broken configuration is refused by name, exit 2.
 spec < <(block FR-CORE-010 "Valid" "$META" 'The system **shall** act.')
 cp "$LAB/specs/srs-config.json" "$LAB/specs/srs-config.json.bak"
@@ -468,6 +484,7 @@ printf '["areas", "code_roots"]\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 not an object" 2 "the top level must be a JSON object"
 mv "$LAB/specs/srs-config.json.bak" "$LAB/specs/srs-config.json"
 
+# srs-end: FR-CHK-100
 # --- verifies: FR-CHK-170 — a key that is absent is named as absent, not reported
 # --- through the value it does not have.
 spec < <(block FR-CORE-010 "No verification method" \
@@ -484,6 +501,7 @@ spec < <(block FR-CORE-010 "No status either" \
 rule "FR-CHK-170 names the other required key" 1 \
      "required key 'status' is missing"
 
+# srs-end: FR-CHK-170
 # --- verifies: FR-CHK-180 — a key a later version of the format retired is an error
 # --- naming what replaced it and when. The table is empty until the format
 # --- first moves, so the fixture supplies an entry and runs the real path.
@@ -532,6 +550,7 @@ grep -qF "key 'depends' was withdrawn in 9.9.9" /tmp/srs-rules.log \
                    cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
 
+# srs-end: FR-CHK-180
 # --- verifies: FR-CHK-140 — only a requirement that says it is verified by test and
 # --- lists none. Two requirements in one specification, because judging
 # --- them all by one method is exactly how this went wrong once: the check
@@ -570,6 +589,7 @@ silent "FR-CHK-140 silent when a test is listed" 0 "lists no test"
 # roots, and a file left behind is one FR-CHK-210 would report.
 rm -f "$LAB/t/probe.sh" "$LAB/src/app.py"
 
+# srs-end: FR-CHK-140
 # --- verifies: FR-CHK-150 — only total isolation. A requirement at either end of a
 # --- link is not isolated, which is what keeps the rule from firing on
 # --- most of a healthy specification.
@@ -585,6 +605,7 @@ rule "FR-CHK-150 names the isolated one" 0 \
 silent "FR-CHK-150 spares the source of a link" 0 "FR-CORE-010 is linked to"
 silent "FR-CHK-150 spares the target of a link" 0 "FR-CORE-020 is linked to"
 
+# srs-end: FR-CHK-150
 # --- verifies: FR-CHK-150 — a cancelled requirement is outside the rule, both ways of
 # --- being cancelled. `superseded` used to escape only because its
 # --- `superseded_by` counts as a link; `withdrawn` names no successor and
@@ -595,6 +616,7 @@ spec < <(block FR-CORE-010 "Withdrawn and isolated" \
 silent "FR-CHK-150 spares a withdrawn requirement" 0 \
        "FR-CORE-010 is linked to nothing"
 
+# srs-end: FR-CHK-150
 # --- verifies: FR-CHK-190 — a live requirement resting on a withdrawn one, at every
 # --- live status rather than the built ones alone, and not through
 # --- `conflicts_with`.
@@ -624,6 +646,7 @@ rule "FR-CHK-190 covers refines" 0 \
 rule "FR-CHK-190 strict fails" 1 "treated as errors" --strict
 silent "FR-CHK-190 ignores conflicts_with" 0 "FR-CORE-030 is deferred"
 
+# srs-end: FR-CHK-190
 # --- verifies: FR-CHK-160 — what a rule costs is the project's to set. The rule used
 # --- throughout is `unknown-key`, because it needs nothing but a key.
 UNKNOWN='status: deferred
@@ -724,6 +747,7 @@ grep -qF "no metadata block" /tmp/srs-refusal.log \
 rm -rf "$LAB2"
 passes=$((passes + 3))
 
+# srs-end: FR-CHK-160
 # --- verifies: FR-CHK-200 — a file a requirement names says so. The forward half of
 # --- this link has been checked from the start; nothing checked that the
 # --- file agrees, which is the half that decays.
@@ -766,6 +790,7 @@ spec < <(block FR-CORE-010 "Harvested, not yet approved" \
 printf 'print("no claim here")\n' > "$LAB/src/app.py"
 silent "FR-CHK-200 spares a draft" 0 "does not carry"
 
+# srs-end: FR-CHK-200
 # --- verifies: FR-CHK-210 — a file neither end claims.
 spec < <(block FR-CORE-010 "Names nothing at all" "$META" \
                'The system **shall** act.')
@@ -793,6 +818,7 @@ spec < <(block FR-CORE-010 "Withdrawn, and its file stayed" \
 rule "FR-CHK-210 a file only a withdrawn requirement names" 0 \
      "src/dropped.py — no requirement names this file"
 
+# srs-end: FR-CHK-210
 # --- verifies: FR-CHK-230 — and the matrix says the same about that file.
 # --- The generated section had no fixture at all: every run in this suite
 # --- passes --no-write, so the one place three tools could disagree was the
@@ -867,6 +893,101 @@ silent "FR-CHK-210 does not call a named file unclaimed" 0 \
        "src/named.py — no requirement names this file"
 rm -f "$LAB/src/named.py"
 
+# srs-end: FR-CHK-230
+# --- verifies: FR-CHK-270, FR-CHK-280 — an end marker that ends nothing is a
+# --- warning; a block no end marker ends is said without failing, unless the
+# --- project raises it. The fixture's annotations and markers are assembled
+# --- from parts in the lab, so this suite carries none of them itself.
+spec < <(block FR-CORE-010 "Realized in two places" \
+               "$(printf '%s' "$REALIZED" | sed 's|^code: \[src/app.py\]$|code: [src/app.py, src/nest.py]|')" \
+               'The system **shall** act.')
+# The lab's src/app.py is put back as it was at the end: the fixtures after
+# this one read it.
+KEEP_APP=$(mktemp); [ -f "$LAB/src/app.py" ] && cp "$LAB/src/app.py" "$KEEP_APP" || rm -f "$KEEP_APP"
+A='# impl''ements: '; V='# veri''fies: '; E='# srs''-end: '
+{ printf '%sFR-CORE-010\n' "$A"; printf 'def act():\n    return 1\n'; printf '%sFR-CORE-010\n' "$E"; } > "$LAB/src/app.py"
+{ printf '%sFR-CORE-010\n' "$A"; printf 'class Outer:\n'
+  printf '    %sFR-CORE-010\n' "$A"; printf '    def inner(self):\n        return 2\n'; printf '    %sFR-CORE-010\n' "$E"
+  printf '    limit = 3  %sFR-CORE-010\n' "$A"
+  printf '%sFR-CORE-010\n' "$E"; } > "$LAB/src/nest.py"
+silent "FR-CHK-270 quiet when every marker ends a block, one inside another" 0 "ends nothing"
+silent "FR-CHK-280 quiet when every block is ended" 0 "no \`srs-end:\` ends"
+
+# A marker naming a requirement nothing above opened: a typo in the number.
+printf '%sFR-CORE-011\n' "$E" >> "$LAB/src/app.py"
+rule "FR-CHK-270 names the marker that ends nothing" 0 \
+     "src/app.py:5 — \`srs""-end: FR-CORE-011\` ends nothing"
+as_warning "FR-CHK-270" "srs""-end: FR-CORE-011\` ends nothing"
+rule "FR-CHK-270 strict fails" 1 "treated as errors" --strict
+# A second marker for a block already ended ends nothing either.
+{ printf '%sFR-CORE-010\n' "$A"; printf 'def act():\n    return 1\n'; printf '%sFR-CORE-010\n' "$E"; printf '%sFR-CORE-010\n' "$E"; } > "$LAB/src/app.py"
+rule "FR-CHK-270 a block is ended once" 0 "src/app.py:5 — \`srs""-end: FR-CORE-010\` ends nothing"
+# One marker naming both requirements of one block ends it, and nothing is left over.
+{ printf '%sFR-CORE-010\n%sFR-CORE-010\n' "$A" "$V"; printf 'def act():\n    return 1\n'; printf '%sFR-CORE-010, FR-CORE-010\n' "$E"; } > "$LAB/src/app.py"
+silent "FR-CHK-270 one marker for a whole block" 0 "ends nothing"
+# A marker sharing its line with an annotation ends nothing, and the
+# annotation on that line still opens its block.
+{ printf 'def act():  %sFR-CORE-010  %sFR-CORE-010\n    return 1\n' "$A" "$E"; } > "$LAB/src/app.py"
+rule "FR-CHK-270 refuses a marker on an annotation's line" 0 \
+     "src/app.py:1 — \`srs""-end: FR-CORE-010\` ends nothing: shares its line with an annotation"
+as_warning "FR-CHK-270" "ends nothing: shares its line with an annotation"
+
+# srs-end: FR-CHK-270, FR-CHK-280
+# --- verifies: FR-CHK-290 — a block whose region holds nothing but blank
+# --- lines, annotations and end markers marks nothing. A comment is content;
+# --- a requirement a blank line carries out excuses itself with `exempt`.
+{ printf '%sFR-CORE-010\n%sFR-CORE-010\ndef act():\n    return 1\n' "$A" "$E"; } > "$LAB/src/app.py"
+rule "FR-CHK-290 a marker on the line after its block" 0 \
+     "src/app.py:1 — the block naming FR-CORE-010 marks nothing: its region, lines 1–2"
+as_warning "FR-CHK-290" "the block naming FR-CORE-010 marks nothing"
+{ printf '%sFR-CORE-010\n\n   \n%sFR-CORE-010\ndef act():\n    return 1\n' "$A" "$E"; } > "$LAB/src/app.py"
+rule "FR-CHK-290 only blank lines between" 0 "src/app.py:1 — the block naming FR-CORE-010 marks nothing: its region, lines 1–4"
+# Two blocks a blank line apart: the first, with no marker, runs to the second and holds nothing.
+{ printf '%sFR-CORE-010\n\n%sFR-CORE-010\ndef act():\n    return 1\n%sFR-CORE-010\n' "$A" "$A" "$E"; } > "$LAB/src/app.py"
+rule "FR-CHK-290 a block with no marker and nothing before the next" 0 "src/app.py:1 — the block naming FR-CORE-010 marks nothing: its region, lines 1–2"
+# A comment is content, whatever the language writes it with.
+{ printf '%sFR-CORE-010\n# Licensed under MIT.\n%sFR-CORE-010\n' "$A" "$E"; } > "$LAB/src/app.py"
+silent "FR-CHK-290 a comment is content" 0 "marks nothing"
+# An example the grammar is told to skip is a comment too, not an annotation.
+{ printf '%sFR-CORE-010\n#   %sFR-CORE-020  -> the code field  srs''-ignore\n%sFR-CORE-010\n' "$A" "$A" "$E"; } > "$LAB/src/app.py"
+silent "FR-CHK-290 an example line is content" 0 "marks nothing"
+# Where a blank line is what carries a requirement out, the requirement says so.
+{ printf '%sFR-CORE-010\n\n%sFR-CORE-010\n' "$A" "$E"; } > "$LAB/src/app.py"
+spec < <(block FR-CORE-010 "Carried out by a blank line" \
+               "$(printf '%s\nexempt: [annotation-empty]' "$REALIZED")" 'The system **shall** act.')
+silent "FR-CHK-290 excused by exempt" 0 "marks nothing"
+spec < <(block FR-CORE-010 "Realized in two places" \
+               "$(printf '%s' "$REALIZED" | sed 's|^code: \[src/app.py\]$|code: [src/app.py, src/nest.py]|')" \
+               'The system **shall** act.')
+
+# A block with no marker: said, at `report`, and --strict does not fail on it.
+{ printf '%sFR-CORE-010\n' "$A"; printf 'def act():\n    return 1\n'; } > "$LAB/src/app.py"
+rule "FR-CHK-280 names the block no marker ends" 0 \
+     "src/app.py:1 — no \`srs-end:\` ends the block naming FR-CORE-010"
+grep -q "^note: src/app.py:1 — no \`srs-end:\`" /tmp/srs-rules.log \
+    || { echo "FAIL FR-CHK-280 — not reported at its default cost"; cat /tmp/srs-rules.log; exit 1; }
+# `unlinked` is silenced in these three runs so that the exit is this rule's alone:
+# the lab's one requirement links nowhere, and --strict would fail on that whatever
+# this rule did.
+config '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".py"], "rules": {"unlinked": "off"}}'
+rule "FR-CHK-280 does not fail --strict by default" 0 "no \`srs-end:\` ends" --strict
+# A project that raises it gets a warning, and --strict fails; one that silences it hears nothing.
+config '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".py"], "rules": {"unlinked": "off", "annotation-unended": "warn"}}'
+rule "FR-CHK-280 raised to warn" 1 "treated as errors" --strict
+as_warning "FR-CHK-280" "src/app.py:1 — no \`srs-end:\` ends the block"
+config '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".py"], "rules": {"annotation-unended": "off"}}'
+silent "FR-CHK-280 silenced" 0 "no \`srs-end:\` ends"
+config '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".py"]}'
+# An annotation after code marks its line, and a `file` annotation the file:
+# neither is a block, and neither wants a marker.
+{ printf 'def act():\n    return 1  %sFR-CORE-010\n' "$A"; } > "$LAB/src/app.py"
+printf '# file impl''ements: FR-CORE-010\nx = 1\n' > "$LAB/src/nest.py"
+silent "FR-CHK-280 spares an annotation after code and a file annotation" 0 "no \`srs-end:\` ends"
+rm -f "$LAB/src/nest.py"
+if [ -f "$KEEP_APP" ]; then mv "$KEEP_APP" "$LAB/src/app.py"; else rm -f "$LAB/src/app.py"; fi
+spec < <(block FR-CORE-010 "Names nothing" "$META" 'The system **shall** act.')
+
+# srs-end: FR-CHK-290
 # --- verifies: IF-SPEC-020 — a published rule name keeps its meaning. The names are
 # --- written into somebody else's `specs/srs-config.json` and into `exempt`
 # --- fields in their requirements, and a renamed one has no retired table to
@@ -886,6 +1007,7 @@ published = (
     'test-missing', 'unlinked', 'annotation-unknown-area',
     'annotation-superseded', 'annotation-unlisted', 'annotation-unpaired',
     'annotation-absent', 'baseline-without-row', 'file-range',
+    'annotation-end-unmatched', 'annotation-unended', 'annotation-empty',
 )
 gone = [name for name in published if name not in srs_check.RULES]
 if gone:
@@ -895,6 +1017,7 @@ if gone:
                                   cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
 
+# srs-end: IF-SPEC-020
 # --- verifies: IF-CI-020 — the exit codes are what other people's pipelines bind to.
 # --- Every fixture above proves 1 and 2 for a specification that was read;
 # --- what nothing proved is the two refusals that happen before one ever is.
@@ -919,6 +1042,7 @@ grep -qF "specs/ directory not found" /tmp/srs-rules.log \
 rm -rf "$LAB3"
 passes=$((passes + 2))
 
+# srs-end: IF-CI-020
 # --- verifies: FR-CI-080 — the shared assertion reports. `absent` is the
 # --- one thing in these suites whose whole job is to fail, so it is the one
 # --- thing that has to be watched failing: run in a subshell, because a
@@ -948,6 +1072,7 @@ test "$rc" -eq 1 || { echo "FAIL FR-CI-080 — a dash-leading pattern was read a
 rm -f "$LAB/haystack.txt"
 passes=$((passes + 3))
 
+# srs-end: FR-CI-080
 # --- verifies: FR-CI-090 — a suite working on a target leaves this
 # --- repository alone. What the target-making suites do about it is a
 # --- line clearing the git environment they inherited; this proves that
@@ -1040,6 +1165,7 @@ spec < <(block FR-CORE-010 "Valid, and points at the other" \
 rule "the valid specification passes" 0 "Requirements: 2"
 rule "and passes a strict gate" 0 "Requirements: 2" --strict
 
+# srs-end: FR-CI-090
 # --- verifies: FR-CI-100 — the gate refuses a line nobody had to write
 # long, and leaves alone the one that cannot be split.
 #
@@ -1067,6 +1193,7 @@ bash tests/line-width.sh "$LAB5" >/dev/null 2>&1 \
 rm -rf "$LAB5"
 passes=$((passes + 2))
 
+# srs-end: FR-CI-100
 # --- verifies: FR-CHK-220 — the one rule that reads history meets a
 # --- checkout that is not a repository. The lab has no .git, so the only
 # --- thing needed is the log the rule reads first; without it the rule
@@ -1103,6 +1230,7 @@ absent "strict mode" /tmp/srs-rules-nogit.log
 silent "FR-CHK-220 a repository with no tags stays silent" 0 \
        "no readable history"
 
+# srs-end: FR-CHK-220
 # --- verifies: FR-CHK-130 — a log that is not there has a row for nothing,
 # --- which is the condition this rule reports, satisfied for every tag at
 # --- once. It used to return before git was asked, so the most complete form
@@ -1123,6 +1251,7 @@ rm -rf "$LAB/.git"
 rm -f "$LAB/specs/92-baselines.md"
 passes=$((passes + 2))
 
+# srs-end: FR-CHK-130
 # --- verifies: INV-SPEC-080 — a number widens, and nothing is renamed: three
 # --- digits or more, no leading zero beyond the third. FR-CORE-1000 is an
 # --- identifier and FR-CORE-0100 is not; the two link so that neither is
@@ -1153,6 +1282,7 @@ PY
 rm -f "$LAB/src/wide.py"
 passes=$((passes + 1))
 
+# srs-end: INV-SPEC-080
 # --- verifies: INV-SPEC-090 — identifiers are ordered by their number wherever
 # --- a tool orders them: in the matrix FR-CORE-1000 follows FR-CORE-990 and
 # --- not FR-CORE-100, in the table, in the incoming links and in the
@@ -1182,6 +1312,7 @@ PY
 rm -f "$LAB/src/a.py"
 passes=$((passes + 1))
 
+# srs-end: INV-SPEC-090
 # --- verifies: FR-CHK-250 — an area is read from a file or a directory alike:
 # --- requirements under specs/10-fr-core/ at any depth are the area's, a
 # --- README.md inside is not read, and the listing names each file.
@@ -1215,6 +1346,7 @@ grep -q "FR-CORE-1000 .*specs/10-fr-core/1000-1999.md" /tmp/srs-rules-list.log \
 rm -f "$LAB/tools/srs_view.py"
 passes=$((passes + 1))
 
+# srs-end: FR-CHK-250
 # --- verifies: FR-CHK-260 — a number outside its file's range is a warning
 # --- named file-range, saying where the number belongs. Three fixtures: the
 # --- plain file's first number past 999 (the move is in the message), a
@@ -1242,6 +1374,7 @@ config "{$BASE, \"rules\": {\"file-range\": \"off\"}}"
 silent "FR-CHK-260 turned off says nothing" 0 "FR-CORE-1000 is"
 config "{$BASE}"
 
+# srs-end: FR-CHK-260
 # verifies: IF-CI-020
 # The fourth way the checker cannot run: its parser is not beside it, as a
 # copy by hand leaves it. Exit 2 and the file named, not a traceback.
@@ -1258,3 +1391,4 @@ rm -rf "$NOPARSE"
 passes=$((passes + 1))
 
 echo "checker-rules: $passes fixtures pass"
+# srs-end: IF-CI-020

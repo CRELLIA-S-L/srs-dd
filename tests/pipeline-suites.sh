@@ -9,7 +9,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: FR-CI-120, FR-CI-130, FR-CI-150
+# file verifies: FR-CI-120, FR-CI-130, FR-CI-150
 python3 - <<'PY'
 import glob, os, re, shutil, sys, tempfile
 

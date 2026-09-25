@@ -2,7 +2,7 @@
 # The specification gate: the checker passes strictly, and the committed
 # traceability matrix matches what the checker would generate now.
 #
-# verifies: FR-CI-010, FR-CHK-120, IF-CI-020, CON-SPEC-010
+# file verifies: FR-CI-010, FR-CHK-120, IF-CI-020, CON-SPEC-010
 #
 # Two lines answer for four requirements, and it is worth saying what each
 # of them gets: the strict run proves the gate exists and that a clean

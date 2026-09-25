@@ -9,7 +9,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: NFR-SKILL-020
+# file verifies: NFR-SKILL-020
 # The budgets, each beside the reason for its number. Raising one is a
 # visible act: change the number here and say why in the commit. Lowering
 # one follows a procedure that was shortened, so that the floor stays

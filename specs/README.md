@@ -249,12 +249,17 @@ Source and test files may carry traceability annotations in comments:
 Multiple IDs are separated by commas.
 
 The `code` and `tests` fields and the annotations are two claims about one link — the field is the specification's, the annotation is the file's — and the checker compares them both ways.
-It errors on an annotation naming a nonexistent requirement in a declared area, and warns on an unknown type or area (`annotation-unknown-area`, likely an example), an annotation naming a cancelled requirement (`annotation-superseded`), a file naming a requirement that does not list it (`annotation-unlisted`), a file the checker scans that a realized requirement lists and that does not name it back (`annotation-unpaired`), and a file under the code or test roots that neither end claims (`annotation-absent`).
+It errors on an annotation naming a nonexistent requirement in a declared area, and warns on an unknown type or area (`annotation-unknown-area`, likely an example), an annotation naming a cancelled requirement (`annotation-superseded`), a file naming a requirement that does not list it (`annotation-unlisted`), a file the checker scans that a realized requirement lists and that does not name it back (`annotation-unpaired`), a file under the code or test roots that neither end claims (`annotation-absent`), and an `srs-end:` that ends no block (`annotation-end-unmatched`), and a block whose region holds nothing (`annotation-empty`); it reports, without failing, a block that no `srs-end:` ends (`annotation-unended`), unless the project sets that rule's cost higher.
 
-**Where an annotation stands.** At the declaration that carries out the requirement — the one whose deletion would break it; `srs_view.py <ID> --where --source` prints the region under each annotation, so its place is what a reader is shown.
-Inside a function, at the top of its body, after the doc comment where the language puts one there; above a constant, a type or an enumeration, and above its doc comment where it has one; for behavior with no declaration of its own — a branch, a guard — on the line above it.
+**Where an annotation stands.** Directly above what carries out the requirement — the declaration or the statement whose deletion would break it — and above everything that belongs to it: its doc comment, its attributes or decorators; where a language takes the comment directly above a declaration for its documentation, a blank line keeps the annotation out of it.
+`srs_view.py <ID> --where --source` prints the region each annotation marks, so its place is what a reader is shown; every line of the file it prints carries its number, and a line without one — the header naming the region above all — is the viewer's.
+Several annotations over one thing stand on consecutive lines and are one block.
+A block marks the lines down to the first `srs-end:` below it that names one of its requirements (`srs-end: FR-CORE-020`), a block inside it included: what is nested belongs to what encloses it. An `srs-end:` stands on a line of its own; one sharing a line with an annotation ends nothing. A region holds something besides blank lines, annotations and end markers — a comment counts, a blank line does not.
+Without an `srs-end:` a reader is shown the lines down to the next block, or a bounded number of them, and told the region may be incomplete; an agent reads a region as the requirement's whole extent, so a block that another block follows before what it marks has ended — an enclosing block above all — should end with one.
+An annotation after code on the same line marks that line alone.
+`file implements:` or `file verifies:` marks the whole file wherever it stands — by convention at the top, after the lines the file's format requires first, such as a shebang, an encoding declaration, parser directives or an opening tag — and a file that carries a requirement as a whole, a suite that verifies it or a tool every part of which serves it, says so this way.
+The rule is the same in every language: nothing is parsed, so nothing is guessed differently for one language than for another.
 Never inside a string literal: that is data, not a comment.
-A file that carries a requirement as a whole — a suite that verifies it, a tool every part of which serves it — carries the annotation at its top, and that is the only place a list of identifiers stands.
 An annotation is a claim, not bookkeeping: a file that does not carry out a requirement gets no annotation to quiet a warning, and the field is corrected instead.
 A requirement met by the absence of code — a prohibition — has no declaration to stand at; its `exempt` field excuses it from `annotation-unpaired`, with the reason in its rationale.
 The line itself is copied from the warning, which prints it ready to paste.
@@ -301,7 +306,7 @@ All project settings live in `specs/srs-config.json`; any key absent from the fi
 | Key | Default | Meaning |
 |---|---|---|
 | `areas` | `["CORE", "UI", "API", "DATA", "SEC"]` | Requirement areas — the middle segment of every ID. Uppercase: `[A-Z][A-Z0-9]*` |
-| `rules` | `{}` | What a rule costs: `warn` (the default, and what `--strict` fails on), `report` (said but never fatal), `off` (not said at all). Keys are rule names; `srs_check.py` lists them when you name one it does not know |
+| `rules` | `{}` | What a rule costs: `warn` (the default for every rule the table of rules does not mark otherwise, and what `--strict` fails on), `report` (said but never fatal), `off` (not said at all). Keys are rule names; `srs_check.py` lists them when you name one it does not know |
 | `project_name` | the target directory's name | The project's name, written at install and read back on upgrade, so that the agent guides can be filled in again without asking |
 | `line_width` | absent | The width this project's code follows, in columns. Written at install from what the project already states elsewhere; absent where it states nothing, and never guessed. Read by the agent guides, not by any gate — checking source formatting is a linter's job |
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
@@ -342,6 +347,9 @@ Which of your words carries which binding force (mandatory / recommended / allow
 | `annotation-unlisted` | A file naming a requirement that does not list it in its `code` or `tests` field |
 | `annotation-unpaired` | A file the checker scans that an `implemented` or `partial` requirement lists, and that does not name it back |
 | `annotation-absent` | A file under the code or test roots that no requirement names and that names none |
+| `annotation-end-unmatched` | An `srs-end:` naming a requirement that no block above it in the same file names and leaves open, or sharing its line with an annotation |
+| `annotation-empty` | A block of annotations whose region holds nothing but blank lines, annotations and end markers |
+| `annotation-unended` | A block of annotations on lines of their own that no `srs-end:` ends — `report` unless the project sets it otherwise |
 | `baseline-without-row` | A `spec/v*` tag the baseline log has no row for |
 | `file-range` | A requirement whose number lies outside the range its file's name states |
 
@@ -370,5 +378,5 @@ Backtick fences follow the CommonMark length rule (a block opened with N backtic
 - Do not describe implementation details in a requirement — behavior only.
 - Do not create a requirement without a way to verify it.
 - Do not keep two sources of truth: if something is described here, other documents must not restate it.
-- Do not put a list of identifiers at the top of a file that does not carry each of them as a whole.
+- Do not mark a file with `file implements:` or `file verifies:` for a requirement it does not carry as a whole.
 - Do not annotate a file that does not carry out the requirement.

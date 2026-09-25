@@ -7,6 +7,7 @@
 # verifies: FR-INIT-170, FR-INIT-180, FR-INIT-190
 set -eo pipefail
 
+# srs-end: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320, FR-GND-480, FR-INIT-170, FR-INIT-180, FR-INIT-190
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — so a `git add`
@@ -21,6 +22,7 @@ cd "$(dirname "$0")/.."
 # fresh-install step into upgrade mode.
 rm -rf /tmp/srs-target
 
+# srs-end: FR-CI-090
 # verifies: FR-INIT-070
 # --dry-run must list the whole install and create nothing at all.
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both --dry-run | tee /tmp/dry.log
@@ -28,6 +30,7 @@ grep -q "tools/srs_view.py" /tmp/dry.log
 grep -q "nothing was written" /tmp/dry.log
 test ! -e /tmp/srs-target
 
+# srs-end: FR-INIT-070
 # verifies: FR-INIT-010, FR-INIT-020, FR-CI-050
 # Fresh install into a temp dir must pass its own checker, strictly.
 # The mode was chosen by looking at the target, and nothing told it to.
@@ -37,6 +40,7 @@ test ! -e /tmp/srs-target
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both | tee /tmp/fresh.log
 python3 /tmp/srs-target/tools/srs_check.py --strict
 
+# srs-end: FR-INIT-010, FR-INIT-020, FR-CI-050
 # verifies: FR-INIT-150
 # It also has to leave the maintainer knowing what to do next: where the
 # first requirement goes, what reads and checks the specification, and how
@@ -50,6 +54,7 @@ for said in "specs/10-fr-core.md" "tools/srs_check.py" "tools/srs_view.py --html
     grep -qF "$said" /tmp/fresh-steps.log \
         || { echo "FAIL FR-INIT-150 — the first steps do not name $said"; cat /tmp/fresh-steps.log; exit 1; }
 done
+# srs-end: FR-INIT-150
 # verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
 # Every skill that ships is named, and none that does not. The last of
 # those is named by its absence: srs-release stays here.
@@ -77,6 +82,7 @@ first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh-steps.log | head -
 [ -n "$agents" ] && [ -n "$first" ] && [ "$agents" -lt "$first" ] \
     || { echo "FAIL FR-INIT-150 — the agent procedures do not come before the placeholder step"; cat /tmp/fresh-steps.log; exit 1; }
 
+# srs-end: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
 # verifies: FR-INIT-060
 # Re-running on an initialized target = upgrade mode; the checker and
 # skills must refresh WITHOUT --force, precious files must be skipped.
@@ -100,6 +106,7 @@ grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKI
 grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
 test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
 
+# srs-end: FR-INIT-060
 # verifies: FR-INIT-080
 # A project's own pre-commit hook is never displaced: the gate lands
 # beside it, and the advice must not tell the user to point
@@ -146,6 +153,7 @@ rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html
 
+# srs-end: FR-INIT-080
 # verifies: FR-CHK-130
 # A baseline tag with no row in the log is reported, and --strict makes
 # it a failure: cutting a baseline is a tag and a row in separate
@@ -171,6 +179,7 @@ PY2
     python3 tools/srs_check.py --no-write --strict >/dev/null
 )
 
+# srs-end: FR-CHK-130
 # verifies: FR-CHK-210
 # The other end of the same decision: a fresh project has no
 # code yet, so it has nothing to silence and starts strict. A default
@@ -206,6 +215,7 @@ precious() {
     local rel=$1; shift
     cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 
+    # srs-end: FR-CHK-210
     # verifies: FR-INIT-240
     # A skipped file says whether it differs from what this version ships:
     # the copy it installed does not, the same copy edited does. Without the
@@ -252,6 +262,7 @@ precious() {
 # run through srs_upgrade.py has no --ci to pass, and until 0.21.0 it never
 # refreshed the pipeline at all, --force or not.
 precious .github/workflows/srs.yml --ci github
+# srs-end: FR-INIT-240
 # verifies: FR-INIT-060
 rel=.github/workflows/srs.yml
 cp "/tmp/srs-pristine/$rel" "$PT/$rel"
@@ -285,6 +296,7 @@ precious arch/README.md
 precious AGENTS.md
 precious CLAUDE.md
 
+# srs-end: FR-INIT-060
 # --- verifies: FR-INIT-200 — the guides are the one payload file that is
 # --- filled in rather than copied, so refreshing one needs the answers the
 # --- install took. Until the name was recorded there was nothing to fill
@@ -374,6 +386,7 @@ python3 tools/srs_init.py "$PT" --defaults --force > /dev/null
 
 echo "installer-smoke: all seven precious kinds behave as FR-INIT-060 says"
 
+# srs-end: FR-INIT-200
 # verifies: IF-CI-010
 # The installer's exit codes are a contract. The adopt suite
 # covers 0, 2 and 3; 1 — the checker found errors in the target — was
@@ -391,6 +404,7 @@ rc=0; python3 tools/srs_init.py /tmp/srs-precious --defaults \
 test "$rc" -eq 1
 grep -q "status implemented but the code field is empty" /tmp/precious-broken.log
 
+# srs-end: IF-CI-010
 # verifies: CON-SPEC-020, FR-INIT-260
 # specs/ here is the framework's own specification, not payload (ART-070).
 # A fresh target must hold exactly one requirement — the generated
@@ -476,6 +490,7 @@ for root, dirs, files in os.walk(target):
 assert not cited, 'something the installer shipped cites a decision of this framework: %s' % cited
 PY
 
+# srs-end: CON-SPEC-020, FR-INIT-260
 # verifies: FR-INIT-210, FR-INIT-220
 # The width is taken as given and written where an agent will read it. A
 # project that states none gets no key and no bullet — a default invented
@@ -511,6 +526,7 @@ test "$rc" -eq 2
 grep -q "positive number of columns" /tmp/width-bad.log
 test ! -e /tmp/srs-width-bad/specs/srs-config.json
 
+# srs-end: FR-INIT-210, FR-INIT-220
 # verifies: FR-INIT-180, FR-INIT-190
 # An annotation is removed, not deleted: the line stays a line, so a
 # traceback from a target names what it names here. Asserted per file
@@ -539,7 +555,13 @@ PY3
 # survive — and `srs-ignore` is what says they are examples rather than
 # claims.
 grep -q 'implements: FR-CORE-010' /tmp/srs-clean/tools/srs_check.py  # srs-ignore
+# End markers name this framework's requirements as annotations do, and go
+# the same way: none reaches a target's tooling.
+if grep -n -E 'srs-end: *[A-Z]+-[A-Z0-9]+-[0-9]' /tmp/srs-clean/tools/*.py | grep -v 'srs-ignore'; then
+    echo "FAIL FR-INIT-180 — an end marker naming a requirement of ours reached the target"; exit 1
+fi
 
+# srs-end: FR-INIT-180, FR-INIT-190
 # --- verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 # --- The grounds register: offered, never imposed, and complete or absent.
 GT=/tmp/srs-grounds-target
@@ -752,6 +774,7 @@ grep -qF "it has nothing to set" /tmp/srs-noperiod.log \
          echo "declined"; exit 1; }
 absent "grounds" /tmp/srs-noperiod/specs/srs-config.json
 
+# srs-end: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 # --- verifies: FR-INIT-170 — an undated specification is told it can be
 # --- dated, and nothing is written on its behalf. Nobody looks for a tool
 # --- they have not heard of, and an install is when the framework has a
@@ -763,6 +786,7 @@ absent "created:" "$GT/specs/10-fr-app.md"
 
 echo "installer-smoke: the grounds register is offered, complete and quiet"
 
+# srs-end: FR-INIT-170
 # --- verifies: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150 — the architecture
 # --- layer is offered, arrives whole, and what arrives passes its own gate.
 AT=/tmp/srs-arch-target
@@ -782,6 +806,7 @@ done
     || { echo "FAIL FR-ARCH-140 — the install left no map, and a gate compares"
          echo "the committed one against a fresh run"; exit 1; }
 
+# srs-end: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150
 # --- verifies: FR-ARCH-170 — the gate a target installs compares the map.
 # --- Until this shipped, a project's map was generated, committed and never
 # --- looked at again: `tests/arch-check.sh` proves the comparison for this
@@ -812,6 +837,7 @@ for f in arch tools/srs_arch.py .claude/skills/srs-arch; do
         && { echo "FAIL FR-ARCH-120 — --arch no still installed $f"; exit 1; }
 done
 
+# srs-end: FR-ARCH-170
 # --- verifies: FR-ARCH-130 — an upgrade adds it only when asked, and says
 # --- how to ask.
 python3 tools/srs_init.py /tmp/srs-noarch --defaults \
@@ -840,3 +866,4 @@ grep -qF "does not remove a layer that is already there" /tmp/arch-no.log \
          exit 1; }
 
 echo "installer-smoke: the architecture layer is offered, complete and quiet"
+# srs-end: FR-ARCH-130

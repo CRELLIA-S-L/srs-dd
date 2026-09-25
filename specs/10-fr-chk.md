@@ -658,3 +658,66 @@ If a requirement's number lies outside the range its file's name states — `NNN
 The plain file `10-fr-<area>.md` holds the first thousand by the standard's convention, so its first number past `999` is the moment the area becomes a directory — the warning says which file to move the file to and which to open, so that whoever did not come through `srs-new` gets the same instruction the procedure gives.
 A warning with a name rather than an error, because a project that cuts its files by subject and names one `1000-1999.md` for its own reasons may say so and turn the rule off (`FR-CHK-160`); a file whose name is not a range is bound by nothing here.
 
+### FR-CHK-270 — An end marker that ends nothing is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-040]
+depends_on: [FR-CHK-080]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-09-25
+```
+
+The checker **shall** report as a warning an `srs-end:` that names a requirement no block above it in the same file names and leaves open, or that shares its line with an annotation.
+
+**Rationale.** An `srs-end:` is where the author said a region ends, and one that names a requirement nothing above it opened ends nothing: a typo in the number, a block moved without its marker, or a marker left behind by a block deleted.
+The region it was meant to end runs on to the fallback, and the reader is shown a region the author believes is marked.
+A marker on the same line as an annotation is one of these too: whether that line opens a block or ends one would be a guess, so the annotation stands and the marker ends nothing, and the author is told to give it a line of its own.
+A warning, as every annotation rule is that the author can fix in the file they are editing.
+
+### FR-CHK-280 — A block no marker ends is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-040]
+depends_on: [FR-CHK-080, FR-VIEW-400]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-09-25
+```
+
+The checker **shall** report a block of annotations on lines of their own that no `srs-end:` ends, at the cost `report` unless the project sets another.
+
+**Rationale.** Without an end marker the region a block marks is the viewer's fallback, and an agent reads a region as the requirement's whole extent: measured on 2026-09-25 (ADR-0035), the two smaller of three models named only the fallback's lines when a nested block had cut them short, however the viewer's notice was worded, and every model named the right lines once the end was marked.
+The cure is the marker, and only the author can place it, so the checker names every block without one.
+`report` by default because the harm is in some blocks and the cost in all of them: a function followed by the next annotated function ends where the fallback ends it, and marking every block in every project already installed is a one-off load nobody asked for, while a rule arriving at `warn` would fail `--strict` on the upgrade that brought it.
+A project that wants the markers everywhere sets the rule to `warn`, as this repository does.
+
+### FR-CHK-290 — An annotation that marks nothing is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-040]
+depends_on: [FR-CHK-270]
+refines: []
+conflicts_with: []
+code: [tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-09-25
+```
+
+The checker **shall** report as a warning a block of annotations on lines of their own whose region holds no line but blank lines, annotations and end markers.
+
+**Rationale.** A region with nothing in it claims a place and shows the reader nothing: a marker on the line after its block, a block whose end was put before what it marks, or a block left standing above another that was meant to mark the same thing — the last reads, without a marker, as two blocks a blank line apart.
+A comment is content: no reading that holds in every language can tell a comment from code, and a comment can be what a requirement asks for — a licence header, a notice that a file is generated, a paragraph of documentation.
+A blank line is not, because a region of blank lines is almost always a mistake; where one is what a requirement is carried out by, the requirement says so with `exempt: [annotation-empty]` and the reason in its rationale, which is what `exempt` is for.
+A block no marker ends is asked too: its region is the viewer's fallback, and a fallback that is empty is the same mistake without the marker.
+

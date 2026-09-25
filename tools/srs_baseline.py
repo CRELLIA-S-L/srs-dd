@@ -22,8 +22,8 @@ Exit codes: 0 written · 2 refused, the log untouched — outside a dry run the
 checker it ran may have regenerated the matrix first.
 """
 
-# implements: FR-SPEC-010, INV-SPEC-030, INV-SPEC-040, CON-SPEC-030
-# implements: NFR-SPEC-010
+# file implements: FR-SPEC-010, INV-SPEC-030, INV-SPEC-040, CON-SPEC-030
+# file implements: NFR-SPEC-010
 
 import argparse
 import os
@@ -98,6 +98,7 @@ def main():
     # away and kept.
     # implements: FR-SPEC-060
     command = [sys.executable, CHECKER] + (["--no-write"] if args.dry_run else [])
+    # srs-end: FR-SPEC-060
     probe = subprocess.Popen(command, cwd=ROOT,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)

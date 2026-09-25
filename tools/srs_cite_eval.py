@@ -16,7 +16,7 @@ and it says so and stops where no agent CLI is on the path.
     python3 tools/srs_cite_eval.py --questions FILE      # another set
     python3 tools/srs_cite_eval.py --score FILE          # score canned answers instead of asking
 """
-# implements: FR-SKILL-290, NFR-SPEC-010, CON-SPEC-030
+# file implements: FR-SKILL-290, NFR-SPEC-010, CON-SPEC-030
 
 import argparse
 import json
@@ -50,6 +50,7 @@ def identifier_pattern(areas):
     area = "|".join(re.escape(a) for a in areas)
     # implements: INV-SPEC-080
     number = srs_parse.NUMBER
+    # srs-end: INV-SPEC-080
     core = r"(?:FR|NFR|IF|INV|CON)-(?:%s)-%s|ADR-\d{4}|[EHBUIF]-%s" % (area, number, number)
     mention = re.compile(r"\b(%s)\b" % core)
     span = re.compile(SPAN.replace("ID", core))
@@ -74,6 +75,7 @@ def citations(ids):
         # implements: INV-SPEC-090
         run = subprocess.run([sys.executable, path, "--cite"] + sorted(wanted, key=srs_parse.id_key),
                              capture_output=True, text=True, cwd=ROOT)
+        # srs-end: INV-SPEC-090
         for line in run.stdout.splitlines():
             rid = line.split(" — ", 1)[0].strip()
             if rid in wanted:

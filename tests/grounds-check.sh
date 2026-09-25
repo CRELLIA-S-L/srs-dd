@@ -11,6 +11,7 @@
 # with cmp, and the working tree is left as it was found.
 set -eo pipefail
 
+# srs-end: FR-GND-010, FR-GND-370, CON-GND-020, CON-GND-030
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — including the
@@ -57,3 +58,4 @@ for f in grounds/*.md grounds/*.json; do
 done
 
 echo "grounds-check: the register passes strictly, the dashboard is fresh"
+# srs-end: FR-CI-090

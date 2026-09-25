@@ -24,7 +24,7 @@ Exit codes: 0 prepared · 2 refused, having changed nothing — except where
 the checker fails on the edited files, which it says, naming them.
 """
 
-# implements: FR-CI-070, INV-SPEC-030, CON-SPEC-030, NFR-SPEC-010
+# file implements: FR-CI-070, INV-SPEC-030, CON-SPEC-030, NFR-SPEC-010
 
 import argparse
 import datetime
@@ -117,6 +117,7 @@ def main():
     # implements: FR-CI-140
     # A dry run writes nothing, the matrix included.
     checked = run_checker("--strict", *(["--no-write"] if args.dry_run else []))
+    # srs-end: FR-CI-140
     if checked is not None:
         return fail("the checker does not pass; nothing was written\n%s"
                     % checked)

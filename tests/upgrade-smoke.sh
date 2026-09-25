@@ -7,6 +7,7 @@
 # verifies: FR-SKILL-060, FR-GND-290, FR-GND-480
 set -eo pipefail
 
+# srs-end: FR-INIT-120, FR-INIT-130, FR-INIT-140, FR-INIT-160, FR-SKILL-060, FR-GND-290, FR-GND-480
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — so a `git add`
@@ -129,6 +130,7 @@ b = const('tools/srs_init.py', 'DEFAULT_FRAMEWORK_URL')
 assert a == b, 'fallback framework address differs: %s vs %s' % (a, b)
 PY
 
+# srs-end: FR-CI-090
 # --- verifies: FR-GND-290 — a project adds the register with the command it
 # --- has. Reaching for the framework's own installer is the thing this tool
 # --- exists to spare anyone from, so a flag it does not forward is a
@@ -164,6 +166,7 @@ grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
     || { echo "FAIL FR-GND-480 — an upgrade reset the register's period"
          cat "$GU/grounds/grounds-config.json"; exit 1; }
 
+# srs-end: FR-GND-290
 # --- verifies: FR-ARCH-130 — the same promise for the architecture layer,
 # --- through the target's own upgrade command rather than the installer.
 [ -e "$GU/arch" ] && { echo "FAIL — the fixture target already has a layer"
@@ -221,3 +224,4 @@ test -z "$(ls -A "$FETCH/tmp")" \
 rm -rf "$FETCH"
 
 echo "upgrade-smoke: a target adds the grounds register with its own command"
+# srs-end: FR-ARCH-130
