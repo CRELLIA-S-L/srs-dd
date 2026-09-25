@@ -22,6 +22,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - The upgrade procedure relays the framework's identifiers as written. The identifiers in an upgrade note are the framework's, and `--cite` in a project would find the project's own requirement under the same number (`FR-SKILL-200`).
 - The tooling arrives without this framework's decision numbers. The installer takes `(ADR-NNNN)` out of each tool it copies, as it takes out annotations, leaving the sentence and every line where it was; the procedures and the standards state the reason instead of the number, and the installed target is scanned for any (`FR-INIT-260`, `CON-SPEC-020`, ADR-0022).
 - A copy of a list another file defines matches it. Hand-written usage lines, the installers' `--period` choices, the viewer's expected prose, the citation measurement's record kinds, the release procedure's list of what it edits, and the guide's generated files are held to what defines them (`INV-SPEC-110`).
+- The framework is stated to serve any work an agent does. Code in any programming language, documents, diagrams, configuration and data: a rule the standard sets for a project's files means the same for every kind of them, and a tool that reads one kind more closely only reproduces that meaning; the constitution gains ART-080, and the places where the framework still leans on code are recorded as open issues (`CON-SPEC-040`).
 
 ### Changed
 

@@ -59,7 +59,7 @@ What it does not check is what a flag does — that a document describes `--diff
 status: implemented
 verification: I
 derives_from: []
-depends_on: [NFR-SPEC-010, NFR-SPEC-020, FR-CHK-090, FR-CI-040, FR-CI-060, FR-INIT-070, IF-SKILL-010, INV-SPEC-010]
+depends_on: [NFR-SPEC-010, NFR-SPEC-020, CON-SPEC-040, FR-CHK-090, FR-CI-040, FR-CI-060, FR-INIT-070, IF-SKILL-010, INV-SPEC-010]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -71,7 +71,7 @@ The opening of the landing page **shall** state what the framework is — in pla
 
 **Rationale.** The first screen is what decides whether the second is read, and it has to carry both halves of the decision: what the reader gains, and what they will be asked to accept.
 Three readers arrive at it with three questions, and the opening answers each in a line before the sections do at length: the stranger asks what this is, and the standards' names are not an answer to someone who has not met an SRS, so a plain sentence comes first and names the agents the reader already uses; the adopter asks what it would take to see it, and a dry run of the installer (`FR-INIT-070`) shows the whole of what would land without landing it; the agent asks where its procedure is, and is pointed at the section that carries the URL (`IF-SKILL-010`).
-The constraints are one line because every one of them is a requirement elsewhere — the standard library (`NFR-SPEC-010`), plain files (`NFR-SPEC-020`), the lexicon rather than a language (`FR-CHK-090`) — and the line restates them where a stranger will read them; the standards paragraph names immutable identifiers and a lifecycle, which is `INV-SPEC-010` said once for the whole page.
+The constraints are one line because every one of them is a requirement elsewhere — the standard library (`NFR-SPEC-010`), plain files (`NFR-SPEC-020`), the lexicon rather than a language (`FR-CHK-090`) — and the line restates them where a stranger will read them, beside what a project may be made of, which answers *for whom* rather than *at what cost* and is `CON-SPEC-040`'s; the standards paragraph names immutable identifiers and a lifecycle, which is `INV-SPEC-010` said once for the whole page.
 The two links are evidence rather than decoration: the page this repository publishes from its own specification (`FR-CI-040`) shows the framework applied to itself, and the example project (`FR-CI-060`) shows it applied to something ordinary.
 
 ### FR-DOC-040 — The problem section names what agents broke and what a lookup repairs

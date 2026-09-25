@@ -6,11 +6,11 @@ SRS-DD makes that question answerable by a script: every change that alters beha
 
 In plain terms: a numbered list of what the system must do lives in the repository next to the code, every requirement on it says which files realize it and which tests prove it, and a script refuses a build where the two sides disagree — for Cursor, Codex, Claude Code, Copilot, any agent that reads a Markdown guide, and for the people reviewing what they wrote.
 
-Built for repositories written with agents, and it refuses the usual price for that.
+Built for repositories written with agents — source code in any programming language, but equally documents, diagrams or anything else an agent produces and somebody must answer for — and it refuses the usual price for that.
 What agents get is not a prompt file with a nice name — it is a real software requirements specification: **ISO/IEC/IEEE 29148** structure and attributes, **EARS** statement patterns, immutable identifiers, a lifecycle, a generated traceability matrix, **MADR** decision records.
 What people get is the same thing, in plain Markdown that diffs line by line in a review, and one self-contained page for whoever will never clone the repository.
 
-`Python ≥ 3.9` · standard library only · plain Markdown · specification in any language · no server, no database, no service · MIT
+`Python ≥ 3.9` · standard library only · plain Markdown · code in any language, documents, diagrams · a specification in any human language · no server, no database, no service · MIT
 
 Try it on your own repository without writing a byte into it:
 
@@ -245,6 +245,6 @@ Each layer's checker cites its own records in the same form — `srs_arch.py --c
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `.github/`, `.githooks/` | This repository's own pipeline and the hook that runs the same suites before a commit; targets get the templates in `ci/` instead |
-| `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any language](docs/multilingual.md) |
+| `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any human language](docs/multilingual.md) |
 | `AGENTS.md`, `CLAUDE.md` | This repository's own agent guides — the framework is itself an SRS-DD project, and these are what an agent working on it reads first |
 | `CONTRIBUTING.md`, `CHANGELOG.md`, `LICENSE` | Framework governance, versioning and the MIT licence |

@@ -218,3 +218,14 @@ Until then the instrument for such a document is this framework installed where 
 - Documents that are meant to drift — a log, a changelog, a protocol — where what can be described is the form of an entry and not a set of sections; a different shape, and possibly a different instrument.
 
 What would be measured, if this were ever taken up, is drafted and not recorded, by the register's rule that a threshold and an owner are set by whoever will answer for the measurement: the currency of a described document against an undescribed one on another corpus, the hours a first description costs per thousand words, and the share of sections whose sources the author named rather than an agent inferred afterwards.
+
+## The framework leans on code where it means any file
+
+**Found:** 2026-09-25, while the rule for where an annotation stands was being reworked and was found to have been designed around the tooling's own language; `CON-SPEC-040` and ART-080 were written the same day, and each item below is a place where the framework does not yet hold to them.
+
+- `code_extensions` defaults to programming languages only (`.py`, `.ts`, `.tsx`, `.js`, `.swift`, `.kt`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.m`, in `tools/srs_check.py`), so an annotation in a document or a diagram source is not read unless the project extends the list, and nothing tells it to.
+- `code_roots` defaults to `["src"]`, the layout of a code repository.
+- The standard says `code` is where a requirement is realized and `tests` what verifies it, and never says what they hold when the files are documents or diagrams — the names are service tokens and stay, but a reader of a documents project has to guess that `code` is theirs too.
+- A format that takes no comment — an image of a diagram, JSON, a binary file — cannot carry an annotation, so a realized requirement whose only file is one of them draws `annotation-unpaired`, and the standard names no way out; `exempt` is for a requirement met by the absence of code — a prohibition — which this is not.
+
+**What stays open:** each item is a change to the standard or to a default, and none is made yet; the defaults reach every target at its next install, so each is settled with the upgrade note it needs.

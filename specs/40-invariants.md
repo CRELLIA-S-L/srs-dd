@@ -279,6 +279,28 @@ Every command is named, not only the two that prepare a release or a baseline.
 The temptation to commit belongs to whichever command has just written something — the installer that created a project, the dating command that touched every requirement, the checker that regenerated the matrix — and a constraint listed against two files is a constraint the everyday question "what governs this file" never mentions for the other six.
 `srs_parse.py` is absent because it is a library with no entry point: it is not a command.
 
+### CON-SPEC-040 — What the framework asks of a project's files means the same for every kind of them
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md]
+tests: []
+created: 2026-09-25
+```
+
+A rule the standard sets for the files that realize or verify a requirement, and what the tooling reports from them, **shall** mean the same whatever those files are — source in any programming language, a document, a diagram, configuration or data — and a tool that reads one kind more closely reproduces that meaning more precisely, never a meaning of its own.
+
+**Rationale.** The framework was meant from the start for any project where agents do the work — code, documents, diagrams, anything someone must answer for — and its first consumer is not written in the language of its tooling; ART-080 states it as a principle, and this is the constraint each rule is read against.
+On 2026-09-25 the rule for where an annotation stands was designed around Python's parser, the language every tool here happens to be written in, with every other kind of file served by a window; it would have been precise where the tooling is and approximate where the projects are.
+The same leaning is older than that rule: the default `code_extensions` name only programming languages, the default `code_roots` is `src`, the standard never says what `code` and `tests` hold when the files are not code, and a format that takes no comment cannot carry an annotation at all — each is recorded in `specs/91-open-issues.md` as work this constraint asks for.
+Inspection, as `FR-SPEC-040` is: whether a rule means the same for a diagram as for a function is read off the rule, and no suite can enumerate the kinds of file it would have to hold for.
+
+
 ### INV-SPEC-070 — A line in markdown breaks where the meaning breaks
 
 ```yaml
