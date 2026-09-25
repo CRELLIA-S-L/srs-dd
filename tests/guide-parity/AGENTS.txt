@@ -56,3 +56,5 @@ srs-arch
 Date requirements
 Grounds register
 Architecture layer
+# ART-100 — nothing sensitive goes into the repository
+ART-100

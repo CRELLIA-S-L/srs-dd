@@ -1030,3 +1030,25 @@ The lines for the layers open with "where the project keeps", the way the guide'
 
 The list is read from the installer's own tuples, so a command added there is asked of the guide on the day it ships; `srs_parse.py` is excepted in the test as a module the checkers import, not a command.
 This repository's guide carries the same lines by `INV-SKILL-010`, and its budget of words was raised for them (ADR-0030).
+
+### FR-SKILL-390 — The shipped guide and constitution keep sensitive data out of the repository
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [INV-SKILL-010]
+refines: []
+conflicts_with: []
+code: [skeleton/AGENTS.md, AGENTS.md, skeleton/specs/constitution.md]
+tests: [tests/guide-parity.sh]
+created: 2026-09-25
+```
+
+The agent guide and the constitution the installer ships **shall** each state that nothing sensitive is committed, naming credentials, personal data, documents shared in confidence and a machine's raw output as sensitive.
+
+**Rationale.** What a repository holds is read by everyone who can clone it for as long as its history lives, and an agent committing on a person's behalf is the one most likely to sweep in a file nobody read — a trace of its own run, a document the person shared with it, a local configuration.
+Nothing in the framework said so until 2026-09-25, when a check of this repository found none of it here and found a proposal shared in confidence kept out of the history only by being excluded by hand at every commit.
+Both files, because they reach different readers: the constitution binds the work, and the guide is what an agent reads first; the guide names the article so that the two cannot drift apart.
+The kinds are named rather than left to "sensitive", because a word a reader has to interpret is one a reader interprets their own way; personal data stops at what the authors chose to publish, so that an author's name in a commit is not a breach.
+Tested rather than inspected, because a rule that lives only in text is the kind a measured agent follows least, and the least the framework can do is keep the text from disappearing.

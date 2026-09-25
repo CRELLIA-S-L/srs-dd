@@ -229,3 +229,11 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 - A format that takes no comment — an image of a diagram, JSON, a binary file — cannot carry an annotation, so a realized requirement whose only file is one of them draws `annotation-unpaired`, and the standard names no way out; `exempt` is for a requirement met by the absence of code — a prohibition — which this is not.
 
 **What stays open:** each item is a change to the standard or to a default, and none is made yet; the defaults reach every target at its next install, so each is settled with the upgrade note it needs.
+
+## A scanner for secrets in the gate
+
+**Found:** 2026-09-25, when ART-100 was written: the rule is text, and text is what a measured agent follows least.
+
+**What is being asked:** whether the CI templates in `ci/` should run a secret scanner — gitleaks or an equivalent — over every push, so that a credential committed by mistake is refused rather than found later.
+
+**What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.
