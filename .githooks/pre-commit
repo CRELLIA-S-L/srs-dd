@@ -16,4 +16,8 @@ if [ -f grounds/grounds-config.json ]; then
         | xargs -0 python3 tools/srs_grounds.py --blast || true
 fi
 
+# implements: FR-GND-570, FR-ARCH-300
+# The dashboard and the map the shipped hook regenerates and gates
+# (ci/pre-commit) are gated here by the suites below that compare them —
+# tests/grounds-check.sh and tests/arch-check.sh.
 exec tools/ci_selftest.sh

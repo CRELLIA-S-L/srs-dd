@@ -650,7 +650,10 @@ MD
 # failing command ends the suite before rc=$? runs, and the message below —
 # which says what went wrong — would never print.
 rc=0
-( cd "$GT" && git init -q . && git add -A && python3 tools/srs_grounds.py \
+# The dashboard is regenerated before anything is staged: the hook refuses
+# a commit whose dashboard is not the checker's (FR-GND-570), and this
+# fixture asks about the report, not that.
+( cd "$GT" && git init -q . && python3 tools/srs_grounds.py > /dev/null && git add -A \
   && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL FR-GND-310 — the hook failed the commit over a"
                    echo "refuted hypothesis"; cat /tmp/grounds-hook.log; exit 1; }
@@ -867,3 +870,90 @@ grep -qF "does not remove a layer that is already there" /tmp/arch-no.log \
 
 echo "installer-smoke: the architecture layer is offered, complete and quiet"
 # srs-end: FR-ARCH-130
+
+# --- verifies: FR-GND-570, FR-ARCH-300 — the hook gates the dashboard and
+# --- the map as it gates the matrix: regenerated, and the commit refused
+# --- while the copy being committed is not the checker's. Only where the
+# --- project keeps the layer, decided at every commit by its configuration.
+HT=/tmp/srs-hook-layers
+rm -rf "$HT"
+python3 tools/srs_init.py "$HT" --defaults --areas APP --grounds yes --arch yes > /dev/null 2>&1
+# An element carrying the placeholder requirement, so that the map has
+# something of the specification to count.
+python3 - "$HT/arch/00-elements.md" <<'PY3'
+import sys
+path = sys.argv[1]
+text = open(path, encoding='utf-8').read().replace('*None at the moment.*', '')
+open(path, 'w', encoding='utf-8').write(
+    text + '\n### E-010 — The app\n\n```yaml\nstatus: proposed\ncarries: [src]\n'
+    'requirements: [FR-APP-010]\n```\n\nEverything.\n')
+PY3
+hook_in() {
+    rc=0
+    ( cd "$1" && sh .githooks/pre-commit ) > /tmp/hook-layers.log 2>&1 || rc=$?
+}
+refused() {
+    [ "$rc" = 1 ] && grep -qF "pre-commit: $1 was regenerated — stage it and retry." /tmp/hook-layers.log \
+        || { echo "FAIL $2 — the hook did not refuse over $1 ($3)"; cat /tmp/hook-layers.log; exit 1; }
+}
+passed() {
+    [ "$rc" = 0 ] || { echo "FAIL $1 — the hook refused a commit it should pass ($2)"
+                       cat /tmp/hook-layers.log; exit 1; }
+}
+( cd "$HT" && git init -q . && python3 tools/srs_check.py > /dev/null \
+  && python3 tools/srs_grounds.py > /dev/null && python3 tools/srs_arch.py > /dev/null && git add -A )
+hook_in "$HT"; passed "FR-GND-570/FR-ARCH-300" "every generated file current and staged"
+
+# A copy edited by hand is not the checker's.
+printf '\nedited by hand\n' >> "$HT/grounds/90-dashboard.md"
+( cd "$HT" && git add grounds/90-dashboard.md )
+hook_in "$HT"; refused grounds/90-dashboard.md FR-GND-570 "a dashboard edited by hand"
+( cd "$HT" && git add grounds/90-dashboard.md )
+hook_in "$HT"; passed FR-GND-570 "the regenerated dashboard staged"
+printf '\nedited by hand\n' >> "$HT/arch/90-map.md"
+( cd "$HT" && git add arch/90-map.md )
+hook_in "$HT"; refused arch/90-map.md FR-ARCH-300 "a map edited by hand"
+( cd "$HT" && git add arch/90-map.md )
+hook_in "$HT"; passed FR-ARCH-300 "the regenerated map staged"
+
+# A file never staged is refused: the pipeline would find it missing.
+( cd "$HT" && git rm -q --cached grounds/90-dashboard.md )
+hook_in "$HT"; refused grounds/90-dashboard.md FR-GND-570 "a dashboard never staged"
+( cd "$HT" && git add grounds/90-dashboard.md )
+
+# The case the gate exists for: a commit that touches only the
+# specification. A requirement added moves the matrix, the dashboard and
+# the map, and one refusal names all three: a hook that stopped at the first
+# would leave the next stale, and the commit after staging what it named
+# would be refused again.
+printf '\n### FR-APP-020 — Another\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe app **shall** do another thing.\n' \
+    >> "$HT/specs/10-fr-app.md"
+( cd "$HT" && git add specs/10-fr-app.md )
+hook_in "$HT"; refused specs/90-traceability.md FR-CI-020 "a requirement added"
+refused grounds/90-dashboard.md FR-GND-570 "a requirement added — named in the same refusal"
+refused arch/90-map.md FR-ARCH-300 "a requirement added — named in the same refusal"
+( cd "$HT" && git add specs/90-traceability.md grounds/90-dashboard.md arch/90-map.md )
+hook_in "$HT"; passed "FR-GND-570/FR-ARCH-300" "everything the one refusal named staged, retried once"
+
+# Without the layers the hook runs neither checker. A register added later
+# is gated from the first commit after its configuration appears, with the
+# hook as it was installed.
+NT=/tmp/srs-hook-nolayers
+rm -rf "$NT"
+python3 tools/srs_init.py "$NT" --defaults --areas APP > /dev/null 2>&1
+( cd "$NT" && git init -q . && python3 tools/srs_check.py > /dev/null && git add -A )
+hook_in "$NT"; passed "FR-GND-570/FR-ARCH-300" "a project keeping neither layer"
+absent "Dashboard rewritten" /tmp/hook-layers.log
+absent "Map rewritten" /tmp/hook-layers.log
+[ ! -e "$NT/grounds" ] && [ ! -e "$NT/arch" ] \
+    || { echo "FAIL FR-GND-570/FR-ARCH-300 — the hook created a layer the project does not keep"; exit 1; }
+before=$(cksum < "$NT/.githooks/pre-commit")
+python3 tools/srs_init.py "$NT" --defaults --grounds yes > /dev/null 2>&1
+[ "$(cksum < "$NT/.githooks/pre-commit")" = "$before" ] \
+    || { echo "FAIL FR-GND-570 — adding the register rewrote the hook, so the fixture proves nothing"; exit 1; }
+( cd "$NT" && git add specs )
+hook_in "$NT"; refused grounds/90-dashboard.md FR-GND-570 "a register added after the hook was installed"
+rm -rf "$HT" "$NT"
+
+echo "installer-smoke: the hook refuses a stale dashboard or map where the project keeps the layer, and nowhere else"
+# srs-end: FR-GND-570, FR-ARCH-300

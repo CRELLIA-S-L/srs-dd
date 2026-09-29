@@ -620,3 +620,22 @@ The architecture layer's standard **shall** name every rule its checker reports 
 
 **Rationale.** The standard said of the rule names that "this file is written against them" (`IF-ARCH-030`), and on 2026-09-24 it named two of the seven — one in an example, one in passing — so a project setting a rule's cost in `arch/arch-config.json` learned the names by getting one wrong.
 The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `tools/srs_arch.py`.
+
+### FR-ARCH-300 — The hook refuses a stale map
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-170]
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: [ci/pre-commit, .githooks/pre-commit]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-29
+```
+
+Where a project carries an architecture layer, the installed hook **shall** regenerate the map and refuse the commit while the copy being committed differs from it.
+
+**Rationale.** The reason `FR-GND-570` gives for the register, for the layer: `FR-ARCH-170` makes the pipeline refuse a stale map, and the map reads the specification — a requirement added to it changes how many the elements carry of how many there are — so a commit that touches only `specs/` can leave it stale.
+Whether the project carries the layer is read at every commit from `arch/arch-config.json`, as the pipeline reads it.

@@ -10,25 +10,53 @@
 #     sh .githooks/pre-commit || exit 1
 # It cds to the repository root itself, so it works from anywhere.
 #
-# Validates the specification and regenerates the traceability matrix;
-# fails when the matrix being committed is stale. Add --strict below to
-# also fail on warnings.
+# Validates the specification and regenerates the traceability matrix, and
+# where the project keeps them, the grounds dashboard and the architecture
+# map; fails when any of them being committed is stale. Add --strict below
+# to also fail on warnings.
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
+# Where the project keeps a grounds register or an architecture layer, the
+# file its checker writes is gated as the matrix is: regenerated here, and
+# the commit refused while the copy being committed is not the one the
+# checker writes — the pipeline refuses it too, and a gate that only exists
+# there teaches people to push and wait. Decided at every commit by whether
+# the layer's configuration is there, so a layer added later is gated from
+# its first commit. A checker that finds an error fails the commit, as it
+# fails the pipeline.
 python3 tools/srs_check.py
+generated="specs/90-traceability.md"
+if [ -f grounds/grounds-config.json ]; then
+    python3 tools/srs_grounds.py
+    generated="$generated grounds/90-dashboard.md"
+fi
+if [ -f arch/arch-config.json ]; then
+    python3 tools/srs_arch.py
+    generated="$generated arch/90-map.md"
+fi
 
-git diff --exit-code -- specs/90-traceability.md >/dev/null 2>&1 || {
-    echo "pre-commit: specs/90-traceability.md was regenerated — stage it and retry." >&2
-    exit 1
-}
+# Every file is regenerated before any is compared, and every stale one is
+# named in the one refusal: a hook that stopped at the first would leave the
+# next stale in the working tree, and the commit after staging would be
+# refused again for it. A file never staged is stale too — the pipeline
+# would see it missing.
+stale=0
+for file in $generated; do
+    if ! git ls-files --error-unmatch -- "$file" >/dev/null 2>&1 \
+            || ! git diff --exit-code -- "$file" >/dev/null 2>&1; then
+        echo "pre-commit: $file was regenerated — stage it and retry." >&2
+        stale=1
+    fi
+done
+[ "$stale" = 0 ] || exit 1
 
 # Where the project keeps a grounds register, say what the requirements
 # this commit touches are standing on. A report and never a verdict: a
 # refuted hypothesis is not the committer's fault and may be exactly what
 # they are in the middle of repairing, so nothing below can fail the
-# commit. What may not fail is this report — the checker above still
-# fails on a stale matrix.
+# commit. What may not fail is this report — the checks above still fail
+# on a stale matrix, dashboard or map.
 # Every staged file, not only the specification: a requirement owns the
 # files its `code` and `tests` fields name, and a commit that changes one of
 # those is exactly the moment this report exists for.
