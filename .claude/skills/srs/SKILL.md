@@ -11,7 +11,7 @@ Statements, titles and rationales are written in the lexicon of `specs/srs-confi
 
 ## A question about the system
 
-1. Read what the project says of itself: `specs/00-glossary.md`, `specs/01-introduction.md`, `specs/02-overview.md` — in its own words. A lookup by number needs a number nobody has handed you; a search finds the word you guessed.
+1. Read what the project says of itself: `specs/00-glossary.md`, `specs/01-introduction.md`, `specs/02-overview.md` — short, and in its own words. A lookup by number needs a number nobody has handed you; a search finds the word you guessed.
 2. Narrow: `python3 tools/srs_view.py --areas`, then `python3 tools/srs_view.py --list --area <AREA>`, then `python3 tools/srs_view.py <ID>`, then `--code <path>`.
 3. Where the specification does not say, name the rungs you walked — the area, the words, the paths. Where the question is undecided, `specs/91-open-issues.md` holds it; read an entry whole.
 
@@ -27,7 +27,7 @@ Statements, titles and rationales are written in the lexicon of `specs/srs-confi
 
 ## Two acts
 
-Authoring ends at the written requirement; building it is a separate act, started deliberately. This procedure is the second act; `srs-new` is the first. Sliding from one into the other leaves a specification that records only what shipped.
+Authoring ends at the written requirement; building it is a separate act, started deliberately, often by somebody else. This procedure is the second act; `srs-new` is the first. Sliding from one into the other leaves a specification that records only what shipped.
 
 ## Building a requirement
 
@@ -36,18 +36,18 @@ In from a file (above), or from an approved requirement nobody built: `python3 t
 1. The requirement still says what you are about to build. If not, you are authoring — stop, `srs-new`.
 2. The plan names requirements, not work — "fix the storage layer" is not a step — each cited at first mention from `--cite`; constitution articles `ART-*` by number. The plan may not conflict with `specs/constitution.md`.
 3. Code.
-4. Name what you chose: each decision the change made (*Workflow*, `specs/README.md`) goes to `specs/adr/`, or the report says none.
-5. Close the loop, in the same set of edits: re-read every named statement against what was built; what it does not describe is written in or taken out. A reworded statement passes the judgement `srs-new` gives a new one, and the same lookup — what else speaks to it, what points at it, the `FR-DOC-*` sections and the files in its `code` that restate it — and the finding is said before the edit. Then status per Lifecycle, `code` and `tests` with real paths, and every file named there says so back with `implements:` / `verifies:` above what carries it out, ended by `srs-end:` (Annotations, `specs/README.md`): the field is the specification's claim, the annotation is the file's.
+4. Name what you chose: where the requirement could have been met another way, the way taken goes to `specs/adr/` (*Workflow*, `specs/README.md`), or the report says none.
+5. Close the loop, in the same set of edits: re-read every named statement against what was built; what it does not describe is written in or taken out. A reworded statement passes the judgement `srs-new` gives a new one, against the qualities `specs/README.md` requires of a statement, and the same lookup — what else speaks to it, what points at it, the `FR-DOC-*` sections and the files in its `code` that restate it — and the finding is said before the edit. Then status per Lifecycle, `code` and `tests` with real paths, and every file named there says so back with `implements:` / `verifies:` above what carries it out, ended by `srs-end:` (Annotations, `specs/README.md`): the field is the specification's claim, the annotation is the file's. An open issue the change settles leaves `specs/91-open-issues.md`.
 6. `python3 tools/srs_check.py`, then the `srs-check` procedure: suites offered, inspections named.
 
-A fix that adds what the statement is silent about means the statement is wrong. A change naming no requirement means either no behaviour moved or a requirement is missing.
+A fix that adds what the statement is silent about means the statement is wrong. A change naming no requirement means no behaviour moved or a requirement is missing.
 
 ## Withdrawing a requirement
 
 `withdrawn` cancels with no successor; with one, it is `superseded` and the successor is named. Before the status changes:
 
 1. `python3 tools/srs_view.py <ID>` — the incoming links, grouped by field: `depends_on` loses its meaning, `derives_from` its reason, `refines` the rule it sharpened, `conflicts_with` nothing.
-2. Show the direct dependants in full, count what lies beyond; settle one level per decision.
+2. Show the direct dependants in full, count what lies beyond; settle one level per decision — each resolution acts on the direct dependants, and may be a withdrawal with a tree of its own.
 3. Settle each dependant with the maintainer — none is a default: do not withdraw; narrow; supersede; cascade, each dependant back through this section; re-parent; promote and reword; orphan deliberately, and say so; stage it — intent, dependants, withdrawal last.
 4. Set the status and say why in the rationale, its only home. The number stays dead.
 

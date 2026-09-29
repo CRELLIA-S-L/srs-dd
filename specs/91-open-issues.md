@@ -9,7 +9,7 @@ Entries are removed once the maintainer decides which side is right and the fix 
 **Found:** by the audit before baseline 0.20.0 (2026-09-24).
 
 **What diverged:** FR-SPEC-030 obliges a decision that chose an algorithm or a mechanism to describe it in words — its steps, the invariants it keeps, the inputs where it stops working — and says nothing of when the decision was written.
-Of the decisions under `specs/adr/`, only those written from 2026-09-24 on — ADR-0031, ADR-0033 and ADR-0034 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
+Of the decisions under `specs/adr/`, only those that chose a mechanism from 2026-09-24 on — ADR-0031, ADR-0033, ADR-0034 and ADR-0035 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
 
 **Why it is recorded rather than fixed:** a decision is the record of what was decided when it was decided, and adding a section to it afterwards changes that record; narrowing the statement to decisions written from now on is the other way out, and it is a change to what the requirement obliges.
 
@@ -46,23 +46,6 @@ A `withdrawn` requirement is deliberately outside the `unlinked` report (FR-CHK-
 Whatever is decided here, the two should agree: a requirement the checker has stopped asking about is a poor candidate for a lane of its own.
 
 **Decision needed:** draw every requirement and let the unlinked ones stand in their lane as islands, or keep the drawing to what has links and say so on the page next to the count of what was left out.
-
-## FR-INIT-060 carries two obligations under one number
-
-**Found:** while putting the standard into the precious bucket (2026-08-18).
-
-**What diverged:** the statement says the installer refreshes the tooling and the skills without a flag, *and* that files which may be the project's own are refreshed only with `--force` and only when marked.
-Two capabilities, one identifier, one `verification` field, one status.
-It reads as a single sentence because the second half is written as a `while` clause, which is a subordinate grammatical form doing the work of a second requirement.
-
-Nothing about this is new — the compound has stood since the requirement was written — but 0.14.0 added the standard to the second half, so the number now answers for one more thing than it did.
-0.16.0 did it again on 2026-09-08 with the architecture standard: the second half now enumerates seven kinds of file against the first half's tooling and skills, under one identifier, one status and one `tests` field.
-
-The cost is not tidiness.
-A test proving the first half says nothing about the second, and the status is a single word for both: `implemented` was true of this requirement while its second half had a gap the size of the standard, which is exactly how that gap survived to 0.14.0 unseen.
-It happened again: until 0.21.0 an upgrade run through `tools/srs_upgrade.py` never reached the CI configuration, `--force` or not, while the requirement stood `implemented` and its suite passed — the fixture passed `--ci`, which the command a project runs cannot.
-
-**Decision needed:** split it into two requirements — the second one taking a new number, since identifiers are never reused — or leave the compound and accept that its status and its tests speak for two behaviours at once.
 
 ## Calibration is built at a fraction of what the concept describes
 

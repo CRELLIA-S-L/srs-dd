@@ -112,12 +112,12 @@ def load_config():
     cfg["rules"] = rules
     # implements: FR-ARCH-240
     mode = raw.get("requirements", "written")
-    # srs-end: FR-ARCH-240
     if mode not in MODES:
         return None, ("arch/arch-config.json: `requirements` is %r, expected %s"
                       % (mode, "/".join(MODES)))
     cfg["requirements"] = mode
     return cfg, None
+    # srs-end: FR-ARCH-240
 # srs-end: FR-ARCH-090
 
 
@@ -642,7 +642,6 @@ def check_conformance(records, edges, warnings, reports, cfg):
     # An end no single live element carries resolves to nothing and the edge is left alone, as an
     # import that resolves to no carried module is: the rule speaks only about what it can prove.
     owners = live_carriers(records)
-    # srs-end: FR-ARCH-260
     for source, target_path, via in edges:
         element, target = element_of(source, owners), element_of(target_path, owners)
         if element is None or target is None:
@@ -652,6 +651,7 @@ def check_conformance(records, edges, warnings, reports, cfg):
                          "%s — uses %s, carried by %s, and %s does not declare it%s"
                          % (source, target_path, target, element,
                             " (%s)" % via if via else ""))
+    # srs-end: FR-ARCH-260
 # srs-end: FR-ARCH-200, FR-ARCH-260
 
 

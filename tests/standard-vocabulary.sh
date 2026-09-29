@@ -155,7 +155,7 @@ def precious_place(path, start, stop):
 
 
 PLACES = (
-    ("specs/10-fr-init.md, FR-INIT-060", "specs/10-fr-init.md", "while files that may be the project's own", "are refreshed only"),
+    ("specs/10-fr-init.md, FR-INIT-060", "specs/10-fr-init.md", "refresh the files that may be the project's own", "only with `--force`"),
     ("specs/00-glossary.md", "specs/00-glossary.md", "| Precious file |", None),
     ("docs/install.md", "docs/install.md", "CI config, `CLAUDE.md`", "are \"precious\""),
     ("docs/upgrade.md", "docs/upgrade.md", "Left alone: CI configuration", "files that may be your own"),

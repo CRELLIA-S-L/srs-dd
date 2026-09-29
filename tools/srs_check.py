@@ -510,9 +510,9 @@ def validate(requirements):
         # symptom and hides the cause.
         # implements: FR-CHK-170
         missing = set(key for key in REQUIRED_FIELDS if key not in req.meta)
-        # srs-end: FR-CHK-170
         for key in sorted(missing):
             errors.append("%s — required key %r is missing" % (req.where, key))
+        # srs-end: FR-CHK-170
 
         status = req.meta.get("status", "")
         if "status" not in missing and status not in STATUSES:
@@ -535,7 +535,6 @@ def validate(requirements):
             # and is out of reach here, which is why the invariant is
             # inspected rather than tested and does not name this file.
             found = len(RE_MODAL.findall(req.statement))
-            # srs-end: FR-CHK-020
             if found == 0:
                 errors.append("%s — no bolded modal verb from the lexicon (%s)"
                               % (req.where, " / ".join(CFG["modal_verbs"])))
@@ -543,16 +542,17 @@ def validate(requirements):
                 errors.append("%s — %d modal verbs, expected one: "
                               "this is two requirements, split them"
                               % (req.where, found))
+            # srs-end: FR-CHK-020
 
         # Both statuses the standard defines as being realized oblige the
         # code field: they differ by how much is built, not by whether
         # anything is — `deferred` is the state for approved and not begun.
         # implements: FR-CHK-050
         code = req.meta.get("code", [])
-        # srs-end: FR-CHK-050
         if status in ("implemented", "partial") and not code:
             errors.append("%s — status %s but the code field is empty"
                           % (req.where, status))
+        # srs-end: FR-CHK-050
 
         # Implementation ahead of approval.
         # implements: FR-CHK-070
@@ -574,13 +574,13 @@ def validate(requirements):
         # Replacement for superseded requirements.
         # implements: FR-CHK-060, INV-SPEC-050
         replacement = req.meta.get("superseded_by", "")
-        # srs-end: FR-CHK-060, INV-SPEC-050
         if status == "superseded" and not replacement:
             errors.append("%s — status superseded without superseded_by"
                           % req.where)
         if replacement and status != "superseded":
             errors.append("%s — superseded_by present but status is %r"
                           % (req.where, status))
+        # srs-end: FR-CHK-060, INV-SPEC-050
 
     # implements: FR-CHK-030, FR-CHK-075, FR-CHK-190
     # Dangling links; approved-or-better requirements resting on drafts.
@@ -643,7 +643,6 @@ def validate(requirements):
     # was left out.
     # implements: FR-CHK-150
     touched = set()
-    # srs-end: FR-CHK-150
     for req in requirements:
         for field in LINK_FIELDS:
             for target in req.meta.get(field, []):
@@ -660,6 +659,7 @@ def validate(requirements):
             rule_finding(warnings, reports, "unlinked",
                          "%s — %s is linked to nothing, and nothing links "
                          "to it" % (req.where, req.id), req)
+    # srs-end: FR-CHK-150
 
     for cycle, fields in find_cycles(requirements, CYCLE_FIELDS):
         errors.append("cycle in %s links: %s"
@@ -1112,12 +1112,12 @@ def build_traceability(requirements):
     # The reverse of every link is computed here and stored nowhere:
     # a specification records one direction, and this is the other.
     incoming = {}
-    # srs-end: INV-SPEC-020
     for req in requirements:
         for field in LINK_FIELDS:
             for target in req.links(field):
                 if target in by_id:
                     incoming.setdefault(target, []).append((field, req.id))
+    # srs-end: INV-SPEC-020
 
     lines = []
     lines.append("# Traceability matrix")
@@ -1194,7 +1194,6 @@ def build_traceability(requirements):
     # unclaimed-file rule takes above and the viewer's gap list takes in
     # tools/srs_view.py, so that all three answer one question the same way.
     covered = set()
-    # srs-end: FR-CHK-230
     for req in requirements:
         if req.meta.get("status") in CANCELLED:
             continue
@@ -1208,6 +1207,7 @@ def build_traceability(requirements):
     for path in orphans:
         lines.append("- `%s`" % path)
     lines.append("")
+    # srs-end: FR-CHK-230
 
     return "\n".join(lines) + "\n"
 # srs-end: CON-SPEC-010

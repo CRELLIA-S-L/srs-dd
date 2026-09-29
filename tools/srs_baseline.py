@@ -98,11 +98,11 @@ def main():
     # away and kept.
     # implements: FR-SPEC-060
     command = [sys.executable, CHECKER] + (["--no-write"] if args.dry_run else [])
-    # srs-end: FR-SPEC-060
     probe = subprocess.Popen(command, cwd=ROOT,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
     output = probe.communicate()[0].decode("utf-8", "replace")
+    # srs-end: FR-SPEC-060
     if probe.returncode != 0:
         return fail("the checker does not pass; nothing was written\n%s"
                     % output.rstrip())
@@ -119,9 +119,11 @@ def main():
     logged = logged.replace("\n" + EMPTY_NOTE, "\n", 1)
 
     sys.stdout.write("  %s\n" % row.strip())
+    # implements: FR-SPEC-060
     if args.dry_run:
         sys.stdout.write("\nDry run: nothing was written.\n")
         return 0
+    # srs-end: FR-SPEC-060
     write(BASELINES, logged)
 
     files = [relative(BASELINES)]

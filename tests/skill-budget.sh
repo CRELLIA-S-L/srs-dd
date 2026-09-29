@@ -20,7 +20,10 @@ cd "$(dirname "$0")/.."
 #               session. 2 950 was where the longest procedure stood on
 #               2026-09-19 (`srs`, 2 902 words); 1 300 is where the longest
 #               stands since the five longest were rewritten on 2026-09-20
-#               (`srs-init`, 1 250); the number falls with it.
+#               (`srs-init`, 1 250); the number falls with it. 1 350 since
+#               2026-09-29: passages cut from `srs` to stay under 1 300 had
+#               taken criteria and reasons with them, and were put back
+#               (1 344), which the maintainer chose over cutting others.
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
@@ -45,9 +48,11 @@ cd "$(dirname "$0")/.."
 #               since 2026-09-24, when the shipped guide gained the date
 #               command and the two optional layers and this repository's
 #               had to carry them too (1 575), ADR-0030's note says why.
-OWN=1300
+#               1 650 since 2026-09-29, for the reason OWN rose: passages
+#               cut to fit were put back (1 639).
+OWN=1350
 TRANSITIVE=7000
-GUIDE=1600
+GUIDE=1650
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

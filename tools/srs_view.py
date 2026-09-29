@@ -205,12 +205,12 @@ def build_model(requirements, problems, with_code_scan=True):
     # of the gap list, and the two tools would describe one file
     # differently in the same run.
     covered = set()
-    # srs-end: FR-VIEW-040
     for entry in entries:
         if entry["status"] in srs_check.CANCELLED:
             continue
         covered.update(entry["code"])
     all_code = srs_check.collect_code_files() if with_code_scan else set()
+    # srs-end: FR-VIEW-040
 
     return {
         "outlived": outlived(entries, with_code_scan),
@@ -2341,7 +2341,6 @@ def render_dashboard(model, links):
     # computes this, and a local shadowing it here is how somebody later
     # calls the dict.
     left = model["outlived"]
-    # srs-end: FR-VIEW-210
     parts = []
     for item in left["links"]:
         parts.append('<li><a href="#%s">%s</a> %s — <code>%s</code> '
@@ -2361,6 +2360,7 @@ def render_dashboard(model, links):
     outlived_html = ("<p>Cancelling is the one edit whose consequences "
                      "outlive it.</p><ul>%s</ul>" % "".join(parts)
                      if parts else "<p>None.</p>")
+    # srs-end: FR-VIEW-210
 
     return ("<h2>Status</h2><table><tr><th>Status</th><th>Requirements</th>"
             "</tr>%s</table>"
@@ -3129,7 +3129,6 @@ def parse_args(argv):
     # agent chaining calls, a person at the terminal — knows what to do
     # next without a second attempt.
     args, extra = parser.parse_known_args(argv)
-    # srs-end: FR-VIEW-010
     if extra:
         # implements: INV-SPEC-080
         stray = [a for a in extra if re.match(r"^[A-Z]+-[A-Z0-9]+-%s$" % srs_parse.NUMBER, a)]
@@ -3141,6 +3140,7 @@ def parse_args(argv):
                            " ".join([args.requirement] + stray)))
         parser.error("unrecognized arguments: %s" % " ".join(extra))
     return args
+    # srs-end: FR-VIEW-010
 
 
 def main(argv=None):
@@ -3207,7 +3207,6 @@ def main(argv=None):
         if args.svg is not None:
             # implements: FR-VIEW-340
             chosen = select(model, args)
-            # srs-end: FR-VIEW-340
             if args.around:
                 chosen = neighbourhood(model, chosen)
             image = graph_image(dict(model, requirements=chosen))
@@ -3220,6 +3219,7 @@ def main(argv=None):
                 handle.write(image)
             out("Graph written: %s (%d requirements)" % (args.svg, len(chosen)))
             return 0
+            # srs-end: FR-VIEW-340
         if args.json is not None:
             payload = dict(model)
             if diff:

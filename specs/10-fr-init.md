@@ -98,7 +98,7 @@ If the target holds markdown under `specs/` but no requirement the strict identi
 
 **Rationale.** Going fresh over somebody's documentation directory would scatter our skeleton through files that only look like a specification.
 
-### FR-INIT-060 — Upgrades refresh the tooling and nothing precious
+### FR-INIT-060 — An upgrade refreshes what may be the project's own only on request
 
 ```yaml
 status: implemented
@@ -112,15 +112,14 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When run against an initialized target, the installer **shall** refresh the tooling and the skills without a flag, while files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — are refreshed only with `--force` and only when they carry the SRS-DD marker.
+When run against an initialized target, the installer **shall** refresh the files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — only with `--force` and only when they carry the SRS-DD marker.
 
-**Rationale.** Tooling has to move with the framework or targets drift;
-everything a maintainer has edited must not, and the marker is how we tell a file we installed from one they wrote.
+**Rationale.** Everything a maintainer may have edited must not move with the framework unasked, and the marker is how we tell a file we installed from one they wrote; the tooling moves without asking, under `FR-INIT-270`.
 
-The standard was in neither list until 0.14.0, so it was installed once and never moved again: a project set up at 0.7.0 and upgraded since ran the current checker and the current skills against a standard 112 lines out of date.
+The standard was in neither list — the one refreshed without a flag, now `FR-INIT-270`'s, nor this one — until 0.14.0, so it was installed once and never moved again: a project set up at 0.7.0 and upgraded since ran the current checker and the current skills against a standard 112 lines out of date.
 That is worse than a stale CI file, because `CON-SPEC-020` lets a shipped procedure cite the standard's sections by name on the grounds that it is the same document in every project — a claim nothing maintained.
 
-It joins the second list rather than the first because adopt deliberately keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing without a flag would undo that at the first upgrade.
+It joins this list rather than `FR-INIT-270`'s because adopt deliberately keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing without a flag would undo that at the first upgrade.
 Since 2026-09-21 adopt sets that file aside and installs the standard in its place (`FR-INIT-230`), so a project adopted after that holds a standard with the marker and `--force` reaches it like any other; the standard stays in this list because the marker in it promises a maintainer that local edits survive until asked for.
 `grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
 `arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
@@ -134,6 +133,9 @@ The marker carries the framework version — `SRS-DD-0.14.0`, matched as a patte
 A project that adopted the framework and wrote "we follow the SRS-DD standard" in its own `specs/README.md` would otherwise be told its document is ours and have it replaced.
 
 The statement named the checker, the viewer and the skills while the installer refreshed every tool it ships, and it said the CI configuration is refreshed with `--force` while an upgrade refreshed it only when `--ci` was passed — which `tools/srs_upgrade.py`, the command a project runs, has no way to pass, so `--force` there never reached the pipeline at all. On 2026-09-24 the statement was brought to the tooling it covers, and the upgrade finds the template the project already carries as ours and treats it like every other file here.
+
+**Split on 2026-09-29.** Until then this number also carried the refresh of the tooling and the skills without a flag, in a `while` clause the checker's rule for glued requirements does not see, under one status and one `tests` field.
+Twice a gap in this half stood under the status of the other — the standard missing from both lists until 0.14.0, the CI configuration unreachable from `tools/srs_upgrade.py` until 0.21.0 — and the refresh of the tooling moved to `FR-INIT-270`.
 
 ### FR-INIT-070 — A dry run writes nothing and tells the truth
 
@@ -212,7 +214,7 @@ If the target lies inside this repository, the installer **shall** refuse before
 ```yaml
 status: implemented
 verification: I
-derives_from: [FR-INIT-060]
+derives_from: [FR-INIT-060, FR-INIT-270]
 depends_on: []
 refines: []
 conflicts_with: []
@@ -230,7 +232,7 @@ When upgrading, the installer **shall** print the version transition and the upg
 ```yaml
 status: implemented
 verification: T
-derives_from: [FR-INIT-060]
+derives_from: [FR-INIT-060, FR-INIT-270]
 depends_on: [FR-INIT-140]
 refines: []
 conflicts_with: []
@@ -385,7 +387,7 @@ An annotation carrying `srs-ignore` is left alone, because that is how the stand
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-INIT-060]
+depends_on: [FR-INIT-270]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
@@ -567,3 +569,24 @@ When the installer copies a tool into a project, it **shall** take out each cita
 **Rationale.** The shipped tooling's comments cited this repository's decisions by number — seventeen of them on 2026-09-25 — and in a project `ADR-0009` points at nothing, or at the project's own ninth decision, the harm `CON-SPEC-020` names for a requirement's identifier.
 The numbers are useful here, to whoever edits the tooling beside the decisions they cite, so they stay in the source and go on the way out, the way annotations do (`FR-INIT-180`, ADR-0022); the procedures and the standards, which are read rather than edited, state the reason instead of the number.
 A citation is taken out where it stands in brackets after its sentence, which is how every one in the tooling is written; the suite scans the installed target for any number at all, so one written some other way is red rather than shipped.
+
+### FR-INIT-270 — An upgrade refreshes the tooling and the skills without a flag
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-29
+```
+
+When run against an initialized target, the installer **shall** refresh the tooling and the skills it ships to that project without a flag.
+
+**Rationale.** Tooling has to move with the framework or targets drift; everything a maintainer may have edited must not, and `FR-INIT-060` is the other half of that sentence.
+Split out of it on 2026-09-29, where the two shared a number, a status and a test, and a gap in one stood twice under the status of the other.
+Nothing moved between the two lists when they were split: the tooling and the skills were refreshed without a flag before, and the files that may be the project's own were refreshed only with `--force`.
+"It ships to that project": the register's checker and procedure travel only where the project keeps a register, and the layer's only where it keeps the layer.

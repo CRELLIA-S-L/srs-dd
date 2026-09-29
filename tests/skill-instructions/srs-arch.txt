@@ -13,6 +13,7 @@ tools/srs_view.py --code
 # decisions — none since 2026-09-25: a decision's number points at nothing,
 # or at the project's own decision, in a project the procedure is installed
 # into (ART-070), so the procedure states the reason instead of the number.
+twenty-five edges against seven real ones
 
 # files
 AGENTS.md

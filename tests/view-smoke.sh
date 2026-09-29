@@ -1708,14 +1708,20 @@ import re
 def out(n):
     return open("/tmp/srs-reg-%s.out" % n, encoding="utf-8").read().split("\n")
 def region(n, header):
+    """The line numbers under a header, each checked against the file: the
+    text printed beside a number is that line of the file, as it has it."""
     lines = out(n)
+    path = header.split(":", 1)[0]
+    source = open("/tmp/srs-view-regions/" + path, encoding="utf-8").read().split("\n")
     for i, line in enumerate(lines):
         if line == header:
             body = []
             for l in lines[i + 1:]:
                 if not l.strip():
                     break
-                body.append(int(l.split()[0]))
+                m = re.match(r"^  +(\d+)  (.*)$", l)
+                assert m and m.group(2) == source[int(m.group(1)) - 1], (header, l)
+                body.append(int(m.group(1)))
             return body
     raise AssertionError("no header %r in %s" % (header, lines[:3]))
 # FR-VIEW-380: the end marker ends a block; the block inside belongs to it.
@@ -1764,6 +1770,8 @@ line src/Cart.swift:21; has FR-CORE-060 "a line of a region no marker ends"; has
 line src/config.yaml:65; has FR-CORE-090 "a line past the bound of a file annotation"; has "is in no region; the file carries these as a whole" "a line past the bound of a file annotation"
 echo "view-smoke: a line is answered from the narrowest region holding it, or else from the file, and a region no marker ends is said so"
 # Without --source only the locations print; twice, the same bytes.
+grep -q "def first" /tmp/srs-source.out \
+    || { echo "FR-VIEW-380 — --source did not print the code under the annotation"; exit 1; }
 absent "def first" /tmp/srs-where.out
 ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source-again.out
 cmp -s /tmp/srs-source.out /tmp/srs-source-again.out || { echo "--where --source is not deterministic"; exit 1; }

@@ -50,11 +50,11 @@ def identifier_pattern(areas):
     area = "|".join(re.escape(a) for a in areas)
     # implements: INV-SPEC-080
     number = srs_parse.NUMBER
-    # srs-end: INV-SPEC-080
     core = r"(?:FR|NFR|IF|INV|CON)-(?:%s)-%s|ADR-\d{4}|[EHBUIF]-%s" % (area, number, number)
     mention = re.compile(r"\b(%s)\b" % core)
     span = re.compile(SPAN.replace("ID", core))
     return mention, span
+    # srs-end: INV-SPEC-080
 
 
 def citations(ids):

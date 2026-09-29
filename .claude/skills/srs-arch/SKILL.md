@@ -34,7 +34,7 @@ An element is a decision, not a description of the directory tree.
 1. **Name what it is responsible for in one sentence.** An "and" in it is two parts, or one with a name nobody has found yet.
 2. **List its files.** A directory in `carries` owns everything under it. Carriers are not only code — a standard, a procedure, a CI template, a payload.
 3. **List the requirements it carries**, from what the specification says realizes those files: `python3 tools/srs_view.py --code <path>`. Where the layer's configuration says the requirements are derived, skip this: the checker counts as carried what the part owns, and the list is on the map; write `requirements:` only for an obligation the part answers for without owning its files, and say so in the rationale — the map marks the entry as written.
-4. **Declare its dependencies** where they are real. `depends_on` is the model a person writes, not derived from the links between requirements — derived that way it was measured at twenty-five edges against seven real ones. The checker reads only Python by itself; for any other language the project lists its edges in `arch/edges.json`, or the model has nothing that ever disagrees with it.
+4. **Declare its dependencies** where they are real. `depends_on` is the model a person writes, not derived from the links between requirements — derived that way on the framework's own code it gave twenty-five edges against seven real ones. The checker reads only Python by itself; for any other language the project lists its edges in `arch/edges.json`, or the model has nothing that ever disagrees with it.
 
 Every choice that could have gone another way goes into an ADR in `specs/adr/`: the layer records the cut, the ADR why this cut and not the neighbouring one.
 

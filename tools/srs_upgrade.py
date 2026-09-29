@@ -93,12 +93,12 @@ def main():
                         help="with --grounds yes: the calendar unit the "
                              "register's dashboard counts arrivals in "
                              "(default quarter)")
-    # srs-end: FR-GND-290, FR-GND-480
     parser.add_argument("--grounds", choices=("yes", "no"), default=None,
                         help="add the grounds register to this project, or "
                              "say no. Left out, an upgrade refreshes a "
                              "register that is already here and installs "
                              "none where there is not")
+    # srs-end: FR-GND-290, FR-GND-480
     parser.add_argument("--arch", choices=("yes", "no"), default=None,
                         help="add the architecture layer to this project, or "
                              "say no. The same promise the register makes: "

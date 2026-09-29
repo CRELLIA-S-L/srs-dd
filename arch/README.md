@@ -80,7 +80,7 @@ A key that is neither required nor optional here is not an error — that tolera
 A requirement's `code` field names whatever realizes it — a standard, a procedure, a CI template, a template shipped to somebody else — and the part that owns those files is a part like any other.
 
 `depends_on` is the declared model, and it is written by a person.
-It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected: twenty-five edges against the seven the code has.
+It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected: on the framework's own nine Python modules it gave twenty-five edges against the seven their imports have.
 
 What the code says is compared with it, one way round: a dependency the code has and the model does not declare is reported under `dependency-undeclared`; a declared dependency nothing in the code walks is not, because no reading of the code is complete enough to refute the author.
 The checker reads one language itself — Python, by its imports.

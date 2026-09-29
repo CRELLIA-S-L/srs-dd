@@ -131,9 +131,11 @@ def main():
     plan = ["CHANGELOG.md      dated %s" % date,
             "tools/srs_parse.py __version__ -> %s" % version]
     sys.stdout.write("\n".join("  " + line for line in plan) + "\n")
+    # implements: FR-CI-140
     if args.dry_run:
         sys.stdout.write("\nDry run: nothing was written.\n")
         return 0
+    # srs-end: FR-CI-140
 
     write(CHANGELOG, dated)
     write(VERSION_HOME, bumped)

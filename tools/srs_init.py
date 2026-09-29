@@ -480,6 +480,7 @@ class Installer(object):
         dst = os.path.join(self.target, dst_rel)
         exists = os.path.exists(dst) and dst_rel not in self.vacated
         if exists:
+            # implements: FR-INIT-060
             if precious:
                 ours = self.carries_marker(dst_rel)
                 if self.force and ours:
@@ -494,8 +495,11 @@ class Installer(object):
                                   "use --force to refresh")
                     self.skipped.append("%s (%s)" % (dst_rel, reason))
                     return
+            # srs-end: FR-INIT-060
+            # implements: FR-INIT-270
             elif tooling and (self.force or self.refresh_tooling):
                 self.refreshed.append(dst_rel)
+            # srs-end: FR-INIT-270
             else:
                 reason = ("use --force to refresh" if tooling
                           else "specification content, never overwritten")
@@ -1241,27 +1245,26 @@ def collect_settings(args, batch, area_default):
     grounds = args.grounds or ("no" if batch else ask(
         "Keep a grounds register — the hypotheses the requirements rest "
         "on? (yes/no)", "no", batch))
-    # srs-end: FR-GND-280
     if grounds not in ("yes", "no"):
         sys.stderr.write("Unknown answer %r for the grounds register.\n"
                          % grounds)
         return None
     settings["grounds"] = grounds == "yes"
+    # srs-end: FR-GND-280
     # implements: FR-ARCH-120
     arch = args.arch or ("no" if batch else ask(
         "Keep an architecture layer — the parts the system is made of? "
         "(yes/no)", "no", batch))
-    # srs-end: FR-ARCH-120
     if arch not in ("yes", "no"):
         sys.stderr.write("Unknown answer %r for the architecture layer.\n"
                          % arch)
         return None
     settings["arch"] = arch == "yes"
+    # srs-end: FR-ARCH-120
     # implements: FR-GND-480
     # What counts as "lately" is the project's rhythm, and the dashboard
     # counts arrivals in it. Asked only where the register is wanted.
     period = args.period
-    # srs-end: FR-GND-480
     if settings["grounds"] and not period:
         period = "quarter" if batch else ask(
             "Count unclaimed arrivals by (month/quarter/year)", "quarter",
@@ -1277,13 +1280,13 @@ def collect_settings(args, batch, area_default):
             "Note: --period sets the grounds dashboard's calendar unit and "
             "this install takes no register, so it has nothing to set.\n")
     settings["period"] = period or "quarter"
+    # srs-end: FR-GND-480
 
     # implements: FR-INIT-210
     # Taken as given. Which file a project states this in differs by
     # toolchain, and reading them is the install procedure's job
     # (FR-SKILL-190) — a heuristic here would be wrong quietly.
     width = args.line_width
-    # srs-end: FR-INIT-210
     if width is not None:
         try:
             width = int(width)
@@ -1295,6 +1298,7 @@ def collect_settings(args, batch, area_default):
             return None
     settings["line_width"] = width
     return settings
+    # srs-end: FR-INIT-210
 # srs-end: FR-INIT-090
 
 
@@ -1666,7 +1670,7 @@ def run_adopt(args, target, batch, found_areas):
 # srs-end: FR-INIT-030, FR-INIT-050
 
 
-# implements: FR-INIT-060
+# implements: FR-INIT-060, FR-INIT-270
 def run_upgrade(args, target):
     installer = Installer(target, args.force, refresh_tooling=True,
                           dry_run=args.dry_run)
@@ -1691,9 +1695,9 @@ def run_upgrade(args, target):
     # The upgrader owns the command; the three things it shows before
     # anything is written are printed from here.
     show_all = print_version_transition(old_version)
-    # srs-end: FR-INIT-130
     print_whats_new(old_version, show_all)
     print_upgrade_notes(old_version, show_all)
+    # srs-end: FR-INIT-130
 
     install_tools(installer)
     installer.copy(".gitattributes", ".gitattributes", tooling=True,

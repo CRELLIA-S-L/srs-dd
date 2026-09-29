@@ -211,7 +211,6 @@ def load_config():
     # appetite, so the map is the project's and the format only says it
     # exists. A grade absent from it permits anything.
     grades = raw.get("grades", {})
-    # srs-end: FR-GND-170
     if not isinstance(grades, dict):
         _config_fail("grades must be an object of grade to permitted actions")
     for grade, actions in sorted(grades.items()):
@@ -223,18 +222,19 @@ def load_config():
             _config_fail("grade %r: permitted actions must be a list of "
                          "non-empty strings" % grade)
     cfg["grades"] = grades
+    # srs-end: FR-GND-170
     period = raw.get("period", DEFAULTS["period"])
     if period not in PERIODS:
         _config_fail("period must be one of %s" % ", ".join(PERIODS))
     cfg["period"] = period
     # implements: FR-GND-490
     confidence = raw.get("confidence", DEFAULTS["confidence"])
-    # srs-end: FR-GND-490
     if confidence not in CONFIDENCES:
         _config_fail("confidence must be one of %s"
                      % ", ".join(str(c) for c in CONFIDENCES))
     cfg["confidence"] = confidence
     return cfg
+    # srs-end: FR-GND-490
 # srs-end: FR-GND-110
 
 
@@ -828,7 +828,6 @@ def validate(records, model, model_error, cfg):
         # verdict would stop being a matter of opinion. A verdict left free
         # to disagree with it gives that back.
         threshold = RE_THRESHOLD.match(rec.fields.get("refuted_if") or "")
-        # srs-end: FR-GND-140, FR-GND-150
         if threshold and threshold.group(1) not in TESTABLE_KINDS \
                 and rec.fields.get("class") == "I":
             rule_finding(warnings, reports, cfg, "class-untestable",
@@ -873,13 +872,14 @@ def validate(records, model, model_error, cfg):
             # miss is not computed, and the verdict is the reader's, who is named.
             owed, why = verdict_owed(threshold, value, sample, cfg,
                                      interval=rec.fields.get("class") != "III")
-            # srs-end: FR-GND-550
             if owed is not None and owed != verdict:
                 errors.append(
                     "%s — %s calls the measurement of %s %r against "
                     "refuted_if %r, and %s, so the verdict it compels is %r"
                     % (rec.where, hid, date, verdict,
                        rec.fields["refuted_if"], why, owed))
+            # srs-end: FR-GND-550
+        # srs-end: FR-GND-140, FR-GND-150
 
         # Forty thousand in a cohort and a dozen conversations both end in
         # the word `supported`, and only for the second is the word
@@ -1020,8 +1020,10 @@ def validate(records, model, model_error, cfg):
             continue
         if active(rec):
             by_requirement.setdefault(req, []).append(rid)
+            # implements: FR-GND-100
             if stakes(rec):
                 staking.setdefault(req, []).append(rid)
+            # srs-end: FR-GND-100
         if model is None:
             continue
         target = model.get(req)
@@ -1069,6 +1071,7 @@ def validate(records, model, model_error, cfg):
                          % (records[names[0]].where, req, ", ".join(names)))
     # srs-end: INV-SPEC-090
 
+    # implements: FR-GND-100
     # A declaration retires itself when a real bet turns up.
     for rid in sorted(decls, key=srs_parse.id_key):
         rec = decls[rid]
@@ -1080,6 +1083,7 @@ def validate(records, model, model_error, cfg):
                          "%s — %s declares %s unclaimed, and %s names it"
                          % (rec.where, rid, req,
                             ", ".join(sorted(staking[req], key=srs_parse.id_key))))
+    # srs-end: FR-GND-100
 
     check_history(records, cfg, warnings, reports)
 
@@ -1205,7 +1209,6 @@ def build_dashboard(records, model, incoming, cfg):
 
     # implements: FR-GND-250
     out += ["## What each frame has refused", ""]
-    # srs-end: FR-GND-250
     if kinds["F"]:
         for fid in kinds["F"]:
             rec = records[fid]
@@ -1224,10 +1227,10 @@ def build_dashboard(records, model, incoming, cfg):
             out.append("")
     else:
         out += ["No frames are recorded.", ""]
+    # srs-end: FR-GND-250
 
     # implements: FR-GND-210
     out += ["## Verdicts a later measurement reversed", ""]
-    # srs-end: FR-GND-210
     given, turned = reversals(records)
     if given:
         out += ["| who | verdicts | reversed |", "|---|---|---|"]
@@ -1243,6 +1246,7 @@ def build_dashboard(records, model, incoming, cfg):
                 ""]
     else:
         out += ["No verdicts are recorded.", ""]
+    # srs-end: FR-GND-210
 
     out += ["## The debt", ""]
     if model is None:
@@ -1302,8 +1306,6 @@ def build_dashboard(records, model, incoming, cfg):
     out += ["## Requirements that arrived standing on nothing", "",
             "Counted by %s, which is what `period` says in the register's "
             "configuration." % cfg["period"], ""]
-    # srs-end: FR-GND-230
-    # srs-end: INV-GND-030
     if model is None:
         out += ["The requirement model could not be read, so this is not a "
                 "reading of none.", ""]
@@ -1337,6 +1339,8 @@ def build_dashboard(records, model, incoming, cfg):
             out += ["%d of them carry no `created` date and fall in no "
                     "period. `tools/srs_dates.py` writes one from the "
                     "history." % undated, ""]
+    # srs-end: FR-GND-230
+    # srs-end: INV-GND-030
 
     out += ["## Requirements resting on no hypothesis", ""]
     if model is None:
@@ -1359,9 +1363,9 @@ def build_dashboard(records, model, incoming, cfg):
             # kept stands on nothing.
             links = len([1 for _field, other in incoming.get(req, [])
                          if other in model and live(model[other])])
-            # srs-end: FR-GND-220
             files = len(model[req].get("code", []))
             rows.append((links + files, links, files, req))
+            # srs-end: FR-GND-220
         out += ["%d of %d requirements. Weight is what stands on them: how "
                 "many" % (len(rows), len(standing)),
                 "requirements link to them, plus how many files their `code` "

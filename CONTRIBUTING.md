@@ -8,7 +8,7 @@ After cloning, point git at the repository's hooks:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook first prints the bets the staged files touch, as the hook a target gets does, then runs `tools/ci_selftest.sh`: a YAML parse of the pipeline and of the templates shipped to target projects, then every suite in `tests/`, the specification gate and the installer smoke among them, each followed by a check that it left the git index it was handed as it found it.
+The pre-commit hook first prints the bets the staged files touch, as the hook a target gets does, then runs `tools/ci_selftest.sh`: a YAML parse of the pipeline and of the templates shipped to target projects, then every suite in `tests/`, the specification gate and the installer smoke among them, each but the specification gate followed by a check that it left the git index it was handed as it found it — that gate stages the matrix on purpose.
 The parse goes first because a suite fails routinely on a matrix that has been regenerated but not staged, and that must not hide a broken template.
 
 These are the same scripts `.github/workflows/srs.yml` runs, one step each, and `tests/pipeline-suites.sh` holds that list of steps to the directory, so the local gate and CI cannot drift apart; any suite can also be run on its own:

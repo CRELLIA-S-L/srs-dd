@@ -1052,3 +1052,24 @@ Nothing in the framework said so until 2026-09-25, when a check of this reposito
 Both files, because they reach different readers: the constitution binds the work, and the guide is what an agent reads first; the guide names the article so that the two cannot drift apart.
 The kinds are named rather than left to "sensitive", because a word a reader has to interpret is one a reader interprets their own way; personal data stops at what the authors chose to publish, so that an author's name in a commit is not a breach.
 Tested rather than inspected, because a rule that lives only in text is the kind a measured agent follows least, and the least the framework can do is keep the text from disappearing.
+
+### FR-SKILL-400 — Closing a change removes the open issue it settles
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-SKILL-370]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md, specs/README.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-29
+```
+
+The everyday procedure **shall** have the closing of a change remove from `specs/91-open-issues.md` the entry of an open issue that change settles.
+
+**Rationale.** The file's own header says an entry is removed once the maintainer decides and the fix lands, and until 2026-09-29 nothing else said so: the procedures named the file four times, each time to add to it or to read an entry, and the closing step listed everything a change closes but this.
+An agent that opens the file whole reads the rule in its first lines; one that reads it by ranges, as an agent deep in a long session does to spare its context, never does — the agent that split `FR-INIT-060` that day read the entry with `sed -n 50,66p`, marked the issue decided and kept it, copying two neighbours that stay for reasons of their own.
+Replayed on a fresh agent with the same task, the file was read with `cat` in the third call and the entry removed, so the difference was the reading, and the fix puts the rule where every agent has it whatever it reads: in the procedure, loaded whole at the start of the work, and in the standard's table of files.
+Tested by the procedure's list of what it must name, so a cut that drops the sentence is red.

@@ -83,7 +83,7 @@ first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh-steps.log | head -
     || { echo "FAIL FR-INIT-150 — the agent procedures do not come before the placeholder step"; cat /tmp/fresh-steps.log; exit 1; }
 
 # srs-end: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
-# verifies: FR-INIT-060
+# verifies: FR-INIT-060, FR-INIT-270
 # Re-running on an initialized target = upgrade mode; the checker and
 # skills must refresh WITHOUT --force, precious files must be skipped.
 # The stub proves upgrades deliver skill content (the fresh install above
