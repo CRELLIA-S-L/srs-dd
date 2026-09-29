@@ -32,7 +32,7 @@ import srs_check                                            # noqa: E402
 import srs_parse                                            # noqa: E402
 
 ROOT = srs_check.ROOT
-RE_ADDED = re.compile(r"^\+### ([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+)\s")
+RE_ADDED = re.compile(r"^\+### ([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9_]*-\d+)\s")   # implements: IF-SPEC-040
 RE_HEADING = srs_check.RE_HEADING
 RE_FENCE_OPEN = re.compile(r"^\s*```+\s*yaml\s*$")
 RE_FENCE_CLOSE = re.compile(r"^\s*```+\s*$")

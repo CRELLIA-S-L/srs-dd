@@ -244,7 +244,7 @@ The checker **shall** take the modal verbs, negation words and rationale markers
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-CHK-090]
+depends_on: [FR-CHK-090, IF-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
@@ -652,11 +652,13 @@ tests: [tests/checker-rules.sh]
 created: 2026-09-20
 ```
 
-If a requirement's number lies outside the range its file's name states — `NNNN-NNNN.md` under an area's directory, or `000-999` for the area's single file — the checker **shall** report it as a warning named `file-range`, naming the file the number belongs in.
+If a requirement's number lies outside the range its file's name states — `NNNN-NNNN.md` under an area's directory, or `000-999` for the area's single file, which is a file directly under `specs/` or one named as the map names it, two digits and a hyphen first, in a folder under `specs/` — the checker **shall** report it as a warning named `file-range`, naming the file the number belongs in.
 
 **Rationale.** A range in a file name is what lets a reader open the right file by eye, and it is only worth that if it is true; a number filed in the wrong thousand is a name that lies.
 The plain file `10-fr-<area>.md` holds the first thousand by the standard's convention, so its first number past `999` is the moment the area becomes a directory — the warning says which file to move the file to and which to open, so that whoever did not come through `srs-new` gets the same instruction the procedure gives.
-A warning with a name rather than an error, because a project that cuts its files by subject and names one `1000-1999.md` for its own reasons may say so and turn the rule off (`FR-CHK-160`); a file whose name is not a range is bound by nothing here.
+A folder of any name may group areas for a reader — `specs/MAPS/10-fr-map_iland.md` beside `specs/10-fr-maps.md` — and the area's single file in it is the file it would be directly under `specs/`, so it holds the first thousand there too; while the rule reached only the top level, a file in a folder took `FR-MAP_ILAND-1000` without a word.
+The map's names begin with two digits and a hyphen and no range name does, so the name alone tells the two apart.
+A warning with a name rather than an error, because a project that cuts its files by subject and names one `1000-1999.md` for its own reasons may say so and turn the rule off (`FR-CHK-160`); a file whose name is neither a range nor one of the map's is bound by nothing here.
 
 ### FR-CHK-270 — An end marker that ends nothing is reported
 

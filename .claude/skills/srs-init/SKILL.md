@@ -11,7 +11,7 @@ This skill adds the one thing the script cannot do: language.
 
 ## Fresh initialization
 
-1. Ask the user for: target path, project name, requirement areas (uppercase identifiers), production code roots, test roots, source file extensions, CI platform (`github` / `gitlab` / `both` / `none`), whether to keep a **grounds register** — and, where they want one, what length of period its dashboard counts by (`month` / `quarter` / `year`) — whether to keep an **architecture layer**, and **the language of the specification**.
+1. Ask the user for: target path, project name, requirement areas (uppercase identifiers, words joined by an underscore — `MAP_ILAND`), production code roots, test roots, source file extensions, CI platform (`github` / `gitlab` / `both` / `none`), whether to keep a **grounds register** — and, where they want one, what length of period its dashboard counts by (`month` / `quarter` / `year`) — whether to keep an **architecture layer**, and **the language of the specification**.
 
    The period is the only one of the register's settings the install asks about, and the one nobody supplies later without knowing the key exists (`rules` and `grades` are the others, and both have working defaults).
    It is what "lately" means for this project: how often the dashboard gets to say that requirements have started arriving on no hypothesis.

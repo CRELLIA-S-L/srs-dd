@@ -1648,6 +1648,14 @@ rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --bogus ) > /tmp/sr
 echo "view-smoke: two identifiers get one sentence and exit 2; a stray flag is refused as before"
 
 # srs-end: FR-VIEW-370
+# --- verifies: IF-SPEC-040 — an identifier whose area joins two words with an
+# --- underscore is read as one identifier, so the second on the line gets the
+# --- same sentence rather than the usage block.
+rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 FR-MAP_ILAND-020 ) > /tmp/srs-two-und.out 2>&1 || rc=$?
+[ "$rc" = 2 ] && grep -q "^srs_view.py shows one requirement at a time — FR-CORE-010 FR-MAP_ILAND-020 is 2;" /tmp/srs-two-und.out \
+    || { echo "IF-SPEC-040 — an identifier with an underscore in its area was not read as one"; cat /tmp/srs-two-und.out; exit 1; }
+echo "view-smoke: an area of two words is read as one segment"
+# srs-end: IF-SPEC-040
 # --- verifies: FR-VIEW-380, FR-VIEW-300, FR-VIEW-400 — the region an annotation
 # --- marks, read the same in every language: a block down to its end marker,
 # --- a block inside it included; without one, to the next block, the bound

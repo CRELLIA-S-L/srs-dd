@@ -3130,9 +3130,10 @@ def parse_args(argv):
     # next without a second attempt.
     args, extra = parser.parse_known_args(argv)
     if extra:
-        # implements: INV-SPEC-080
-        stray = [a for a in extra if re.match(r"^[A-Z]+-[A-Z0-9]+-%s$" % srs_parse.NUMBER, a)]
-        # srs-end: INV-SPEC-080
+        # implements: INV-SPEC-080, IF-SPEC-040
+        stray = [a for a in extra
+                 if re.match(r"^[A-Z]+-%s-%s$" % (srs_parse.AREA, srs_parse.NUMBER), a)]
+        # srs-end: INV-SPEC-080, IF-SPEC-040
         if args.requirement and stray and len(stray) == len(extra):
             parser.exit(2, "srs_view.py shows one requirement at a time — %s is %d; call it "
                            "once per identifier, or --cite %s for the citations\n"

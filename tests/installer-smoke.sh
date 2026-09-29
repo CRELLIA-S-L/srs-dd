@@ -957,3 +957,32 @@ rm -rf "$HT" "$NT"
 
 echo "installer-smoke: the hook refuses a stale dashboard or map where the project keeps the layer, and nowhere else"
 # srs-end: FR-GND-570, FR-ARCH-300
+# --- verifies: IF-SPEC-040 — an area whose name joins two words with an
+# --- underscore is accepted where the installer asks for areas and found where
+# --- it adopts a specification that already uses one, in a folder grouping
+# --- areas; a name the grammar refuses stops the install before it writes.
+UT=/tmp/srs-underscore
+rm -rf "$UT"
+python3 tools/srs_init.py "$UT" --defaults --areas MAP_ILAND,APP --ci none > /tmp/und-fresh.log 2>&1 \
+    || { echo "FAIL IF-SPEC-040 — a fresh install refused an area of two words"; cat /tmp/und-fresh.log; exit 1; }
+grep -q "^### FR-MAP_ILAND-010 " "$UT/specs/10-fr-map_iland.md" \
+    || { echo "FAIL IF-SPEC-040 — the placeholder of an area of two words was not written"; exit 1; }
+( cd "$UT" && python3 tools/srs_check.py --no-write ) > /tmp/und-check.log 2>&1 \
+    || { echo "FAIL IF-SPEC-040 — the installed project's checker refuses its own area"; cat /tmp/und-check.log; exit 1; }
+rm -rf "$UT"
+for bad in MAP_ MAP__ILAND map_iland; do
+    rc=0; python3 tools/srs_init.py "$UT" --defaults --areas "$bad" --ci none > /tmp/und-bad.log 2>&1 || rc=$?
+    [ "$rc" = 2 ] && grep -q "its words joined by single underscores" /tmp/und-bad.log \
+        || { echo "FAIL IF-SPEC-040 — the area $bad was not refused with exit 2 (exit $rc)"; cat /tmp/und-bad.log; exit 1; }
+    [ ! -e "$UT/specs" ] || { echo "FAIL IF-SPEC-040 — a refused area left files behind"; exit 1; }
+done
+mkdir -p "$UT/specs/MAPS"
+printf '### FR-MAP_ILAND-010 — An island\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-MAP_ILAND-020]\n```\n\nThe map **shall** hold an island.\n\n### FR-MAP_ILAND-020 — A shore\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe map **shall** draw a shore.\n' \
+    > "$UT/specs/MAPS/10-fr-map_iland.md"
+python3 tools/srs_init.py "$UT" --defaults --ci none > /tmp/und-adopt.log 2>&1 \
+    || { echo "FAIL IF-SPEC-040 — adopting a specification with an area of two words failed"; cat /tmp/und-adopt.log; exit 1; }
+grep -q '"MAP_ILAND"' "$UT/specs/srs-config.json" \
+    || { echo "FAIL IF-SPEC-040 — adoption did not find the area of two words"; cat "$UT/specs/srs-config.json"; exit 1; }
+rm -rf "$UT"
+echo "installer-smoke: an area of two words is installed, adopted, and a malformed one refused"
+# srs-end: IF-SPEC-040

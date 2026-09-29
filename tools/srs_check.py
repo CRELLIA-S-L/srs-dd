@@ -74,8 +74,11 @@ DEFAULTS = {
     "rationale_markers": ["Rationale"],
 }
 
-# Uppercase, matching the annotation grammar and the installer's rule.
-RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
+# implements: IF-SPEC-040
+# The grammar every tool reads in an identifier's middle segment, so that
+# an area the configuration accepts is one an annotation can name.
+RE_AREA_NAME = re.compile(r"^%s$" % srs_parse.AREA)
+# srs-end: IF-SPEC-040
 
 
 # Every rule that reports something short of an error carries a name, so a
@@ -135,7 +138,8 @@ def load_config():
             _config_fail("%s must not be empty" % key)
     for area in cfg["areas"]:
         if not RE_AREA_NAME.match(area):
-            _config_fail("area %r must match [A-Z][A-Z0-9]*" % area)
+            _config_fail("area %r must be uppercase letters and digits, beginning with a "
+                         "letter, its words joined by single underscores" % area)
     # `rules` is a mapping rather than a list, so it is validated apart from
     # the loop above — and by name, because a silently ignored typo here
     # would look exactly like a rule that never fires.
@@ -222,10 +226,14 @@ def _alternation(words):
 # malformed identifier must never be skipped silently. The net lives
 # here rather than in srs_parse because how a format numbers its
 # entries is the format's own business, and the register beside specs/
-# numbers its entries in two parts (ADR-0019).
+# numbers its entries in two parts (ADR-0019). The area takes an
+# underscore, so that one the configuration does not declare is refused
+# by name rather than read past as prose.
+# implements: IF-SPEC-040
 RE_HEADING = re.compile(
-    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
+    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9_]*-\d+"
     r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
+# srs-end: IF-SPEC-040
 # implements: INV-SPEC-080
 RE_ID = re.compile(r"^(%s)-(%s)-(%s)$" % ("|".join(TYPES), "|".join(AREAS), srs_parse.NUMBER))
 # srs-end: INV-SPEC-080
@@ -258,7 +266,7 @@ RE_RATIONALE = re.compile(
 #   implements: FR-CORE-010          -> the `code` field    srs-ignore
 #   verifies: FR-CORE-010, FR-UI-020 -> the `tests` field   srs-ignore
 # A line containing "srs-ignore" is exempt from annotation checking.
-_ANNOT_ID = r"[A-Z]+-[A-Z0-9]+-%s(?!\d)" % srs_parse.NUMBER
+_ANNOT_ID = r"[A-Z]+-%s-%s(?!\d)" % (srs_parse.AREA, srs_parse.NUMBER)   # implements: IF-SPEC-040
 RE_ANNOTATION = re.compile(
     r"\b(implements|verifies):\s*(%s(?:\s*,\s*%s)*)" % (_ANNOT_ID, _ANNOT_ID))
 
@@ -442,12 +450,17 @@ def normalize_meta(req, errors):
 
 
 RE_RANGE_NAME = re.compile(r"^(\d{3,})-(\d{3,})\.md$")
+# The map's own names — `10-fr-<area>.md`, `40-invariants.md` — begin with
+# two digits and a hyphen, which no range name does.
+RE_MAP_NAME = re.compile(r"^\d{2}-.+\.md$")
 
 
+# implements: FR-CHK-260
 def file_range_of(rel):
     """(low, high, kind) of the numbers a requirements file's name holds:
-    a file directly under specs/ holds 000-999 ("plain"), a file named
-    `NNN-NNN.md` in a subdirectory holds that range ("named"), and any
+    a file directly under specs/, or named as the map names one in a
+    folder that groups areas for a reader, holds 000-999 ("plain"); a file
+    named `NNN-NNN.md` in a subdirectory holds that range ("named"); any
     other file in a subdirectory holds anything (None, None, None)."""
     parts = rel.replace(os.sep, "/").split("/")
     if len(parts) == 2:
@@ -455,7 +468,10 @@ def file_range_of(rel):
     match = RE_RANGE_NAME.match(parts[-1])
     if match:
         return int(match.group(1)), int(match.group(2)), "named"
+    if RE_MAP_NAME.match(parts[-1]):
+        return 0, 999, "plain"
     return None, None, None
+# srs-end: FR-CHK-260
 
 
 def validate(requirements):

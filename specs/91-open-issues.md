@@ -220,3 +220,14 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 **What is being asked:** whether the CI templates in `ci/` should run a secret scanner — gitleaks or an equivalent — over every push, so that a credential committed by mistake is refused rather than found later.
 
 **What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.
+
+## The page's filter by file merges files of the same name
+
+**Found:** 2026-09-29, while grouping areas in folders (ADR-0036); reproduced on a page built for two areas each split by the thousand.
+
+**What diverged:** FR-VIEW-060 promises the page filters, and the filter by file keys each file by its name alone (`os.path.basename` in `render_page`, `tools/srs_view.py`, and `data-file` on each card).
+Two areas past their thousandth requirement both hold a `000-999.md` — `specs/10-fr-core/000-999.md` and `specs/10-fr-ui/000-999.md` — and the page shows one button, `000-999.md 2`, that selects the requirements of both; neither file can be chosen alone.
+The cards themselves carry the full path, so only the filter is wrong.
+It predates the folders: any two areas split by the thousand meet it, grouped in folders or not.
+
+**Decision needed:** key and label the filter by the path under `specs/` — `10-fr-core/000-999.md` — rather than the name, which is a change to what the viewer does and goes through FR-VIEW-060 or a requirement of its own; or keep the name and accept the merge.

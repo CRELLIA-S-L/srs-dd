@@ -455,7 +455,7 @@ cp "$LAB/specs/srs-config.json" "$LAB/specs/srs-config.json.bak"
 printf '{"areas": "CORE"}\n' > "$LAB/specs/srs-config.json"
 rule "FR-CHK-100 bad type" 2 "areas must be a list of non-empty strings"
 printf '{"areas": ["core"]}\n' > "$LAB/specs/srs-config.json"
-rule "FR-CHK-100 bad area" 2 "must match"
+rule "FR-CHK-100 bad area" 2 "area 'core' must be uppercase letters and digits"
 # A list of non-empty strings that holds none is still a list of non-empty
 # strings, so the check above passes it. The rule fires on three keys and
 # had a fixture for one, which is the shape this whole file exists to
@@ -1373,8 +1373,57 @@ spec < <(block FR-CORE-1000 "Past the thousand" "$WIDE" 'The system **shall** go
 config "{$BASE, \"rules\": {\"file-range\": \"off\"}}"
 silent "FR-CHK-260 turned off says nothing" 0 "FR-CORE-1000 is"
 config "{$BASE}"
+# A folder of any name that groups areas for a reader: the area's single
+# file in it holds the first thousand as it would directly under specs/,
+# and a piece named by subject beside it is bound by nothing still.
+AREAS2='"areas": ["CORE", "MAP_ILAND"], "code_roots": ["src"], "test_roots": ["t"]'
+config "{$AREAS2}"
+spec < <(block FR-CORE-010 "The partner" "$PARTNER" 'The system **shall** respond.')
+MAPWIDE='status: deferred
+verification: I
+depends_on: [FR-CORE-010]'
+mkdir -p "$LAB/specs/MAPS"
+{ printf '# Map — iland\n\n'; block FR-MAP_ILAND-1000 "Past the thousand" "$MAPWIDE" 'The map **shall** go on.'; } \
+    > "$LAB/specs/MAPS/10-fr-map_iland.md"
+rule "FR-CHK-260 a file in a folder holds the first thousand" 0 "FR-MAP_ILAND-1000 is past the thousand this file holds; move the file whole to specs/MAPS/10-fr-map_iland/000-999.md and open 1000-1999.md there"
+mv "$LAB/specs/MAPS/10-fr-map_iland.md" "$LAB/specs/MAPS/iland-by-subject.md"
+silent "FR-CHK-260 a piece named by subject in a folder is bound by nothing" 0 "FR-MAP_ILAND-1000 is"
+rm -rf "$LAB/specs/MAPS"
+config "{$BASE}"
 
 # srs-end: FR-CHK-260
+# --- verifies: IF-SPEC-040 — an area's name joins its words with single
+# --- underscores, read by one grammar everywhere the checker reads one: the
+# --- configuration takes it, a heading carrying it is a requirement, and an
+# --- annotation and an end marker naming it are read; a heading whose area
+# --- nobody declared is refused by name, never read past as prose.
+config "{$AREAS2}"
+rm -f "$LAB/src/"*
+spec < <(block FR-CORE-010 "The partner" "$PARTNER" 'The system **shall** respond.')
+mkdir -p "$LAB/specs/MAPS"
+{ printf '# Map — iland\n\n'; block FR-MAP_ILAND-010 "An area of two words" 'status: implemented
+verification: I
+depends_on: [FR-CORE-010]
+code: [src/map.py]' 'The map **shall** hold an island.'; } > "$LAB/specs/MAPS/10-fr-map_iland.md"
+printf '# implements: FR-MAP_ILAND-010\nISLAND = 1\n# srs-end: FR-MAP_ILAND-010\n' > "$LAB/src/map.py"  # srs-ignore: a fixture
+silent "IF-SPEC-040 a two-word area is a requirement" 0 "identifier does not match"
+silent "IF-SPEC-040 its annotation is read" 0 "does not carry"
+silent "IF-SPEC-040 its end marker is read" 0 "ends nothing"
+( cd "$LAB" && python3 tools/srs_check.py --no-write ) > /tmp/srs-rules.log 2>&1 || true
+grep -q "Requirements: 2\." /tmp/srs-rules.log \
+    || { echo "FAIL IF-SPEC-040 — the requirement in the area of two words was not counted"; cat /tmp/srs-rules.log; exit 1; }
+passes=$((passes + 1))
+{ printf '# Map — other\n\n'; block FR-MAP_OTHER-010 "Nobody declared it" "$MAPWIDE" 'The map **shall** be other.'; } \
+    > "$LAB/specs/MAPS/10-fr-map_other.md"
+rule "IF-SPEC-040 an undeclared two-word area is refused by name" 1 "specs/MAPS/10-fr-map_other.md:3 — identifier does not match"
+rm -rf "$LAB/specs/MAPS" "$LAB/src/map.py"
+for bad in MAP_ _MAP MAP__ILAND map_iland MAP-ILAND; do
+    config "{\"areas\": [\"CORE\", \"$bad\"]}"
+    rule "IF-SPEC-040 config refuses $bad" 2 "its words joined by single underscores"
+done
+config "{$BASE}"
+
+# srs-end: IF-SPEC-040
 # verifies: IF-CI-020
 # The fourth way the checker cannot run: its parser is not beside it, as a
 # copy by hand leaves it. Exit 2 and the file named, not a traceback.

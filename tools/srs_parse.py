@@ -53,6 +53,14 @@ __version__ = "0.20.1"
 # the identifier itself.
 NUMBER = r"(?:\d{3}|[1-9]\d{3,})"
 # srs-end: INV-SPEC-080, INV-SPEC-090
+# implements: IF-SPEC-040
+# An area's name, the middle segment of a requirement's identifier:
+# uppercase words joined by single underscores, never by a hyphen, which
+# separates the segments. Here for the reason the number is: the config
+# check, the annotation grammar, the installer and the viewer all read
+# it, and a name one of them refuses is a requirement that goes silent.
+AREA = r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*"
+# srs-end: IF-SPEC-040
 RE_NUMBER_TAIL = re.compile(r"-(\d+)$")
 
 

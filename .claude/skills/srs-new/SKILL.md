@@ -14,7 +14,7 @@ Every step puts what it proposes — the statement, the number, the method, the 
 
 1. **What behavior?** One capability per requirement. If the user describes two, say so and split.
 2. **Type and area.** The area is one of the `areas` the project declares — `python3 tools/srs_view.py --areas` prints them with how many requirements each holds. Propose both, let the user confirm.
-3. **Number.** The next free one in the area, in steps of 10: `python3 tools/srs_view.py --list --area <AREA>` prints every number the area holds, whichever files they are in. Where the next number is the area's first past a thousand — `1000`, `2000` — the area's file becomes a directory before the requirement is written, and this is the one moment it happens:
+3. **Number.** The next free one in the area, in steps of 10: `python3 tools/srs_view.py --list --area <AREA>` prints every number the area holds, whichever files they are in. The paths it prints are where the area lives: a folder may group areas for a reader, and the paths below then start from that folder. Where the next number is the area's first past a thousand — `1000`, `2000` — the area's file becomes a directory before the requirement is written, and this is the one moment it happens:
 
    ```
    git mv specs/10-fr-<area>.md specs/10-fr-<area>/000-999.md   # the whole file, history with it

@@ -17,7 +17,7 @@ Statements, titles and rationales are written in the lexicon of `specs/srs-confi
 
 ## Before changing code
 
-1. `python3 tools/srs_view.py --code <path> --statements` — the requirements behind the file, from the `code` and `tests` fields and, for a file, its own annotations, each with what it obliges; a directory works. Without the tool: `grep -rn "<path>" specs/*.md` and the table in `specs/90-traceability.md`, whose *Incoming links* section is every link in one place.
+1. `python3 tools/srs_view.py --code <path> --statements` — the requirements behind the file, from the `code` and `tests` fields and, for a file, its own annotations, each with what it obliges; a directory works. Without the tool: `grep -rn "<path>" specs/` and the table in `specs/90-traceability.md`, whose *Incoming links* section is every link in one place.
 2. Read what the answer names: `python3 tools/srs_view.py <ID> --where` prints every annotated line that carries the requirement, and `python3 tools/srs_view.py <ID> --where --source` prints the region each marks; where its header says no `srs-end:` ended it, read on in the file. Read those, in one call, before any file whole. A file the fields name that no line speaks for is printed as such, and is the one to open. A search over the repository is the fallback, taken out loud (`AGENTS.md`).
 3. Found some: choose by the statements the ones the change will touch, and read those in full — `python3 tools/srs_view.py <ID>` resolves the links both ways — with what each `derives_from` and `depends_on`. Incoming links are the blast radius; the rest of the list is known by its statements and is not opened.
 4. Found nothing: the behaviour is undescribed. Author a requirement first (`srs-new`); never code silently.
@@ -31,7 +31,7 @@ Authoring ends at the written requirement; building it is a separate act, starte
 
 ## Building a requirement
 
-In from a file (above), or from an approved requirement nobody built: `python3 tools/srs_view.py --coverage`, `grep -n "status: deferred" specs/*.md`; read it with its links both ways.
+In from a file (above), or from an approved requirement nobody built: `python3 tools/srs_view.py --coverage`, `grep -rn "status: deferred" specs/`; read it with its links both ways.
 
 1. The requirement still says what you are about to build. If not, you are authoring — stop, `srs-new`.
 2. The plan names requirements, not work — "fix the storage layer" is not a step — each cited at first mention from `--cite`; constitution articles `ART-*` by number. The plan may not conflict with `specs/constitution.md`.

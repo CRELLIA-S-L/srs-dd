@@ -34,9 +34,11 @@ The file names are a convention, and the checker reads every `.md` file in `spec
 Everything else is read whether or not it holds any, so a section file still empty is read and yields nothing.
 Split the `10-fr-*` files by area as your system grows.
 An area's first number past a thousand is the moment its file becomes a directory: `git mv specs/10-fr-<area>.md specs/10-fr-<area>/000-999.md` — the whole file, history with it — then `1000-1999.md` opens beside it with the area's heading and the new requirement, and nothing already written moves.
-The checker reports a number outside the range its file's name states as a warning named `file-range`, naming the file it belongs in; a requirements file directly under `specs/` holds `000-999`.
+The checker reports a number outside the range its file's name states as a warning named `file-range`, naming the file it belongs in; a requirements file directly under `specs/`, or named as the map names one — two digits and a hyphen first — in a folder under it, holds `000-999`.
 A `README.md` inside such a directory is for people and is never read as requirements, like every reserved name at any depth.
 A file may also be cut by subject and its pieces named as the project likes; `python3 tools/srs_view.py --diff HEAD` after any move names a requirement the move lost, because it compares by identifier and never by file.
+Areas may be grouped for a reader in folders of any name under `specs/` — `specs/MAPS/10-fr-map_iland.md` and `specs/MAPS/10-fr-map_space_ship.md` beside `specs/10-fr-maps.md` — an area's file or its directory alike.
+The folder means nothing to the tools or to an identifier, so a file moves between folders and no requirement is renamed; `adr` and `archive` are the two names a folder cannot take, because nothing under them is read.
 
 ## Identifier
 
@@ -46,6 +48,8 @@ A file may also be cut by subject and its pieces named as the project likes; `py
 
 **Areas** partition the system by subject matter and are project-specific.
 They are declared in `srs-config.json` — see *Configuration*.
+An area's name is uppercase letters and digits, beginning with a letter, and joins its words with single underscores — `MAP_ILAND`; a hyphen cannot join them, because it separates the identifier's segments.
+The name carries no hierarchy: an area grouped under another is grouped by a folder (*Map*), because the name is inside every identifier and an identifier is never renamed.
 
 Numbers go in steps of 10 within an area, so there is room to insert a neighbor later — a convention, not a rule: the checker does not enforce the step, and `FR-CORE-025` between 020 and 030 is a valid identifier.
 A number has three digits or more, written without a leading zero beyond the third: after `990` comes `1000`, in the next file (see *Map*), and the tools order identifiers by their number, so nothing already written is renamed and an area never runs out.
@@ -305,7 +309,7 @@ All project settings live in `specs/srs-config.json`; any key absent from the fi
 
 | Key | Default | Meaning |
 |---|---|---|
-| `areas` | `["CORE", "UI", "API", "DATA", "SEC"]` | Requirement areas — the middle segment of every ID. Uppercase: `[A-Z][A-Z0-9]*` |
+| `areas` | `["CORE", "UI", "API", "DATA", "SEC"]` | Requirement areas — the middle segment of every ID. Uppercase letters and digits, words joined by single underscores: `[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*` |
 | `rules` | `{}` | What a rule costs: `warn` (the default for every rule the table of rules does not mark otherwise, and what `--strict` fails on), `report` (said but never fatal), `off` (not said at all). Keys are rule names; `srs_check.py` lists them when you name one it does not know |
 | `project_name` | the target directory's name | The project's name, written at install and read back on upgrade, so that the agent guides can be filled in again without asking |
 | `line_width` | absent | The width this project's code follows, in columns. Written at install from what the project already states elsewhere; absent where it states nothing, and never guessed. Read by the agent guides, not by any gate — checking source formatting is a linter's job |

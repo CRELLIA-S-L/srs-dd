@@ -130,3 +130,18 @@ grep -qF "not dated: FR-CORE-200, FR-CORE-1000." /tmp/dates-order.log \
 
 echo "dates-smoke: a specification is dated from its own history, once"
 # srs-end: INV-SPEC-090
+# --- verifies: IF-SPEC-040 — a requirement whose area joins two words with an
+# --- underscore is found in the history and dated like any other, in a file
+# --- that lies in a folder grouping areas.
+printf '{"areas": ["CORE", "MAP_ILAND"], "code_roots": ["src"], "test_roots": ["t"]}\n' \
+    > "$LAB/specs/srs-config.json"
+mkdir -p "$LAB/specs/MAPS"
+{ printf '# map iland\n'; block FR-MAP_ILAND-010 "An island"; } > "$LAB/specs/MAPS/10-fr-map_iland.md"
+( cd "$LAB" && git add -A && GIT_COMMITTER_DATE=2026-08-01T10:00:00 \
+  git commit -q -m maps --date=2026-08-01T10:00:00 )
+( cd "$LAB" && python3 tools/srs_dates.py ) > /tmp/dates-area.log 2>&1
+grep -qF "created: 2026-08-01" "$LAB/specs/MAPS/10-fr-map_iland.md" \
+    || { echo "FAIL IF-SPEC-040 — a requirement in an area of two words was not dated"
+         cat /tmp/dates-area.log; exit 1; }
+echo "dates-smoke: an area of two words is dated from the history too"
+# srs-end: IF-SPEC-040

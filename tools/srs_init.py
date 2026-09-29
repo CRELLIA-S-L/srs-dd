@@ -75,11 +75,14 @@ import srs_parse                                           # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PLACEHOLDER_NAME = "<Your Project Name>"
-RE_AREA = re.compile(r"^[A-Z][A-Z0-9]*$")
+# implements: IF-SPEC-040
+RE_AREA = RE_AREA_NAME
 # Strict requirement identifier: composed from the framework's TYPES and
 # the area grammar, NOT from srs_check.RE_ID (that one is bound to the
 # framework's own configured areas).
-RE_STRICT_ID = re.compile(r"^(?:%s)-[A-Z][A-Z0-9]*-%s$" % ("|".join(TYPES), srs_parse.NUMBER))   # implements: INV-SPEC-080
+RE_STRICT_ID = re.compile(r"^(?:%s)-%s-%s$"   # implements: INV-SPEC-080
+                          % ("|".join(TYPES), srs_parse.AREA, srs_parse.NUMBER))
+# srs-end: IF-SPEC-040
 RE_VERSION = re.compile(r'^__version__\s*=\s*"([^"]+)"', re.M)
 
 TEMP_CHECKER = ".srs_check_adopt.py"
@@ -1206,7 +1209,8 @@ def collect_settings(args, batch, area_default):
     for area in areas:
         if not RE_AREA.match(area):
             sys.stderr.write(
-                "Invalid area %r: must match [A-Z][A-Z0-9]* — it is "
+                "Invalid area %r: uppercase letters and digits, beginning with "
+                "a letter, its words joined by single underscores — it is "
                 "interpolated into the identifier grammar.\n" % area)
             return None
     if not areas:
