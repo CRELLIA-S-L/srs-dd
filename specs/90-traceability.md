@@ -501,7 +501,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **IF-SPEC-010** | FR-CHK-010 (depends_on), FR-CHK-110 (depends_on), FR-CHK-170 (derives_from), FR-CHK-180 (derives_from), FR-CHK-250 (derives_from), FR-DOC-050 (depends_on), FR-DOC-150 (depends_on), FR-SKILL-200 (depends_on), FR-VIEW-010 (depends_on), FR-VIEW-020 (depends_on), FR-VIEW-060 (depends_on), FR-VIEW-220 (depends_on), FR-VIEW-250 (depends_on), FR-VIEW-270 (depends_on), FR-VIEW-360 (depends_on), IF-SPEC-030 (derives_from), IF-VIEW-010 (depends_on) |
 | **IF-SPEC-020** | FR-SPEC-050 (derives_from) |
 | **IF-SPEC-030** | FR-VIEW-330 (depends_on) |
-| **IF-SPEC-040** | FR-CHK-100 (depends_on) |
+| **IF-SPEC-040** | FR-CHK-010 (depends_on), FR-CHK-080 (depends_on), FR-CHK-100 (depends_on) |
 | **IF-VIEW-010** | FR-ARCH-010 (depends_on), FR-DOC-120 (depends_on) |
 | **INV-GND-010** | FR-GND-180 (depends_on), IF-GND-010 (depends_on) |
 | **INV-GND-020** | FR-DOC-070 (depends_on), FR-GND-040 (depends_on), FR-GND-050 (depends_on), FR-GND-070 (depends_on), FR-GND-080 (depends_on), INV-GND-030 (depends_on) |

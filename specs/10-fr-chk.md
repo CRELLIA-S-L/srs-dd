@@ -9,7 +9,7 @@ Everything here is observable from a single run.
 status: implemented
 verification: T
 derives_from: []
-depends_on: [IF-SPEC-010]
+depends_on: [IF-SPEC-010, IF-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py]
@@ -198,7 +198,7 @@ Both ends are named because both are what the reader acts on: one of them gets a
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-CHK-050]
+depends_on: [FR-CHK-050, IF-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_check.py, specs/README.md]

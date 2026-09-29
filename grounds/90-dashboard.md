@@ -93,6 +93,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-010 | 10 | 1 | 11 |
 | FR-CI-020 | 7 | 3 | 10 |
 | FR-CHK-080 | 7 | 2 | 9 |
+| IF-SPEC-040 | 3 | 6 | 9 |
 | FR-GND-140 | 7 | 1 | 8 |
 | INV-GND-020 | 6 | 2 | 8 |
 | INV-SKILL-010 | 3 | 5 | 8 |
@@ -101,7 +102,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-030 | 6 | 1 | 7 |
 | FR-CI-010 | 4 | 3 | 7 |
 | FR-VIEW-010 | 6 | 1 | 7 |
-| IF-SPEC-040 | 1 | 6 | 7 |
 | INV-SPEC-090 | 0 | 7 | 7 |
 | CON-SPEC-010 | 4 | 2 | 6 |
 | FR-CHK-050 | 5 | 1 | 6 |
