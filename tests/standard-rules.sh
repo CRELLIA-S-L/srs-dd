@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Each standard names every rule its checker reports by name, with what it
 # reports — the specification's, the register's and the layer's. A project
 # sets a rule's cost in `rules` by name, and a table kept by hand beside a

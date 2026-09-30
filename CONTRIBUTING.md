@@ -75,6 +75,8 @@ Three things outside this repository depend on what is inside it, and all three 
   What a tool prints is a third case and is not bounded at all: a finding is written to be read, and breaking one into fixed lines in the source freezes the wrapping against a terminal nobody has measured, at a width that depends on how long the reader's own paths and identifiers happen to be.
   Wrapping is the terminal's business.
   Do not add a suite that asserts a width over a log — FR-CI-100's rationale records why.
+- **Every file of code says whose it is.** A tool, a suite, the pipeline and the hook carry, in their first lines, `Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License`; `tests/notice.sh` refuses one that does not (FR-CI-170).
+  The starters under `ci/` carry none: they become a project's own hook and pipeline (FR-INIT-290), and the gate they call carries the notice as a tool (FR-INIT-280).
 - A line that cannot be split without changing what it produces is left alone whatever its length: a single string literal, a `printf` whose argument is a whole fixture document, a CI `script:` entry, one CSS declaration.
   A handful exist and none of them is a defect; the current list is `awk 'length>120' tools/*.py tools/*.sh tests/*.sh`, which is worth reading rather than counting — a count here goes stale the next time a fixture is added, and this one did.
 - A tool that imports another tool, and a suite that imports one, sets `sys.dont_write_bytecode = True` **before** the import; the local gate fails on a suite that forgets (`FR-CI-160`).

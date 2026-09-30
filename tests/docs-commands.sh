@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Every command the documentation names is one the tool accepts: for each
 # line of README.md and docs/*.md that names a tool of this repository
 # together with a flag, the flag is one the tool lists when asked.

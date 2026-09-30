@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The pipeline runs every suite the local gate runs. The local gate lists
 # tests/ by itself; the pipeline names its suites one step each, so that a
 # failure carries the suite's name, and a list written by hand is the one a

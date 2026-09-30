@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """The grounds checker: reads the register beside specs/ and reports on it.
 
     python3 tools/srs_grounds.py             check and rewrite 90-dashboard.md

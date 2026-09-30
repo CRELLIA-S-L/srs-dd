@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_release.py, exercised in a throwaway clone of this repository:
 # it edits files that are committed here, and a test that did that to the
 # working copy would be a test nobody dares run twice.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # What the landing page derives from the repository is held to the
 # repository: its headings, its example requirement, its skills table, its
 # map of the top level, the installer's exit codes, and every relative link

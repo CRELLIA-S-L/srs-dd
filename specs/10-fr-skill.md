@@ -1077,14 +1077,14 @@ Tested by the procedure's list of what it must name, so a cut that drops the sen
 ### FR-SKILL-410 — The installing procedures wire the gate into the hook
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-INIT-300]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [.claude/skills/srs-init/SKILL.md, .claude/skills/srs-upgrade/SKILL.md]
+tests: [tests/skill-instructions.sh]
 created: 2026-09-30
 ```
 
@@ -1097,14 +1097,14 @@ The work ends at the confirmation, from the installer's report (`FR-INIT-300`), 
 ### FR-SKILL-420 — The installing procedures wire the gate into the pipelines
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-INIT-310]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [.claude/skills/srs-init/SKILL.md, .claude/skills/srs-upgrade/SKILL.md]
+tests: [tests/skill-instructions.sh]
 created: 2026-09-30
 ```
 

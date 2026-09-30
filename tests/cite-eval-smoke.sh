@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_cite_eval.py scores canned answers exactly, and refuses to run
 # where there is no agent to ask. The test asks nobody: the live run is a
 # measurement for the register, not a suite.

@@ -18,3 +18,12 @@ tools/srs_init.py
 
 # procedures
 srs-harvest
+
+# wiring the gate (FR-SKILL-410, FR-SKILL-420)
+tools/srs_gate.py
+.pre-commit-config.yaml
+.husky/pre-commit
+lefthook.yml
+core.hooksPath
+.github/workflows/
+.gitlab-ci.yml

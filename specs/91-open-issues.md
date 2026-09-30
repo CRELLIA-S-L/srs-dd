@@ -9,7 +9,7 @@ Entries are removed once the maintainer decides which side is right and the fix 
 **Found:** by the audit before baseline 0.20.0 (2026-09-24).
 
 **What diverged:** FR-SPEC-030 obliges a decision that chose an algorithm or a mechanism to describe it in words — its steps, the invariants it keeps, the inputs where it stops working — and says nothing of when the decision was written.
-Of the decisions under `specs/adr/`, only those that chose a mechanism from 2026-09-24 on — ADR-0031 and ADR-0033 to ADR-0037 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
+Of the decisions under `specs/adr/`, only those that chose a mechanism from 2026-09-24 on — ADR-0031 and ADR-0033 to ADR-0038 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
 
 **Why it is recorded rather than fixed:** a decision is the record of what was decided when it was decided, and adding a section to it afterwards changes that record; narrowing the statement to decisions written from now on is the other way out, and it is a change to what the requirement obliges.
 

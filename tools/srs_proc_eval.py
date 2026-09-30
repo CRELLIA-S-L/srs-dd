@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 """Measure what a procedure costs a fresh agent instance, and what it yields.
 
 Runs a non-interactive Claude Code instance through each scenario in a set —

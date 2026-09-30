@@ -1,6 +1,7 @@
 # The architecture layer
 
 <!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 A specification records what the system must do.
 It does not record what the system is made of: which parts exist, what each one is responsible for, which files are that part, and which parts lean on which.

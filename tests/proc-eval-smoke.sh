@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_proc_eval.py reads every shipped scenario and holds its
 # expectations to the specification as it stands, accounts the tokens of a
 # run from the per-turn usage the client reports, scores the checks off the

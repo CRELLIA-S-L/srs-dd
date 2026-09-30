@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # implements: FR-CI-020, FR-CI-030, CON-SPEC-030
 # Local gate. Run manually or via the pre-commit hook
 # (git config core.hooksPath .githooks).

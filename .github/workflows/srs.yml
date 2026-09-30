@@ -1,3 +1,4 @@
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # CI of the SRS-DD framework repository itself.
 # Target projects get their own workflow from ci/github-workflow.yml via
 # tools/srs_init.py — do not copy this file.
@@ -89,6 +90,9 @@ jobs:
 
       - name: Line width
         run: tests/line-width.sh
+
+      - name: Copyright notice
+        run: tests/notice.sh
 
       - name: Procedure budget
         run: tests/skill-budget.sh

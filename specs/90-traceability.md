@@ -8,9 +8,9 @@ Total requirements: 323.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 7 |
-| `partial` | 1 |
-| `implemented` | 315 |
+| `deferred` | 0 |
+| `partial` | 0 |
+| `implemented` | 323 |
 | `superseded` | 0 |
 | `withdrawn` | 0 |
 
@@ -102,7 +102,7 @@ Total requirements: 323.
 | **FR-CI-140** A dry run of the release command writes nothing | `implemented` | T | `tools/srs_release.py` | `tests/release-smoke.sh` |
 | **FR-CI-150** A file a shipped gate compares byte for byte is pinned to LF | `implemented` | T | `.gitattributes` | `tests/pipeline-suites.sh` |
 | **FR-CI-160** The local gate refuses a suite that leaves bytecode behind | `implemented` | I | `tools/ci_selftest.sh` | — |
-| **FR-CI-170** The gate refuses code that does not say whose it is | `deferred` | T | — | — |
+| **FR-CI-170** The gate refuses code that does not say whose it is | `implemented` | T | `tests/notice.sh` | `tests/notice.sh` |
 | **FR-CI-180** The hook and pipeline starters run one gate, shipped as a tool | `implemented` | T | `tools/srs_gate.py`<br>`ci/pre-commit`<br>`.githooks/pre-commit`<br>`ci/github-workflow.yml`<br>`ci/gitlab-ci.yml`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-DOC-010** The landing page consists of eleven sections, in the order a reader's questions arise | `implemented` | I | `README.md` | — |
 | **FR-DOC-020** A command the documentation names is one the tool accepts | `implemented` | T | `README.md`<br>`docs/install.md`<br>`docs/upgrade.md`<br>`docs/agents.md`<br>`docs/multilingual.md`<br>`.github/workflows/srs.yml` | `tests/docs-commands.sh` |
@@ -190,7 +190,7 @@ Total requirements: 323.
 | **FR-INIT-050** A specification without requirements is refused | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
 | **FR-INIT-060** An upgrade refreshes what may be the project's own only on request | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-070** A dry run writes nothing and tells the truth | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh` |
-| **FR-INIT-080** A project's own pre-commit hook is never displaced | `partial` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-INIT-080** A project's own pre-commit hook is never displaced | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-090** The lexicon is asked for, not assumed | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
 | **FR-INIT-100** The installer refuses to install into itself | `implemented` | I | `tools/srs_init.py` | — |
 | **FR-INIT-110** Upgrade notes come from the changelog | `implemented` | I | `tools/srs_init.py`<br>`CHANGELOG.md` | — |
@@ -210,10 +210,10 @@ Total requirements: 323.
 | **FR-INIT-250** Every account of what an upgrade leaves alone names each kind | `implemented` | T | `docs/install.md`<br>`docs/upgrade.md`<br>`tools/srs_init.py`<br>`tools/srs_upgrade.py`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/standard-vocabulary.sh` |
 | **FR-INIT-260** The tooling arrives without this framework's decision numbers | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-270** An upgrade refreshes the tooling and the skills without a flag | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-INIT-280** What stays the framework's says whose it is | `deferred` | T | — | — |
-| **FR-INIT-290** The hook and the pipelines are the project's files | `deferred` | T | — | — |
-| **FR-INIT-300** The installer says whether the hook runs the gate | `deferred` | T | — | — |
-| **FR-INIT-310** The installer says whether a pipeline runs the gate | `deferred` | T | — | — |
+| **FR-INIT-280** What stays the framework's says whose it is | `implemented` | T | `tools/srs_check.py`<br>`tools/srs_parse.py`<br>`tools/srs_view.py`<br>`tools/srs_upgrade.py`<br>`tools/srs_baseline.py`<br>`tools/srs_dates.py`<br>`tools/srs_gate.py`<br>`tools/srs_grounds.py`<br>`tools/srs_arch.py`<br>`.claude/skills`<br>`specs/README.md`<br>`grounds/README.md`<br>`arch/README.md` | `tests/installer-smoke.sh` |
+| **FR-INIT-290** The hook and the pipelines are the project's files | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-INIT-300** The installer says whether the hook runs the gate | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
+| **FR-INIT-310** The installer says whether a pipeline runs the gate | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-010** The everyday loop | `implemented` | I | `.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-page/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md`<br>`.claude/skills/srs-arch/SKILL.md`<br>`specs/README.md`<br>`grounds/README.md`<br>`arch/README.md` | — |
 | **FR-SKILL-030** Harvesting proposes, the maintainer approves | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
@@ -254,8 +254,8 @@ Total requirements: 323.
 | **FR-SKILL-380** The shipped guide names every command the installer ships | `implemented` | T | `skeleton/AGENTS.md`<br>`AGENTS.md` | `tests/guide-parity.sh` |
 | **FR-SKILL-390** The shipped guide and constitution keep sensitive data out of the repository | `implemented` | T | `skeleton/AGENTS.md`<br>`AGENTS.md`<br>`skeleton/specs/constitution.md` | `tests/guide-parity.sh` |
 | **FR-SKILL-400** Closing a change removes the open issue it settles | `implemented` | T | `.claude/skills/srs/SKILL.md`<br>`specs/README.md` | `tests/skill-instructions.sh` |
-| **FR-SKILL-410** The installing procedures wire the gate into the hook | `deferred` | T | — | — |
-| **FR-SKILL-420** The installing procedures wire the gate into the pipelines | `deferred` | T | — | — |
+| **FR-SKILL-410** The installing procedures wire the gate into the hook | `implemented` | T | `.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/skill-instructions.sh` |
+| **FR-SKILL-420** The installing procedures wire the gate into the pipelines | `implemented` | T | `.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/skill-instructions.sh` |
 | **FR-SPEC-010** Freezing a baseline is one command | `implemented` | T | `tools/srs_baseline.py` | `tests/baseline-smoke.sh` |
 | **FR-SPEC-020** A specification can be dated from its own history | `implemented` | T | `tools/srs_dates.py` | `tests/dates-smoke.sh` |
 | **FR-SPEC-030** A decision that chose a mechanism says how it works | `implemented` | I | `specs/README.md`<br>`specs/adr/template.md` | — |

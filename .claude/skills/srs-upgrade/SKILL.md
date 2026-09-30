@@ -1,7 +1,8 @@
 ---
 name: srs-upgrade
-description: Upgrade the SRS-DD framework installed in this project — the checker, the viewer, the skills and, on request, the CI config and agent guides. Invoke when the user asks to update or upgrade SRS-DD, to pick up a new framework version, or when the checker reports a version older than the one they expect. Runs tools/srs_upgrade.py, which fetches the framework this project was installed from.
+description: Upgrade the SRS-DD framework installed in this project — the checker, the viewer, the gate, the skills and, on request, the agent guides. Invoke when the user asks to update or upgrade SRS-DD, to pick up a new framework version, or when the checker reports a version older than the one they expect. Runs tools/srs_upgrade.py, which fetches the framework this project was installed from.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Upgrading the framework in this project
 
@@ -38,12 +39,21 @@ There is no clone to keep around and no address to look up.
 ## What it does and does not touch
 
 Refreshed without asking: the checker and its parser, the viewer, the upgrader itself, the commands that freeze a baseline and date requirements from the history, the checker of any optional layer the project keeps, and the skills.
-Left alone: the CI configuration, `AGENTS.md`/`CLAUDE.md`, `.gitattributes`, the pre-commit hook, and the standards — `specs/README.md`, plus the standard of any optional layer the project keeps.
+Left alone: `AGENTS.md`/`CLAUDE.md`, `.gitattributes`, and the standards — `specs/README.md`, plus the standard of any optional layer the project keeps.
 All of them are files that may already be the project's own, which is why none is replaced without being asked for.
 To refresh those too, add `--force`; it only replaces files that carry the `SRS-DD` marker, so anything hand-written stays.
+The pre-commit hook and the pipelines are never rewritten, `--force` or not: they are the project's files, and all they hold of the framework is a call to `tools/srs_gate.py`.
 
 The specification is never touched.
 Requirements are the project's own.
+
+## Wiring the gate
+
+The hook and the pipelines are this project's files, never rewritten by an upgrade, and the installer's report — *Pre-commit gate*, *Pipeline gate* — says whether git runs a hook, whether that hook calls `tools/srs_gate.py`, whether any pipeline does, and prints what to add where not.
+Read it after every run and add what it prints where the project runs its hooks: a line in a hook of the project's own, a `repo: local` hook in `.pre-commit-config.yaml`, the line in `.husky/pre-commit`, a command in `lefthook.yml` — with `pre-commit install` or `lefthook install` where git runs nothing yet — and a step in a workflow under `.github/workflows/` or a job in `.gitlab-ci.yml`.
+Where nothing runs at all, `git config core.hooksPath .githooks` switches the starter on, and only then: the switch turns off whatever ran before.
+On a service the installer does not know, read its pipeline and add the step in that service's form.
+Done is the report, run again, saying the hook and a pipeline call the gate — or your reading of the step on a service it does not know; a hook git does not run is a gate that looks installed.
 
 ## Options worth knowing
 

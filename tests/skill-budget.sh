@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Every shipped procedure, and each agent guide, fits a budget of words —
 # the file itself, and the file together with what it tells the reader to
 # open before its first step. A procedure is read by an agent at every
@@ -24,6 +25,11 @@ cd "$(dirname "$0")/.."
 #               2026-09-29: passages cut from `srs` to stay under 1 300 had
 #               taken criteria and reasons with them, and were put back
 #               (1 344), which the maintainer chose over cutting others.
+#               1 450 since 2026-09-30: `srs-init` gained the wiring of the
+#               gate into whatever runs a project's hooks and pipelines
+#               (FR-SKILL-410, FR-SKILL-420), a section the report the
+#               installer prints cannot replace — the procedure is what
+#               says to read that report and finish what it names.
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
@@ -38,7 +44,10 @@ cd "$(dirname "$0")/.."
 #               what a procedure sends the reader to, not a verdict on
 #               reading it. 7 000 since 2026-09-24, when the register's
 #               standard gained the table of its checker's rules
-#               (FR-GND-560) and `srs-bet` with it stood at 6 944.
+#               (FR-GND-560) and `srs-bet` with it stood at 6 944. 7 050
+#               since 2026-09-30, when the standard and the procedure each
+#               gained the line saying whose they are (FR-INIT-280) and
+#               `srs-bet` with the standard stood at 7 014.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -50,8 +59,8 @@ cd "$(dirname "$0")/.."
 #               had to carry them too (1 575), ADR-0030's note says why.
 #               1 650 since 2026-09-29, for the reason OWN rose: passages
 #               cut to fit were put back (1 639).
-OWN=1350
-TRANSITIVE=7000
+OWN=1450
+TRANSITIVE=7050
 GUIDE=1650
 
 # What is measured: every shipped procedure, and the two agent guides —

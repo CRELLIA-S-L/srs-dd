@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The line-width gate: 120 columns in code, and markdown is not looked at.
 #
 # file implements: FR-CI-100

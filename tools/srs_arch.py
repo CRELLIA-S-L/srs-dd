@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 #
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """The architecture layer's checker: reads arch/, holds it to the specification, writes the map.
 
     python3 tools/srs_arch.py              read, report, regenerate arch/90-map.md

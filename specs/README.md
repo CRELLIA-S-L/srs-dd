@@ -1,5 +1,6 @@
 # Specification
 <!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 This describes what the system is obliged to do.
 It is the single normative document on how the specification is maintained: if a rule here contradicts something elsewhere, this file wins.

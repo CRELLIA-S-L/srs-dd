@@ -1,3 +1,4 @@
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Assertions the suites share, sourced rather than run — hence no shebang
 # and no execute bit: there is nothing here to start.
 #

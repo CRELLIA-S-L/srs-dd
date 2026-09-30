@@ -2,6 +2,7 @@
 name: srs-check
 description: Name and run the checks a finished change calls for — the specification checker, the grounds checker where the project keeps a register, the architecture checker where it keeps the layer, the tests the requirements it touched list in their own fields, and what a person has to look at where the method is not a test. Invoke when the user asks to check, verify or review work before committing, or when a change is finished and nothing has been run yet. Offers; never runs a suite unasked.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Checking a finished change
 

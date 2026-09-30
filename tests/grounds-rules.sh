@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # One fixture per rule of the grounds checker, each breaking exactly one
 # thing, so a failure names the rule that stopped working.
 #

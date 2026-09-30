@@ -88,6 +88,7 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-SPEC-010 | 2 | 13 | 15 |
 | FR-CI-020 | 9 | 4 | 13 |
 | FR-CI-090 | 0 | 13 | 13 |
+| FR-INIT-280 | 0 | 13 | 13 |
 | FR-INIT-010 | 11 | 1 | 12 |
 | FR-SKILL-010 | 11 | 1 | 12 |
 | IF-GND-010 | 10 | 2 | 12 |
@@ -192,6 +193,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-GND-570 | 0 | 3 | 3 |
 | FR-INIT-110 | 1 | 2 | 3 |
 | FR-INIT-120 | 2 | 1 | 3 |
+| FR-INIT-290 | 2 | 1 | 3 |
 | FR-SKILL-060 | 1 | 2 | 3 |
 | FR-SKILL-110 | 1 | 2 | 3 |
 | FR-SKILL-160 | 2 | 1 | 3 |
@@ -251,7 +253,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-INIT-180 | 1 | 1 | 2 |
 | FR-INIT-220 | 0 | 2 | 2 |
 | FR-INIT-230 | 1 | 1 | 2 |
-| FR-INIT-290 | 2 | 0 | 2 |
+| FR-INIT-300 | 1 | 1 | 2 |
+| FR-INIT-310 | 1 | 1 | 2 |
 | FR-SKILL-070 | 0 | 2 | 2 |
 | FR-SKILL-130 | 1 | 1 | 2 |
 | FR-SKILL-180 | 1 | 1 | 2 |
@@ -261,6 +264,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-370 | 1 | 1 | 2 |
 | FR-SKILL-380 | 0 | 2 | 2 |
 | FR-SKILL-400 | 0 | 2 | 2 |
+| FR-SKILL-410 | 0 | 2 | 2 |
+| FR-SKILL-420 | 0 | 2 | 2 |
 | FR-SPEC-030 | 0 | 2 | 2 |
 | FR-SPEC-050 | 1 | 1 | 2 |
 | FR-VIEW-030 | 1 | 1 | 2 |
@@ -307,6 +312,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-140 | 0 | 1 | 1 |
 | FR-CI-150 | 0 | 1 | 1 |
 | FR-CI-160 | 0 | 1 | 1 |
+| FR-CI-170 | 0 | 1 | 1 |
 | FR-GND-020 | 0 | 1 | 1 |
 | FR-GND-050 | 0 | 1 | 1 |
 | FR-GND-080 | 0 | 1 | 1 |
@@ -339,8 +345,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-INIT-200 | 0 | 1 | 1 |
 | FR-INIT-240 | 0 | 1 | 1 |
 | FR-INIT-260 | 0 | 1 | 1 |
-| FR-INIT-300 | 1 | 0 | 1 |
-| FR-INIT-310 | 1 | 0 | 1 |
 | FR-SKILL-140 | 0 | 1 | 1 |
 | FR-SKILL-150 | 0 | 1 | 1 |
 | FR-SKILL-230 | 0 | 1 | 1 |
@@ -370,7 +374,3 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-110 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-CI-170 | 0 | 0 | 0 |
-| FR-INIT-280 | 0 | 0 | 0 |
-| FR-SKILL-410 | 0 | 0 | 0 |
-| FR-SKILL-420 | 0 | 0 | 0 |

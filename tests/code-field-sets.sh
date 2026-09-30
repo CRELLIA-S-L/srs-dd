@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # A requirement whose statement claims a set — every procedure, every Python
 # tool, every command — names the whole set in its `code` field. An
 # incomplete field is green forever: the checker proves the paths exist and

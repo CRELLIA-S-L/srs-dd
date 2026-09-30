@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_baseline.py — the command that freezes a specification. It
 # writes a row and nothing else: the history belongs to whatever git client
 # the project is driven by (CON-SPEC-030). It ships, so the first thing

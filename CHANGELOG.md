@@ -14,13 +14,20 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 - The hook and the pipeline run one gate, shipped as a tool. `tools/srs_gate.py` runs the checker and, where the project keeps them, the register's and the layer's, then refuses naming every generated file that differs from what git holds; the pre-commit hook and both CI templates call it and hold no step of their own, and it is refreshed with the tooling on every upgrade (`FR-CI-180`, ADR-0037).
 
+- The installer reports whether the gate runs. After every install and upgrade it says whether git runs a pre-commit hook, whether that hook — or the pre-commit framework, husky or lefthook configuration it is a shim for — calls `tools/srs_gate.py`, and whether any workflow under `.github/workflows/` or `.gitlab-ci.yml` does, printing what to add where not (`FR-INIT-300`, `FR-INIT-310`).
+- The installing procedures wire the gate in. `srs-init` and `srs-upgrade` say how to add the call to whatever runs the project's hooks and pipelines, and end at the installer's report saying it is there (`FR-SKILL-410`, `FR-SKILL-420`).
+- Every file that stays the framework's says whose it is. The tools, the skills and the standards carry `Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License` in their first lines, and the local gate refuses a file of code this repository keeps without it (`FR-INIT-280`, `FR-CI-170`, ADR-0038).
+
 ### Changed
 
 - The gate's refusal reads the same in the hook and the pipeline. It names each stale generated file and says to stage it and commit again, and in a pipeline it also prints the difference (`FR-CI-010`, `FR-CI-020`, `FR-GND-570`, `FR-ARCH-300`).
+- The pre-commit hook and the pipelines are the project's files. The installer writes `.githooks/pre-commit`, `.github/workflows/srs.yml` and `.gitlab-ci.yml` as starters only where the file is absent, and never again — with `--force` or without — so they leave the list of precious files (`FR-INIT-290`, `FR-INIT-060`).
+- A project's own hook gets no copy of the gate beside it. Where something already runs on commit the installer writes no hook at all and says what to call from theirs; `.githooks/pre-commit.srs-dd` is no longer written (`FR-INIT-080`).
 
 ### Upgrade notes
 
-- The pre-commit hook and the CI templates now call `tools/srs_gate.py`, which arrives with the tooling; they are refreshed only with `--force`, where they still carry the framework's marker. A hook or pipeline that is the project's own keeps working as it is; to have the gate move with the tooling from now on, replace its gate steps with `python3 tools/srs_gate.py --staged` in the hook and `python3 tools/srs_gate.py` in the pipeline.
+- The pre-commit hook and the pipelines are now the project's files: an upgrade never rewrites `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml`, with `--force` or without. Both keep working as they are; to have the gate move with the tooling from now on, replace their gate steps with `python3 tools/srs_gate.py --staged` in the hook and `python3 tools/srs_gate.py` in the pipeline — the installer's report, printed after every upgrade, says whether each calls the gate and what to add where not.
+- A `.githooks/pre-commit.srs-dd` laid beside a hook of the project's own by an earlier install is no longer written or refreshed; replace the line that calls it with `python3 tools/srs_gate.py --staged` and delete the file.
 
 ## [0.21.0] — 2026-09-30
 

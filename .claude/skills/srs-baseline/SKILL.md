@@ -2,6 +2,7 @@
 name: srs-baseline
 description: Freeze this project's specification as a baseline — read what changed since the last one, agree the version with the maintainer, then run tools/srs_baseline.py, which writes the row into specs/92-baselines.md. Invoke when the user asks to cut, freeze, record or tag a baseline of the specification, or at a milestone worth being able to compare against later. The commit, and any spec/v* tag, stay with the maintainer's git client.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Freezing a baseline
 

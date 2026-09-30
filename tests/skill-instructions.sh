@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # A procedure keeps its instructions when it is shortened: every shipped
 # procedure is held to a list of what it must name — commands, articles,
 # files and other procedures — written off the original before the cut.
@@ -10,6 +11,7 @@ unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 # file verifies: FR-SKILL-300, FR-SKILL-340, FR-SKILL-350, FR-SKILL-360, FR-SKILL-370, FR-SKILL-400
+# file verifies: FR-SKILL-410, FR-SKILL-420
 # The lists live in tests/skill-instructions/<procedure>.txt, one literal
 # token per line, `#` for a comment. A command token is `tools/x.py` or
 # `tools/x.py --flag`; the second holds when some invocation of the tool

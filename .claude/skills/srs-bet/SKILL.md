@@ -2,6 +2,7 @@
 name: srs-bet
 description: Working with the grounds register — writing a hypothesis, staking a requirement on it with a bet, recording a measurement, and settling what happens when one is refuted. Invoke when the user wants to record why the product does something, when a measurement comes in, or when a hypothesis expires. For requirements themselves use srs and srs-new.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Working with the grounds register
 

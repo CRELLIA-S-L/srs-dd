@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """Freeze the specification: write the baseline row.
 
     python3 tools/srs_baseline.py 1.2.0 --dry-run

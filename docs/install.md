@@ -54,20 +54,21 @@ Exit codes:
 ## Already running a pre-commit hook?
 
 It is never displaced.
-The installer looks at what the repository actually does on commit — `core.hooksPath`, an existing `.git/hooks/pre-commit`, husky, the pre-commit framework — and when something is already there it says so instead of advising the `core.hooksPath` switch, which would silently disable it.
+The installer looks at what the repository actually does on commit — `core.hooksPath`, an existing `.git/hooks/pre-commit`, husky, lefthook, the pre-commit framework — and when something is already there it says so instead of advising the `core.hooksPath` switch, which would silently disable it.
 
-Your hook then calls the gate itself:
+No hook is written then — not beside yours either — and your hook calls the gate itself:
 
 ```
-sh .githooks/pre-commit || exit 1
+python3 tools/srs_gate.py --staged
 ```
 
-If `.githooks/pre-commit` is itself yours, the gate is installed beside it as `.githooks/pre-commit.srs-dd`.
+The same holds for a hook manager: the line goes into the pre-commit framework's, husky's or lefthook's configuration, and the installer's report says whether it is there.
 
 ## Precious files
 
-CI config, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the hook, `specs/README.md` — the standard — and the standards of the optional layers are "precious": they are refreshed only with `--force`, and only when the existing file carries the installer's marker, a line reading `SRS-DD-<version>`.
+`CLAUDE.md`/`AGENTS.md`, `.gitattributes`, `specs/README.md` — the standard — and the standards of the optional layers are "precious": they are refreshed only with `--force`, and only when the existing file carries the installer's marker, a line reading `SRS-DD-<version>`.
 A file the installer did not write is never overwritten; the version is part of the marker because the bare name turns up in ordinary prose, and a standard of your own that mentions SRS-DD must not be mistaken for ours.
+The pre-commit hook and the pipelines are not precious but starters: written where the file is absent, and never again — with `--force` or without — because a project runs every check it has through them.
 
 ## Manual fallback
 

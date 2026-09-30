@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 """Cut a framework release: one command.
 
     python3 tools/srs_release.py 1.2.0 --dry-run

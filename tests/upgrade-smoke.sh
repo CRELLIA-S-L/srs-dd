@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_upgrade.py: the one command an installed project runs to pick up
 # a new framework version. Exercised against this working tree through
 # --from, so the suite never reaches the network.

@@ -1,6 +1,7 @@
 # The grounds register
 
 <!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 A specification records what the system must do.
 It does not record why anyone thought those were the right things to build.

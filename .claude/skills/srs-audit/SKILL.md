@@ -2,6 +2,7 @@
 name: srs-audit
 description: Semantic drift audit between the specification and the code, including test adequacy — whether the listed tests actually prove the statements — and the links between requirements, which nothing else looks for. Invoke when the user asks to audit the spec, verify that code matches requirements, find undocumented behavior, check whether requirements are adequately tested, or derive test cases from statements. Read-only analysis with a report; fixes nothing by itself, except that on explicit request it can author the missing tests. For the everyday workflow use the srs skill.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Auditing the specification
 

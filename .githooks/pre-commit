@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # SRS-DD pre-commit gate. One-time setup after cloning:
 #     git config core.hooksPath .githooks
 # Runs the gate a target's hook runs (ci/pre-commit), then the local gate:

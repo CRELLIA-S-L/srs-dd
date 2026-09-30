@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # implements: FR-INIT-250
 """Install, adopt, or upgrade the SRS-DD skeleton in a target repository.
 
@@ -23,11 +24,13 @@ Three modes, detected automatically:
 
 `--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
 always config-driven. `--force` additionally refreshes the "precious"
-files (CI config, CLAUDE.md/AGENTS.md, .gitattributes, the pre-commit
-hook, specs/README.md, grounds/README.md, arch/README.md) — and only when the existing
+files (CLAUDE.md/AGENTS.md, .gitattributes, specs/README.md,
+grounds/README.md, arch/README.md) — and only when the existing
 file carries the "SRS-DD-<version>" marker; a file the installer did not
-install is never overwritten. The project's requirements are never
-touched under any flag.
+install is never overwritten. The pre-commit hook and the pipeline
+starters are written where the file is absent and never again, with
+--force or without. The project's requirements are never touched under
+any flag.
 
 `--dry-run` writes nothing in any mode and prints the created /
 refreshed / skipped list the real run would produce, so the change can
@@ -188,9 +191,38 @@ CI_TEMPLATES = {
 
 HOOK_SRC = os.path.join("ci", "pre-commit")
 HOOK_DST = os.path.join(".githooks", "pre-commit")
-# Where the gate goes when .githooks/pre-commit is already someone
-# else's: a name git will not run by itself, for their hook to call.
-HOOK_ALT = os.path.join(".githooks", "pre-commit.srs-dd")
+# implements: FR-INIT-300
+# The hook managers the report knows: what says the manager is in use,
+# the configuration it runs on commit — where the call goes, whether the
+# file exists yet or not — and the command that makes git run it at all.
+# What to add to each is in GATE_LINES.
+HOOK_MANAGERS = (
+    ("the pre-commit framework", ".pre-commit-config.yaml", ".pre-commit-config.yaml",
+     "pre-commit install"),
+    ("husky", ".husky", os.path.join(".husky", "pre-commit"), "npx husky"),
+    ("lefthook", "lefthook.yml", "lefthook.yml", "lefthook install"),
+    ("lefthook", ".lefthook.yml", ".lefthook.yml", "lefthook install"),
+)
+GATE_CALL = "python3 tools/srs_gate.py --staged"
+GATE_LINES = {
+    ".pre-commit-config.yaml": (
+        "Add to its repos: list",
+        "  - repo: local\n"
+        "    hooks:\n"
+        "      - id: srs-gate\n"
+        "        name: SRS-DD gate\n"
+        "        entry: " + GATE_CALL + "\n"
+        "        language: system\n"
+        "        pass_filenames: false\n"),
+    "lefthook.yml": (
+        "Add to it",
+        "  pre-commit:\n"
+        "    commands:\n"
+        "      srs-gate:\n"
+        "        run: " + GATE_CALL + "\n"),
+}
+GATE_LINES[".lefthook.yml"] = GATE_LINES["lefthook.yml"]
+# srs-end: FR-INIT-300
 
 PLACEHOLDER_REQ = """# Functional requirements — %(area_low)s
 
@@ -250,8 +282,7 @@ def parse_args():
                              "run validates before touching anything")
     parser.add_argument("--force", action="store_true",
                         help="also refresh existing SRS-DD-marked precious "
-                             "files (CI config, CLAUDE.md/AGENTS.md, "
-                             ".gitattributes, the pre-commit hook, "
+                             "files (CLAUDE.md/AGENTS.md, .gitattributes, "
                              "specs/README.md, grounds/README.md, "
                              "arch/README.md); a file "
                              "without the marker is still never touched; "
@@ -473,20 +504,32 @@ class Installer(object):
     # srs-end: FR-INIT-240
 
     def put(self, dst_rel, content, tooling, precious=False,
-            executable=False):
+            executable=False, starter=False):
         """Writes one file. `content` is str (utf-8) or bytes.
 
         Existing tooling files are refreshed in adopt/upgrade modes (or
         with --force); existing specification content is never
         overwritten. `precious` marks files that may already be the
-        project's own (CI config, agent docs, and the standard, whose
+        project's own (agent docs, .gitattributes and the standards, whose
         marker promises that local edits survive): those are refreshed
         only when --force is given AND the existing file carries the
-        marker — a file we did not install is never clobbered.
+        marker — a file we did not install is never clobbered. `starter`
+        marks the hook and the pipelines: the project's files from the
+        moment they exist, written once and never again.
         """
         dst = os.path.join(self.target, dst_rel)
         exists = os.path.exists(dst) and dst_rel not in self.vacated
         if exists:
+            # implements: FR-INIT-290
+            # A project runs every pre-commit check through one hook and,
+            # on GitLab, every job through one file; whatever it added
+            # beside the gate is its own, so neither is rewritten — with
+            # --force or without, marker or no marker.
+            if starter:
+                self.skipped.append("%s (the project's file — never rewritten)"
+                                    % dst_rel)
+                return
+            # srs-end: FR-INIT-290
             # implements: FR-INIT-060
             if precious:
                 ours = self.carries_marker(dst_rel)
@@ -527,7 +570,7 @@ class Installer(object):
             os.chmod(dst, 0o755)
 
     def copy(self, src_rel, dst_rel, tooling, substitute=None,
-             precious=False, executable=False):
+             precious=False, executable=False, starter=False):
         src = os.path.join(ROOT, src_rel)
         with open(src, "rb") as handle:
             raw = handle.read()
@@ -539,10 +582,10 @@ class Installer(object):
             for old, new in substitute.items():
                 text = text.replace(old, new)
             self.put(dst_rel, text, tooling, precious=precious,
-                     executable=executable)
+                     executable=executable, starter=starter)
         else:
             self.put(dst_rel, raw, tooling, precious=precious,
-                     executable=executable)
+                     executable=executable, starter=starter)
 
     # implements: FR-INIT-230
     def move(self, src_rel, dst_rel):
@@ -653,24 +696,16 @@ def collect_spec_skeleton():
     return sorted(result, key=lambda pair: pair[1])
 
 
-# implements: FR-INIT-060
-def installed_ci(installer):
-    """The CI templates a target already carries as ours: an upgrade told
-    nothing about CI refreshes these, under the rules every precious file
-    follows, and leaves a pipeline the project wrote itself unmentioned."""
-    return tuple(key for key, (_src, dst) in sorted(CI_TEMPLATES.items())
-                 if os.path.exists(os.path.join(installer.target, dst))
-                 and installer.carries_marker(dst))
-# srs-end: FR-INIT-060
-
-
-def install_ci(installer, choice, keys=None):
-    if keys is None:
-        keys = {"github": ("github",), "gitlab": ("gitlab",),
-                "both": ("github", "gitlab"), "none": ()}[choice]
+# implements: FR-INIT-290
+def install_ci(installer, choice):
+    """A starter pipeline for each service this run chose, written only
+    where the project has none: once it exists it is the project's."""
+    keys = {"github": ("github",), "gitlab": ("gitlab",),
+            "both": ("github", "gitlab"), "none": (), None: ()}[choice]
     for key in keys:
         src, dst = CI_TEMPLATES[key]
-        installer.copy(src, dst, tooling=True, precious=True)
+        installer.copy(src, dst, tooling=True, starter=True)
+# srs-end: FR-INIT-290
 
 
 def install_tools(installer, skip=()):
@@ -885,7 +920,7 @@ def describe_hooks(target):
     existing hook may live anywhere; pointing that setting at
     .githooks would silently stop whatever is there today.
     """
-    info = {"active": "", "framework": ""}
+    info = {"active": "", "framework": "", "config": "", "install": ""}
     try:
         # One question to git rather than two guesses: --git-path
         # resolves core.hooksPath and the shared hooks directory of a
@@ -902,67 +937,134 @@ def describe_hooks(target):
     # will try to run.
     if os.path.lexists(os.path.join(target, hooks_dir, "pre-commit")):
         info["active"] = os.path.join(hooks_dir, "pre-commit")
-    if os.path.exists(os.path.join(target, ".pre-commit-config.yaml")):
-        info["framework"] = ("the pre-commit framework "
-                             "(.pre-commit-config.yaml)")
-    elif os.path.isdir(os.path.join(target, ".husky")):
-        info["framework"] = "husky (.husky/)"
+    # A hook manager's own file is a shim that calls its configuration,
+    # so the configuration is what says whether the gate runs (FR-INIT-300).
+    for name, presence, config, install in HOOK_MANAGERS:
+        if os.path.exists(os.path.join(target, presence)):
+            info["framework"] = "%s (%s)" % (name, config)
+            info["config"] = config
+            info["install"] = install
+            break
     return info
 
 
-# implements: FR-INIT-080
-def install_hook(installer):
-    """The gate never displaces an existing hook: .githooks/pre-commit is
-    precious, so a copy that is not ours is kept. When that happens the
-    gate is laid down beside it under a name git does not run, for the
-    project's own hook to call."""
-    installer.copy(HOOK_SRC, HOOK_DST, tooling=True, precious=True,
+def runs_starter_path(target, active):
+    """Whether the hook git runs is the one at .githooks/pre-commit:
+    core.hooksPath may say ./.githooks, .githooks/, or an absolute path
+    to the very same directory."""
+    return bool(active) and (
+        os.path.realpath(os.path.join(target, active))
+        == os.path.realpath(os.path.join(target, HOOK_DST)))
+
+
+# implements: FR-INIT-080, FR-INIT-290
+def install_hook(installer, hooks):
+    """The starter hook, written only where nothing runs on commit and
+    nothing is at .githooks/pre-commit. A project that already runs a
+    hook, or a hook manager, keeps it and is told what to call from it
+    (FR-INIT-300); nothing is laid beside it, because the gate is a tool
+    and what the hook needs is one line."""
+    if hooks["framework"]:
+        return
+    if hooks["active"] and not runs_starter_path(installer.target,
+                                                  hooks["active"]):
+        return
+    installer.copy(HOOK_SRC, HOOK_DST, tooling=True, starter=True,
                    executable=True)
-    occupied = (os.path.exists(os.path.join(installer.target, HOOK_DST))
-                and not installer.carries_marker(HOOK_DST))
-    if occupied:
-        installer.copy(HOOK_SRC, HOOK_ALT, tooling=True, executable=True)
-# srs-end: FR-INIT-080
+# srs-end: FR-INIT-080, FR-INIT-290
 
 
-# implements: FR-INIT-080
-def hook_activation_hint(installer, hooks):
-    """Says how to switch the gate on — or, when the repository already
-    has a pre-commit hook, how not to break it."""
-    ours = HOOK_DST in installer.created or installer.carries_marker(HOOK_DST)
-    occupied = os.path.exists(os.path.join(installer.target, HOOK_DST)) \
-        and not ours
+def calls_gate(target, rel):
+    """Whether a file names the gate tool at all: the one line that a hook,
+    a manager's configuration or a pipeline holds of ours."""
+    try:
+        with open(os.path.join(target, rel), "r", encoding="utf-8",
+                  errors="replace") as handle:
+            return "tools/srs_gate.py" in handle.read()
+    except OSError:
+        return False
+
+
+# implements: FR-INIT-080, FR-INIT-300
+def report_hook(installer, hooks):
+    """Whether git runs a pre-commit hook here, whether that hook — or
+    the manager's configuration it is a shim for — calls the gate, and
+    what to add where it does not. Said after every install and upgrade,
+    because both rest on a line the project keeps."""
+    target = installer.target
     active = hooks["active"]
-    # Compare resolved paths: core.hooksPath may say ./.githooks, or
-    # .githooks/, or an absolute path to the very same directory.
-    if active and (os.path.realpath(os.path.join(installer.target, active))
-                   == os.path.realpath(os.path.join(installer.target,
-                                                    HOOK_DST))):
+    if runs_starter_path(target, active):
+        # The starter is what git runs; a manager's configuration lying
+        # beside it runs nothing on commit and is not what is read.
         active = HOOK_DST
-    managed = ((",\nmanaged by %s" % hooks["framework"])
-               if hooks["framework"] else "")
+        hooks = dict(hooks, framework="", config="")
+    managed = ", managed by %s" % hooks["framework"] if hooks["framework"] else ""
+    read = hooks["config"] or active
+    lines = ["\nPre-commit gate:"]
+    if active:
+        lines.append("  git already runs %s on commit%s." % (active, managed))
+    elif hooks["framework"]:
+        lines.append("  git runs no pre-commit hook: %s is configured but not "
+                     "installed here — run: %s" % (hooks["framework"], hooks["install"]))
+    else:
+        lines.append("  git runs no pre-commit hook.")
+        if os.path.exists(os.path.join(target, HOOK_DST)):
+            lines.append("  Activate %s (one-time, in this repository):\n"
+                         "    git config core.hooksPath .githooks" % HOOK_DST)
+    if read:
+        if calls_gate(target, read):
+            lines.append("  %s calls tools/srs_gate.py." % read)
+        elif read in GATE_LINES:
+            intro, block = GATE_LINES[read]
+            lines.append("  %s does not call tools/srs_gate.py. %s:\n%s"
+                         % (read, intro, block.rstrip("\n")))
+        else:
+            lines.append("  %s does not call tools/srs_gate.py. Add to it:\n"
+                         "    %s" % (read, GATE_CALL))
+    if active and active != HOOK_DST and not hooks["framework"]:
+        lines.append("  Pointing core.hooksPath at .githooks would disable it, "
+                     "so no hook was written.")
+    sys.stdout.write("\n".join(lines) + "\n")
+# srs-end: FR-INIT-080, FR-INIT-300
 
-    if occupied:
-        sys.stdout.write(
-            "\nYour %s was kept. The gate is installed\nbeside it as %s; "
-            "call it from yours:\n  sh %s || exit 1\n"
-            % (HOOK_DST, HOOK_ALT, HOOK_ALT))
-        return
-    if not ours:
-        return
-    if active and active != HOOK_DST:
-        sys.stdout.write(
-            "\nThis repository already runs %s on commit%s.\n"
-            "Pointing core.hooksPath at .githooks would disable it, so the\n"
-            "gate is left off. Call it from your own hook instead:\n"
-            "  sh %s || exit 1\n" % (active, managed, HOOK_DST))
-        return
-    if active == HOOK_DST:
-        return                      # already wired up, nothing to say
-    sys.stdout.write(
-        "\nActivate the pre-commit gate (one-time, in the target):\n"
-        "  git config core.hooksPath .githooks\n")
-# srs-end: FR-INIT-080
+
+# implements: FR-INIT-310
+def report_pipelines(target):
+    """Whether any GitHub workflow or the GitLab file calls the gate; the
+    step to add where none does. Any workflow will do — a project's other
+    workflows have no reason to run it, and naming each would be noise."""
+    workflows = sorted(
+        os.path.join(".github", "workflows", name)
+        for name in (os.listdir(os.path.join(target, ".github", "workflows"))
+                     if os.path.isdir(os.path.join(target, ".github", "workflows")) else ())
+        if name.endswith((".yml", ".yaml")))
+    gitlab = ".gitlab-ci.yml" if os.path.exists(os.path.join(target, ".gitlab-ci.yml")) else ""
+    lines = ["\nPipeline gate:"]
+    if not workflows and not gitlab:
+        lines.append("  no pipeline for GitHub or GitLab was found; one on another "
+                     "service is yours to read for a step that runs: python3 tools/srs_gate.py")
+    if workflows:
+        calling = [w for w in workflows if calls_gate(target, w)]
+        if calling:
+            lines.append("  %s calls tools/srs_gate.py." % calling[0])
+        else:
+            lines.append("  no workflow under .github/workflows/ calls tools/srs_gate.py. "
+                         "Add a step to one of them, after checkout and setup-python:\n"
+                         "    - run: python3 tools/srs_gate.py")
+    if gitlab:
+        if calls_gate(target, gitlab):
+            lines.append("  %s calls tools/srs_gate.py." % gitlab)
+        else:
+            lines.append("  %s does not call tools/srs_gate.py. Add a job:\n"
+                         "    srs-gate:\n      image: python:3.12\n      script:\n"
+                         "        - python3 tools/srs_gate.py" % gitlab)
+    sys.stdout.write("\n".join(lines) + "\n")
+# srs-end: FR-INIT-310
+
+
+def report_wiring(installer, target):
+    report_hook(installer, describe_hooks(target))
+    report_pipelines(target)
 
 
 def install_agent_docs(installer, substitute):
@@ -1404,7 +1506,7 @@ def run_fresh(args, target, batch):
     install_skills(installer, substitute)
     install_agent_docs(installer, substitute)
     install_ci(installer, settings["ci"])
-    install_hook(installer)
+    install_hook(installer, describe_hooks(target))
 
     sys.stdout.write(installer.summary() + "\n")
     if args.dry_run:
@@ -1451,7 +1553,7 @@ def run_fresh(args, target, batch):
             "  For a new framework version: python3 "
             "tools/srs_upgrade.py\n"
             % area.lower())
-        hook_activation_hint(installer, describe_hooks(target))
+        report_wiring(installer, target)
     return result
 # srs-end: FR-INIT-020, FR-INIT-150
 
@@ -1504,7 +1606,7 @@ def install_adopt_files(installer, settings, substitute, target,
                    precious=True)
     install_agent_docs(installer, substitute)
     install_ci(installer, settings["ci"])
-    install_hook(installer)
+    install_hook(installer, describe_hooks(target))
 # srs-end: FR-INIT-040, FR-INIT-230
 
 
@@ -1673,7 +1775,7 @@ def run_adopt(args, target, batch, found_areas):
         sys.stdout.write(
             "\nNext steps: commit the regenerated "
             "specs/90-traceability.md together with the new tooling.\n")
-        hook_activation_hint(installer, describe_hooks(target))
+        report_wiring(installer, target)
     return result
 # srs-end: FR-INIT-030, FR-INIT-050
 
@@ -1775,13 +1877,11 @@ def run_upgrade(args, target):
     # slightly wrong title beats one nothing refreshes at all.
     install_agent_docs(installer, substitutions(*guide_answers(target)))
     # srs-end: FR-INIT-060, FR-INIT-200
-    # An upgrade run through srs_upgrade.py has no --ci to pass, and the
-    # template the project already carries is the one it chose.
-    if args.ci:
-        install_ci(installer, args.ci)
-    else:
-        install_ci(installer, None, keys=installed_ci(installer))
-    install_hook(installer)
+    # A pipeline starter only where this run asked for one: an upgrade run
+    # through srs_upgrade.py has no --ci to pass, and what the project
+    # already has is its own, starter or not (FR-INIT-290).
+    install_ci(installer, args.ci)
+    install_hook(installer, describe_hooks(target))
     sys.stdout.write(installer.summary() + "\n")
     if args.dry_run:
         dry_run_notice()
@@ -1799,7 +1899,7 @@ def run_upgrade(args, target):
             "\nNext steps: commit the refreshed tooling and the "
             "regenerated specs/90-traceability.md.\n")
     if result == 0:
-        hook_activation_hint(installer, describe_hooks(target))
+        report_wiring(installer, target)
     return result
 # srs-end: FR-INIT-060
 

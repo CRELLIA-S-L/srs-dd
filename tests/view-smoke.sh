@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_view.py against a freshly installed target: every query mode,
 # and the self-contained page (no CDN, deterministic, no bytecode).
 set -eo pipefail

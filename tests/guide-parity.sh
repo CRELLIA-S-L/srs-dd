@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The framework's own counterpart of a file it ships carries every rule the
 # shipped file states: this repository is the first project it is applied
 # to, and its guides and hook are its instances of what a target gets.

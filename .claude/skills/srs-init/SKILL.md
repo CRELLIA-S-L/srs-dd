@@ -77,14 +77,16 @@ git -C <framework-clone> pull
 python3 <framework-clone>/tools/srs_init.py <target> --defaults
 ```
 
-The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling and the skills refresh automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes, the hook, the standards) only with `--force`.
+The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling and the skills refresh automatically, precious files (CLAUDE.md/AGENTS.md, .gitattributes, the standards) only with `--force`; the hook and the pipelines are never rewritten.
 Add `--dry-run` first when the user wants to see the file list before anything moves.
 Remind them to commit the refreshed tooling and the regenerated matrix.
 
-After the installer finishes, offer to merge the agent docs. `--force` refreshes them like any other precious file, but it *replaces* — the project's own additions go with it, and those files are where a project writes what its agents must know. A merge is the reason to do this by hand rather than by flag:
+`--force` *replaces* the agent docs and the project's own additions go with them, so offer a merge by hand instead: diff the target's `CLAUDE.md` and `AGENTS.md` against `skeleton/` — not this repository's root pair, which describe this repository — accounting for `<Your Project Name>`; for a file carrying the `SRS-DD` marker propose the merged text and apply it only on explicit confirmation; a file without the marker is not ours — report what changed on the framework side and leave it alone.
 
-1. Diff the target's `CLAUDE.md` and `AGENTS.md` against the shipped templates in `skeleton/` — **not** against the ones in the framework repository's root, which describe that repository rather than a target.
-   The templates carry `<Your Project Name>` where the target has its real name; account for that substitution.
-2. For a file that carries the `SRS-DD` marker, propose a merged version: framework additions folded in, the project name and every local addition preserved.
-   Show the result and apply it only on the user's explicit confirmation.
-3. A file without the marker is not ours (same rule the installer follows): report what changed on the framework side and leave the file alone.
+## Wiring the gate
+
+The hook and the pipelines are the project's files: the installer writes a starter only where there is none, never again, and its report — *Pre-commit gate*, *Pipeline gate* — says whether git runs a hook, whether that hook calls `tools/srs_gate.py`, whether any pipeline does, and prints what to add where not.
+Read it after every run and add what it prints where the project runs its hooks: a line in a hook of the project's own, a `repo: local` hook in `.pre-commit-config.yaml`, the line in `.husky/pre-commit`, a command in `lefthook.yml` — with `pre-commit install` or `lefthook install` where git runs nothing yet — and a step in a workflow under `.github/workflows/` or a job in `.gitlab-ci.yml`.
+Where nothing runs at all, `git config core.hooksPath .githooks` switches the starter on, and only then: the switch turns off whatever ran before.
+On a service the installer does not know, read its pipeline and add the step in that service's form.
+Done is the report, run again, saying the hook and a pipeline call the gate — or your reading of the step on a service it does not know; a hook git does not run is a gate that looks installed.

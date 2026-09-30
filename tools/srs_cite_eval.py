@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 """Measure whether a fresh agent instance names records the way the guide asks.
 
 Asks a non-interactive Claude Code instance the questions in a file, one at a

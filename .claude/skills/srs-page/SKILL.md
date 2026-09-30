@@ -2,6 +2,7 @@
 name: srs-page
 description: Render the specification as one self-contained HTML page and open it — for reading rather than grepping, and for handing to somebody who will never clone the repository. Invoke when the user asks to see, show, open, render or share the specification, the requirements or the documentation as a page.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Reading the specification as a page
 

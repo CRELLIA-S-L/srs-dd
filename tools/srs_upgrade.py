@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """Upgrade SRS-DD in this project — one command, no clone to keep around.
 
     python3 tools/srs_upgrade.py              show the change, then ask
@@ -79,9 +82,8 @@ def main():
                              "fetching one")
     # implements: FR-INIT-250
     parser.add_argument("--force", action="store_true",
-                        help="also refresh precious files (CI config, agent "
-                             "guides, .gitattributes, the hook, the "
-                             "standards)")
+                        help="also refresh precious files (agent guides, "
+                             ".gitattributes, the standards)")
     # srs-end: FR-INIT-250
     # implements: FR-GND-290, FR-GND-480
     # Asking has to be possible with the command a project actually has.

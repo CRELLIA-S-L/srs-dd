@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The standards name every value their tools define — the requirement types,
 # the verification methods, the files the checker does not read, the
 # register's kinds, keys, statuses, grades, classes, periods and confidence
@@ -128,10 +129,8 @@ found += both_ways("srs_view.py DIFF_FIELDS", srs_view.DIFF_FIELDS,
 # installer's suite walks against what the installer does; each place words
 # them its own way, so each kind carries the words that count as naming it.
 PRECIOUS = (
-    ("the CI configuration", ("CI",)),
     ("the agent guides", ("AGENTS.md", "agent guides")),
     (".gitattributes", (".gitattributes",)),
-    ("the hook", ("hook",)),
     ("the specification's standard", ("specs/README.md", "the standards", "specification standard")),
     ("the register's standard", ("grounds/README.md", "the standards", "optional layer", "grounds standard")),
     ("the layer's standard", ("arch/README.md", "the standards", "optional layer", "architecture standard")),
@@ -157,8 +156,8 @@ def precious_place(path, start, stop):
 PLACES = (
     ("specs/10-fr-init.md, FR-INIT-060", "specs/10-fr-init.md", "refresh the files that may be the project's own", "only with `--force`"),
     ("specs/00-glossary.md", "specs/00-glossary.md", "| Precious file |", None),
-    ("docs/install.md", "docs/install.md", "CI config, `CLAUDE.md`", "are \"precious\""),
-    ("docs/upgrade.md", "docs/upgrade.md", "Left alone: CI configuration", "files that may be your own"),
+    ("docs/install.md", "docs/install.md", "`CLAUDE.md`/`AGENTS.md`, `.gitattributes`, `specs/README.md`", "are \"precious\""),
+    ("docs/upgrade.md", "docs/upgrade.md", "Left alone: `CLAUDE.md`", "files that may be your own"),
     ("tools/srs_init.py", "tools/srs_init.py", "additionally refreshes the \"precious\"", "marker"),
     ("tools/srs_init.py --force", "tools/srs_init.py", "also refresh existing SRS-DD-marked precious", "; a file"),
     ("tools/srs_upgrade.py", "tools/srs_upgrade.py", "also refresh precious files", ")\")"),
@@ -171,7 +170,7 @@ def unnamed(place, words_of):
     return [kind for kind, words in words_of if not any(word in place for word in words)]
 
 
-assert unnamed("CI and the hook", PRECIOUS[:4]) == ["the agent guides", ".gitattributes"]
+assert unnamed("the standards", PRECIOUS[:2]) == ["the agent guides", ".gitattributes"]
 for where, path, start, stop in PLACES:
     place = precious_place(path, start, stop)
     if place is None:

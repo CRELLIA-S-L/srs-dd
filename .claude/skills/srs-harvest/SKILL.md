@@ -2,6 +2,7 @@
 name: srs-harvest
 description: Mine (extract) a specification from an existing codebase — for projects that have code but no requirements yet, or areas of the spec that lag behind the code. Reads the code area by area and proposes draft requirements in approved batches. Invoke when the user wants to build, extract, or backfill a spec from existing code. For authoring a single new requirement use srs-new; for checking existing spec against code use srs-audit.
 ---
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Mining a specification from existing code
 

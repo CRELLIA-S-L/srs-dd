@@ -27,8 +27,9 @@ Exit codes match the installer: 0 installed, 1 checker errors, 2 refused before 
 Refreshed without a flag: the tooling — the checker and its parser, the viewer, the upgrader, the baseline and dating commands, and the checker of any optional layer the project keeps — and the skills.
 Tooling has to move with the framework or a project drifts away from the standard it says it follows.
 
-Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the pre-commit hook, `specs/README.md` and the standard of any optional layer the project keeps — files that may be your own.
-The first four are ones a project commonly edits; the standard is there because its marker promises that your local edits to it survive until `--force`.
+Left alone: `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, `specs/README.md` and the standard of any optional layer the project keeps — files that may be your own.
+The first two are ones a project commonly edits; the standard is there because its marker promises that your local edits to it survive until `--force`.
+The pre-commit hook and the pipelines are never rewritten at all, `--force` or not: they are the project's files, and what they hold of the framework is a call to `tools/srs_gate.py`, which moves with the tooling.
 `--force` refreshes all of them, and only when the existing file carries the installer's marker — a line reading `SRS-DD-<version>` — so a file you wrote is never clobbered.
 The skipped list says of each such file whether it is the same as what this version ships or differs from it; the ones that differ are the ones to read before passing `--force`.
 

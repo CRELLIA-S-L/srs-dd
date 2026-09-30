@@ -42,7 +42,7 @@ Run before a commit as `tools/srs_gate.py --staged`, the gate **shall** compare 
 
 **Rationale.** A gate that only exists in CI teaches people to push and wait;
 one that runs on commit is the difference between a habit and a chore.
-The comparison is with what is staged because that is what the commit will hold; the hook the installer writes makes the call, and where the project runs its hooks with something of its own the installer says what to call and the installing procedure is to add it there (`FR-SKILL-410`).
+The comparison is with what is staged because that is what the commit will hold; the hook the installer writes makes the call, and where the project runs its hooks with something of its own the installer says what to call (`FR-INIT-300`) and the installing procedure adds it there (`FR-SKILL-410`).
 
 ### FR-CI-030 — The local self-test runs the real pipeline
 
@@ -103,7 +103,7 @@ created: 2026-08-07
 The installer **shall** offer starter pipelines for GitHub and GitLab, never this repository's own pipeline configuration.
 
 **Rationale.** Our pipeline tests the framework: smoke-installing into temporary directories would be meaningless noise in somebody else's project.
-What is offered is a starter: once written, the pipeline is the project's file, and once `FR-INIT-290` is built the installer never writes into it again.
+What is offered is a starter: once written, the pipeline is the project's file, and the installer never writes into it again (`FR-INIT-290`).
 
 ### FR-CI-060 — A project that uses the framework is checked as a downstream consumer
 
@@ -402,14 +402,14 @@ Inspection, as `FR-CI-030` is: the gate is the thing that runs the suites, and a
 ### FR-CI-170 — The gate refuses code that does not say whose it is
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tests/notice.sh]
+tests: [tests/notice.sh]
 created: 2026-09-30
 ```
 
@@ -438,4 +438,4 @@ The hook and pipeline starters the installer writes **shall** run the gate throu
 
 **Rationale.** The gate's steps were written three times — in the hook and in each CI template — and those files may be the project's own, refreshed only with `--force` (`FR-INIT-060`), so every change to the gate reached a project only through an upgrade note asking somebody to edit the file by hand.
 As a tool it is refreshed with the rest (`FR-INIT-270`), and the hook and the pipeline run the same steps by construction.
-The hook and the pipelines are the project's files, shared with every other check it runs, so the installer is to write them once as starters and never again (`FR-INIT-290`); what they hold of ours is a call, and the notice of whose the gate is travels in the tool (`FR-INIT-280`).
+The hook and the pipelines are the project's files, shared with every other check it runs, so the installer writes them once as starters and never again (`FR-INIT-290`); what they hold of ours is a call, and the notice of whose the gate is travels in the tool (`FR-INIT-280`).

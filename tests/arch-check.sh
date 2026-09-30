@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The gate for this repository's own architecture layer: it passes its
 # checker strictly, and the committed map is what the elements say now.
 #

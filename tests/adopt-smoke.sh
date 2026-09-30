@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Adopt mode: a project that already has an SRS-shaped specification, in a
 # language the tooling has never seen. The invariant under test is that a
 # failed adoption leaves the target byte-identical.

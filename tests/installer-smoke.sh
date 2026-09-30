@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_init.py: fresh install, upgrade, --dry-run honesty, coexistence
 # with a project's own pre-commit hook, and isolation of the payload.
 #
@@ -106,13 +107,14 @@ grep -q "refreshed:" /tmp/upgrade.log
 grep -q "tools/srs_check.py" /tmp/upgrade.log
 grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKILL.md
 grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
-test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
+test -f /tmp/srs-target/.gitlab-ci.yml   # a starter, never rewritten
 
 # srs-end: FR-INIT-060
-# verifies: FR-INIT-080
-# A project's own pre-commit hook is never displaced: the gate lands
-# beside it, and the advice must not tell the user to point
-# core.hooksPath at .githooks, which would disable what they have.
+# verifies: FR-INIT-080, FR-INIT-290
+# A project's own pre-commit hook is never displaced: nothing is written
+# over it or beside it, the installer says what calls the gate from it,
+# and the advice must not tell the user to point core.hooksPath at
+# .githooks, which would disable what they have.
 rm -rf /tmp/srs-hook
 mkdir -p /tmp/srs-hook/.githooks
 printf '#!/bin/sh\necho theirs\n' > /tmp/srs-hook/.githooks/pre-commit
@@ -120,8 +122,12 @@ git -C /tmp/srs-hook init -q .
 git -C /tmp/srs-hook config core.hooksPath .githooks
 python3 tools/srs_init.py /tmp/srs-hook --defaults --ci none > /tmp/hook.log
 grep -q "echo theirs" /tmp/srs-hook/.githooks/pre-commit
-test -x /tmp/srs-hook/.githooks/pre-commit.srs-dd
-grep -q "pre-commit.srs-dd" /tmp/hook.log
+if [ -e /tmp/srs-hook/.githooks/pre-commit.srs-dd ]; then
+    echo "FAIL FR-INIT-080 — a copy of the gate was laid beside the project's hook"; exit 1
+fi
+grep -qF "python3 tools/srs_gate.py --staged" /tmp/hook.log \
+    || { echo "FAIL FR-INIT-080 — the installer did not say what calls the gate from the project's hook"
+         cat /tmp/hook.log; exit 1; }
 # Not `grep -qv`: that inverts per line, so on GNU grep it passes whenever
 # any line differs — a check that can never fail.
 if grep -q "git config core.hooksPath" /tmp/hook.log; then
@@ -129,14 +135,125 @@ if grep -q "git config core.hooksPath" /tmp/hook.log; then
     exit 1
 fi
 
-# A hook of theirs somewhere else must not be shadowed either.
+# A hook of theirs somewhere else must not be shadowed either: no hook is
+# written at all, and the installer says what to call from theirs.
 rm -rf /tmp/srs-hook2 && mkdir -p /tmp/srs-hook2
 git -C /tmp/srs-hook2 init -q .
 printf '#!/bin/sh\necho mine\n' > /tmp/srs-hook2/.git/hooks/pre-commit
 chmod +x /tmp/srs-hook2/.git/hooks/pre-commit
 python3 tools/srs_init.py /tmp/srs-hook2 --defaults --ci none > /tmp/hook2.log
 grep -q "already runs .git/hooks/pre-commit" /tmp/hook2.log
+if [ -e /tmp/srs-hook2/.githooks/pre-commit ]; then
+    echo "FAIL FR-INIT-080 — a hook was written although the project runs one of its own"; exit 1
+fi
+grep -qF "python3 tools/srs_gate.py --staged" /tmp/hook2.log \
+    || { echo "FAIL FR-INIT-080 — the installer did not say what calls the gate from the project's hook"
+         cat /tmp/hook2.log; exit 1; }
 
+# srs-end: FR-INIT-080, FR-INIT-290
+# verifies: FR-INIT-300, FR-INIT-310
+# After every install and upgrade the installer says whether git runs a
+# pre-commit hook, whether that hook — or the configuration of the manager
+# it is a shim for — calls the gate, and whether any GitHub workflow or the
+# GitLab file does, giving what to add where not. Each state is a target.
+W=/tmp/srs-wiring
+rm -rf "$W"
+python3 tools/srs_init.py "$W" --defaults --ci github > /tmp/wiring.log
+( cd "$W" && git init -q . )
+said() {   # said <log> <literal> <requirement> <what>
+    grep -qF -- "$2" "$1" || { echo "FAIL $3 — the report does not say: $4"; cat "$1"; exit 1; }
+}
+unsaid() {
+    if grep -qF -- "$2" "$1"; then echo "FAIL $3 — the report wrongly says: $4"; cat "$1"; exit 1; fi
+}
+wired() { python3 tools/srs_init.py "$W" --defaults > /tmp/wiring.log; }
+# Nothing runs yet: the starter is there and waits for the switch.
+wired
+said /tmp/wiring.log "git runs no pre-commit hook." FR-INIT-300 "that git runs no hook"
+said /tmp/wiring.log "git config core.hooksPath .githooks" FR-INIT-300 "how to activate the starter"
+said /tmp/wiring.log ".github/workflows/srs.yml calls tools/srs_gate.py." FR-INIT-310 "that the starter workflow calls the gate"
+# Switched on: the starter runs and calls the gate.
+( cd "$W" && git config core.hooksPath .githooks )
+wired
+said /tmp/wiring.log "git already runs .githooks/pre-commit on commit." FR-INIT-300 "that git runs the starter"
+said /tmp/wiring.log ".githooks/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that the starter calls the gate"
+unsaid /tmp/wiring.log "git config core.hooksPath" FR-INIT-300 "to activate what is already active"
+# A manager's configuration lying beside the starter git runs is not what
+# is read: the hook is.
+printf 'repos: []\n' > "$W/.pre-commit-config.yaml"
+wired
+said /tmp/wiring.log ".githooks/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that the starter git runs is what is read"
+unsaid /tmp/wiring.log "managed by" FR-INIT-300 "that a manager runs the hook when the starter does"
+rm -f "$W/.pre-commit-config.yaml"
+# Their own hook in .git/hooks, without the call and then with it.
+( cd "$W" && git config --unset core.hooksPath )
+printf '#!/bin/sh\necho mine\n' > "$W/.git/hooks/pre-commit"; chmod +x "$W/.git/hooks/pre-commit"
+wired
+said /tmp/wiring.log "git already runs .git/hooks/pre-commit on commit." FR-INIT-300 "that git runs their hook"
+said /tmp/wiring.log ".git/hooks/pre-commit does not call tools/srs_gate.py. Add to it:" FR-INIT-300 "that their hook lacks the call"
+said /tmp/wiring.log "python3 tools/srs_gate.py --staged" FR-INIT-300 "the line to add"
+said /tmp/wiring.log "no hook was written" FR-INIT-080 "that nothing displaced their hook"
+printf 'python3 tools/srs_gate.py --staged\n' >> "$W/.git/hooks/pre-commit"
+wired
+said /tmp/wiring.log ".git/hooks/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that their hook now calls the gate"
+rm -f "$W/.git/hooks/pre-commit"
+# husky: git runs the shim under .husky/_, and .husky/pre-commit is what is read.
+mkdir -p "$W/.husky/_"; printf '#!/bin/sh\n. "$(dirname "$0")/h"\n' > "$W/.husky/_/pre-commit"
+printf 'npm test\n' > "$W/.husky/pre-commit"
+( cd "$W" && git config core.hooksPath .husky/_ )
+wired
+said /tmp/wiring.log "managed by husky (.husky/pre-commit)" FR-INIT-300 "that husky manages the hook"
+said /tmp/wiring.log ".husky/pre-commit does not call tools/srs_gate.py. Add to it:" FR-INIT-300 "that husky's hook lacks the call"
+printf 'python3 tools/srs_gate.py --staged\n' >> "$W/.husky/pre-commit"
+wired
+said /tmp/wiring.log ".husky/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that husky's hook now calls the gate"
+# husky without a pre-commit hook yet: the place to add it is named, not the shim.
+rm -f "$W/.husky/pre-commit"
+wired
+said /tmp/wiring.log ".husky/pre-commit does not call tools/srs_gate.py. Add to it:" FR-INIT-300 "where husky's hook goes when there is none yet"
+unsaid /tmp/wiring.log ".husky/_/pre-commit does not call" FR-INIT-300 "to edit husky's generated shim"
+rm -rf "$W/.husky"; ( cd "$W" && git config --unset core.hooksPath )
+# The pre-commit framework: configured, not installed, and its configuration is read.
+printf 'repos: []\n' > "$W/.pre-commit-config.yaml"
+wired
+said /tmp/wiring.log "the pre-commit framework (.pre-commit-config.yaml) is configured but not installed here — run: pre-commit install" FR-INIT-300 "that the framework is not installed"
+said /tmp/wiring.log ".pre-commit-config.yaml does not call tools/srs_gate.py. Add to its repos: list:" FR-INIT-300 "that the configuration lacks the call"
+said /tmp/wiring.log "entry: python3 tools/srs_gate.py --staged" FR-INIT-300 "the local hook to add"
+printf -- '- repo: local\n  hooks:\n  - id: srs-gate\n    entry: python3 tools/srs_gate.py --staged\n' > "$W/.pre-commit-config.yaml"
+printf '#!/bin/sh\nexec pre-commit run\n' > "$W/.git/hooks/pre-commit"; chmod +x "$W/.git/hooks/pre-commit"
+wired
+said /tmp/wiring.log "git already runs .git/hooks/pre-commit on commit, managed by the pre-commit framework" FR-INIT-300 "that the framework's shim runs"
+said /tmp/wiring.log ".pre-commit-config.yaml calls tools/srs_gate.py." FR-INIT-300 "that the configuration calls the gate"
+rm -f "$W/.pre-commit-config.yaml" "$W/.git/hooks/pre-commit"
+# lefthook, by its configuration file.
+printf 'pre-commit:\n  commands: {}\n' > "$W/lefthook.yml"
+wired
+said /tmp/wiring.log "lefthook (lefthook.yml) is configured but not installed here — run: lefthook install" FR-INIT-300 "that lefthook is not installed"
+said /tmp/wiring.log "run: python3 tools/srs_gate.py --staged" FR-INIT-300 "the lefthook command to add"
+rm -f "$W/lefthook.yml"
+# Pipelines: a second workflow without the call changes nothing; the GitLab
+# file without it is named with its job; with no pipeline at all, the report
+# says so and leaves a service it does not know to the reader.
+printf 'on: push\njobs: {}\n' > "$W/.github/workflows/release.yml"
+printf 'stages: [test]\n' > "$W/.gitlab-ci.yml"
+wired
+said /tmp/wiring.log ".github/workflows/srs.yml calls tools/srs_gate.py." FR-INIT-310 "that one workflow calls the gate"
+unsaid /tmp/wiring.log "no workflow under .github/workflows/ calls" FR-INIT-310 "that no workflow calls it while one does"
+said /tmp/wiring.log ".gitlab-ci.yml does not call tools/srs_gate.py. Add a job:" FR-INIT-310 "that the GitLab file lacks the call"
+said /tmp/wiring.log "- python3 tools/srs_gate.py" FR-INIT-310 "the job's script line"
+printf 'srs-gate:\n  script:\n    - python3 tools/srs_gate.py\n' > "$W/.gitlab-ci.yml"
+rm -f "$W/.github/workflows/srs.yml"
+wired
+said /tmp/wiring.log ".gitlab-ci.yml calls tools/srs_gate.py." FR-INIT-310 "that the GitLab file now calls the gate"
+said /tmp/wiring.log "no workflow under .github/workflows/ calls tools/srs_gate.py. Add a step" FR-INIT-310 "that no workflow calls it once the starter is gone"
+said /tmp/wiring.log "- run: python3 tools/srs_gate.py" FR-INIT-310 "the step to add"
+rm -rf "$W/.github" "$W/.gitlab-ci.yml"
+wired
+said /tmp/wiring.log "no pipeline for GitHub or GitLab was found" FR-INIT-310 "that no pipeline was found"
+rm -rf "$W"
+echo "installer-smoke: the report says whether the hook and a pipeline run the gate, for every way of running them"
+
+# srs-end: FR-INIT-300, FR-INIT-310
 # Whatever a maintainer generates under skeleton/specs/ in their clone
 # must not travel into targets as skeleton content.
 printf 'stray\n' > skeleton/specs/stray.html
@@ -155,7 +272,29 @@ rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html
 
-# srs-end: FR-INIT-080
+# verifies: FR-INIT-280
+# What stays the framework's says whose it is: every tool, skill and standard
+# installed carries the notice, and what becomes the project's — the hook,
+# the pipelines, the guides, the specification, the decision template —
+# carries none, because a line of ours there would claim their file.
+NOTICE="Copyright (c) 2026 CRELLIA S.L."
+carrying=0
+for f in /tmp/srs-clean/tools/*.py /tmp/srs-clean/.claude/skills/*/SKILL.md \
+         /tmp/srs-clean/specs/README.md /tmp/srs-clean/grounds/README.md /tmp/srs-clean/arch/README.md; do
+    grep -qF "$NOTICE" "$f" && grep -q "MIT License" "$f" \
+        || { echo "FAIL FR-INIT-280 — $f carries no notice of the copyright holder and the licence"; exit 1; }
+    carrying=$((carrying + 1))
+done
+[ "$carrying" -ge 22 ] || { echo "FAIL FR-INIT-280 — only $carrying shipped files were looked at; the tuples shrank"; exit 1; }
+for f in .githooks/pre-commit .github/workflows/srs.yml .gitlab-ci.yml AGENTS.md CLAUDE.md .gitattributes \
+         specs/adr/template.md specs/constitution.md specs/00-glossary.md specs/10-fr-core.md; do
+    if grep -qF "$NOTICE" "/tmp/srs-clean/$f"; then
+        echo "FAIL FR-INIT-280 — $f becomes the project's own and must carry no notice of ours"; exit 1
+    fi
+done
+echo "installer-smoke: the tools, skills and standards installed say whose they are; the project's own files do not"
+# srs-end: FR-INIT-280
+
 # verifies: FR-CHK-130
 # A baseline tag with no row in the log is reported, and --strict makes
 # it a failure: cutting a baseline is a tag and a row in separate
@@ -194,9 +333,10 @@ assert 'annotation-absent' not in fresh.get('rules', {}), \
     'a fresh install silenced a rule it has no reason to: %r' % fresh.get('rules')
 PY2
 
-# FR-INIT-060 names seven kinds of file that an upgrade replaces only with
-# --force and only when they carry our marker. Two of them had fixtures and
-# five did not, which is the shape the rule itself is about: a sentence
+# FR-INIT-060 names five kinds of file that an upgrade replaces only with
+# --force and only when they carry our marker (seven until 0.22.0, when the
+# hook and the pipelines became starters, FR-INIT-290). Two of the seven
+# had fixtures and five did not, which is the shape the rule itself is about: a sentence
 # quantifying over a list, a suite exercising one entry, and nothing that
 # can tell the difference. Dropping `precious=` from the architecture
 # standard left the whole gate green.
@@ -260,33 +400,40 @@ precious() {
     cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 }
 
-# The CI template twice: named with --ci, and found without it — an upgrade
-# run through srs_upgrade.py has no --ci to pass, and until 0.21.0 it never
-# refreshed the pipeline at all, --force or not.
-precious .github/workflows/srs.yml --ci github
 # srs-end: FR-INIT-240
+# verifies: FR-INIT-290
+# The hook and the pipelines are the project's files: a starter is written
+# where the file is absent and never again — edited, marked, --force or
+# not — and a --dry-run lists it under skipped, not refreshed.
+for rel in .github/workflows/srs.yml .githooks/pre-commit; do
+    printf 'theirs, edited\n' >> "$PT/$rel"
+    python3 tools/srs_init.py "$PT" --defaults --force --ci github > /tmp/starter-force.log
+    grep -qF 'theirs, edited' "$PT/$rel" \
+        || { echo "FAIL FR-INIT-290 — $rel was rewritten under --force"; exit 1; }
+    grep -qF "$rel (the project's file — never rewritten)" /tmp/starter-force.log \
+        || { echo "FAIL FR-INIT-290 — $rel was not reported as never rewritten"; cat /tmp/starter-force.log; exit 1; }
+    python3 tools/srs_init.py "$PT" --defaults --force --ci github --dry-run > /tmp/starter-dry.log
+    if grep -qE "^  $rel\$" /tmp/starter-dry.log; then
+        echo "FAIL FR-INIT-290 — a dry run listed $rel as refreshed"; exit 1
+    fi
+    cp "/tmp/srs-pristine/$rel" "$PT/$rel"
+done
+# Absent, a starter is written — the hook on every upgrade, a pipeline only
+# where this run asked for that service.
+rm -f "$PT/.githooks/pre-commit"
+python3 tools/srs_init.py "$PT" --defaults --ci gitlab > /tmp/starter-absent.log
+for rel in .githooks/pre-commit .gitlab-ci.yml; do
+    test -f "$PT/$rel" || { echo "FAIL FR-INIT-290 — an upgrade did not write the absent starter $rel"; cat /tmp/starter-absent.log; exit 1; }
+    grep -q "SRS-DD" "$PT/$rel" || { echo "FAIL FR-INIT-290 — the starter $rel written is not ours"; exit 1; }
+done
+printf 'theirs, edited\n' >> "$PT/.gitlab-ci.yml"
+python3 tools/srs_init.py "$PT" --defaults --force --ci gitlab > /dev/null
+grep -qF 'theirs, edited' "$PT/.gitlab-ci.yml" \
+    || { echo "FAIL FR-INIT-290 — .gitlab-ci.yml was rewritten under --force"; exit 1; }
+rm -f "$PT/.gitlab-ci.yml"
+# srs-end: FR-INIT-290
 # verifies: FR-INIT-060
-rel=.github/workflows/srs.yml
-cp "/tmp/srs-pristine/$rel" "$PT/$rel"
-printf 'theirs, edited\n' >> "$PT/$rel"
-python3 tools/srs_init.py "$PT" --defaults > /tmp/prec-ci-keep.log
-grep -qF "$rel (differs from what this version ships; use --force to refresh)" /tmp/prec-ci-keep.log \
-    || { echo "FAIL FR-INIT-060 — an upgrade without --ci did not find the pipeline it installed"
-         cat /tmp/prec-ci-keep.log; exit 1; }
-grep -qF 'theirs, edited' "$PT/$rel" \
-    || { echo "FAIL FR-INIT-060 — $rel was refreshed without --force"; exit 1; }
-python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-ci-force.log
-absent 'theirs, edited' "$PT/$rel"
-# A pipeline the project wrote itself is not one an upgrade without --ci
-# visits: nothing names it, nothing touches it.
-printf '# Ours, and no marker in it\n' > "$PT/$rel"
-python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-ci-mine.log
-absent "$rel" /tmp/prec-ci-mine.log
-grep -qF 'Ours, and no marker in it' "$PT/$rel" \
-    || { echo "FAIL FR-INIT-060 — an upgrade without --ci overwrote a pipeline that is not ours"; exit 1; }
-cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 precious .gitattributes
-precious .githooks/pre-commit
 # The standard was the half missing until 0.14.0: installed once and never
 # moved again, so a project set up at 0.7.0 ran current tooling against a
 # standard 112 lines out of date. It is precious rather than tooling because

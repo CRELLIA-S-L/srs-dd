@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_dates.py: the one command that writes requirement blocks.
 #
 # verifies: FR-SPEC-020, INV-SPEC-090

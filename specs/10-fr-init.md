@@ -112,7 +112,7 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When run against an initialized target, the installer **shall** refresh the files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — only with `--force` and only when they carry the SRS-DD marker.
+When run against an initialized target, the installer **shall** refresh the files that may be the project's own — the agent guides, `.gitattributes`, the specification standard, the grounds standard, the architecture standard — only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Everything a maintainer may have edited must not move with the framework unasked, and the marker is how we tell a file we installed from one they wrote; the tooling moves without asking, under `FR-INIT-270`.
 
@@ -124,7 +124,7 @@ Since 2026-09-21 adopt sets that file aside and installs the standard in its pla
 `grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
 `arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
 The code had it right from the layer's first commit — the same flag the grounds standard travels under — so what lagged was the enumeration, and an enumeration that lags is invisible: every path it names exists, and nothing reports the one it does not.
-The CI configuration and the hook leave this list when `FR-INIT-290` is built: they are the project's files, which the installer will then write once and never again.
+The CI configuration and the hook left this list on 2026-09-30: they are the project's files, which the installer writes once and never again (`FR-INIT-290`).
 So the characterization widened: "commonly owns" was true of CI files and agent guides, and the standard is not something anyone writes for themselves — it is merely a file that may already be theirs.
 
 The agent guides were in this list and behaved unlike the other six: an upgrade left them alone with the flag and without it, because they are filled in rather than copied and the answers had not been kept.
@@ -159,7 +159,7 @@ Where `--dry-run` is given, the installer **shall** print the created, refreshed
 ### FR-INIT-080 — A project's own pre-commit hook is never displaced
 
 ```yaml
-status: partial
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-CI-020]
@@ -173,7 +173,7 @@ created: 2026-08-07
 If the target already runs something on commit, the installer **shall** write no hook and say what calls the gate from it, instead of advising the `core.hooksPath` switch that would disable what is already there.
 
 **Rationale.** Silently disabling a project's linters and secret scanners would be the single most damaging thing this tool could do.
-Built in full, it lays no copy of the gate beside the project's hook either: the gate is a tool (`FR-CI-180`), and what the project's hook needs is a call to it, which the installer will say and the installing procedure add (`FR-SKILL-410`); until then the copy is still laid beside as `.githooks/pre-commit.srs-dd` and named in the hint, which is what `partial` records.
+It lays no copy of the gate beside the project's hook either, as it did until 0.22.0 as `.githooks/pre-commit.srs-dd`: the gate is a tool (`FR-CI-180`), and what the project's hook needs is a call to it, which the installer says (`FR-INIT-300`) and the installing procedure adds (`FR-SKILL-410`).
 
 ### FR-INIT-090 — The lexicon is asked for, not assumed
 
@@ -596,14 +596,14 @@ Nothing moved between the two lists when they were split: the tooling and the sk
 ### FR-INIT-280 — What stays the framework's says whose it is
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-INIT-270, FR-INIT-060]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_view.py, tools/srs_upgrade.py, tools/srs_baseline.py, tools/srs_dates.py, tools/srs_gate.py, tools/srs_grounds.py, tools/srs_arch.py, .claude/skills, specs/README.md, grounds/README.md, arch/README.md]
+tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
@@ -618,14 +618,14 @@ A file that becomes the project's own — its specification, its constitution, i
 ### FR-INIT-290 — The hook and the pipelines are the project's files
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-CI-180]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
@@ -638,14 +638,14 @@ Nothing is lost by leaving them alone: the gate is a tool refreshed with the res
 ### FR-INIT-300 — The installer says whether the hook runs the gate
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-INIT-290]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
@@ -657,14 +657,14 @@ A hook manager's own file is a shim that calls its configuration, so the configu
 ### FR-INIT-310 — The installer says whether a pipeline runs the gate
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-INIT-290]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
