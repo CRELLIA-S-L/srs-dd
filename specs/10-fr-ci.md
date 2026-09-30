@@ -396,3 +396,23 @@ After each suite, the local gate **shall** fail where the suite left `tools/__py
 On 2026-09-25 five of them did it — `docs-content`, `guide-parity`, `proc-eval-smoke`, `standard-rules` and `upgrade-smoke` — and the tree carried the files until somebody looked.
 Checked around each suite rather than once, so the message names the one that did; a directory already there before the suite is not charged to it, so a cache an editor left does not turn the gate red.
 Inspection, as `FR-CI-030` is: the gate is the thing that runs the suites, and a suite asserting the gate would run it from inside itself.
+
+### FR-CI-170 — The gate refuses code that does not say whose it is
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+The local gate **shall** refuse a file of code this repository keeps — a tool, a suite, a CI configuration or a hook — that does not carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+
+**Rationale.** The licence covers the repository from its root, and a file lifted from it on its own carries nothing of that: the notice has to be in the file.
+Written as a rule for contributors it would hold until the first file somebody forgot, so it is a gate, as the width of a line is (`FR-CI-100`) — over the same files, the code a person writes here, markdown aside.
+The tools that ship, the CI templates and the hook's source, `ci/pre-commit`, are also what the installer copies (`FR-INIT-280`); a notice refused here is one no project goes without.

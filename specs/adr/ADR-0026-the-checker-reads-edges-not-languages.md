@@ -27,7 +27,7 @@ Without a seam the project has to write the comparison as well, and a second cop
 Under option 3, two shapes for an edge:
 
 - 3a. Between elements — `{"from": "E-060", "to": "E-040"}` — as the project proposed.
-- 3b. Between files — `{"from": "Crellian/Core/ToolRouter.swift", "to": "Crellian/Shell/CapsuleCore.swift"}` — resolved to elements by the checker.
+- 3b. Between files — `{"from": "src/Core/Router.swift", "to": "src/Shell/Capsule.swift"}` — resolved to elements by the checker.
 
 And one further question the project raised: whether a complete list from the project makes the other direction — a declared edge no code walks — worth reporting.
 

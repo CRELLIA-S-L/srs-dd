@@ -590,3 +590,24 @@ When run against an initialized target, the installer **shall** refresh the tool
 Split out of it on 2026-09-29, where the two shared a number, a status and a test, and a gap in one stood twice under the status of the other.
 Nothing moved between the two lists when they were split: the tooling and the skills were refreshed without a flag before, and the files that may be the project's own were refreshed only with `--force`.
 "It ships to that project": the register's checker and procedure travel only where the project keeps a register, and the layer's only where it keeps the layer.
+
+### FR-INIT-280 — What stays the framework's says whose it is
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-INIT-270, FR-INIT-060]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+Every file the installer copies into a target whose text stays the framework's — the tools, the skills, the standards, the CI templates and the pre-commit hook — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+
+**Rationale.** The licence asks that its notice travel with every copy, and none of the files the installer copies said who holds the copyright or on what terms: a tool lifted from an installed project carried the framework's name and version and no notice of whose it was.
+The notice goes into the file rather than beside it, because a file is what gets copied on, one at a time.
+The CI templates, the hook and the standards may be edited into the project's own (`FR-INIT-060`), and the notice stays true of what of ours they keep.
+A file that becomes the project's own — its specification, its constitution, its agent guides once filled in — carries none, because a copyright line there would claim the project's document as ours; nor does the decision template, which a project copies into every decision it writes.
