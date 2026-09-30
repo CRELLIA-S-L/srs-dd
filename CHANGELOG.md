@@ -8,7 +8,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
-## [0.21.0]
+## [0.21.0] — 2026-09-30
 
 ### Added
 
@@ -57,7 +57,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- The specification's standard, the agent guide, and the standards of the grounds register and the architecture layer — each gained a table of its checker's rules — changed, and an upgrade refreshes them only with `--force` and only where the file still carries the framework's marker; the skipped list says which of them differ. A project whose `AGENTS.md` is its own adds the lines headed *Date requirements*, *Grounds register* and *Architecture layer* from `skeleton/AGENTS.md` of the framework it upgrades from — the address is `framework_url` in `specs/srs-config.json`.
+- The specification's standard, the agent guide, and the standards of the grounds register and the architecture layer — each gained a table of its checker's rules, and the specification's standard the rules for an area's name of several words and for folders that group areas — changed, and an upgrade refreshes them only with `--force` and only where the file still carries the framework's marker; the skipped list says which of them differ. A project whose `AGENTS.md` is its own adds the lines headed *Date requirements*, *Grounds register* and *Architecture layer* from `skeleton/AGENTS.md` of the framework it upgrades from — the address is `framework_url` in `specs/srs-config.json`.
 - `.gitattributes` is refreshed only with `--force`, where it still carries the framework's marker; a project whose `.gitattributes` is its own adds `grounds/90-dashboard.md text eol=lf` and `arch/90-map.md text eol=lf` for the layers it keeps.
 - Where an annotation stands changed, and nothing turns red. An annotation at the top of a function's body, or a list at the top of a file, is now a block over what follows it: with no `srs-end:` it runs to the next annotation, sixty lines or the end of the file, not to the end of the function, and a list speaks for the whole file only when it says `file implements:` or `file verifies:`; move a function's annotation above it, add `file` to a list that speaks for the whole file, and end a block with `srs-end:` where what it marks ends — the checker now reports each block no marker ends, at `report`, which fails nothing. A project that wants every block ended sets `"annotation-unended": "warn"` in `rules`.
 - The constitution is the project's own and an upgrade never touches it, even with `--force`: a project that wants ART-100 copies it from `skeleton/specs/constitution.md` of the framework it upgrades from, under a number its own constitution leaves free. The agent guide carries the matching rule, refreshed with `--force` where it still carries the framework's marker; a project whose `AGENTS.md` is its own adds the line headed *Nothing sensitive goes into the repository*.
