@@ -21,6 +21,7 @@
 # stopping being computed.
 set -eo pipefail
 
+# srs-end: FR-GND-020
 # implements: FR-CI-090
 # The lab below is a tree of its own, and the history fixtures run `git
 # init` and commit inside it; a hook's environment would otherwise follow
@@ -140,6 +141,7 @@ silent() {
     passes=$((passes + 1))
 }
 
+# srs-end: FR-CI-090
 # --- verifies: FR-GND-020 — identifiers are well-formed and unique.
 ground < <(rec H-1 "Two digits short" "$HYP" 'Studios export weekly.')
 rule "FR-GND-020 malformed" 1 "identifier does not match <KIND>-<NNN>"
@@ -151,11 +153,13 @@ ground < <(rec H-010 "First" "$HYP" 'Studios export weekly.'
            rec H-010 "Same number again" "$HYP" 'Studios import weekly.')
 rule "FR-GND-020 duplicate" 1 "H-010 is already used at"
 
+# srs-end: FR-GND-020
 # --- verifies: FR-GND-030 — a missing required key is named as missing.
 ground < <(rec H-010 "No impact declared" "${HYP/impact: about a third of the 2027 plan/}" \
                'Studios export weekly.')
 rule "FR-GND-030 missing key" 1 "is missing the required key 'impact'"
 
+# srs-end: FR-GND-030
 # --- verifies: FR-GND-390 — a status the format does not define.
 ground < <(rec H-010 "Status from nowhere" "${HYP/status: assumed/status: probably}" \
                'Studios export weekly.')
@@ -196,6 +200,7 @@ ground < <(rec H-010 "A comparison the format does not name" \
                'Studios export weekly.')
 rule "FR-GND-390 threshold operator" 1 "is not the grammar the format defines"
 
+# srs-end: FR-GND-390
 # --- verifies: FR-GND-410 — a row carries the columns its heading declares.
 # --- Within a row position is all there is, so a missing cell shifts the
 # --- rest: before this, such a row was silently skipped and the author whose
@@ -208,6 +213,7 @@ ground < <(rec H-010 "One cell short" "$HYP" \
 | 2026-02-14 | 0.38 | 42 | supported |')
 rule "FR-GND-410 short row" 1 "has a table row with 4 cell(s) where its heading declares 5"
 
+# srs-end: FR-GND-410
 # --- verifies: FR-GND-450 — and the heading itself is the one the format
 # --- declares. Found by its marker column, read by position from there: a
 # --- table headed `date | verdict | by` is found and then read as though
@@ -232,6 +238,7 @@ ground < <(rec H-010 "A table of its own, for a reader" "$HYP" \
 | enterprise | out of scope for now |')
 silent "FR-GND-450 an unnamed table is left alone" 0 "the format declares"
 
+# srs-end: FR-GND-450
 # --- verifies: FR-GND-040 — a bet resolves into the requirement model.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
            rec B-010 "Points outside the model" \
@@ -240,6 +247,7 @@ requirement: FR-CORE-990
 all_of: [H-010]' 'FR-CORE-990 rests on H-010.')
 rule "FR-GND-040 absent requirement" 1 "which is not in the requirement model"
 
+# srs-end: FR-GND-040
 # --- verifies: FR-GND-400 — and into the register.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
            rec B-010 "Points at no hypothesis" \
@@ -255,6 +263,7 @@ rule "FR-GND-400 absent hypothesis" 1 "names hypothesis H-990"
 ground < <(printf '### U-010 — Points at nothing\n\n```yaml\nstatus: active\nrequirement: FR-CORE-999\n```\n\nNobody could name a ground for this.\n\n')
 rule "FR-GND-040 declaration points outside" 1 "U-010 names requirement FR-CORE-999"
 
+# srs-end: FR-GND-400
 # --- verifies: FR-GND-050 — a bet on a cancelled requirement, and it is a
 # --- warning: the requirement's cancellation is not the register's error.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
@@ -265,11 +274,13 @@ all_of: [H-010]' 'FR-CORE-020 rests on H-010.')
 rule "FR-GND-050 cancelled" 0 "which is withdrawn"
 rule "FR-GND-050 fails under strict" 1 "which is withdrawn" --strict
 
+# srs-end: FR-GND-050
 # --- verifies: FR-GND-060 — a hypothesis past its term.
 ground < <(rec H-010 "Term ran out" "${HYP/expires: 2099-01-01/expires: 2020-01-01}" \
                'Studios export weekly.')
 rule "FR-GND-060 expired" 0 "ran out of term on 2020-01-01"
 
+# srs-end: FR-GND-060
 # --- verifies: FR-GND-080 — two bets on one requirement.
 ground < <(rec H-010 "One" "$HYP" 'Studios export weekly.'
            rec H-020 "Two" "$HYP" 'Studios import weekly.'
@@ -293,6 +304,7 @@ printf '# g\n\n### H-010 \xff\xfe Latin-1 in a heading\n\n' \
     > "$LAB/grounds/10-h-test.md"
 rule "FR-GND-010 unreadable encoding" 1 "cannot read the file"
 
+# srs-end: FR-GND-080
 # --- verifies: FR-GND-010 — every record, and a register that grows a
 # --- folder is not exempt. A file one directory down used to be invisible:
 # --- two records and a duplicate identifier read as "Records: 0".
@@ -304,6 +316,7 @@ mkdir -p "$LAB/grounds/product"
 rule "FR-GND-010 reads a subdirectory" 0 "Records: 1"
 rm -rf "$LAB/grounds/product"
 
+# srs-end: FR-GND-010
 # --- verifies: FR-GND-160 — a class III verdict names who made it. The
 # --- hook FR-GND-210 needs: an author whose verdicts keep being reversed
 # --- cannot be noticed if the verdicts are anonymous.
@@ -324,6 +337,7 @@ ground < <(rec H-010 "Measured by an instrument" "${HYP/class: III/class: I}" \
 | 2026-02-14 | 0.38 | 42 | supported |  |')
 silent "FR-GND-160 class I needs no name" 0 "a verdict with nobody named"
 
+# srs-end: FR-GND-160
 # --- verifies: FR-GND-170 — a grade permits only the actions declared for
 # --- it, and the map is the project's own.
 printf '{"rules": {}, "grades": {"low": ["experiment"], "high": ["release"]}}\n' \
@@ -354,6 +368,7 @@ grade: pretty-good" 'Studios export weekly.')
 rule "FR-GND-170 unknown grade" 1 "carries grade 'pretty-good'"
 printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
 
+# srs-end: FR-GND-170
 # --- verifies: FR-GND-180 — a refusal carries its reason and its date, in
 # --- one value because the halves are useless apart.
 ground < <(rec H-010 "Turned down, silently" \
@@ -371,6 +386,7 @@ declined: 2026-12-02 — the core is for studios, not for their clients' finance
                'Studios export weekly.')
 rule "FR-GND-180 declined properly" 0 "Errors: 0"
 
+# srs-end: FR-GND-180
 # --- verifies: FR-GND-460 — the refusal outliving the status. The sequence
 # --- is ordinary: refused, then a later measurement changes the picture,
 # --- the status moves, and the line stays behind saying the opposite.
@@ -386,6 +402,7 @@ declined: 2026-12-02 — the core is for studios, not their clients" \
                'Studios export weekly.')
 silent "FR-GND-460 a declined record may say so" 0 "still carries a"
 
+# srs-end: FR-GND-460
 # --- verifies: FR-GND-470 — an action with no grade at all. Quieter than
 # --- acting beyond your grade, because nothing is there to compare it to.
 printf '{"rules": {}, "grades": {"low": ["experiment"]}}\n' \
@@ -400,10 +417,12 @@ rule "FR-GND-470 action with no grade" 0 "and no grade, so there is nothing to s
 printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
 silent "FR-GND-470 no map, no finding" 0 "and no grade, so there is nothing to say"
 
+# srs-end: FR-GND-470
 # --- verifies: FR-GND-090 — a declaration carries a reason.
 ground < <(printf '### U-010 — No reason given\n\n```yaml\nstatus: active\nrequirement: FR-CORE-010\n```\n\n')
 rule "FR-GND-090 no reason" 1 "gives no reason"
 
+# srs-end: FR-GND-090
 # --- verifies: FR-GND-100 — and retires itself when a bet turns up.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.'
            rec B-010 "A real bet" 'status: active
@@ -414,6 +433,7 @@ all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
 requirement: FR-CORE-010' 'Nobody could name a ground for this.')
 rule "FR-GND-100 superfluous" 0 "declares FR-CORE-010 unclaimed, and B-010 names it"
 
+# srs-end: FR-GND-100
 # --- verifies: FR-GND-100, FR-GND-220 — a bet naming no hypothesis at all.
 # --- Both lists are optional, so the record is legal; read as a claim it
 # --- would take the requirement off the one list this layer exists to
@@ -433,6 +453,7 @@ grep -qE "^\| FR-CORE-010 \|" "$LAB/grounds/90-dashboard.md" \
 passes=$((passes + 1))
 rm -f "$LAB/grounds/90-dashboard.md"
 
+# srs-end: FR-GND-100, FR-GND-220
 # --- verifies: FR-GND-420 — the status says nobody relies on it and a bet
 # --- says otherwise. The direction matters: `untested` is outside the debt
 # --- count and `assumed` is inside it, so the mislabelling always reads as
@@ -452,6 +473,7 @@ requirement: FR-CORE-010
 all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
 silent "FR-GND-420 assumed is honest" 0 "which says nobody relies on it"
 
+# srs-end: FR-GND-420
 # --- verifies: FR-GND-430 — built on, term passed, never measured at all.
 # --- Distinct from the expiry rule: that one cannot tell "measured long
 # --- ago" from "never measured", and the two are answered differently.
@@ -471,6 +493,7 @@ passes=$((passes + 1))
 printf '{"rules": {"never-measured": "off"}}\n' > "$LAB/grounds/grounds-config.json"
 rule "FR-GND-430 silenced, expiry returns" 0 "ran out of term on 2020-01-01"
 
+# srs-end: FR-GND-430
 # --- verifies: FR-GND-060 — and `off` is not the only way to lower a rule.
 # --- Lowered to a report, the specific rule still speaks, so this one used
 # --- to step aside for it — and the expiry FR-GND-060 owes as a warning
@@ -495,6 +518,7 @@ requirement: FR-CORE-010
 all_of: [H-010]' 'FR-CORE-010 rests on H-010.')
 silent "FR-GND-430 measured once is not never" 0 "with no measurement recorded at all"
 
+# srs-end: FR-GND-060
 # --- verifies: INV-GND-030 — a requirement no bet names is not an error and
 # --- not a warning. This fixture passes if the rule protecting it is
 # --- deleted, which is exactly why it is written down: the load-bearing
@@ -503,6 +527,7 @@ silent "FR-GND-430 measured once is not never" 0 "with no measurement recorded a
 ground < <(rec H-010 "Ground for nothing in particular" "$HYP" 'Studios export weekly.')
 silent "INV-GND-030 unclaimed is not a defect" 0 "FR-CORE-010"
 
+# srs-end: INV-GND-030
 # --- verifies: FR-GND-070 — the weakest necessary hypothesis decides, and
 # --- the strongest alternative does. The reduction is visible only on the
 # --- dashboard, so these two write one and read the answer back out.
@@ -533,6 +558,7 @@ case "$got" in
        exit 1 ;;
 esac
 
+# srs-end: FR-GND-070
 # --- verifies: CON-GND-020 — the dashboard is produced by the checker, and
 # --- --no-write leaves it exactly as it was.
 before=$(cksum < "$LAB/grounds/90-dashboard.md")
@@ -546,11 +572,16 @@ ground < <(rec H-030 "A record the dashboard has never seen" "$HYP" 'Studios arc
 passes=$((passes + 2))
 rm -f "$LAB/grounds/90-dashboard.md"
 
+# srs-end: CON-GND-020
 # --- verifies: FR-GND-110 — what a rule costs is the project's to set.
 ground < <(rec H-010 "Term ran out" "${HYP/expires: 2099-01-01/expires: 2020-01-01}" \
                'Studios export weekly.')
 printf '{"rules": {"hypothesis-expired": "report"}}\n' > "$LAB/grounds/grounds-config.json"
 rule "FR-GND-110 lowered to report" 0 "report: " --strict
+# The lab has no history, so a note that it could not be read is always
+# there; the finding itself has to be the report.
+grep -q "^report: .*ran out of term" /tmp/srs-grounds.log \
+    || { echo "FAIL FR-GND-110 — the lowered finding was not printed as a report"; cat /tmp/srs-grounds.log; exit 1; }
 printf '{"rules": {"hypothesis-expired": "off"}}\n' > "$LAB/grounds/grounds-config.json"
 silent "FR-GND-110 silenced" 0 "ran out of term"
 printf '{"rules": {"no-such-rule": "warn"}}\n' > "$LAB/grounds/grounds-config.json"
@@ -559,6 +590,7 @@ printf '{"rules": {"hypothesis-expired": "loud"}}\n' > "$LAB/grounds/grounds-con
 rule "FR-GND-110 unknown severity" 2 "severity must be one of"
 printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
 
+# srs-end: FR-GND-110
 # --- verifies: FR-GND-130 — the debt, as a share and not just a list. The
 # --- share passed every fixture in this file while it was hard-coded to
 # --- zero, which is what a number nobody asserts is worth.
@@ -583,6 +615,7 @@ grep -qF "\`assumed\` — 50%." "$LAB/grounds/90-dashboard.md" \
 passes=$((passes + 3))
 rm -f "$LAB/grounds/90-dashboard.md"
 
+# srs-end: FR-GND-130
 # --- verifies: FR-GND-130 — and the denominator is what the sentence names.
 # --- A third requirement carrying a bet that resolves to nothing belongs in
 # --- "of N carrying a bet" and in no row of the table. Counted off the rows
@@ -650,6 +683,7 @@ passes=$((passes + 3))
 rm -f "$D"
 cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
 
+# srs-end: FR-GND-130
 # --- verifies: FR-GND-240, FR-GND-260, FR-GND-220 — the readings the
 # --- dashboard exists for. Generated output that nothing reads is output
 # --- that drifts, and each of these is a number somebody would act on.
@@ -698,6 +732,7 @@ absent "| FR-CORE-020 |" "$D"
 passes=$((passes + 2))
 rm -f "$D"
 
+# srs-end: FR-GND-240, FR-GND-260, FR-GND-220
 # --- verifies: FR-GND-220 — and the weight is arithmetic, not a shape. The
 # --- fixture above has neither links nor code on either requirement, so
 # --- every column read `0` and a regular expression over digits accepted
@@ -756,6 +791,7 @@ passes=$((passes + 1))
 rm -f "$D"
 cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
 
+# srs-end: FR-GND-220
 # --- verifies: FR-GND-250 — a frame's whole value is in what it turned
 # --- down, and the second table proves the rule that tables are found by
 # --- their heading: the amendment table is written first on purpose.
@@ -772,6 +808,7 @@ grep -qF "Nothing recorded." "$D" \
          cat "$D"; exit 1; }
 passes=$((passes + 3))
 
+# srs-end: FR-GND-250
 # --- verifies: FR-GND-140 — a verdict follows from the threshold, and what
 # --- follows is not a bare comparison. A value below its threshold by less
 # --- than a sample of that size can miss by has refuted nothing: 0.24 on
@@ -971,6 +1008,7 @@ elapsed=$(( $(date +%s) - started ))
                            exit 1; }
 passes=$((passes + 1))
 
+# srs-end: FR-GND-140
 # --- verifies: FR-GND-150 — the criterion comes from the kind of quantity,
 # --- and a mean has none: how far it can miss needs the spread behind it,
 # --- which the row does not carry. Class I over one is a claim that
@@ -1004,6 +1042,7 @@ ground < <(rec H-010 "A mean refuted while thriving" "${HYP_MEAN/class: I/class:
 | 2026-03-01 | 9.0 | 60 | refuted | telemetry |')
 rule "FR-GND-150 the criterion-free half" 1 "is on the safe side of < 4"
 
+# srs-end: FR-GND-150
 # --- verifies: FR-GND-490 — how much error is allowed is the project's, and
 # --- the proof is that the same row changes verdict when the answer does.
 ground < <(rec H-010 "Refuted at ninety-five, alive at ninety-nine" "$HYP_I" \
@@ -1019,6 +1058,7 @@ printf '{"rules": {}, "confidence": 0.973}\n' > "$LAB/grounds/grounds-config.jso
 rule "FR-GND-490 unknown confidence" 2 "confidence must be one of"
 printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
 
+# srs-end: FR-GND-490
 # --- verifies: FR-GND-230 — the rate and where it clusters, not the total.
 # --- One requirement standing on nothing is noise and is meant to be; the
 # --- reading is five in a period with four in one area. Periods are
@@ -1136,6 +1176,7 @@ passes=$((passes + 3))
 rm -f "$D"
 cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md" 2>/dev/null || true
 
+# srs-end: FR-GND-230
 # --- verifies: CON-GND-010 — the layer writes nowhere else. Every file is
 # --- weighed before and after a run that does write, and the dashboard is
 # --- the only one allowed to move.
@@ -1165,6 +1206,7 @@ cmp -s /tmp/srs-grounds-before /tmp/srs-grounds-after \
 passes=$((passes + 2))
 rm -f "$D"
 
+# srs-end: CON-GND-010
 # --- verifies: FR-GND-210 — how often an author's verdict was reversed,
 # --- read from the evidence table and not from history.
 ground < <(rec H-010 "Measured twice, differently" \
@@ -1186,12 +1228,14 @@ grep -qF "| telemetry | 1 | 0 |" "$D" \
 passes=$((passes + 2))
 rm -f "$D"
 
+# srs-end: FR-GND-210
 # --- verifies: FR-GND-270 — a rule that needs history and cannot read it
 # --- says so rather than passing. This lab is deliberately not a
 # --- repository, so the two history rules meet that wall here.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.')
 rule "FR-GND-270 no history" 0 "did not run, which is not the same as passing"
 
+# srs-end: FR-GND-270
 # --- verifies: FR-GND-190, FR-GND-200 — two of the rules that read the
 # --- register's history. A lab of their own, because they need one; the
 # --- ideology pair below shares it.
@@ -1316,6 +1360,7 @@ grep -qF "the clone is shallow" /tmp/srs-shallow.log \
          cat /tmp/srs-shallow.log; exit 1; }
 passes=$((passes + 1))
 
+# srs-end: FR-GND-190, FR-GND-200
 # --- verifies: FR-GND-510, FR-GND-520 — growth in what may move an
 # --- ideology, and whether the growth said what it opened.
 ideo_at() {   # ideo_at <admissible arguments> [amendment rows…]
@@ -1365,6 +1410,7 @@ grep -cF "widened what may move it" /tmp/srs-history.log | grep -qx 2 \
          echo "reported"; cat /tmp/srs-history.log; exit 1; }
 passes=$((passes + 1))
 
+# srs-end: FR-GND-510, FR-GND-520
 # --- verifies: IF-GND-030 — a published rule name keeps its meaning. The
 # --- names go into somebody else's `grounds/grounds-config.json` to say what
 # --- a rule costs, so a rename breaks their file and the checker refuses to
@@ -1401,6 +1447,7 @@ if gone:
          cat /tmp/srs-grounds.log; exit 1; }
 passes=$((passes + 1))
 
+# srs-end: IF-GND-030
 # --- verifies: IF-GND-020 — the exit codes a gate binds to.
 ground < <(rec H-010 "Ground" "$HYP" 'Studios export weekly.')
 rule "IF-GND-020 clean" 0 "Errors: 0"
@@ -1421,6 +1468,7 @@ grep -qF "no grounds/ directory" /tmp/srs-grounds.log \
          cat /tmp/srs-grounds.log; exit 1; }
 passes=$((passes + 2))
 
+# srs-end: IF-GND-020
 # --- verifies: FR-GND-540 — a record is cited like a requirement: the form
 # --- the viewer prints, over the register's own records of any kind, in the
 # --- order asked; an unknown identifier is named and fails the run without
@@ -1447,8 +1495,10 @@ grep -q "no record H-990" /tmp/srs-grounds-cite.err \
 rule "FR-GND-540 --cite with nothing to cite is a setup fault" 2 "needs at least one" --cite
 passes=$((passes + 4))
 
+# srs-end: FR-GND-540
 # --- verifies: INV-SPEC-080 — a record's number widens like a requirement's:
 # --- B-1000 is an identifier, B-0100 is not.
+# srs-end: INV-SPEC-080
 # --- verifies: INV-SPEC-090 — and the dashboard orders requirements by their
 # --- number: FR-CORE-1000 after FR-CORE-990 in the debt table, not after 100.
 cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
@@ -1482,6 +1532,7 @@ requirement: FR-CORE-010
 all_of: [H-010]' 'Rests on it.')
 rule "INV-SPEC-080 a leading zero is refused" 1 "identifier does not match"
 
+# srs-end: INV-SPEC-090
 # --- verifies: FR-GND-550 — a class III verdict is the reader's: the same
 # --- row that FR-GND-140 refuses under class I — 0 of 2 called refuted,
 # --- where the interval reaches 0.575 — passes under class III with the
@@ -1533,3 +1584,4 @@ ground < <(rec H-010 "Refuted below the gate" "$HYP_SMALL" \
 rule "FR-GND-550 a class III refutation below the gate contradicts its own threshold" 1 "smaller than the threshold's own at n >= 2"
 
 echo "grounds-rules: $passes fixtures pass"
+# srs-end: FR-GND-550

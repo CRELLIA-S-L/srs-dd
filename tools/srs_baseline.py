@@ -18,11 +18,12 @@ A baseline is not a release. It freezes what the system must do; a release
 ships what it does. Neither implies the other, and the same number in both
 places means nothing.
 
-Exit codes: 0 written · 2 refused, having changed nothing.
+Exit codes: 0 written · 2 refused, the log untouched — outside a dry run the
+checker it ran may have regenerated the matrix first.
 """
 
-# implements: FR-SPEC-010, INV-SPEC-030, INV-SPEC-040, CON-SPEC-030
-# implements: NFR-SPEC-010
+# file implements: FR-SPEC-010, INV-SPEC-030, INV-SPEC-040, CON-SPEC-030
+# file implements: NFR-SPEC-010
 
 import argparse
 import os
@@ -92,10 +93,16 @@ def main():
     # goes to stderr and the findings to stdout, and whoever redirects one
     # of the two is otherwise told that something is wrong without being
     # told what.
-    probe = subprocess.Popen([sys.executable, CHECKER], cwd=ROOT,
+    # A dry run reads the specification and writes nothing, the matrix
+    # included: the checker's side effect is the one a dry run promised
+    # away and kept.
+    # implements: FR-SPEC-060
+    command = [sys.executable, CHECKER] + (["--no-write"] if args.dry_run else [])
+    probe = subprocess.Popen(command, cwd=ROOT,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
     output = probe.communicate()[0].decode("utf-8", "replace")
+    # srs-end: FR-SPEC-060
     if probe.returncode != 0:
         return fail("the checker does not pass; nothing was written\n%s"
                     % output.rstrip())
@@ -112,9 +119,11 @@ def main():
     logged = logged.replace("\n" + EMPTY_NOTE, "\n", 1)
 
     sys.stdout.write("  %s\n" % row.strip())
+    # implements: FR-SPEC-060
     if args.dry_run:
         sys.stdout.write("\nDry run: nothing was written.\n")
         return 0
+    # srs-end: FR-SPEC-060
     write(BASELINES, logged)
 
     files = [relative(BASELINES)]

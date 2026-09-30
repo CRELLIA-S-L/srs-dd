@@ -59,7 +59,7 @@ What it will not decide is the number that row carries, and it deliberately stop
 
 ## When it refuses
 
-Exit code 2, before writing anything: a version the log already records, or an error from the checker.
+Exit code 2, before the row is written: a malformed version, a missing log or one with no table, a version the log already records, or an error from the checker.
 A warning does not stop it; the Baselines section of `specs/README.md` says on what terms, and why.
 Fix the cause and run it again — there is nothing to clean up, and nothing in the history was touched.
 

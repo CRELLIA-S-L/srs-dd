@@ -4,8 +4,9 @@ Standing engineering principles of the project.
 Every plan and every diff is checked against them.
 Unlike requirements (what the system does) and ADRs (single decisions with their context), articles apply to all work at all times and change only through the amendment procedure in ART-090.
 
-- **Version:** 1.1.0
+- **Version:** 1.2.0
 - **Ratified:** 2026-08-05
+- **Amended:** 2026-09-25 — v1.2.0: ART-100 added — nothing sensitive in the repository (adding an article is MINOR per ART-090)
 - **Amended:** 2026-08-05 — v1.1.0: ART-020 tightened to approved requirements; ART-090 taxonomy extended to classify tightening and relaxing (both changes MINOR per ART-090)
 
 Articles are numbered in steps of 10 and referenced from plans, reviews, and ADRs the same way requirements are: “rejected per ART-040”.
@@ -48,3 +49,10 @@ The constitution changes only by a dedicated commit that bumps the version:
 MAJOR — an article is removed, reversed, or relaxed; MINOR — an article is added or tightened; PATCH — wording changes without a change of meaning.
 The commit message states the reason.
 The project maintainer ratifies the amendment.
+
+## ART-100 — Nothing sensitive in the repository
+
+What the repository holds is read by everyone who can clone it, for as long as its history lives, and a commit that deletes a file does not remove it from that history.
+No credentials, keys, tokens or connection strings; no personal data beyond what its authors chose to publish; no document shared in confidence or not released by its owner; no raw output of one machine or one session that carries its paths, names or environment — traces, logs, local configuration.
+A file that must stay on one machine is named in `.gitignore` before it is written, and what is untracked is looked at before anything is staged, so that no sweep takes a file nobody read.
+Where something sensitive was committed, it is revoked or withdrawn first and the history rewritten second: deleting it in a new commit is not removal.

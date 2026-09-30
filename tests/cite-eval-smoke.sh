@@ -7,7 +7,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: FR-SKILL-290
+# file verifies: FR-SKILL-290
 # Three answers: a full citation and a bare key beside it; a register record
 # and a decision cited, a bet bare; a citation whose status is not what the
 # project prints. The tool must count exactly that, from what --cite prints.

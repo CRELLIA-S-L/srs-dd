@@ -16,6 +16,7 @@
 # named three others, and neither reader could tell which set was meant.
 set -eo pipefail
 
+# srs-end: FR-ARCH-010
 # implements: FR-CI-090
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -130,6 +131,7 @@ MD
 silent "a complete layer is silent" 0 "warning:"
 silent "and a directory carrier owns the files under it" 0 "src/a.py"
 
+# srs-end: FR-CI-090
 # --- verifies: FR-ARCH-020 — identifiers are well-formed and unique.
 elements <<'MD'
 # Elements
@@ -174,6 +176,7 @@ Carries it too.
 MD
 rule "FR-ARCH-020 duplicate" 1 "is already used at"
 
+# srs-end: FR-ARCH-020
 # --- verifies: FR-ARCH-030 — a missing required key is named as missing.
 elements <<'MD'
 # Elements
@@ -190,6 +193,7 @@ Carries nothing it admits to.
 MD
 rule "FR-ARCH-030 missing key" 1 "required key 'carries' is missing"
 
+# srs-end: FR-ARCH-030
 # --- verifies: FR-ARCH-040 — an element names a requirement that exists.
 elements <<'MD'
 # Elements
@@ -207,6 +211,7 @@ Carries it.
 MD
 rule "FR-ARCH-040 unknown requirement" 1 "which the specification does not carry"
 
+# srs-end: FR-ARCH-040
 # --- verifies: FR-ARCH-050 — a cancelled requirement is reported, not fatal.
 cat >> "$LAB/specs/10-fr-core.md" <<'MD'
 
@@ -242,6 +247,7 @@ Carries it.
 MD
 rule "FR-ARCH-050 cancelled requirement" 0 "which is withdrawn"
 
+# srs-end: FR-ARCH-050
 # --- verifies: FR-ARCH-060 — a carrier no element claims.
 elements <<'MD'
 # Elements
@@ -286,6 +292,7 @@ Carries the code and not the suites.
 MD
 silent "FR-ARCH-060 a test file no element carries is not reported" 0 "t/a_test.py"
 
+# srs-end: FR-ARCH-060
 # --- verifies: FR-ARCH-070 — a realized requirement no element carries.
 elements <<'MD'
 # Elements
@@ -303,6 +310,7 @@ Carries it.
 MD
 rule "FR-ARCH-070 requirement uncarried" 0 "FR-CORE-020 is implemented and no element carries it"
 
+# srs-end: FR-ARCH-070
 # --- verifies: FR-ARCH-080 — an element carrying no requirement.
 elements <<'MD'
 # Elements
@@ -359,6 +367,7 @@ Gone.
 MD
 silent "FR-ARCH-080 a dissolved element is exempt" 0 "carries no requirement"
 
+# srs-end: FR-ARCH-080
 # --- verifies: FR-ARCH-100 — strict mode fails on a warning alone.
 # Its own layer rather than whatever the fixture above left behind: a check
 # that depends on the previous one passes for reasons nobody chose.
@@ -393,6 +402,7 @@ rule "FR-ARCH-100 strict" 1 "treated as errors" --strict
 # --- The three fixtures below deliberately reuse the layer the strict one
 # --- just wrote: they need a layer that warns, and writing it again would
 # --- only hide which layer they are asserting against.
+# srs-end: FR-ARCH-100
 # --- verifies: FR-ARCH-090, IF-ARCH-030 — a lowered rule is still computed
 # --- and no longer fatal, and the name it is lowered by is the published one.
 printf '{"rules": {"element-empty": "report"}}\n' > "$LAB/arch/arch-config.json"
@@ -410,12 +420,14 @@ rule "IF-ARCH-020 a configuration that is not an object is refused" 2 \
      "the top level must be a JSON object"
 printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 
+# srs-end: FR-ARCH-090, IF-ARCH-030
 # --- verifies: IF-ARCH-020 — the third exit code is for what cannot be read.
 rule "IF-ARCH-020 unknown flag" 2 "unknown flag(s): --nope" --nope
 mv "$LAB/tools/srs_view.py" "$LAB/tools/srs_view.hidden"
 rule "IF-ARCH-020 no viewer to read the model through" 2 "tools/srs_view.py is not here"
 mv "$LAB/tools/srs_view.hidden" "$LAB/tools/srs_view.py"
 
+# srs-end: IF-ARCH-020
 # --- verifies: FR-ARCH-200 — a dependency the code has and the model does not.
 # --- Its own source files, because the ownership fixtures above carry no imports.
 printf 'import b\n' > "$LAB/src/a.py"
@@ -526,6 +538,7 @@ rule "FR-ARCH-200 a real cross-element import still speaks" 0 \
      "imports other, carried by E-020, and E-010 does not declare it"
 rm -rf "$LAB/alpha" "$LAB/zeta"
 
+# srs-end: FR-ARCH-200
 # --- verifies: FR-ARCH-260, IF-ARCH-040 — edges the project supplies are
 # --- compared as the ones the checker reads. Sources in a language the
 # --- checker does not read; the project says what they depend on.
@@ -656,6 +669,7 @@ fi
 passes=$((passes + 1))
 printf 'x = 1\n' > "$LAB/src/a.py"
 
+# srs-end: FR-ARCH-260, IF-ARCH-040
 # --- verifies: IF-ARCH-040 — a file the checker cannot read is a setup fault,
 # --- exit 2, never a finding; an element identifier as an end is refused with
 # --- the reason.
@@ -674,6 +688,7 @@ rm -f "$LAB/arch/edges.json"
 rm -rf "$LAB/src/core" "$LAB/src/shell"
 silent "FR-ARCH-260 no file, no edges" 0 "uses"
 
+# srs-end: IF-ARCH-040
 # --- verifies: FR-ARCH-220 — elements that depend on each other in a circle.
 # --- No imports in the sources: the circle is declared, and the rule reads
 # --- the declaration, not the code.
@@ -775,6 +790,11 @@ depends_on: [E-010]
 Needs the first.
 MD
 silent "FR-ARCH-220 an unresolved dependency ends the path, not the run" 1 "circle"
+# Exit 1 is also what a traceback exits with: the run has to have reached
+# the end and said so, the error for E-999 printed and no crash in between.
+silent "FR-ARCH-220 the walk does not crash on it" 1 "Traceback"
+grep -qF "E-010 depends on E-999, which no element carries" /tmp/srs-arch.log \
+    || { echo "FAIL FR-ARCH-220 — the run did not finish with the error for E-999"; cat /tmp/srs-arch.log; exit 1; }
 
 # --- And the degenerate circle, said in words that fit one element.
 elements <<'MD'
@@ -835,6 +855,7 @@ rule "FR-ARCH-220 the circle is cut where it closes" 0 \
      "in a circle: E-010 → E-020 → E-010"
 silent "FR-ARCH-220 and the way in is not on it" 0 "E-005 → E-010 → E-020"
 
+# srs-end: FR-ARCH-220
 # --- verifies: FR-ARCH-230 — a dependency names an element that exists.
 elements <<'MD'
 # Elements
@@ -909,6 +930,7 @@ Left.
 MD
 silent "FR-ARCH-230 a cancelled target is not absent" 0 "no element carries"
 
+# srs-end: FR-ARCH-230
 # --- verifies: FR-ARCH-240 — what a part carries can be derived from what it
 # --- owns. The rows of the decision table, one fixture each: under the default
 # --- nothing changes and a missing key is still missing; under `derived` a
@@ -1103,6 +1125,7 @@ printf '{"requirements": "guessed"}\n' > "$LAB/arch/arch-config.json"
 rule "FR-ARCH-240 an unknown mode is refused before anything is read" 2 \
      "expected written/derived"
 
+# srs-end: FR-ARCH-240
 # --- verifies: FR-ARCH-250 — the map marks what was written apart from what
 # --- was derived. One element naming one requirement and owning the file of
 # --- two others: the named one is bold, the derived ones plain, and the map
@@ -1147,6 +1170,7 @@ if grep -qF 'Requirements are derived' "$LAB/arch/90-map.md"; then
 fi
 passes=$((passes + 1))
 
+# srs-end: FR-ARCH-250
 # --- verifies: FR-ARCH-210 — the drivers are ranked, not chosen by taste.
 cat >> "$LAB/specs/10-fr-core.md" <<'MD'
 
@@ -1177,6 +1201,7 @@ grep -qF "1 incoming" /tmp/srs-arch-drivers.log \
          cat /tmp/srs-arch-drivers.log; exit 1; }
 passes=$((passes + 1))
 
+# srs-end: FR-ARCH-210
 # --- verifies: CON-ARCH-010 — a run writes inside the layer and nowhere else.
 # ---
 # --- In a tree the checker has never run in, and that is the whole point:
@@ -1228,6 +1253,7 @@ cmp -s "$BEFORE" "$AFTER" \
          diff "$BEFORE" "$AFTER" | head -10; exit 1; }
 passes=$((passes + 2))
 
+# srs-end: CON-ARCH-010
 # --- verifies: FR-ARCH-270 — an element is cited like a requirement: the
 # --- form the viewer prints, over the layer's own records, in the order
 # --- asked; an unknown identifier is named and fails the run without
@@ -1275,8 +1301,10 @@ grep -q "no element E-990" /tmp/srs-arch-cite.err \
 rule "FR-ARCH-270 --cite with nothing to cite is a setup fault" 2 "needs at least one" --cite
 passes=$((passes + 4))
 
+# srs-end: FR-ARCH-270
 # --- verifies: INV-SPEC-080 — an element's number widens like a requirement's:
 # --- E-1000 is an identifier, E-0100 is not.
+# srs-end: INV-SPEC-080
 # --- verifies: INV-SPEC-090 — and the map orders E-1000 after E-990.
 elements <<'MD'
 # Elements
@@ -1342,6 +1370,7 @@ Not an identifier.
 MD
 rule "INV-SPEC-080 a leading zero is refused" 1 "identifier does not match"
 
+# srs-end: INV-SPEC-090
 # --- verifies: FR-ARCH-280 — a path an element carries and nobody has is a
 # --- warning named carrier-missing, naming the element and the path. The lab
 # --- is no git repository, so the warning stands without a hint; a git lab
@@ -1363,7 +1392,10 @@ depends_on: []
 Carries the whole of it, and one file nobody has.
 MD
 rule "FR-ARCH-280 a carried path that does not exist" 0 "E-010 carries src/vanished.py, which does not exist"
-silent "FR-ARCH-280 says nothing of where it went outside git" 0 "git renamed\|git deleted\|in the working tree"
+# Where git put the file is a clause after "does not exist", opened with "; ";
+# outside git there is none. (-F takes the fragment literally, so one
+# fragment covers every clause rather than an alternation it cannot read.)
+silent "FR-ARCH-280 says nothing of where it went outside git" 0 "does not exist;"
 rule "FR-ARCH-280 fails a strict gate" 1 "treated as errors" --strict
 printf '{"rules": {"carrier-missing": "off"}}\n' > "$LAB/arch/arch-config.json"
 silent "FR-ARCH-280 turned off says nothing" 0 "does not exist"
@@ -1431,3 +1463,4 @@ grep -q "src/a.py, which does not exist\|src/b.py, which does not exist" /tmp/sr
 passes=$((passes + 1))
 
 echo "arch-rules: $passes fixtures pass"
+# srs-end: FR-ARCH-280

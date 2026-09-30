@@ -1,6 +1,6 @@
 ---
 name: srs-arch
-description: Working with the architecture layer — naming the parts a system is cut into, saying what each carries, and reading the disagreements the checker computes — three between that description and the specification, two about the dependencies the parts declare. Invoke when the user asks what the system is made of, wants to add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
+description: Working with the architecture layer — naming the parts a system is cut into, saying what each carries, and reading the disagreements the checker computes — three between that description and the specification, two about the dependencies the parts declare, two about a record falling behind. Invoke when the user asks what the system is made of, wants to add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
 ---
 
 # Working with the architecture layer
@@ -25,6 +25,8 @@ Two more are about the dependencies the parts declare, and the specification has
 - **a dependency the code has and the model does not declare** — `depends_on` is incomplete, or the call is the thing that is wrong: a file in the wrong part, or a part reaching where it was cut not to. Read the file the finding names before deciding; the standard says where the checker gets these edges and which languages it reads on its own.
 - **elements that depend on each other in a circle** — the cut is wrong and two parts are one, or one edge is a dependency in name only. A warning, because nothing the checker computes is broken by a circle.
 
+One more is about the record falling behind the specification: an element still carrying a requirement that was superseded or withdrawn — drop it from the record, or carry the successor.
+
 ## Naming a part
 
 An element is a decision, not a description of the directory tree.
@@ -32,7 +34,7 @@ An element is a decision, not a description of the directory tree.
 1. **Name what it is responsible for in one sentence.** An "and" in it is two parts, or one with a name nobody has found yet.
 2. **List its files.** A directory in `carries` owns everything under it. Carriers are not only code — a standard, a procedure, a CI template, a payload.
 3. **List the requirements it carries**, from what the specification says realizes those files: `python3 tools/srs_view.py --code <path>`. Where the layer's configuration says the requirements are derived, skip this: the checker counts as carried what the part owns, and the list is on the map; write `requirements:` only for an obligation the part answers for without owning its files, and say so in the rationale — the map marks the entry as written.
-4. **Declare its dependencies** where they are real. `depends_on` is the model a person writes, not derived from the links between requirements (ADR-0023 records the measurement that settled why). The checker reads only Python by itself; for any other language the project lists its edges in `arch/edges.json`, or the model has nothing that ever disagrees with it.
+4. **Declare its dependencies** where they are real. `depends_on` is the model a person writes, not derived from the links between requirements — derived that way on the framework's own code it gave twenty-five edges against seven real ones. The checker reads only Python by itself; for any other language the project lists its edges in `arch/edges.json`, or the model has nothing that ever disagrees with it.
 
 Every choice that could have gone another way goes into an ADR in `specs/adr/`: the layer records the cut, the ADR why this cut and not the neighbouring one.
 

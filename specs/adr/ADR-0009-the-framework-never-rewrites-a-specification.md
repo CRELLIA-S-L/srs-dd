@@ -23,6 +23,7 @@ The question is whether a format change is the exception that earns it the right
 ## Decision outcome
 
 Option 2. The framework reports, and never edits `specs/`.
+*Since 0.15.0 (FR-SPEC-020):* one shipped command does write requirement blocks — `tools/srs_dates.py` writes into each the date its identifier first appeared — and it is the exception this decision leaves room for: a person runs it on purpose, once, the way a baseline is frozen, and no gate, hook, installer or upgrade ever does.
 
 The specification is the one artefact in an installed project that is entirely the project's own — every requirement in it was written by that team, and nothing the framework ships has ever modified it.
 An upgrade that rewrites two hundred requirement blocks, however carefully and with whatever dry run, converts the framework from a tool the project runs into a party that edits its documents; the trust that costs is worth more than the afternoon it saves.

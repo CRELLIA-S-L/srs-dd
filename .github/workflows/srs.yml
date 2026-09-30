@@ -105,6 +105,15 @@ jobs:
       - name: Pipeline runs every suite
         run: tests/pipeline-suites.sh
 
+      - name: Standard names every rule
+        run: tests/standard-rules.sh
+
+      - name: Standards name every value
+        run: tests/standard-vocabulary.sh
+
+      - name: Code fields name their sets
+        run: tests/code-field-sets.sh
+
       - name: Render the specification
         run: |
           python3 tools/srs_view.py --html site/index.html \
@@ -115,11 +124,12 @@ jobs:
           name: specification
           path: site
 
-  # The example project as a downstream consumer: a change here that
-  # stops accepting a specification which was valid shows up against a
-  # real project rather than in somebody's repository. Advisory on
-  # purpose — an external repository must not be able to block a release.
-  example-smoke:
+  # A project that uses the framework, as a downstream consumer (FR-CI-060):
+  # a change here that stops accepting a specification which was valid
+  # shows up against a real project rather than in somebody's repository.
+  # Advisory on purpose — an external repository must not be able to block
+  # a release.
+  consumer-smoke:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -130,10 +140,11 @@ jobs:
 
       # Its own tests are its own CI's business; what this job asks is
       # whether our tooling still accepts a specification that was valid.
-      - name: Check the example against this working tree
+      # Crawl Call keeps both optional layers, so every checker is asked.
+      - name: Check Crawl Call against this working tree
         run: |
           git clone --depth 1 \
-            https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener.git /tmp/srs-example
+            https://github.com/CRELLIA-S-L/crawl-call.git /tmp/srs-consumer
           # Which files travel is the installer's list, read from the
           # installer itself. A hand-written pair here went stale when the
           # checker was split from its parser, and the job then failed on
@@ -142,13 +153,18 @@ jobs:
           # substitution that fails inside `for` is exempt from set -e
           # and would leave the list empty, which is this failure all
           # over again — nothing copied, and the missing file blamed.
-          travels=$(python3 -Bc "import sys; sys.path.insert(0, 'tools'); import srs_init; print(*srs_init.TOOLS)")
+          travels=$(python3 -Bc "import sys; sys.path.insert(0, 'tools'); import srs_init; print(*(srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS))")
           for f in $travels; do
-            cp "tools/$f" /tmp/srs-example/tools/
+            cp "tools/$f" /tmp/srs-consumer/tools/
           done
-          cd /tmp/srs-example
-          python3 tools/srs_check.py --strict
-          python3 tools/srs_view.py --html /tmp/example-site/index.html
+          cd /tmp/srs-consumer
+          python3 tools/srs_check.py --strict --no-write
+          python3 tools/srs_grounds.py --no-write --strict
+          # Without --strict: the project's own layer carries warnings of
+          # its own, and this job asks whether the tooling accepts the
+          # layer, not whether the project has cleared it.
+          python3 tools/srs_arch.py --no-write
+          python3 tools/srs_view.py --html /tmp/consumer-site/index.html
 
   # The published specification (FR-CI-040). Runs only on the default
   # branch and only after the suites pass — a page is worth publishing

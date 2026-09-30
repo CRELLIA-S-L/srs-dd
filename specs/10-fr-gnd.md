@@ -259,7 +259,7 @@ depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
 code: [tools/srs_grounds.py]
-tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
+tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
 
@@ -1331,3 +1331,42 @@ This repository walked around it once by widening `H-010` past its team; a claim
 So the threshold stays required — a class III hypothesis still says, before it is measured, what would count as refuting it — and the verdict stays the reader's, named by `FR-GND-160`; what the checker keeps is the refusal of a row that is not a measurement at all, of a word that is neither `supported` nor `refuted`, and of a `refuted` that the threshold's own sentence contradicts — a value on its safe side, a sample below its gate — because those are the record disagreeing with its author, not the interval overruling a reading.
 The first door, a threshold made optional for class III, was refused because it gives up falsifiability declared in advance; the third, leaving the arithmetic on, gives up the class.
 
+### FR-GND-560 — The register's standard names every rule its checker reports
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-GND-110]
+depends_on: [IF-GND-030]
+refines: []
+conflicts_with: []
+code: [grounds/README.md]
+tests: [tests/standard-rules.sh]
+created: 2026-09-24
+```
+
+The register's standard **shall** name every rule its checker reports by name, with what it reports.
+
+**Rationale.** A project sets what a finding costs in `rules` by the finding's name (`FR-GND-110`), and the names are a published contract (`IF-GND-030`); on 2026-09-24 the standard named none of the fifteen, and said only that the checker lists them when given one it does not know.
+The same gap `FR-SPEC-050` closed in the specification's standard, found by looking for it in the other two standards the day that one was closed; the suite that holds that table holds this one against `RULES` in `tools/srs_grounds.py`.
+
+### FR-GND-570 — The hook refuses a stale dashboard
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-GND-370]
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: [ci/pre-commit, .githooks/pre-commit]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-29
+```
+
+Where a project carries a grounds register, the installed hook **shall** regenerate the dashboard and refuse the commit while the copy being committed differs from it.
+
+**Rationale.** `FR-GND-370` makes the pipeline refuse a stale dashboard, and a gate that only exists in the pipeline teaches people to push and wait — the reason `FR-CI-020` put the matrix's gate in the hook.
+The dashboard reads the specification as well as the register — a requirement changing status moves it — so a commit that touches only `specs/` can leave it stale, and an agent that ran the specification checker and stopped there was told so only by the pipeline.
+A refusal rather than a report, unlike the bets the hook reports under `FR-GND-310`: a stale dashboard is a file somebody forgot to regenerate, which the committer can always fix, while a refuted hypothesis may be exactly what they are in the middle of repairing.
+Whether the project carries a register is read at every commit from `grounds/grounds-config.json`, as the pipeline reads it, so a register added later is gated from its first commit without the hook being installed again.

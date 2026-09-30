@@ -44,3 +44,17 @@ specs/adr/
 offer to author
 ART-060
 trailing parenthesis
+
+# the date command and the optional layers
+tools/srs_dates.py
+Run on purpose, never by a gate
+tools/srs_grounds.py
+--blast
+tools/srs_arch.py
+srs-bet
+srs-arch
+Date requirements
+Grounds register
+Architecture layer
+# ART-100 — nothing sensitive goes into the repository
+ART-100

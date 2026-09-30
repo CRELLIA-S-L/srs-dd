@@ -57,4 +57,4 @@ The requirements standing on it keep their code and lose their ground.
 
 ## What not to do
 
-Section *What not to do* in `grounds/README.md`: no bet invented to make a number look better; no record edited to agree with a result — the dashboard is the one file a machine writes; no threshold moved once measurement began; no expiry deciding anything; no hypothesis written on somebody's behalf. Check with `python3 tools/srs_grounds.py`.
+Section *What not to do* in `grounds/README.md`: no bet invented to make a number look better; no record edited to agree with a result — the dashboard is the one file a machine writes; no threshold moved once measurement began; no hypothesis that cannot be false, or that carries its solution; no hypothesis written on somebody's behalf. Check with `python3 tools/srs_grounds.py`.

@@ -90,7 +90,7 @@ depends_on: [INV-SPEC-040]
 refines: []
 conflicts_with: []
 code: [tools/srs_view.py]
-tests: [tests/view-smoke.sh]
+tests: [tests/view-smoke.sh, tests/standard-vocabulary.sh]
 created: 2026-08-07
 ```
 
@@ -659,7 +659,7 @@ tests: [tests/view-smoke.sh]
 created: 2026-09-16
 ```
 
-When given a path and a line within it, the viewer **shall** name the requirements the annotation covering that line marks, and how many the whole file answers for.
+When given a path and a line within it, the viewer **shall** name the requirements of the narrowest region holding that line, or else those the file carries as a whole, and how many the whole file answers for.
 
 **Rationale.** Two questions hide behind one path, and the answer to one is the wrong size for the other.
 "What breaks if I touch this file" wants every requirement the file answers for, and that list is long by nature — thirty here at the median, sixty-four for one file of a project that adopted the framework — because a file carries many things.
@@ -667,11 +667,13 @@ When given a path and a line within it, the viewer **shall** name the requiremen
 The mode for a path answers the first and no mode answers the second, so a reader at a line reads the long list and picks by eye.
 
 Added beside `FR-VIEW-020` rather than folded into it.
-That requirement answers from three sources — the `code` fields, the `tests` fields and the annotations — and the first two have no lines to be asked about; this one answers from the annotations alone, and only where one covers the line: the annotation on the line itself, or the nearest one above it.
+That requirement answers from three sources — the `code` fields, the `tests` fields and the annotations — and the first two have no lines to be asked about; this one answers from the annotations alone, and only where a region holds the line — the region `FR-VIEW-380` prints, so that the line and the source never disagree.
+The narrowest, because a nested block belongs to the one around it and a line inside both is what the inner one marks; failing any, a `file` annotation holds every line.
+Until 2026-09-25 the answer was the nearest annotation above, which handed a line in an unannotated function the requirements of the one before it, and answered for only the last line of a block of two.
 Narrowing the mode for a path to what a line marks would take the long answer away from the reader who came for it.
 
 Both halves in one sentence for the reason `FR-VIEW-280` gives: a reader who asked about a line and was handed one requirement cannot tell it from one of thirty, and the count is what tells them.
-The line before any annotation marks nothing, and the count is then the whole of the answer.
+A line no region holds marks nothing, and the count is then the whole of the answer.
 The count is printed with the command that lists what it counts, because a number a reader cannot expand is a number they will go and derive by hand; that is the same mode named, not a second one, which is why it earns no requirement of its own where `FR-VIEW-290` did.
 
 A directory before the colon is refused with a sentence rather than read as a path: a directory has no lines, and the mode for a path would answer about the directory and say nothing about the number the reader typed.
@@ -849,16 +851,78 @@ derives_from: [FR-VIEW-370]
 depends_on: [FR-VIEW-370]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [tools/srs_view.py, tools/srs_check.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
 
-When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region of the file the annotation marks — for a Python file the innermost function or class the annotation belongs to, for any other file the lines up to the next annotation or a bounded number of them.
+When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region it marks — for a block on lines of its own the lines down to its `srs-end:`, blocks inside it included, or without one down to the next block or a bounded number of lines; for an annotation after code the line it stands on; and for a `file` annotation the file, bounded.
 
 **Rationale.** Knowing the line saves the search; printing the region saves the read that follows it, and the two together turn three turns per requirement into one call.
-A Python file has a structure the standard library parses, and the annotation is placed at a function — on the line above its `def`, or as its first comment — so the region is that function, whole, however long; a bounded window would cut a long one in the middle.
-Other files have no structure the tool can read, so the region runs to the next annotation, which is where somebody said another requirement starts, or to a bound, so that a shell suite with one annotation at the top does not print itself entire.
+The region is what the author marked, the same in every language (`CON-SPEC-040`): the lines from a block down to the `srs-end:` that names one of its requirements, a nested block included because what is nested belongs to what encloses it.
+Until 2026-09-25 a Python file's region was the function the standard library's parser found under the annotation and every other file got a window; the parser is gone, and a file in any language is read the way only the others were (ADR-0035).
+Without an `srs-end:` the region runs to the next block, which is where somebody said another requirement starts, or to a bound, so that a file with one annotation at the top does not print itself entire; `FR-VIEW-400` says what the reader is told then.
+An annotation after code marks its own line, and a `file` annotation the file, printed to the same bound.
 Printed as the file has it, line numbers beside, so that what the reader edits afterwards is found again without a second lookup.
 Never by default: the locations are the small answer and the source the large one, and the everyday procedure asks for the second only once the first has said which requirements the change will touch.
 
+### FR-VIEW-400 — A region with no end marker is said to be possibly incomplete
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-380]
+depends_on: [FR-VIEW-300]
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-25
+```
+
+Where a region the viewer prints or answers from has no `srs-end:`, the viewer **shall** say so in the line that names the region, never among the file's lines, naming where the region stopped instead — the next block, the bound or the end of the file.
+
+**Rationale.** A region without an end marker is the viewer's fallback, and it is right when what the block marks ends where the next block starts and wrong when a block inside it, or code nobody annotated, stands before its end.
+The reader cannot tell which from the lines alone, so the viewer says what it did.
+In the line that names the region, because every line of the file carries its number and a line without one is the viewer's: the notice then cannot be read as part of the file, and it is read before the lines rather than after them.
+Measured on 2026-09-25 before it was written (ADR-0035): no model copied the notice into the code it quoted, wherever it stood, but a notice after the lines was read by one model as "what follows is not this requirement", and a notice in the header was not.
+It does not rescue a region the fallback cut short — the smaller models named the fallback's lines however the notice was worded — which is why `FR-CHK-280` reports the missing marker to its author, where it can be fixed.
+
+### FR-VIEW-390 — The viewer's tables of the checker's vocabulary cover it
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-VIEW-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-09-25
+```
+
+The viewer **shall** have a name for every verification method, a backward label for every link field, and a colour for every status the checker accepts.
+
+**Rationale.** The viewer reads the checker's parser but keeps its own tables for what it shows — the methods by name, the incoming links by label, the statuses by colour — and a value the checker gains and the viewer lacks is a card with a blank, a link with no label, or a status drawn in the page's default.
+The tables matched on 2026-09-25 and nothing compared them with the checker's tuples; the suite now does.
+
+### FR-VIEW-410 — The page's filter by file tells every file apart
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: [FR-VIEW-060]
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-29
+```
+
+The page's filter by file **shall** offer every file that holds requirements as a choice of its own, named by its path under `specs/`.
+
+**Rationale.** The filter named a file by its name alone, and the names repeat: an area past its thousandth requirement is a directory of `000-999.md`, `1000-1999.md` and on, so two such areas gave one button, `000-999.md`, that selected both, and neither file could be chosen alone.
+A piece of a file cut by subject repeats the same way, `storage.md` in two areas' directories.
+The path under `specs/` is unique where the name is not, and the card already shows it after `specs/`, so the button and the card name the file alike; for a file directly under `specs/` it is the name, and nothing a reader knew changes.

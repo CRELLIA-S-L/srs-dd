@@ -7,6 +7,7 @@
 # verifies: FR-INIT-170, FR-INIT-180, FR-INIT-190
 set -eo pipefail
 
+# srs-end: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320, FR-GND-480, FR-INIT-170, FR-INIT-180, FR-INIT-190
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — so a `git add`
@@ -21,6 +22,7 @@ cd "$(dirname "$0")/.."
 # fresh-install step into upgrade mode.
 rm -rf /tmp/srs-target
 
+# srs-end: FR-CI-090
 # verifies: FR-INIT-070
 # --dry-run must list the whole install and create nothing at all.
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both --dry-run | tee /tmp/dry.log
@@ -28,6 +30,7 @@ grep -q "tools/srs_view.py" /tmp/dry.log
 grep -q "nothing was written" /tmp/dry.log
 test ! -e /tmp/srs-target
 
+# srs-end: FR-INIT-070
 # verifies: FR-INIT-010, FR-INIT-020, FR-CI-050
 # Fresh install into a temp dir must pass its own checker, strictly.
 # The mode was chosen by looking at the target, and nothing told it to.
@@ -37,21 +40,28 @@ test ! -e /tmp/srs-target
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both | tee /tmp/fresh.log
 python3 /tmp/srs-target/tools/srs_check.py --strict
 
+# srs-end: FR-INIT-010, FR-INIT-020, FR-CI-050
 # verifies: FR-INIT-150
 # It also has to leave the maintainer knowing what to do next: where the
 # first requirement goes, what reads and checks the specification, and how
 # the framework is upgraded later.
+# Read in the steps alone: the list of created files above them names every
+# one of these paths too, and a grep over the whole log would pass on it.
 grep -q "First steps:" /tmp/fresh.log
-grep -q "specs/10-fr-core.md" /tmp/fresh.log
-grep -q "tools/srs_check.py" /tmp/fresh.log
-grep -q "tools/srs_view.py --html" /tmp/fresh.log
-grep -q "tools/srs_upgrade.py" /tmp/fresh.log
-grep -q "AGENTS.md" /tmp/fresh.log
+sed -n '/First steps:/,$p' /tmp/fresh.log > /tmp/fresh-steps.log
+for said in "specs/10-fr-core.md" "tools/srs_check.py" "tools/srs_view.py --html" \
+            "tools/srs_upgrade.py" "AGENTS.md"; do
+    grep -qF "$said" /tmp/fresh-steps.log \
+        || { echo "FAIL FR-INIT-150 — the first steps do not name $said"; cat /tmp/fresh-steps.log; exit 1; }
+done
+# srs-end: FR-INIT-150
 # verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
 # Every skill that ships is named, and none that does not. The last of
 # those is named by its absence: srs-release stays here.
-for skill in srs srs-new srs-audit srs-harvest srs-upgrade srs-baseline \
-             srs-check srs-page; do
+# Read from the installer rather than written here: a list in the suite is
+# one more copy that falls behind the tuple it copies.
+shipped_skills=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); import srs_init; print(' '.join(srs_init.SKILLS))")
+for skill in $shipped_skills; do
     grep -qE "^       $skill +" /tmp/fresh.log
 done
 for framework_only in srs-init srs-release; do
@@ -67,11 +77,13 @@ done
 
 # The agent procedures come first: the framework exists so that code
 # written with agents still has requirements behind it.
-agents=$(grep -n "AGENTS.md" /tmp/fresh.log | head -1 | cut -d: -f1)
-first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh.log | head -1 | cut -d: -f1)
-test "$agents" -lt "$first"
+agents=$(grep -n "AGENTS.md" /tmp/fresh-steps.log | head -1 | cut -d: -f1)
+first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh-steps.log | head -1 | cut -d: -f1)
+[ -n "$agents" ] && [ -n "$first" ] && [ "$agents" -lt "$first" ] \
+    || { echo "FAIL FR-INIT-150 — the agent procedures do not come before the placeholder step"; cat /tmp/fresh-steps.log; exit 1; }
 
-# verifies: FR-INIT-060
+# srs-end: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
+# verifies: FR-INIT-060, FR-INIT-270
 # Re-running on an initialized target = upgrade mode; the checker and
 # skills must refresh WITHOUT --force, precious files must be skipped.
 # The stub proves upgrades deliver skill content (the fresh install above
@@ -94,6 +106,7 @@ grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKI
 grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
 test -f /tmp/srs-target/.gitlab-ci.yml   # precious file survived untouched
 
+# srs-end: FR-INIT-060
 # verifies: FR-INIT-080
 # A project's own pre-commit hook is never displaced: the gate lands
 # beside it, and the advice must not tell the user to point
@@ -140,6 +153,7 @@ rm -f skeleton/specs/stray.html
 test "$rc" -eq 0
 test ! -e /tmp/srs-clean/specs/stray.html
 
+# srs-end: FR-INIT-080
 # verifies: FR-CHK-130
 # A baseline tag with no row in the log is reported, and --strict makes
 # it a failure: cutting a baseline is a tag and a row in separate
@@ -165,6 +179,7 @@ PY2
     python3 tools/srs_check.py --no-write --strict >/dev/null
 )
 
+# srs-end: FR-CHK-130
 # verifies: FR-CHK-210
 # The other end of the same decision: a fresh project has no
 # code yet, so it has nothing to silence and starts strict. A default
@@ -200,6 +215,7 @@ precious() {
     local rel=$1; shift
     cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 
+    # srs-end: FR-CHK-210
     # verifies: FR-INIT-240
     # A skipped file says whether it differs from what this version ships:
     # the copy it installed does not, the same copy edited does. Without the
@@ -242,9 +258,31 @@ precious() {
     cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 }
 
-# The CI template carries its own flag because an upgrade visits it only
-# when --ci is passed; everything else below is visited on every run.
+# The CI template twice: named with --ci, and found without it — an upgrade
+# run through srs_upgrade.py has no --ci to pass, and until 0.21.0 it never
+# refreshed the pipeline at all, --force or not.
 precious .github/workflows/srs.yml --ci github
+# srs-end: FR-INIT-240
+# verifies: FR-INIT-060
+rel=.github/workflows/srs.yml
+cp "/tmp/srs-pristine/$rel" "$PT/$rel"
+printf 'theirs, edited\n' >> "$PT/$rel"
+python3 tools/srs_init.py "$PT" --defaults > /tmp/prec-ci-keep.log
+grep -qF "$rel (differs from what this version ships; use --force to refresh)" /tmp/prec-ci-keep.log \
+    || { echo "FAIL FR-INIT-060 — an upgrade without --ci did not find the pipeline it installed"
+         cat /tmp/prec-ci-keep.log; exit 1; }
+grep -qF 'theirs, edited' "$PT/$rel" \
+    || { echo "FAIL FR-INIT-060 — $rel was refreshed without --force"; exit 1; }
+python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-ci-force.log
+absent 'theirs, edited' "$PT/$rel"
+# A pipeline the project wrote itself is not one an upgrade without --ci
+# visits: nothing names it, nothing touches it.
+printf '# Ours, and no marker in it\n' > "$PT/$rel"
+python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-ci-mine.log
+absent "$rel" /tmp/prec-ci-mine.log
+grep -qF 'Ours, and no marker in it' "$PT/$rel" \
+    || { echo "FAIL FR-INIT-060 — an upgrade without --ci overwrote a pipeline that is not ours"; exit 1; }
+cp "/tmp/srs-pristine/$rel" "$PT/$rel"
 precious .gitattributes
 precious .githooks/pre-commit
 # The standard was the half missing until 0.14.0: installed once and never
@@ -258,6 +296,7 @@ precious arch/README.md
 precious AGENTS.md
 precious CLAUDE.md
 
+# srs-end: FR-INIT-060
 # --- verifies: FR-INIT-200 — the guides are the one payload file that is
 # --- filled in rather than copied, so refreshing one needs the answers the
 # --- install took. Until the name was recorded there was nothing to fill
@@ -347,6 +386,7 @@ python3 tools/srs_init.py "$PT" --defaults --force > /dev/null
 
 echo "installer-smoke: all seven precious kinds behave as FR-INIT-060 says"
 
+# srs-end: FR-INIT-200
 # verifies: IF-CI-010
 # The installer's exit codes are a contract. The adopt suite
 # covers 0, 2 and 3; 1 — the checker found errors in the target — was
@@ -364,7 +404,8 @@ rc=0; python3 tools/srs_init.py /tmp/srs-precious --defaults \
 test "$rc" -eq 1
 grep -q "status implemented but the code field is empty" /tmp/precious-broken.log
 
-# verifies: CON-SPEC-020
+# srs-end: IF-CI-010
+# verifies: CON-SPEC-020, FR-INIT-260
 # specs/ here is the framework's own specification, not payload (ART-070).
 # A fresh target must hold exactly one requirement — the generated
 # placeholder — and nothing of ours. Asked through the parser rather than
@@ -432,8 +473,24 @@ for root, dirs, files in os.walk(target):
 assert not found, ('something the installer shipped names a requirement the '
                    'target does not have — and may have its own requirement '
                    'under that number: %s' % found)
+# A decision's number leaks the same way: `ADR-0009` in a shipped comment
+# is the project's own ninth decision, or nothing. The installer takes them
+# out of the tooling (FR-INIT-260); anywhere else they must not be written.
+DECISION = re.compile(r'\bADR-\d{4}\b')
+cited = []
+for root, dirs, files in os.walk(target):
+    dirs[:] = [d for d in dirs if d != '.git']
+    for name in sorted(files):
+        path = os.path.join(root, name)
+        try:
+            text = open(path, encoding='utf-8').read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        cited += ['%s %s' % (os.path.relpath(path, target), n) for n in DECISION.findall(text)]
+assert not cited, 'something the installer shipped cites a decision of this framework: %s' % cited
 PY
 
+# srs-end: CON-SPEC-020, FR-INIT-260
 # verifies: FR-INIT-210, FR-INIT-220
 # The width is taken as given and written where an agent will read it. A
 # project that states none gets no key and no bullet — a default invented
@@ -469,6 +526,7 @@ test "$rc" -eq 2
 grep -q "positive number of columns" /tmp/width-bad.log
 test ! -e /tmp/srs-width-bad/specs/srs-config.json
 
+# srs-end: FR-INIT-210, FR-INIT-220
 # verifies: FR-INIT-180, FR-INIT-190
 # An annotation is removed, not deleted: the line stays a line, so a
 # traceback from a target names what it names here. Asserted per file
@@ -476,6 +534,7 @@ test ! -e /tmp/srs-width-bad/specs/srs-config.json
 # breaks and a sum would hide it.
 python3 - <<'PY3'
 import os
+import re
 for name in sorted(os.listdir('/tmp/srs-clean/tools')):
     if not name.endswith('.py'):
         continue
@@ -487,14 +546,22 @@ for name in sorted(os.listdir('/tmp/srs-clean/tools')):
         'its line with it' % (name, mine.count(chr(10)),
                               theirs.count(chr(10))))
     header = theirs.split('"""')[0]
-    assert 'SRS-DD-' in header, '%s: no version stamp in the header' % name
+    # The source reads SRS-DD-VERSION; only a stamped number proves the
+    # installer stamped it.
+    assert re.search(r'SRS-DD-\d+\.\d+\.\d+', header), '%s: no version stamp in the header' % name
 PY3
 
 # The example annotations are what a target reads the format from, so they
 # survive — and `srs-ignore` is what says they are examples rather than
 # claims.
 grep -q 'implements: FR-CORE-010' /tmp/srs-clean/tools/srs_check.py  # srs-ignore
+# End markers name this framework's requirements as annotations do, and go
+# the same way: none reaches a target's tooling.
+if grep -n -E 'srs-end: *[A-Z]+-[A-Z0-9]+-[0-9]' /tmp/srs-clean/tools/*.py | grep -v 'srs-ignore'; then
+    echo "FAIL FR-INIT-180 — an end marker naming a requirement of ours reached the target"; exit 1
+fi
 
+# srs-end: FR-INIT-180, FR-INIT-190
 # --- verifies: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 # --- The grounds register: offered, never imposed, and complete or absent.
 GT=/tmp/srs-grounds-target
@@ -579,9 +646,15 @@ all_of: [H-010]
 
 The requirement exists because that was believed.
 MD
-( cd "$GT" && git init -q . && git add -A && python3 tools/srs_grounds.py \
-  && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1
-rc=$?
+# rc is captured with ||, not read after the command: under set -e a bare
+# failing command ends the suite before rc=$? runs, and the message below —
+# which says what went wrong — would never print.
+rc=0
+# The dashboard is regenerated before anything is staged: the hook refuses
+# a commit whose dashboard is not the checker's (FR-GND-570), and this
+# fixture asks about the report, not that.
+( cd "$GT" && git init -q . && python3 tools/srs_grounds.py > /dev/null && git add -A \
+  && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL FR-GND-310 — the hook failed the commit over a"
                    echo "refuted hypothesis"; cat /tmp/grounds-hook.log; exit 1; }
 grep -qF "FR-APP-010 — B-010 rests on H-010 (refuted)" /tmp/grounds-hook.log \
@@ -704,6 +777,7 @@ grep -qF "it has nothing to set" /tmp/srs-noperiod.log \
          echo "declined"; exit 1; }
 absent "grounds" /tmp/srs-noperiod/specs/srs-config.json
 
+# srs-end: FR-GND-280, FR-GND-290, FR-GND-300, FR-GND-310, FR-GND-320
 # --- verifies: FR-INIT-170 — an undated specification is told it can be
 # --- dated, and nothing is written on its behalf. Nobody looks for a tool
 # --- they have not heard of, and an install is when the framework has a
@@ -715,6 +789,7 @@ absent "created:" "$GT/specs/10-fr-app.md"
 
 echo "installer-smoke: the grounds register is offered, complete and quiet"
 
+# srs-end: FR-INIT-170
 # --- verifies: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150 — the architecture
 # --- layer is offered, arrives whole, and what arrives passes its own gate.
 AT=/tmp/srs-arch-target
@@ -734,6 +809,7 @@ done
     || { echo "FAIL FR-ARCH-140 — the install left no map, and a gate compares"
          echo "the committed one against a fresh run"; exit 1; }
 
+# srs-end: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150
 # --- verifies: FR-ARCH-170 — the gate a target installs compares the map.
 # --- Until this shipped, a project's map was generated, committed and never
 # --- looked at again: `tests/arch-check.sh` proves the comparison for this
@@ -764,6 +840,7 @@ for f in arch tools/srs_arch.py .claude/skills/srs-arch; do
         && { echo "FAIL FR-ARCH-120 — --arch no still installed $f"; exit 1; }
 done
 
+# srs-end: FR-ARCH-170
 # --- verifies: FR-ARCH-130 — an upgrade adds it only when asked, and says
 # --- how to ask.
 python3 tools/srs_init.py /tmp/srs-noarch --defaults \
@@ -792,3 +869,120 @@ grep -qF "does not remove a layer that is already there" /tmp/arch-no.log \
          exit 1; }
 
 echo "installer-smoke: the architecture layer is offered, complete and quiet"
+# srs-end: FR-ARCH-130
+
+# --- verifies: FR-GND-570, FR-ARCH-300 — the hook gates the dashboard and
+# --- the map as it gates the matrix: regenerated, and the commit refused
+# --- while the copy being committed is not the checker's. Only where the
+# --- project keeps the layer, decided at every commit by its configuration.
+HT=/tmp/srs-hook-layers
+rm -rf "$HT"
+python3 tools/srs_init.py "$HT" --defaults --areas APP --grounds yes --arch yes > /dev/null 2>&1
+# An element carrying the placeholder requirement, so that the map has
+# something of the specification to count.
+python3 - "$HT/arch/00-elements.md" <<'PY3'
+import sys
+path = sys.argv[1]
+text = open(path, encoding='utf-8').read().replace('*None at the moment.*', '')
+open(path, 'w', encoding='utf-8').write(
+    text + '\n### E-010 — The app\n\n```yaml\nstatus: proposed\ncarries: [src]\n'
+    'requirements: [FR-APP-010]\n```\n\nEverything.\n')
+PY3
+hook_in() {
+    rc=0
+    ( cd "$1" && sh .githooks/pre-commit ) > /tmp/hook-layers.log 2>&1 || rc=$?
+}
+refused() {
+    [ "$rc" = 1 ] && grep -qF "pre-commit: $1 was regenerated — stage it and retry." /tmp/hook-layers.log \
+        || { echo "FAIL $2 — the hook did not refuse over $1 ($3)"; cat /tmp/hook-layers.log; exit 1; }
+}
+passed() {
+    [ "$rc" = 0 ] || { echo "FAIL $1 — the hook refused a commit it should pass ($2)"
+                       cat /tmp/hook-layers.log; exit 1; }
+}
+( cd "$HT" && git init -q . && python3 tools/srs_check.py > /dev/null \
+  && python3 tools/srs_grounds.py > /dev/null && python3 tools/srs_arch.py > /dev/null && git add -A )
+hook_in "$HT"; passed "FR-GND-570/FR-ARCH-300" "every generated file current and staged"
+
+# A copy edited by hand is not the checker's.
+printf '\nedited by hand\n' >> "$HT/grounds/90-dashboard.md"
+( cd "$HT" && git add grounds/90-dashboard.md )
+hook_in "$HT"; refused grounds/90-dashboard.md FR-GND-570 "a dashboard edited by hand"
+( cd "$HT" && git add grounds/90-dashboard.md )
+hook_in "$HT"; passed FR-GND-570 "the regenerated dashboard staged"
+printf '\nedited by hand\n' >> "$HT/arch/90-map.md"
+( cd "$HT" && git add arch/90-map.md )
+hook_in "$HT"; refused arch/90-map.md FR-ARCH-300 "a map edited by hand"
+( cd "$HT" && git add arch/90-map.md )
+hook_in "$HT"; passed FR-ARCH-300 "the regenerated map staged"
+
+# A file never staged is refused: the pipeline would find it missing.
+( cd "$HT" && git rm -q --cached grounds/90-dashboard.md )
+hook_in "$HT"; refused grounds/90-dashboard.md FR-GND-570 "a dashboard never staged"
+( cd "$HT" && git add grounds/90-dashboard.md )
+
+# The case the gate exists for: a commit that touches only the
+# specification. A requirement added moves the matrix, the dashboard and
+# the map, and one refusal names all three: a hook that stopped at the first
+# would leave the next stale, and the commit after staging what it named
+# would be refused again.
+printf '\n### FR-APP-020 — Another\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe app **shall** do another thing.\n' \
+    >> "$HT/specs/10-fr-app.md"
+( cd "$HT" && git add specs/10-fr-app.md )
+hook_in "$HT"; refused specs/90-traceability.md FR-CI-020 "a requirement added"
+refused grounds/90-dashboard.md FR-GND-570 "a requirement added — named in the same refusal"
+refused arch/90-map.md FR-ARCH-300 "a requirement added — named in the same refusal"
+( cd "$HT" && git add specs/90-traceability.md grounds/90-dashboard.md arch/90-map.md )
+hook_in "$HT"; passed "FR-GND-570/FR-ARCH-300" "everything the one refusal named staged, retried once"
+
+# Without the layers the hook runs neither checker. A register added later
+# is gated from the first commit after its configuration appears, with the
+# hook as it was installed.
+NT=/tmp/srs-hook-nolayers
+rm -rf "$NT"
+python3 tools/srs_init.py "$NT" --defaults --areas APP > /dev/null 2>&1
+( cd "$NT" && git init -q . && python3 tools/srs_check.py > /dev/null && git add -A )
+hook_in "$NT"; passed "FR-GND-570/FR-ARCH-300" "a project keeping neither layer"
+absent "Dashboard rewritten" /tmp/hook-layers.log
+absent "Map rewritten" /tmp/hook-layers.log
+[ ! -e "$NT/grounds" ] && [ ! -e "$NT/arch" ] \
+    || { echo "FAIL FR-GND-570/FR-ARCH-300 — the hook created a layer the project does not keep"; exit 1; }
+before=$(cksum < "$NT/.githooks/pre-commit")
+python3 tools/srs_init.py "$NT" --defaults --grounds yes > /dev/null 2>&1
+[ "$(cksum < "$NT/.githooks/pre-commit")" = "$before" ] \
+    || { echo "FAIL FR-GND-570 — adding the register rewrote the hook, so the fixture proves nothing"; exit 1; }
+( cd "$NT" && git add specs )
+hook_in "$NT"; refused grounds/90-dashboard.md FR-GND-570 "a register added after the hook was installed"
+rm -rf "$HT" "$NT"
+
+echo "installer-smoke: the hook refuses a stale dashboard or map where the project keeps the layer, and nowhere else"
+# srs-end: FR-GND-570, FR-ARCH-300
+# --- verifies: IF-SPEC-040 — an area whose name joins two words with an
+# --- underscore is accepted where the installer asks for areas and found where
+# --- it adopts a specification that already uses one, in a folder grouping
+# --- areas; a name the grammar refuses stops the install before it writes.
+UT=/tmp/srs-underscore
+rm -rf "$UT"
+python3 tools/srs_init.py "$UT" --defaults --areas MAP_ILAND,APP --ci none > /tmp/und-fresh.log 2>&1 \
+    || { echo "FAIL IF-SPEC-040 — a fresh install refused an area of two words"; cat /tmp/und-fresh.log; exit 1; }
+grep -q "^### FR-MAP_ILAND-010 " "$UT/specs/10-fr-map_iland.md" \
+    || { echo "FAIL IF-SPEC-040 — the placeholder of an area of two words was not written"; exit 1; }
+( cd "$UT" && python3 tools/srs_check.py --no-write ) > /tmp/und-check.log 2>&1 \
+    || { echo "FAIL IF-SPEC-040 — the installed project's checker refuses its own area"; cat /tmp/und-check.log; exit 1; }
+rm -rf "$UT"
+for bad in MAP_ MAP__ILAND map_iland; do
+    rc=0; python3 tools/srs_init.py "$UT" --defaults --areas "$bad" --ci none > /tmp/und-bad.log 2>&1 || rc=$?
+    [ "$rc" = 2 ] && grep -q "its words joined by single underscores" /tmp/und-bad.log \
+        || { echo "FAIL IF-SPEC-040 — the area $bad was not refused with exit 2 (exit $rc)"; cat /tmp/und-bad.log; exit 1; }
+    [ ! -e "$UT/specs" ] || { echo "FAIL IF-SPEC-040 — a refused area left files behind"; exit 1; }
+done
+mkdir -p "$UT/specs/MAPS"
+printf '### FR-MAP_ILAND-010 — An island\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-MAP_ILAND-020]\n```\n\nThe map **shall** hold an island.\n\n### FR-MAP_ILAND-020 — A shore\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe map **shall** draw a shore.\n' \
+    > "$UT/specs/MAPS/10-fr-map_iland.md"
+python3 tools/srs_init.py "$UT" --defaults --ci none > /tmp/und-adopt.log 2>&1 \
+    || { echo "FAIL IF-SPEC-040 — adopting a specification with an area of two words failed"; cat /tmp/und-adopt.log; exit 1; }
+grep -q '"MAP_ILAND"' "$UT/specs/srs-config.json" \
+    || { echo "FAIL IF-SPEC-040 — adoption did not find the area of two words"; cat "$UT/specs/srs-config.json"; exit 1; }
+rm -rf "$UT"
+echo "installer-smoke: an area of two words is installed, adopted, and a malformed one refused"
+# srs-end: IF-SPEC-040

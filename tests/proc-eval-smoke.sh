@@ -10,7 +10,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: FR-SKILL-310
+# file verifies: FR-SKILL-310
 # --- Every shipped scenario parses, names a procedure that ships, checks
 # --- that its procedure was invoked, and expects only what the project
 # --- prints today: a citation in an `answer` check matches what --cite
@@ -19,6 +19,7 @@ cd "$(dirname "$0")/.."
 # --- scenario fails for the specification having moved, not the procedure.
 python3 - <<'PY'
 import os, re, subprocess, sys
+sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
 import srs_proc_eval as e
 
@@ -108,6 +109,7 @@ echo "proc-eval: canned traces are accounted and scored exactly, and the procedu
 BROKEN=$(mktemp -d)
 python3 - "$BROKEN" <<'PY' || { echo "proc-eval: a malformed scenario was accepted"; exit 1; }
 import os, sys
+sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
 import srs_proc_eval as e
 cases = {

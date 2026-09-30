@@ -1,6 +1,6 @@
 ---
 name: srs-release
-description: Cut a release of the SRS-DD framework — choose the version with the maintainer, draft the changelog section, then run tools/srs_release.py, which dates the section, bumps the checker and stops — the commit and the tag are the maintainer's, made with whatever git client they use. Invoke when the user asks to cut, publish or tag a framework release. Freezing the specification is a separate act with its own command. Available only in a clone of the framework repository; a target project releases nothing of ours.
+description: Cut a release of the SRS-DD framework — choose the version with the maintainer, draft the changelog section, then run tools/srs_release.py, which dates the section, bumps the framework's version and stops — the commit and the tag are the maintainer's, made with whatever git client they use. Invoke when the user asks to cut, publish or tag a framework release. Freezing the specification is a separate act with its own command. Available only in a clone of the framework repository; a target project releases nothing of ours.
 ---
 
 # Cutting a release
@@ -32,7 +32,7 @@ What this procedure is for is the two things the command will not decide: which 
    Leave the heading **undated** — the command dates it.
 
    The shape of that section is a contract the installer parses: it is stated in the comment at the top of `CHANGELOG.md`, and the ground rules in `CONTRIBUTING.md` say what an upgrade note owes its reader.
-   Read both before writing — an entry that ignores them still passes the checker and reaches the reader in pieces, because an upgrade prints one sentence per entry and the notes section alone.
+   Read both before writing — an entry that ignores them still passes the checker and reaches the reader in pieces, because an upgrade prints the first sentence of each *Added* and *Changed* entry, cut at 76 characters, and the notes section whole.
 
    Name the requirement identifiers the release implements — bare, and not as the citation `AGENTS.md` asks for everywhere else.
    Two reasons, and both are about this file rather than about the rule: an upgrade prints each entry on one line, so a citation inside the first sentence breaks what the reader of an upgrade sees; and a citation carries a status, which is a value that moves, while a changelog entry is a record of what a release did and nobody will ever go back and re-date it.
@@ -49,8 +49,8 @@ What this procedure is for is the two things the command will not decide: which 
    The dry run prints the date and the version bump — the last chance to notice that the version is not the one you meant.
 
 5. **Hand the commit back.**
-   The command edits `CHANGELOG.md`, `tools/srs_parse.py` — where the version lives, both checkers re-exporting it — and the matrix, and stops: it commits nothing and tags nothing (CON-SPEC-030).
-   Say which files are staged for the maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or skip.
+   The command edits `CHANGELOG.md`, `tools/srs_parse.py` — where the version lives, the three checkers re-exporting it — and the matrix, and stops: it commits nothing and tags nothing (CON-SPEC-030).
+   Say which files are changed for the maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or skip.
 
 6. **Ask whether the specification should be frozen too**, if step 1 showed it moved, and follow the `srs-baseline` procedure if so.
 
@@ -62,7 +62,7 @@ What this procedure is for is the two things the command will not decide: which 
 
 ## When it refuses
 
-Exit code 2, always before writing anything: no section for that version, a section that already carries a date, or a checker reporting an error or a warning.
+Exit code 2, before writing anything: no section for that version, a section that already carries a date, or a checker reporting an error or a warning. The one exception is the checker failing on the edited files, which the command says, naming the files to restore.
 The baseline command is the one place the two differ: it reads the log instead of the changelog — a version already logged is one already frozen — and it stops on an error alone, because a specification still being worked off can be frozen while it should not be shipped.
 
 Fix the cause and run it again.

@@ -1,7 +1,7 @@
 # Assertions the suites share, sourced rather than run — hence no shebang
 # and no execute bit: there is nothing here to start.
 #
-# implements: FR-CI-080
+# file implements: FR-CI-080
 #
 # Not a suite: tools/ci_selftest.sh runs tests/*.sh, and this lives here so
 # that it is neither run as one nor mistaken for one. Sourced as

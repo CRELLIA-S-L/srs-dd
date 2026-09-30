@@ -10,7 +10,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: INV-SKILL-010
+# file verifies: INV-SKILL-010, FR-SKILL-380, FR-SKILL-390
 python3 - <<'PY'
 import glob, os, re, sys
 
@@ -102,6 +102,7 @@ found = check(".", PAIRS, TARGET_ONLY)
 
 # A file identical in every project is no pair: it ships from this
 # repository's own tree, so there is one copy and nothing to keep in step.
+sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
 import srs_init
 template = os.path.join("specs", "adr", "template.md")
@@ -109,6 +110,55 @@ if (template, template) not in srs_init.collect_spec_skeleton():
     found.append((template, "is not shipped from this repository's own tree"))
 if os.path.exists(os.path.join("skeleton", template)):
     found.append((os.path.join("skeleton", template), "is a second copy of %s" % template))
+
+# The shipped guide names every command the installer ships: a layer or a
+# tool added later reaches a project's agents only through the guide they
+# read in every session. `srs_parse.py` is a module the checkers import,
+# not a command anybody runs, so it is not asked for.
+NOT_COMMANDS = {"srs_parse.py": "a module the checkers import, not a command"}
+
+
+def unnamed(text, commands):
+    return ["tools/%s" % name for name in commands
+            if name not in NOT_COMMANDS and "tools/%s" % name not in text]
+
+
+assert unnamed("run `python3 tools/srs_check.py`", ("srs_check.py", "srs_parse.py", "srs_dates.py")) \
+    == ["tools/srs_dates.py"], "a command the guide leaves out must be reported"
+shipped = srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS
+with open("skeleton/AGENTS.md", encoding="utf-8") as handle:
+    for command in unnamed(handle.read(), shipped):
+        found.append(("skeleton/AGENTS.md", "does not name %s, which the installer ships" % command))
+
+# What the installer ships keeps sensitive data out of the repository: the
+# guide names the article, and the constitution carries it with each kind
+# of data it names. A guide that drops the line and a constitution that drops
+# the article or one of its kinds are each reported.
+SENSITIVE_KINDS = ("credentials", "personal data", "in confidence", "raw output")
+
+
+def sensitive_gaps(guide, constitution):
+    gaps = []
+    if "ART-100" not in guide:
+        gaps.append(("skeleton/AGENTS.md", "does not name ART-100"))
+    start = constitution.find("## ART-100")
+    article = constitution[start:constitution.find("\n## ", start + 1)] if start >= 0 else ""
+    if not article:
+        gaps.append(("skeleton/specs/constitution.md", "carries no ART-100"))
+    gaps += [("skeleton/specs/constitution.md", "ART-100 does not name %s" % kind)
+             for kind in SENSITIVE_KINDS if article and kind not in article]
+    return gaps
+
+
+whole = "## ART-100 — x\n\nNo credentials; no personal data; nothing in confidence; no raw output.\n"
+assert sensitive_gaps("rule (ART-100)", whole) == []
+assert sensitive_gaps("rule", whole) == [("skeleton/AGENTS.md", "does not name ART-100")]
+assert sensitive_gaps("ART-100", "## ART-090 — y\n") == [("skeleton/specs/constitution.md", "carries no ART-100")]
+assert sensitive_gaps("ART-100", whole.replace("no raw output", "no logs")) \
+    == [("skeleton/specs/constitution.md", "ART-100 does not name raw output")]
+with open("skeleton/AGENTS.md", encoding="utf-8") as guide, \
+        open("skeleton/specs/constitution.md", encoding="utf-8") as constitution:
+    found += sensitive_gaps(guide.read(), constitution.read())
 
 for path, why in found:
     print("  %s: %s" % (path, why))

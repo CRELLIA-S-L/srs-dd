@@ -6,11 +6,11 @@ SRS-DD makes that question answerable by a script: every change that alters beha
 
 In plain terms: a numbered list of what the system must do lives in the repository next to the code, every requirement on it says which files realize it and which tests prove it, and a script refuses a build where the two sides disagree — for Cursor, Codex, Claude Code, Copilot, any agent that reads a Markdown guide, and for the people reviewing what they wrote.
 
-Built for repositories written with agents, and it refuses the usual price for that.
+Built for repositories written with agents — source code in any programming language, but equally documents, diagrams or anything else an agent produces and somebody must answer for — and it refuses the usual price for that.
 What agents get is not a prompt file with a nice name — it is a real software requirements specification: **ISO/IEC/IEEE 29148** structure and attributes, **EARS** statement patterns, immutable identifiers, a lifecycle, a generated traceability matrix, **MADR** decision records.
 What people get is the same thing, in plain Markdown that diffs line by line in a review, and one self-contained page for whoever will never clone the repository.
 
-`Python ≥ 3.9` · standard library only · plain Markdown · specification in any language · no server, no database, no service · MIT
+`Python ≥ 3.9` · standard library only · plain Markdown · code in any language, documents, diagrams · a specification in any human language · no server, no database, no service · MIT
 
 Try it on your own repository without writing a byte into it:
 
@@ -23,7 +23,8 @@ The dry run prints the exact list of what would be created; drop the flag to ins
 Handing this to an agent instead? The procedure it needs is one file, `.claude/skills/srs-init/SKILL.md`, and [Handing this to an agent](#handing-this-to-an-agent) has its URL and what to tell it.
 
 This repository is its own example: [`specs/`](specs/) describes the checker, the viewer and the installer as numbered requirements, and the pipeline publishes them as [a page](https://crellia-s-l.github.io/srs-dd/).
-For what an ordinary product looks like after adopting the standard — a small service, a superseded requirement kept for the record, tests named from both directions — see [srs-dd-example-urlshortener](https://github.com/CRELLIA-S-L/srs-dd-example-urlshortener).
+For what the standard does to a real product, see [Crawl Call: Chomp Company](https://github.com/CRELLIA-S-L/crawl-call) — very nearly the classic snake game, dressed up as a cartoon: two teams of little bots play at war across a toy-box arena, and the snake weaves between them, growing as it goes, on iPhone and Mac.
+It adopted the framework in the commit that first wrote its concept down, and keeps everything the framework offers: requirements for every part of the game from the snake to its release, the decisions behind them, a register of the hypotheses they rest on, and an architecture layer naming which part carries what.
 
 ## What breaks without it
 
@@ -49,7 +50,7 @@ Drift between the spec and the code becomes a build error rather than a discover
 
 Every box is a requirement, coloured by its status; every line is a link — what derives from what, what depends on what.
 The right-hand lane is this page's own requirements — the ones that say what each section must contain and what holds it to the repository — reaching into every other area they restate.
-The picture is drawn by the pipeline from the specification at every deploy, so it is never older than the page; click it for the live page — search, filters, the coverage gaps, the whole graph of 250-odd requirements, and any two baselines compared.
+The picture is drawn by the pipeline from the specification at every deploy, so it is never older than the page; click it for the live page — search, filters, the coverage gaps, the whole graph of every requirement, and any two baselines compared.
 
 ## A requirement, and what the tooling does with it
 
@@ -136,7 +137,7 @@ Then it lays out `specs/`, writes the config, generates a placeholder requiremen
 `--defaults` answers everything; `--dry-run` writes nothing and prints the exact created / refreshed / skipped list first.
 
 **Already have an SRS?** The installer detects it and switches to adopt mode:
-your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical.
+your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical, but for a crashed earlier run's temporary copy of the checker, which is removed.
 Your requirements are never modified; your own `specs/README.md`, if you had one, is set aside in `specs/archive/` and the standard takes its place.
 Where its requirements carry no `created` dates, you are offered `tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
 
@@ -240,11 +241,11 @@ Each layer's checker cites its own records in the same form — `srs_arch.py --c
 | `skeleton/` | What the installer copies into your project |
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
 | `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py` (stay here) |
+| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
 | `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `.github/`, `.githooks/` | This repository's own pipeline and the hook that runs the same suites before a commit; targets get the templates in `ci/` instead |
-| `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any language](docs/multilingual.md) |
+| `docs/` | [install](docs/install.md) · [upgrade](docs/upgrade.md) · [agents](docs/agents.md) · [any human language](docs/multilingual.md) |
 | `AGENTS.md`, `CLAUDE.md` | This repository's own agent guides — the framework is itself an SRS-DD project, and these are what an agent working on it reads first |
 | `CONTRIBUTING.md`, `CHANGELOG.md`, `LICENSE` | Framework governance, versioning and the MIT licence |

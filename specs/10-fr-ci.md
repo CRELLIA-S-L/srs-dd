@@ -103,7 +103,7 @@ The installer **shall** offer the CI templates for GitHub and GitLab and install
 
 **Rationale.** Our pipeline tests the framework: smoke-installing into temporary directories would be meaningless noise in somebody else's project.
 
-### FR-CI-060 — The example project is checked as a downstream consumer
+### FR-CI-060 — A project that uses the framework is checked as a downstream consumer
 
 ```yaml
 status: implemented
@@ -117,9 +117,10 @@ tests: []
 created: 2026-08-07
 ```
 
-The pipeline **shall** run the working tree's checker and viewer against the published example project, without letting that result fail the pipeline.
+The pipeline **shall** run the working tree's checkers and viewer against a published project that uses the framework, without letting that result fail the pipeline.
 
-**Rationale.** The example is a real target: a change that stops accepting a specification which was valid shows up here rather than in a stranger's repository.
+**Rationale.** A consumer is a real target: a change that stops accepting a specification which was valid shows up here rather than in somebody's repository.
+The project checked is Crawl Call, a product in development whose specification is worked in every day and keeps both optional layers, so the register's checker and the layer's are asked the question too; until 2026-09-25 it was an example written for the purpose, which could only ever pass what it was written to pass.
 Advisory on purpose — an external repository, reachable only over the network, must not be able to block a release.
 
 ### FR-CI-090 — A suite working on a target leaves this repository alone
@@ -337,3 +338,61 @@ The verification document **shall** name every file in `tests/` in its table of 
 It was the third list kept by hand beside the same directory — after the agent guides and the pipeline's steps — to have fallen behind it, and for the same reason: the local gate reads the directory and nothing reads the list.
 The suite that holds the pipeline's steps to the directory holds this table too, since both are the same question asked of a different file.
 `tests/line-width.sh` is named although it is not a suite, because the table is where a reader looks for what a file in `tests/` is for.
+
+### FR-CI-140 — A dry run of the release command writes nothing
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CI-070]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_release.py]
+tests: [tests/release-smoke.sh]
+created: 2026-09-24
+```
+
+Run with `--dry-run`, the release command **shall** write no file, the traceability matrix included.
+
+**Rationale.** The release command ran the checker for its refusal before it looked at `--dry-run`, and the checker rewrites the matrix as a side effect, so a dry run wrote `specs/90-traceability.md` and then printed "Dry run: nothing was written" — seen on 2026-09-24 in this repository's own release, and missed by the suite for the reason `FR-SPEC-060` gives.
+
+### FR-CI-150 — A file a shipped gate compares byte for byte is pinned to LF
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CI-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.gitattributes]
+tests: [tests/pipeline-suites.sh]
+created: 2026-09-24
+```
+
+The `.gitattributes` the framework ships **shall** pin to LF endings every file a shipped gate compares byte for byte.
+
+**Rationale.** The gates compare a generated file with what the checker writes now, and a checkout that converted its line endings makes that file stale without anything having changed; the pin existed for the matrix and not for the register's dashboard or the architecture map, which the CI templates compare the same way since those layers shipped.
+The list of files is read off the gates themselves — every `git diff --exit-code -- <path>` in `ci/` — so a gate added later asks for its pin on the day it is written.
+
+### FR-CI-160 — The local gate refuses a suite that leaves bytecode behind
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-CI-030]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/ci_selftest.sh]
+tests: []
+created: 2026-09-25
+```
+
+After each suite, the local gate **shall** fail where the suite left `tools/__pycache__` behind and it was not there before.
+
+**Rationale.** A suite that imports a tool to read its tuples writes that tool's bytecode beside it unless it says not to, and `CONTRIBUTING.md` asked it of every tool that imports another and of no suite.
+On 2026-09-25 five of them did it — `docs-content`, `guide-parity`, `proc-eval-smoke`, `standard-rules` and `upgrade-smoke` — and the tree carried the files until somebody looked.
+Checked around each suite rather than once, so the message names the one that did; a directory already there before the suite is not charged to it, so a cache an editor left does not turn the gate red.
+Inspection, as `FR-CI-030` is: the gate is the thing that runs the suites, and a suite asserting the gate would run it from inside itself.

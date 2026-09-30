@@ -29,7 +29,7 @@ python3 tools/srs_view.py --html public/index.html \
 
 Without it the paths are still shown, they just do not lead anywhere.
 
-**CI may already publish it.** The templates in `ci/` render the same page from the default branch, so a link may exist that is always current — check before mailing a copy that will be stale next week.
+**CI may already publish it.** The templates in `ci/` render the same page as a build artifact — the GitLab one from the default branch, the GitHub one on every run — and each says how to switch on publishing it through Pages, so a link may exist that is always current — check before mailing a copy that will be stale next week.
 
 **Baselines need history.** The page compares frozen states by reading the commits behind them; a shallow checkout has none, and the page says so instead of pretending there are none.
 

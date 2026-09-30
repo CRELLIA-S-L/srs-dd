@@ -201,7 +201,7 @@ depends_on: [FR-ARCH-090]
 refines: []
 conflicts_with: []
 code: [tools/srs_arch.py]
-tests: [tests/arch-rules.sh, tests/arch-check.sh]
+tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
 
@@ -602,3 +602,40 @@ A warning rather than an error, because the record still reads: every finding th
 Where the file went is in git, which knows a rename from a deletion, so the warning says it: the reader fixes the record with one edit instead of a search, and the record stays theirs to fix — the layer writes the map and nothing else (`CON-ARCH-010`).
 Where there is no git, or no history, the warning stands without the hint.
 
+### FR-ARCH-290 — The layer's standard names every rule its checker reports
+
+```yaml
+status: implemented
+verification: T
+derives_from: [IF-ARCH-030]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [arch/README.md]
+tests: [tests/standard-rules.sh]
+created: 2026-09-24
+```
+
+The architecture layer's standard **shall** name every rule its checker reports by name, with what it reports.
+
+**Rationale.** The standard said of the rule names that "this file is written against them" (`IF-ARCH-030`), and on 2026-09-24 it named two of the seven — one in an example, one in passing — so a project setting a rule's cost in `arch/arch-config.json` learned the names by getting one wrong.
+The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `tools/srs_arch.py`.
+
+### FR-ARCH-300 — The hook refuses a stale map
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-170]
+depends_on: [FR-CI-020]
+refines: []
+conflicts_with: []
+code: [ci/pre-commit, .githooks/pre-commit]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-29
+```
+
+Where a project carries an architecture layer, the installed hook **shall** regenerate the map and refuse the commit while the copy being committed differs from it.
+
+**Rationale.** The reason `FR-GND-570` gives for the register, for the layer: `FR-ARCH-170` makes the pipeline refuse a stale map, and the map reads the specification — a requirement added to it changes how many the elements carry of how many there are — so a commit that touches only `specs/` can leave it stale.
+Whether the project carries the layer is read at every commit from `arch/arch-config.json`, as the pipeline reads it.

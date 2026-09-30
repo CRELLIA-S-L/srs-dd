@@ -77,3 +77,91 @@ The code shows what the algorithm does today, not what a rewrite may not stop do
 The three parts are one description, not three obligations — what a rewrite must keep — and none of them is done without the others: steps with no invariants are a paraphrase of the code, invariants with no limits promise more than the algorithm gives.
 
 The shipped decision template had *Context*, *Considered options*, *Decision outcome* and *Consequences*, and nowhere for this; an agent filling the template leaves out what it has no heading for, so the template carries a section for it, used only where the decision chose a mechanism.
+
+### FR-SPEC-040 — An annotation stands above what carries the requirement out
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-CHK-200, CON-SPEC-040]
+depends_on: [FR-VIEW-380]
+refines: []
+conflicts_with: []
+code: [specs/README.md]
+tests: []
+created: 2026-09-24
+```
+
+An annotation **shall** stand directly above what carries out the requirement it names, doc comment and attributes included — at the end of the line where that is one line, and with `file` before the keyword where it is the whole file.
+
+**Rationale.** Since `FR-VIEW-380` an annotation's place is what a reader is shown: `--where --source` prints the region under it, and a line parked at the top of a file answers "where is this realized" with the imports.
+The checker counts per file and cannot hold this, so it is verified by inspection, the way the language of a statement is (ADR-0034).
+The first project to use the framework kept the rule in its own copy of the standard from 0.14 on and asked for it on 2026-09-24; its finer points — a doc comment, an attribute, a computed property — are its language's, and the standard keeps what holds in any.
+
+The exception is the case where the top is the place: a suite that verifies a requirement, or a tool every part of which serves one — nothing to install, no git history written — is carried by the file as a whole; since ADR-0035 it says so with `file implements:` or `file verifies:`, and the region of such a line is the file wherever it stands.
+When this was written, twenty-one of this repository's twenty-two suites carried their `verifies:` lines at the top, as a suite that verifies a requirement whole should, and the tools carried lists above their first function naming what the whole file answers for — nothing to install, no git history written. Two of those lists named something a single place carries — the ordering of identifiers in `tools/srs_dates.py`, the exit codes in `tools/srs_arch.py` — so those two lines moved to where the thing is done.
+
+**Rewritten on 2026-09-25 (ADR-0035).** As first written, a function's annotation stood at the top of its body, after the doc comment, and the viewer read Python's structure to find what an annotation belonged to while every other language got a window — the rule was precise where the tooling is and approximate where the projects are, which `CON-SPEC-040` forbids.
+Above the thing, for everything, is the one placement every language offers: it does not separate a doc comment from its declaration when it stands above both, and it has room for what has no body — a one-line function, an expression-bodied property, a key in a configuration file.
+Where a region ends is said by the author with `srs-end:` instead of being parsed, and `file` says what the top of a file used to say by its position.
+Measured before it was decided, on 535 runs of three models against a sandbox: with the end marked, every model named the lines that carry a requirement out, and without it the two smaller ones named the lines the viewer's fallback had shown however the viewer warned them, reading the region as the requirement's whole extent.
+
+### FR-SPEC-050 — The standard names every rule the checker reports by name
+
+```yaml
+status: implemented
+verification: T
+derives_from: [IF-SPEC-020]
+depends_on: [FR-CHK-160]
+refines: []
+conflicts_with: []
+code: [specs/README.md]
+tests: [tests/standard-rules.sh]
+created: 2026-09-24
+```
+
+The standard **shall** name every rule the checker reports by name, with what it reports.
+
+**Rationale.** A project sets what a rule costs in `rules` and excuses a requirement from one in `exempt`, and both take the rule's name; the standard named one rule of thirteen, pointed `exempt` at a section that never mentioned it, and said of annotations that "unannotated files are never reported" while two rules reported exactly that.
+The names are a published contract (`IF-SPEC-020`) that a project could learn only by getting one wrong and reading the checker's refusal.
+A list of names kept by hand beside a tuple in code is the list that falls behind — the third found in a week, after the pipeline's steps and the table of suites — so a suite holds the table to `RULES` in `tools/srs_check.py`, both ways, and holds the *Annotations* section to every rule it restates.
+
+### FR-SPEC-060 — A dry run of the baseline command writes nothing
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_baseline.py]
+tests: [tests/baseline-smoke.sh]
+created: 2026-09-24
+```
+
+Run with `--dry-run`, the baseline command **shall** write no file, the traceability matrix included.
+
+**Rationale.** The command's help promised "print the row and write nothing", the `srs-baseline` procedure told its reader the same, and the dry run ran the checker without `--no-write`, so it rewrote `specs/90-traceability.md` and then printed "Dry run: nothing was written".
+The suite asserted a clean working tree after the dry run, which a fresh matrix rewritten into itself leaves clean, so the assertion held for the wrong reason; it now makes the matrix stale first and holds it byte for byte.
+`FR-INIT-070` said this of the installer and nothing said it of this command, so the promise lived in a help string and nobody checked it.
+
+### FR-SPEC-070 — The standards name every value their tools define
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SPEC-050]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md, specs/50-verification.md, grounds/README.md, arch/README.md]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-09-25
+```
+
+The standards **shall** name every value their tools define for the reader to write — the requirement types, the verification methods, the files the checker reads no requirement from, the specification's configuration keys, the severities a rule can be set to, the register's kinds, keys, statuses, grades, classes, periods, confidence levels and configuration, and the layer's statuses and required keys.
+
+**Rationale.** These lists matched the code on 2026-09-25 — all but the map of `specs/`, which left out the standard itself — and nothing held them: each is a line or a table a person keeps beside a tuple in a tool, which is the shape every list this release found behind had.
+A value a reader cannot find in the standard is one they learn by writing it wrong and reading the refusal.
+The suite compares both ways where a list claims to be the whole set, and asks that each value be named at all where the standard names it in prose.

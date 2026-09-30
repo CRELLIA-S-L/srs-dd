@@ -70,6 +70,7 @@ if headings != EXPECTED:
     fail("FR-DOC-140 — the headings are not the ten sections in their order:\n  got  %s\n  want %s"
          % (headings, EXPECTED))
 
+# srs-end: FR-DOC-140
 # --- verifies: FR-DOC-150 — the example requirement passes the checker in a
 # --- project laid out as the standard asks. The neighbours it links to are
 # --- supplied, since an example shows a link on purpose; the files it names
@@ -118,7 +119,9 @@ else:
     finally:
         shutil.rmtree(lab, ignore_errors=True)
 
+# srs-end: FR-DOC-150
 # --- verifies: FR-DOC-160 — the skills table names exactly what the installer copies.
+sys.dont_write_bytecode = True
 sys.path.insert(0, "tools")
 import srs_init
 shipped = set(srs_init.SKILLS) | set(srs_init.GROUNDS_SKILLS) | set(srs_init.ARCH_SKILLS)
@@ -131,6 +134,7 @@ if named != shipped:
          % (sorted(named - shipped) or "nothing extra", sorted(shipped - named) or "nothing missing")
          if named ^ shipped else "FR-DOC-160 — no table rows found")
 
+# srs-end: FR-DOC-160
 # --- verifies: FR-DOC-170 — the map names exactly the top level, less the
 # --- page itself and git's own configuration.
 tracked = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split("\n")
@@ -149,6 +153,7 @@ for number, paths in rows:
 for path in sorted(top - mapped):
     fail("FR-DOC-170 — %s is at the top level and has no row in the map" % path)
 
+# srs-end: FR-DOC-170
 # --- verifies: FR-DOC-180 — the exit codes the agent document lists are the
 # --- installer's: every `N  text` line inside a fenced block of docs/agents.md
 # --- is one, and the set equals what the installer's usage text states.
@@ -179,11 +184,27 @@ for path, codes in sorted(listed.items()):
     if codes != tool_codes:
         fail("FR-DOC-180 — %s lists exit codes %s; the installer states %s"
              % (path, sorted(codes), sorted(tool_codes)))
+# And the upgrade page says them in a sentence, outside any block: held the
+# same way, since the upgrader passes the installer's codes through.
+with open("docs/upgrade.md", encoding="utf-8") as handle:
+    sentence = next((line for line in handle if line.startswith("Exit codes match the installer:")), "")
+said_codes = set(re.findall(r"\b(\d) [a-z]", sentence))
+if said_codes != tool_codes:
+    fail("docs/upgrade.md — FR-DOC-180 — the sentence on exit codes says %s; the installer states %s"
+         % (sorted(said_codes), sorted(tool_codes)))
 
+# srs-end: FR-DOC-180
 # --- verifies: FR-DOC-210 — the picture the page shows is the file the
 # --- pipeline publishes: the image's file name on the page is the name the
 # --- Pages job writes with --svg, and the image links to the page.
 picture = section("What it looks like")
+# And it says how to read the picture: what a box is, what a line is, and
+# which lane is the page's own — the clause the image alone cannot carry.
+said = " ".join(line for _n, line in picture)
+for what, rx in (("what a box is", r"\bbox is\b"), ("what a line is", r"\bline is\b"),
+                 ("which lane is the page's own", r"lane is this page's own")):
+    if not re.search(rx, said):
+        fail("README.md — FR-DOC-210 — the picture section does not say %s" % what)
 shown = re.findall(r"!\[[^\]]*\]\((\S+?)\)", "\n".join(line for _n, line in picture))
 with open(".github/workflows/srs.yml", encoding="utf-8") as handle:
     published = re.findall(r"--svg\s+site/(\S+)", handle.read())
@@ -196,6 +217,89 @@ elif shown[0].rsplit("/", 1)[-1] != published[0]:
 if not any(re.search(r"\[!\[[^\]]*\]\([^)]*\)\]\(https://[^)]+\)", line) for _n, line in picture):
     fail("FR-DOC-210 — the picture is not wrapped in a link to the live page")
 
+# srs-end: FR-DOC-210
+# --- verifies: FR-DOC-220 — every list of this repository's tools names each
+# --- one: the row for tools/ on the landing page's map and in the agent guide
+# --- names every file tracked there, and the hand install names every tool
+# --- the installer copies. Each fell behind a tool added after it was written.
+in_tools = sorted(path[len("tools/"):] for path in tracked
+                  if path.startswith("tools/") and "/" not in path[len("tools/"):])
+for doc in ("README.md", "AGENTS.md"):
+    with open(doc, encoding="utf-8") as handle:
+        row = next((line for line in handle if line.startswith("| `tools/` |")), "")
+    if not row:
+        fail("%s — FR-DOC-220 — has no row for tools/" % doc)
+    for name in in_tools:
+        if "`%s`" % name not in row:
+            fail("%s — FR-DOC-220 — the row for tools/ does not name %s" % (doc, name))
+sys.dont_write_bytecode = True
+sys.path.insert(0, "tools")
+import srs_init
+with open("docs/install.md", encoding="utf-8") as handle:
+    by_hand = next((line for line in handle if line.startswith("- `tools/srs_check.py`")), "")
+for name in srs_init.TOOLS:
+    if "`tools/%s`" % name not in by_hand:
+        fail("docs/install.md — FR-DOC-220 — the hand install does not name tools/%s, which the installer copies" % name)
+# And each tool in the group it is said to be in, both ways: shipped with
+# every install, with a layer, or kept here. A name moved to the wrong group
+# passes a check that only asks whether it is named.
+kept_tools = set(in_tools) - set(srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS)
+GROUPS = {"README.md": {"yours after install": srs_init.TOOLS,
+                        "yours if you keep a register": srs_init.GROUNDS_TOOLS,
+                        "yours if you keep an architecture layer": srs_init.ARCH_TOOLS,
+                        "stay here": kept_tools},
+          "AGENTS.md": {"shipped to targets": srs_init.TOOLS,
+                        "shipped where a project keeps a register": srs_init.GROUNDS_TOOLS,
+                        "shipped where a project keeps an architecture layer": srs_init.ARCH_TOOLS,
+                        "framework-only": kept_tools}}
+for doc, groups in GROUPS.items():
+    with open(doc, encoding="utf-8") as handle:
+        row = next((line for line in handle if line.startswith("| `tools/` |")), "")
+    said = {label: set(re.findall(r"`([^`]+)`", names))
+            for names, label in re.findall(r"((?:`[^`]+`(?:, | and )?)+) \(([^)]*)\)", row)}
+    for label, members in groups.items():
+        if said.get(label) != set(members):
+            fail("%s — FR-DOC-220 — the tools/ row says %r of %s, and it is %s"
+                 % (doc, label, sorted(said.get(label, ())), sorted(members)))
+# The procedures the same way: the map's row and the agent document's table
+# name every procedure here, the hand install every one the installer
+# copies, and the contributors' list of what travels every shipped tool.
+procedures = sorted(os.path.basename(os.path.dirname(p)) for p in glob.glob(".claude/skills/*/SKILL.md"))
+with open("README.md", encoding="utf-8") as handle:
+    row = next((line for line in handle if line.startswith("| `.claude/skills/` |")), "")
+with open("docs/agents.md", encoding="utf-8") as handle:
+    table = "".join(line for line in handle if line.startswith("| `"))
+listed_in_table = set(n for first in re.findall(r"^\| ((?:`[^`]+`(?:, )?)+) \|", table, re.M)
+                      for n in re.findall(r"`([^`]+)`", first))
+for name in sorted(listed_in_table - set(procedures)):
+    fail("docs/agents.md — FR-DOC-220 — the table names %s, which is no procedure here" % name)
+for name in procedures:
+    if "`%s`" % name not in row:
+        fail("README.md — FR-DOC-220 — the row for .claude/skills/ does not name %s" % name)
+    if "`%s`" % name not in table:
+        fail("docs/agents.md — FR-DOC-220 — the table of procedures does not name %s" % name)
+# The agent guide names the procedures that never leave this repository:
+# every procedure the installer does not copy, and none that it does.
+with open("AGENTS.md", encoding="utf-8") as handle:
+    guide_row = next((line for line in handle if line.startswith("| `.claude/skills/` |")), "")
+kept_here = set(procedures) - set(srs_init.SKILLS + srs_init.GROUNDS_SKILLS + srs_init.ARCH_SKILLS)
+said_here = set(re.findall(r"`([a-z-]+)`", guide_row.split("framework-only")[0])) if "framework-only" in guide_row else set()
+for name in sorted(kept_here - said_here):
+    fail("AGENTS.md — FR-DOC-220 — the row for .claude/skills/ does not name %s as framework-only" % name)
+for name in sorted(said_here - kept_here - {".claude/skills/"}):
+    fail("AGENTS.md — FR-DOC-220 — the row for .claude/skills/ calls %s framework-only, and the installer copies it" % name)
+with open("docs/install.md", encoding="utf-8") as handle:
+    by_hand = next((line for line in handle if line.startswith("- from `.claude/skills/`:")), "")
+for name in srs_init.SKILLS:
+    if "`%s`" % name not in by_hand:
+        fail("docs/install.md — FR-DOC-220 — the hand install does not name %s, which the installer copies" % name)
+with open("CONTRIBUTING.md", encoding="utf-8") as handle:
+    travels = next((line for line in handle if line.startswith("The tooling that travels")), "")
+for name in srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS:
+    if "`%s`" % name not in travels:
+        fail("CONTRIBUTING.md — FR-DOC-220 — the tooling that travels does not name %s" % name)
+
+# srs-end: FR-DOC-220
 # --- verifies: FR-DOC-190 — a relative link leads to a file that exists.
 LINK = re.compile(r"\]\(([^)\s#]+)(?:#[^)]*)?\)")
 for path in ["README.md"] + sorted(glob.glob("docs/*.md")):
@@ -213,3 +317,4 @@ if failures:
     sys.exit(1)
 print("docs-content: headings, example, skills, map, exit codes, picture and links hold to the repository")
 PY
+# srs-end: FR-DOC-190

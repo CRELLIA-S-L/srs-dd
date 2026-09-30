@@ -481,7 +481,7 @@ tests: []
 created: 2026-08-27
 ```
 
-When a procedure first names a record — a requirement, an element, a grounds record or a decision — in what it reports to a person, it **shall** give that record's title, the file it is written in and its status, not the identifier alone.
+When a procedure first names one of the project's records — a requirement, an element, a grounds record or a decision — in what it reports to a person, it **shall** give that record's title, the file it is written in and its status, not the identifier alone.
 
 **Rationale.** `FR-CORE-020` is a key, not a name.
 It is exactly right inside a link field, where a machine resolves it and a person is not reading; in a paragraph written for somebody it costs them a lookup per mention, and a report full of them gets skimmed rather than read.
@@ -525,6 +525,9 @@ An import and not a rule of its own, because a rule that lives in one agent's fi
 
 **Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: ART-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
 The release procedure had already said this of the changelog; the maintainer settled the commit the same way on 2026-09-18.
+
+**Which procedures, and which not.** The field names every procedure that names a record to a person — by `--cite`, or by the guide's rule it points at — and the suite derives that set from the procedures' own text, so one that starts naming records is asked for here on the day it does.
+Three do not: `srs-init` reports to the maintainer about installing and names no record of the project; `srs-page` builds a page whose every record is its own card with its links, which is the citation in another form; and `srs-upgrade` relays the upgrade notes, whose identifiers are the framework's — the changelog's exception — and would resolve, through `--cite` in the project, to the project's own requirement under the same number, so that procedure says to relay them as written.
 
 ### FR-SKILL-210 — What is already written is read before something new is
 
@@ -983,3 +986,90 @@ The names help the confusion along — `srs_check.py` is a tool, `srs-check` a p
 
 Handing over is not running: the check procedure offers and waits (ART-030), so the build ends at an offer.
 What holds the step against a later shortening is the list `FR-SKILL-300` binds, and the name alone would not: the procedure is named in the build step and in the plan's last step, so the list carries each of the two phrases, and losing either one is red.
+
+### FR-SKILL-370 — A file that restates a changed requirement is re-read with it
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-24
+```
+
+When a requirement's statement changes, the build procedure **shall** have every file its `code` field names that restates it re-read against the new statement in the same set of edits.
+
+**Rationale.** `FR-DOC-200` does this for the landing page, whose sections name what they restate in `depends_on`; the standard restates requirements too and nothing led back to it.
+On 2026-08-17 `FR-CHK-200` and `FR-CHK-210` began reporting files that carry no annotation, and the commit that added them edited three other sections of `specs/README.md` and left *Annotations* saying "unannotated files are never reported" for five weeks, until a project reading both against the checker asked which was true.
+The requirements a section restates now name `specs/README.md` in their `code` field, so the file is on the route the loop already walks; this makes the procedure read it there.
+What holds the step is its phrase in the list `FR-SKILL-300` binds.
+
+### FR-SKILL-380 — The shipped guide names every command the installer ships
+
+```yaml
+status: implemented
+verification: T
+derives_from: [NFR-SKILL-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [skeleton/AGENTS.md, AGENTS.md]
+tests: [tests/guide-parity.sh]
+created: 2026-09-24
+```
+
+The agent guide the framework ships **shall** name every command the installer copies into a project.
+
+**Rationale.** A project's agents learn what they can run from the guide they read in every session, and the procedures reach them by path through it (`NFR-SKILL-010`).
+The optional layers and the dating command were added after the guide was written, each with its requirements, its procedure and its CI step, and none named the guide: on 2026-09-24 it mentioned the two layers only through their `--cite` commands, and `tools/srs_dates.py` not at all, so a project that kept a layer added the lines by hand and turned its guide into a fork that `--force` would overwrite.
+The lines for the layers open with "where the project keeps", the way the guide's rule on naming records already does, so one guide serves a project with the layer and one without, and the installer needs no condition.
+
+The list is read from the installer's own tuples, so a command added there is asked of the guide on the day it ships; `srs_parse.py` is excepted in the test as a module the checkers import, not a command.
+This repository's guide carries the same lines by `INV-SKILL-010`, and its budget of words was raised for them (ADR-0030).
+
+### FR-SKILL-390 — The shipped guide and constitution keep sensitive data out of the repository
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [INV-SKILL-010]
+refines: []
+conflicts_with: []
+code: [skeleton/AGENTS.md, AGENTS.md, skeleton/specs/constitution.md]
+tests: [tests/guide-parity.sh]
+created: 2026-09-25
+```
+
+The agent guide and the constitution the installer ships **shall** each state that nothing sensitive is committed, naming credentials, personal data, documents shared in confidence and a machine's raw output as sensitive.
+
+**Rationale.** What a repository holds is read by everyone who can clone it for as long as its history lives, and an agent committing on a person's behalf is the one most likely to sweep in a file nobody read — a trace of its own run, a document the person shared with it, a local configuration.
+Nothing in the framework said so until 2026-09-25, when a check of this repository found none of it here and found a proposal shared in confidence kept out of the history only by being excluded by hand at every commit.
+Both files, because they reach different readers: the constitution binds the work, and the guide is what an agent reads first; the guide names the article so that the two cannot drift apart.
+The kinds are named rather than left to "sensitive", because a word a reader has to interpret is one a reader interprets their own way; personal data stops at what the authors chose to publish, so that an author's name in a commit is not a breach.
+Tested rather than inspected, because a rule that lives only in text is the kind a measured agent follows least, and the least the framework can do is keep the text from disappearing.
+
+### FR-SKILL-400 — Closing a change removes the open issue it settles
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-SKILL-370]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs/SKILL.md, specs/README.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-09-29
+```
+
+The everyday procedure **shall** have the closing of a change remove from `specs/91-open-issues.md` the entry of an open issue that change settles.
+
+**Rationale.** The file's own header says an entry is removed once the maintainer decides and the fix lands, and until 2026-09-29 nothing else said so: the procedures named the file four times, each time to add to it or to read an entry, and the closing step listed everything a change closes but this.
+An agent that opens the file whole reads the rule in its first lines; one that reads it by ranges, as an agent deep in a long session does to spare its context, never does — the agent that split `FR-INIT-060` that day read the entry with `sed -n 50,66p`, marked the issue decided and kept it, copying two neighbours that stay for reasons of their own.
+Replayed on a fresh agent with the same task, the file was read with `cat` in the third call and the entry removed, so the difference was the reading, and the fix puts the rule where every agent has it whatever it reads: in the procedure, loaded whole at the start of the work, and in the standard's table of files.
+Tested by the procedure's list of what it must name, so a cut that drops the sentence is red.

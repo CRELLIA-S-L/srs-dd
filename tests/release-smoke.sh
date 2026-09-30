@@ -6,6 +6,7 @@
 # verifies: FR-CI-070, INV-SPEC-030, CON-SPEC-030
 set -eo pipefail
 
+# srs-end: FR-CI-070, INV-SPEC-030, CON-SPEC-030
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — so a `git add`
@@ -96,9 +97,17 @@ git add -A
 git commit -qm "release notes for 9.9.9"
 clean=$(git rev-parse HEAD)
 
-# --dry-run says what it would do and writes nothing at all.
+# --dry-run says what it would do and writes nothing at all — the matrix
+# included, which a fresh one would hide, so it is made stale first.
+# srs-end: FR-CI-090
+# verifies: FR-CI-140
+printf 'stale\n' >> specs/90-traceability.md
+cp specs/90-traceability.md /tmp/rel-matrix.before
 python3 tools/srs_release.py 9.9.9 --dry-run --date 2026-01-02 > /tmp/rel-dry.log
 grep -q "Dry run: nothing was written" /tmp/rel-dry.log
+cmp -s specs/90-traceability.md /tmp/rel-matrix.before \
+    || { echo "FAIL FR-CI-140 — a release dry run rewrote the matrix"; exit 1; }
+git checkout -- specs/90-traceability.md
 test "$(git rev-parse HEAD)" = "$clean"
 test -z "$(git status --porcelain)"
 
@@ -185,6 +194,7 @@ absent '## \[9.9.10\] —' CHANGELOG.md
 grep -q '__version__ = "9.9.9"' tools/srs_parse.py
 git checkout -- specs/10-fr-chk.md specs/90-traceability.md
 
+# srs-end: FR-CI-140
 # verifies: CON-SPEC-030
 # The statement binds every command this repository ships, not only the two
 # that prepare a release and a baseline, and until now only those two were
@@ -262,3 +272,4 @@ for path in sorted(glob.glob(os.path.join(sys.argv[1], "tools", "*.py"))):
 assert not found, ("a command writes git history, which CON-SPEC-030 "
                    "forbids: %s" % found)
 PY2
+# srs-end: CON-SPEC-030

@@ -13,3 +13,6 @@ CLAUDE.md
 specs/90-traceability.md
 specs/README.md
 tools/srs_upgrade.py
+
+# instructions
+never through `--cite`

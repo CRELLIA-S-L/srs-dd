@@ -9,7 +9,7 @@ Entries are removed once the maintainer decides which side is right and the fix 
 **Found:** by the audit before baseline 0.20.0 (2026-09-24).
 
 **What diverged:** FR-SPEC-030 obliges a decision that chose an algorithm or a mechanism to describe it in words — its steps, the invariants it keeps, the inputs where it stops working — and says nothing of when the decision was written.
-Of the decisions under `specs/adr/`, only ADR-0031 has a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
+Of the decisions under `specs/adr/`, only those that chose a mechanism from 2026-09-24 on — ADR-0031, ADR-0033, ADR-0034 and ADR-0035 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
 
 **Why it is recorded rather than fixed:** a decision is the record of what was decided when it was decided, and adding a section to it afterwards changes that record; narrowing the statement to decisions written from now on is the other way out, and it is a change to what the requirement obliges.
 
@@ -46,22 +46,6 @@ A `withdrawn` requirement is deliberately outside the `unlinked` report (FR-CHK-
 Whatever is decided here, the two should agree: a requirement the checker has stopped asking about is a poor candidate for a lane of its own.
 
 **Decision needed:** draw every requirement and let the unlinked ones stand in their lane as islands, or keep the drawing to what has links and say so on the page next to the count of what was left out.
-
-## FR-INIT-060 carries two obligations under one number
-
-**Found:** while putting the standard into the precious bucket (2026-08-18).
-
-**What diverged:** the statement says the installer refreshes the checker, the viewer and the skills without a flag, *and* that files which may be the project's own are refreshed only with `--force` and only when marked.
-Two capabilities, one identifier, one `verification` field, one status.
-It reads as a single sentence because the second half is written as a `while` clause, which is a subordinate grammatical form doing the work of a second requirement.
-
-Nothing about this is new — the compound has stood since the requirement was written — but 0.14.0 added the standard to the second half, so the number now answers for one more thing than it did.
-0.16.0 did it again on 2026-09-08 with the architecture standard: the second half now enumerates seven kinds of file against the first half's three, under one identifier, one status and one `tests` field.
-
-The cost is not tidiness.
-A test proving the first half says nothing about the second, and the status is a single word for both: `implemented` was true of this requirement while its second half had a gap the size of the standard, which is exactly how that gap survived to 0.14.0 unseen.
-
-**Decision needed:** split it into two requirements — the second one taking a new number, since identifiers are never reused — or leave the compound and accept that its status and its tests speak for two behaviours at once.
 
 ## Calibration is built at a fraction of what the concept describes
 
@@ -191,7 +175,7 @@ Starting or not starting changes no procedure and no requirement.
 - The notes are the `## [X.Y.Z]` section of `CHANGELOG.md` and nothing else, extracted the way `tools/srs_init.py` parses it for an upgrade; a second text written for the page is a second source of truth for the same release.
 - The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
 - `spec/v*` tags are not releases; the trigger filters them out, or `INV-SPEC-030` is broken by the forge on the maintainer's behalf.
-- Tags are annotated from then on — the seventeen that exist are lightweight and stay so.
+- Tags are annotated from then on — the ones made before that are lightweight and stay so.
 - The older sections in `CHANGELOG.md` can be published for their tags after the fact in one pass, so that the page does not open with a single entry.
 
 **Decision taken 2026-09-19:** not before 1.0.0.
@@ -217,3 +201,22 @@ Until then the instrument for such a document is this framework installed where 
 - Documents that are meant to drift — a log, a changelog, a protocol — where what can be described is the form of an entry and not a set of sections; a different shape, and possibly a different instrument.
 
 What would be measured, if this were ever taken up, is drafted and not recorded, by the register's rule that a threshold and an owner are set by whoever will answer for the measurement: the currency of a described document against an undescribed one on another corpus, the hours a first description costs per thousand words, and the share of sections whose sources the author named rather than an agent inferred afterwards.
+
+## The framework leans on code where it means any file
+
+**Found:** 2026-09-25, while the rule for where an annotation stands was being reworked and was found to have been designed around the tooling's own language; `CON-SPEC-040` and ART-080 were written the same day, and each item below is a place where the framework does not yet hold to them.
+
+- `code_extensions` defaults to programming languages only (`.py`, `.ts`, `.tsx`, `.js`, `.swift`, `.kt`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.m`, in `tools/srs_check.py`), so an annotation in a document or a diagram source is not read unless the project extends the list, and nothing tells it to.
+- `code_roots` defaults to `["src"]`, the layout of a code repository.
+- The standard says `code` is where a requirement is realized and `tests` what verifies it, and never says what they hold when the files are documents or diagrams — the names are service tokens and stay, but a reader of a documents project has to guess that `code` is theirs too.
+- A format that takes no comment — an image of a diagram, JSON, a binary file — cannot carry an annotation, so a realized requirement whose only file is one of them draws `annotation-unpaired`, and the standard names no way out; `exempt` is for a requirement met by the absence of code — a prohibition — which this is not.
+
+**What stays open:** each item is a change to the standard or to a default, and none is made yet; the defaults reach every target at its next install, so each is settled with the upgrade note it needs.
+
+## A scanner for secrets in the gate
+
+**Found:** 2026-09-25, when ART-100 was written: the rule is text, and text is what a measured agent follows least.
+
+**What is being asked:** whether the CI templates in `ci/` should run a secret scanner — gitleaks or an equivalent — over every push, so that a credential committed by mistake is refused rather than found later.
+
+**What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.

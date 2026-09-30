@@ -6,6 +6,8 @@
     python3 tools/srs_arch.py              read, report, regenerate arch/90-map.md
     python3 tools/srs_arch.py --no-write   report only
     python3 tools/srs_arch.py --strict     treat warnings as errors
+    python3 tools/srs_arch.py --cite E-NNN… name elements to a person
+    python3 tools/srs_arch.py --drivers    the requirements that drive the cut
 
 The requirement model is read by running tools/srs_view.py as a subprocess and parsing what it
 publishes, which the framework promises to keep stable, so this file never learns the requirement
@@ -13,8 +15,8 @@ format. The layer's own records go through tools/srs_parse.py, the one reader bo
 
 Nothing here writes outside arch/: declining the layer, or deleting it, has to cost nothing.
 """
-# implements: FR-ARCH-010, IF-ARCH-020, CON-ARCH-010
-# implements: NFR-SPEC-010, CON-SPEC-030
+# file implements: FR-ARCH-010, CON-ARCH-010
+# file implements: NFR-SPEC-010, CON-SPEC-030
 import ast
 import json
 import os
@@ -34,8 +36,8 @@ except ImportError:
         "re-run tools/srs_init.py to refresh the tooling.\n")
     sys.exit(2)
 
-# Re-exported: the number lives in srs_parse, the one file every checker must have beside it
-# (ADR-0021).
+# Re-exported: the number lives in srs_parse (ADR-0021), the one file every checker must
+# have beside it.
 __version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,6 +67,7 @@ REALIZED = ("implemented", "partial")
 # never given to a different rule.
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
          "dependency-undeclared", "element-cycle", "carrier-missing")
+# srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
 SEVERITIES = ("warn", "report", "off")
@@ -73,6 +76,7 @@ SEVERITIES = ("warn", "report", "off")
 # How the `requirements` field is kept. `written` is the author's claim and the default;
 # `derived` counts as carried what the element owns, and the record's key becomes optional.
 MODES = ("written", "derived")
+# srs-end: FR-ARCH-240
 
 
 def fail_setup(message):
@@ -81,8 +85,8 @@ def fail_setup(message):
     return 2
 
 
+# implements: FR-ARCH-090
 def load_config():
-    # implements: FR-ARCH-090
     """What each rule costs, as the project set it, and how the requirements are kept. A
     missing file means every default."""
     cfg = {"rules": {}, "requirements": "written"}
@@ -113,10 +117,12 @@ def load_config():
                       % (mode, "/".join(MODES)))
     cfg["requirements"] = mode
     return cfg, None
+    # srs-end: FR-ARCH-240
+# srs-end: FR-ARCH-090
 
 
+# implements: IF-ARCH-040
 def load_edges():
-    # implements: IF-ARCH-040
     """The edges the project computed, as [(from, to, via)]. No file means no edges.
 
     Two ends and a note, read as the interface publishes them and no further: a shape the
@@ -152,19 +158,21 @@ def load_edges():
             return None, "%s: `via` must be text" % where
         edges.append((ends[0], ends[1], via))
     return edges, None
+# srs-end: IF-ARCH-040
 
 
+# implements: FR-ARCH-090
 def rule_finding(warnings, reports, cfg, rule, text):
-    # implements: FR-ARCH-090
     """Route one rule's finding by what the project decided it costs."""
     severity = cfg["rules"].get(rule, "warn")
     if severity == "off":
         return
     (warnings if severity == "warn" else reports).append(text)
+# srs-end: FR-ARCH-090
 
 
+# implements: FR-ARCH-010
 def read_model():
-    # implements: FR-ARCH-010
     """The requirement model, through the viewer's published JSON.
 
     A subprocess rather than an import: the viewer is a command with a promised output, and
@@ -185,10 +193,11 @@ def read_model():
         return json.loads(done.stdout.decode("utf-8")), None
     except ValueError as exc:
         return None, "tools/srs_view.py produced unreadable JSON: %s" % exc
+# srs-end: FR-ARCH-010
 
 
+# implements: FR-ARCH-010
 def collect_files():
-    # implements: FR-ARCH-010
     """Every record file in the layer, subdirectories included."""
     out = []
     if not os.path.isdir(ARCH):
@@ -201,10 +210,11 @@ def collect_files():
             full = os.path.join(current, name)
             out.append((full, os.path.relpath(full, ROOT)))
     return sorted(out, key=lambda pair: pair[1])
+# srs-end: FR-ARCH-010
 
 
+# implements: FR-ARCH-010
 def read_records(errors):
-    # implements: FR-ARCH-010
     """Every element the layer holds, in the order the files present them."""
     records = []
     for full, rel in collect_files():
@@ -217,6 +227,7 @@ def read_records(errors):
         for entry in srs_parse.parse_entries(text, rel, errors, RE_HEADING):
             records.append(entry)
     return records
+# srs-end: FR-ARCH-010
 
 
 def as_list(value):
@@ -228,8 +239,8 @@ def as_list(value):
     return [value]
 
 
+# implements: FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
 def check_records(records, model, errors, warnings, reports, cfg):
-    # implements: FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
     """Everything decidable from one element and the requirement model."""
     seen = {}
     by_id = {r["id"]: r for r in model["requirements"]}
@@ -278,10 +289,11 @@ def check_records(records, model, errors, warnings, reports, cfg):
             rule_finding(warnings, reports, cfg, "element-empty",
                          "%s — %s carries no requirement, so nothing says what it is for"
                          % (record.where, record.id))
+# srs-end: FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
 
 
+# implements: FR-ARCH-060, FR-ARCH-070
 def check_ownership(records, model, warnings, reports, cfg):
-    # implements: FR-ARCH-060, FR-ARCH-070
     """The two directions of the same decay: a file no part owns, a requirement no part carries.
 
     Both are computed from what the specification already publishes, so neither needs the language
@@ -312,6 +324,7 @@ def check_ownership(records, model, warnings, reports, cfg):
                 rule_finding(warnings, reports, cfg, "carrier-unclaimed",
                              "%s — named by %s and carried by no element"
                              % (path, requirement["id"]))
+# srs-end: FR-ARCH-060, FR-ARCH-070
 
 
 def where_git_put(path):
@@ -349,8 +362,8 @@ def where_git_put(path):
     return ""
 
 
+# implements: FR-ARCH-280
 def check_carriers_exist(records, warnings, reports, cfg):
-    # implements: FR-ARCH-280
     """A path an element carries that nobody has: the record still reads, and it lies in the
     commonest way a map goes stale, so a named warning with where git says the file went."""
     for record in records:
@@ -363,10 +376,11 @@ def check_carriers_exist(records, warnings, reports, cfg):
             rule_finding(warnings, reports, cfg, "carrier-missing",
                          "%s — %s carries %s, which does not exist%s"
                          % (record.where, record.id, clean, where_git_put(clean)))
+# srs-end: FR-ARCH-280
 
 
+# implements: FR-ARCH-240, FR-ARCH-260
 def live_carriers(records):
-    # implements: FR-ARCH-240, FR-ARCH-260
     """Every carrier a live element claims, as carrier -> [elements]: the map owner_of resolves
     a file against, read by the derivation and by the edges the project supplies. A cancelled
     element owns nothing the way it depends on nothing."""
@@ -377,10 +391,11 @@ def live_carriers(records):
         for path in as_list(record.fields.get("carries")):
             owners.setdefault(path.rstrip("/"), []).append(record.id)
     return owners
+# srs-end: FR-ARCH-240, FR-ARCH-260
 
 
+# implements: FR-ARCH-240
 def carried_by(records, model, cfg):
-    # implements: FR-ARCH-240
     """What each element carries, as ({id: written}, {id: derived}) — two sets per element,
     kept apart because they are two claims: the record's, that the part answers for the
     obligation; the derivation's, that the part owns a file the obligation names.
@@ -405,6 +420,7 @@ def carried_by(records, model, cfg):
                 for element in owners.get(owner_of(path, owners), ()):
                     derived[element].add(requirement["id"])
     return written, derived
+# srs-end: FR-ARCH-240
 
 
 def spec_order(model):
@@ -423,8 +439,8 @@ def spec_order(model):
     return key
 
 
+# implements: FR-ARCH-060
 def owner_of(path, carried):
-    # implements: FR-ARCH-060
     """The carrier that covers a path: the path itself, or a directory above it.
 
     A directory in `carries` owns what is under it, so a part is described once rather than
@@ -438,10 +454,11 @@ def owner_of(path, carried):
         if prefix in carried:
             return prefix
     return None
+# srs-end: FR-ARCH-060
 
 
+# implements: FR-ARCH-200
 def python_modules(records):
-    # implements: FR-ARCH-200
     """Every Python file the layer carries, as path -> element, plus the names that resolve.
 
     Two maps rather than one, because a bare module name is not unique: `a/util.py` and
@@ -471,10 +488,11 @@ def python_modules(records):
     # was read last is how this rule would name an element the importer never touched.
     unique = {name: paths[0] for name, paths in by_name.items() if len(paths) == 1}
     return by_path, unique
+# srs-end: FR-ARCH-200
 
 
+# implements: FR-ARCH-200
 def imports_of(path):
-    # implements: FR-ARCH-200
     """The module names one file imports, as written."""
     try:
         with open(path, encoding="utf-8") as handle:
@@ -488,10 +506,11 @@ def imports_of(path):
         elif isinstance(node, ast.ImportFrom) and node.module:
             names.append(node.module)
     return [name.split(".")[0] for name in names]
+# srs-end: FR-ARCH-200
 
 
+# implements: FR-ARCH-200, FR-ARCH-220
 def declared_dependencies(records):
-    # implements: FR-ARCH-200, FR-ARCH-220
     """The graph the elements declare, live elements only.
 
     One place, read by the reflexion check and by the cycle walk: two readings of `depends_on`
@@ -505,10 +524,11 @@ def declared_dependencies(records):
         if RE_ID.match(record.id) and record.fields.get("status") not in CANCELLED:
             declared[record.id] = set(as_list(record.fields.get("depends_on")))
     return declared
+# srs-end: FR-ARCH-200, FR-ARCH-220
 
 
+# implements: FR-ARCH-230
 def check_dependencies_resolve(records, errors):
-    # implements: FR-ARCH-230
     """A dependency names an element the layer carries.
 
     Its own walk after every record is read, not a clause of check_records: that one reads
@@ -524,10 +544,11 @@ def check_dependencies_resolve(records, errors):
             if target not in present:
                 errors.append("%s — %s depends on %s, which no element carries"
                               % (record.where, record.id, target))
+# srs-end: FR-ARCH-230
 
 
+# implements: FR-ARCH-220
 def check_cycles(records, warnings, reports, cfg):
-    # implements: FR-ARCH-220
     """Elements that depend on each other in a circle, each circle named once.
 
     A warning with a name where the same finding between requirements is an error with none:
@@ -568,19 +589,21 @@ def check_cycles(records, warnings, reports, cfg):
     for node in sorted(declared, key=srs_parse.id_key):
         if node not in colour:
             walk(node)
+# srs-end: FR-ARCH-220
 
 
+# implements: FR-ARCH-260
 def element_of(path, owners):
-    # implements: FR-ARCH-260
     """The one element that carries a path, or None."""
     carrier = owner_of(path, owners)
     if carrier is None or len(owners[carrier]) != 1:
         return None
     return owners[carrier][0]
+# srs-end: FR-ARCH-260
 
 
+# implements: FR-ARCH-200, FR-ARCH-260
 def check_conformance(records, edges, warnings, reports, cfg):
-    # implements: FR-ARCH-200, FR-ARCH-260
     """The declared model against the one the code has.
 
     One direction only, as the requirement states it: an edge the code has and the model does not.
@@ -628,10 +651,12 @@ def check_conformance(records, edges, warnings, reports, cfg):
                          "%s — uses %s, carried by %s, and %s does not declare it%s"
                          % (source, target_path, target, element,
                             " (%s)" % via if via else ""))
+    # srs-end: FR-ARCH-260
+# srs-end: FR-ARCH-200, FR-ARCH-260
 
 
+# implements: FR-ARCH-210
 def print_drivers(model, limit=10):
-    # implements: FR-ARCH-210
     """The requirements that lead, by what makes a requirement drive structure.
 
     Incoming links first — over this repository the ones that took part in an architecture
@@ -651,10 +676,11 @@ def print_drivers(model, limit=10):
                          % (entry["id"], entry["title"], entry["path"], entry["status"],
                             len(incoming.get(entry["id"], [])), entry["id"].split("-")[0]))
     return 0
+# srs-end: FR-ARCH-210
 
 
+# implements: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
 def render_map(records, model, cfg):
-    # implements: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
     """The map, generated from the records and never edited by hand.
 
     Under `derived` an entry the record names is bold and one computed from what the element
@@ -693,18 +719,20 @@ def render_map(records, model, cfg):
                   len(carrying), len(model["requirements"])))
     out.append("")
     return "\n".join(out)
+# srs-end: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
 
 
+# implements: FR-ARCH-270
 def citation(record):
-    # implements: FR-ARCH-270
     """The form an element is named in to a person — the one the viewer prints for a
     requirement, over this layer's own records: identifier, title, file, status."""
     return "%s — %s (%s, %s)" % (record.id, record.title, record.path,
                                   record.fields.get("status") or "?")
+# srs-end: FR-ARCH-270
 
 
+# implements: FR-ARCH-270
 def cite(wanted):
-    # implements: FR-ARCH-270
     """Print each element asked for, ready to paste, in the order asked; an identifier no
     element carries is named on stderr and fails the run, in the same run as the rest."""
     known = {}
@@ -717,10 +745,11 @@ def cite(wanted):
     for eid in missing:
         sys.stderr.write("no element %s\n" % eid)
     return 1 if missing else 0
+# srs-end: FR-ARCH-270
 
 
+# implements: FR-ARCH-100, IF-ARCH-020
 def main(argv=None):
-    # implements: FR-ARCH-100, IF-ARCH-020
     args = list(sys.argv[1:] if argv is None else argv)
     wanted = None
     if "--cite" in args:
@@ -789,6 +818,7 @@ def main(argv=None):
         sys.stdout.write("strict mode: %d warning(s) treated as errors.\n" % len(warnings))
         return 1
     return 0
+# srs-end: FR-ARCH-100, IF-ARCH-020
 
 
 if __name__ == "__main__":

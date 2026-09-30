@@ -59,7 +59,7 @@ What it does not check is what a flag does — that a document describes `--diff
 status: implemented
 verification: I
 derives_from: []
-depends_on: [NFR-SPEC-010, NFR-SPEC-020, FR-CHK-090, FR-CI-040, FR-CI-060, FR-INIT-070, IF-SKILL-010, INV-SPEC-010]
+depends_on: [NFR-SPEC-010, NFR-SPEC-020, CON-SPEC-040, FR-CHK-090, FR-CI-040, FR-CI-060, FR-INIT-070, IF-SKILL-010, INV-SPEC-010]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -67,12 +67,12 @@ tests: []
 created: 2026-09-18
 ```
 
-The opening of the landing page **shall** state what the framework is — in plain words before any standard is named — which repositories and which agents it is built for, the promise that a change altering behaviour names its requirement or fails the build, the constraints a project takes on — the Python version, the standard library alone, plain markdown, a specification in any language, no server or service, the licence — show how to try it on a repository without writing into it, point an agent to the installation procedure, and link to this repository's own published specification and to the example project.
+The opening of the landing page **shall** state what the framework is — in plain words before any standard is named — which repositories and which agents it is built for, the promise that a change altering behaviour names its requirement or fails the build, the constraints a project takes on — the Python version, the standard library alone, plain markdown, a specification in any language, no server or service, the licence — show how to try it on a repository without writing into it, point an agent to the installation procedure, and link to this repository's own published specification and to a project built with it.
 
 **Rationale.** The first screen is what decides whether the second is read, and it has to carry both halves of the decision: what the reader gains, and what they will be asked to accept.
 Three readers arrive at it with three questions, and the opening answers each in a line before the sections do at length: the stranger asks what this is, and the standards' names are not an answer to someone who has not met an SRS, so a plain sentence comes first and names the agents the reader already uses; the adopter asks what it would take to see it, and a dry run of the installer (`FR-INIT-070`) shows the whole of what would land without landing it; the agent asks where its procedure is, and is pointed at the section that carries the URL (`IF-SKILL-010`).
-The constraints are one line because every one of them is a requirement elsewhere — the standard library (`NFR-SPEC-010`), plain files (`NFR-SPEC-020`), the lexicon rather than a language (`FR-CHK-090`) — and the line restates them where a stranger will read them; the standards paragraph names immutable identifiers and a lifecycle, which is `INV-SPEC-010` said once for the whole page.
-The two links are evidence rather than decoration: the page this repository publishes from its own specification (`FR-CI-040`) shows the framework applied to itself, and the example project (`FR-CI-060`) shows it applied to something ordinary.
+The constraints are one line because every one of them is a requirement elsewhere — the standard library (`NFR-SPEC-010`), plain files (`NFR-SPEC-020`), the lexicon rather than a language (`FR-CHK-090`) — and the line restates them where a stranger will read them, beside what a project may be made of, which answers *for whom* rather than *at what cost* and is `CON-SPEC-040`'s; the standards paragraph names immutable identifiers and a lifecycle, which is `INV-SPEC-010` said once for the whole page.
+The two links are evidence rather than decoration: the page this repository publishes from its own specification (`FR-CI-040`) shows the framework applied to itself, and a project built with it (`FR-CI-060`) shows it applied to a real product.
 
 ### FR-DOC-040 — The problem section names what agents broke and what a lookup repairs
 
@@ -434,3 +434,22 @@ The image is the pipeline's (`FR-CI-110`), drawn by the viewer (`FR-VIEW-340`) f
 The page's own requirements with what they link to, rather than the whole graph, because the whole graph is the picture nobody reads (`FR-VIEW-110` draws it on the page for whoever wants it) and the neighbourhood of the page is the one picture a reader of the page already has a story for.
 A link to the live page, because the image is the graph without its interaction, and the page is where the interaction is.
 
+### FR-DOC-220 — Every list of this repository's tools and procedures names each of them
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-DOC-170]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [README.md, AGENTS.md, docs/install.md, docs/agents.md, CONTRIBUTING.md]
+tests: [tests/docs-content.sh]
+created: 2026-09-24
+```
+
+Every list of this repository's tools or procedures — the rows of the landing page's map and of the agent guide, the table in `docs/agents.md`, the hand install in `docs/install.md`, the contributors' list of what travels — **shall** name each member of the set it lists.
+
+**Rationale.** `FR-DOC-170` holds the map to the top level of the repository and nothing held the rows below it: on 2026-09-24 the landing page's row for `tools/` lacked four files, the agent guide's lacked one, and the hand install lacked `srs_dates.py`, each written before the file it left out.
+A reader who copies the framework by hand from that list gets a tool short, and one who learns the repository from the map does not learn that the evaluation tools exist.
+The procedures' lists had the same shape and were checked by nobody but `FR-DOC-160`, which holds one table of them. The lists stay prose for the reader; the suite reads the directory and the installer's tuple, so a tool added there is asked of each list on the day it lands.

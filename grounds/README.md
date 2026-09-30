@@ -120,7 +120,7 @@ And a table this format names carries the heading this format declares for it, i
 | a frame's refusals | `date`, `what was refused`, `who asked` |
 | an amendment | `date`, `what changed`, `why`, `territory it opens` |
 
-A table carrying none of those distinctive columns is a table this format has not named, and it is nobody's business but the record's.
+A table carrying none of those distinctive columns is a table this format has not named: nothing is read from it, and only its shape is checked — each row as wide as its heading.
 
 **Keys are added, never renamed.** Each kind below declares which of its keys are required and which are optional.
 A key that is neither is not an error — that tolerance is what lets a later version of this format add a key without breaking a register written against an earlier one.
@@ -407,7 +407,7 @@ Both of those add no claim about the world; a hypothesis does, and a claim about
 
 ## Configuration
 
-`grounds/grounds-config.json` — its presence is what says this project carries the register.
+`grounds/grounds-config.json` — its presence is what the installer, the upgrade and the shipped pipeline read as this project carrying the register.
 
 | Key | Default | |
 |---|---|---|
@@ -416,7 +416,27 @@ Both of those add no claim about the world; a hypothesis does, and a claim about
 | `period` | `"quarter"` | The unit the dashboard counts arrivals in: `month`, `quarter` or `year` |
 | `confidence` | `0.95` | How sure a measurement has to be before it refutes: `0.9`, `0.95` or `0.99`. Higher keeps doubtful hypotheses alive longer |
 
-Errors are not in this table and cannot be lowered: a malformed or repeated identifier, a missing required key, a bet naming a requirement that does not exist, and a declaration with no reason are all refusals to read the register, not opinions about it.
+**Rules.** Each finding the register's checker gives about the records below an error carries a name — the key `rules` takes; the two notes that part of the check could not run, the history or the requirement model being unreadable, carry none and fail nothing:
+
+| Rule | What it reports |
+|---|---|
+| `bet-cancelled` | A bet on a requirement that is `superseded` or `withdrawn` |
+| `hypothesis-expired` | A hypothesis whose term has run out |
+| `bet-duplicated` | A requirement named by more than one bet |
+| `declaration-superfluous` | An active declaration that a requirement rests on nothing, for a requirement an active bet names |
+| `threshold-moved` | A hypothesis whose threshold changed after its first measurement was recorded |
+| `evidence-dropped` | A measurement a hypothesis once recorded and no longer does, or a hypothesis that recorded measurements and is gone from the register |
+| `relied-on-untested` | An `untested` hypothesis that a bet relies on |
+| `never-measured` | A hypothesis past its term with no measurement recorded, which a requirement stands on |
+| `verdict-unattributed` | A class III measurement that gives a verdict with nobody named |
+| `action-beyond-grade` | A hypothesis declaring an action its grade does not permit |
+| `declined-leftover` | A hypothesis still carrying a `declined` value its status contradicts |
+| `action-without-grade` | A hypothesis declaring an action and no grade, where the configuration grades actions |
+| `class-untestable` | A class I hypothesis over a quantity whose error its rows do not carry |
+| `arguments-widened` | An ideology that widened the arguments that may move it |
+| `widening-undisclosed` | A widening with no amendment naming the territory it opens |
+
+Errors are not in these tables and cannot be lowered: a malformed or repeated identifier, a missing required key, a value outside the format's vocabulary, a table row narrower or wider than its heading, a bet naming a hypothesis or a requirement that does not exist, and a declaration with no reason are among them — refusals to read the register, not opinions about it.
 
 ## The dashboard
 
@@ -433,13 +453,14 @@ The dashboard names the unit it used in the section itself, so nobody has to loo
 ## Checking
 
 ```
-python3 tools/srs_grounds.py            check and rewrite the dashboard
+python3 tools/srs_grounds.py            check, and rewrite the dashboard where there is no error
 python3 tools/srs_grounds.py --no-write check only
 python3 tools/srs_grounds.py --strict   treat warnings as errors
+python3 tools/srs_grounds.py --blast PATH…  what the requirements behind these files stand on
 python3 tools/srs_grounds.py --cite ID… name records to a person: identifier, title, file, status
 ```
 
-Exit 0 where nothing was found and, under `--strict`, no warning either; 1 on errors, or on warnings under `--strict`; 2 where it could not run at all.
+Exit 0 where nothing was found and, under `--strict`, no warning either; 1 on errors, or on warnings under `--strict`; 2 where it could not run at all. `--cite` exits 1 where an identifier names no record, and `--blast` reports and exits 0 — a report, never a verdict.
 
 The requirement model is read by running the viewer, not by parsing `specs/`.
 Where the specification is unreadable the register says so and reports what it still can, rather than dying on somebody else's configuration.

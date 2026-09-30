@@ -24,10 +24,10 @@ Exit codes match the installer: 0 installed, 1 checker errors, 2 refused before 
 
 ## What moves and what does not
 
-Refreshed without a flag: the checker, the viewer, the upgrader and the skills.
+Refreshed without a flag: the tooling — the checker and its parser, the viewer, the upgrader, the baseline and dating commands, and the checker of any optional layer the project keeps — and the skills.
 Tooling has to move with the framework or a project drifts away from the standard it says it follows.
 
-Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the pre-commit hook and `specs/README.md` — files that may be your own.
+Left alone: CI configuration, `CLAUDE.md`/`AGENTS.md`, `.gitattributes`, the pre-commit hook, `specs/README.md` and the standard of any optional layer the project keeps — files that may be your own.
 The first four are ones a project commonly edits; the standard is there because its marker promises that your local edits to it survive until `--force`.
 `--force` refreshes all of them, and only when the existing file carries the installer's marker — a line reading `SRS-DD-<version>` — so a file you wrote is never clobbered.
 The skipped list says of each such file whether it is the same as what this version ships or differs from it; the ones that differ are the ones to read before passing `--force`.
@@ -39,7 +39,7 @@ Commit the refreshed tooling together with the regenerated `specs/90-traceabilit
 
 ## The grounds register
 
-An upgrade refreshes the register's standard, checker and procedure where the project already keeps one, and installs none of it where it does not.
+An upgrade refreshes the register's checker and procedure where the project already keeps one — its standard with `--force`, like the specification's — and installs none of it where it does not.
 Nothing arrives through an upgrade that was never asked for — a project that never heard of the layer is not a project that declined it.
 
 To add one to a project that has none:
@@ -58,7 +58,7 @@ Nothing else refers to them.
 
 ## The architecture layer
 
-The same promise, kept the same way: an upgrade refreshes the layer's standard, checker and procedure where the project already keeps one, and installs none of it where it does not.
+The same promise, kept the same way: an upgrade refreshes the layer's checker and procedure where the project already keeps one — its standard with `--force` — and installs none of it where it does not.
 
 To add one to a project that has none:
 
@@ -95,4 +95,4 @@ Three independent numbers exist by design:
 | rows in `specs/92-baselines.md` in your repository | baselines of your specification; a `spec/vX.Y.Z` tag on the row's commit is optional |
 | The version field in `specs/constitution.md` | your constitution, amended per ART-090 |
 
-Every checker run ends with the framework version your copy shipped with — `Files scanned: 7. Requirements: 1. No errors. (srs_check X.Y.Z)` — the first thing to establish when something behaves unexpectedly.
+Every checker run that reads the specification reports the framework version your copy shipped with — on the summary line, or on the strict failure line — `Files scanned: 7. Requirements: 1. No errors. (srs_check X.Y.Z)` — the first thing to establish when something behaves unexpectedly.

@@ -8,7 +8,7 @@ That description usually lives in a diagram nobody regenerates and in a paragrap
 
 This layer is where it goes instead.
 Each part is a record with an identifier, a statement of what it is responsible for, the requirements it carries and the files it is made of.
-From those the checker computes three disagreements that are otherwise invisible: a file the specification claims and no part owns, a requirement that is built and belongs to no part, and a part that answers to nothing.
+From those the checker computes disagreements that are otherwise invisible; the first three are a file the specification claims and no part owns, a requirement that is built and belongs to no part, and a part that answers to nothing, and *Checking* names them all.
 
 The layer is optional.
 It is a sibling of `specs/`, never a part of it, and nothing here is ever written into a requirement file.
@@ -74,13 +74,13 @@ A key that is neither required nor optional here is not an error — that tolera
 | `requirements` | required, unless derived | the requirements this part realizes — see *Derived requirements* |
 | `depends_on` | optional | other elements this part leans on — the declared model |
 | `interface` | optional | how the part is reached from outside |
-| `superseded_by` | by status | the successor, where the status is `superseded` |
+| `superseded_by` | by status | the successor, where the status is `superseded`; read by a person, not checked |
 
 `carries` is not limited to source files.
 A requirement's `code` field names whatever realizes it — a standard, a procedure, a CI template, a template shipped to somebody else — and the part that owns those files is a part like any other.
 
 `depends_on` is the declared model, and it is written by a person.
-It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected (ADR-0023).
+It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected: on the framework's own nine Python modules it gave twenty-five edges against the seven their imports have.
 
 What the code says is compared with it, one way round: a dependency the code has and the model does not declare is reported under `dependency-undeclared`; a declared dependency nothing in the code walks is not, because no reading of the code is complete enough to refute the author.
 The checker reads one language itself — Python, by its imports.
@@ -93,7 +93,7 @@ For every other language it reads `arch/edges.json`, where the project lists wha
 ```
 
 An edge is between two files, repository-relative; the checker resolves each end to the element that carries it, by the same rule that decides which part a file belongs to, and `via` is whatever the project wants printed beside the finding — a symbol, a line — and is never parsed.
-An end no element carries is left alone.
+An end no element carries, or one more than one element carries, is left alone.
 An end that is an element identifier is refused: a part depending on a part is what `depends_on` is for.
 Keys may be added over time; none is renamed or removed once published, because the tool that writes this file is the project's and the framework will never see it.
 
@@ -124,7 +124,7 @@ Read the map, not the record, to learn what a part carries.
 Nothing is written back.
 The records stay the author's, the map is where the projection lives, and the gate that compares the map now holds it fresh against the specification's `code` fields as well as against the records.
 The default is `written`: every entry is the author's claim, and a layer written before this key existed reads exactly as it did.
-This is not the derivation ADR-0023 rejected — `depends_on` is still written by a person — and ADR-0025 says why the projection lives in the map rather than in the record.
+This is not the derivation measured and rejected above — `depends_on` is still written by a person — and the projection lives in the map rather than in the record, because a tool writing it back into the record would be editing what a person authored.
 
 ## The map
 
@@ -135,13 +135,14 @@ A committed map that no longer matches what the records produce is a change some
 ## Checking
 
 ```
-python3 tools/srs_arch.py              read the layer, report, regenerate the map
+python3 tools/srs_arch.py              read the layer, report, and regenerate the map where there is no error
 python3 tools/srs_arch.py --no-write   report only
 python3 tools/srs_arch.py --strict     treat warnings as errors
 python3 tools/srs_arch.py --cite ID…   name elements to a person: identifier, title, file, status
+python3 tools/srs_arch.py --drivers    the ten requirements that drive the cut, most constrained first
 ```
 
-Errors are the readings that make the rest meaningless: a repeated identifier, a missing required key, a requirement that does not exist.
+Errors are the readings that make the rest meaningless: a file that cannot be read, an identifier that is malformed or repeated, a missing required key, a status outside the four, a requirement that does not exist, and a dependency on an element no record defines.
 Everything else is a warning, because the honest resolution differs case by case and the checker cannot choose it.
 A path an element carries that is not in the repository is one of those warnings, under `carrier-missing`: the record still reads, and it went stale the commonest way — a file renamed or deleted with the element left behind.
 Where git can tell, the warning says where the file went — renamed to what, in which commit, or deleted in which — so the record is fixed with one edit; the layer never edits it, because the record is the project's and a file that moved may have moved between parts.
@@ -153,6 +154,16 @@ What a rule costs is the project's to set, in `arch/arch-config.json`, beside th
 ```
 
 `warn` is the default and what `--strict` fails on, `report` is said and fails nothing, `off` is not said at all.
+
+| Rule | What it reports |
+|---|---|
+| `element-cancelled` | An element carrying a requirement that is `superseded` or `withdrawn` |
+| `carrier-unclaimed` | A file in the `code` field of an `implemented` or `partial` requirement that no element carries |
+| `requirement-uncarried` | An `implemented` or `partial` requirement that no element carries |
+| `element-empty` | An element in force that carries no requirement |
+| `dependency-undeclared` | A dependency the code has — an import the checker reads, or an edge in `arch/edges.json` — that the element does not declare |
+| `element-cycle` | Elements that depend on each other in a circle |
+| `carrier-missing` | A path an element carries that does not exist |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

@@ -14,6 +14,7 @@
 # unclaimed-file rule silenced.
 set -eo pipefail
 
+# srs-end: FR-INIT-010
 # implements: FR-CI-090
 # A hook runs with GIT_INDEX_FILE and GIT_DIR pointing at the commit being
 # prepared, and everything this suite starts inherits them — so a `git add`
@@ -34,6 +35,7 @@ rm -rf /tmp/srs-adopt /tmp/srs-docs
 # be reporting the fixture rather than anything about adoption.
 mkdir -p /tmp/srs-adopt/specs/10-fr-app
 printf '### FR-APP-010 — Тестовое требование\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-APP-020]\n```\n\nСистема **должна** сохранять файл.\n\n### FR-APP-020 — Второе требование\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nСистема **должна** открывать файл.\n' > /tmp/srs-adopt/specs/10-fr-app/000-999.md
+# srs-end: FR-CI-090
 # verifies: INV-SPEC-080, FR-CHK-250
 # The area is a directory, and its second file carries a four-digit number in
 # the file of its thousand: adoption reads both files as the area, counts the
@@ -65,6 +67,25 @@ test ! -e /tmp/srs-adopt/tools/.srs_check_adopt.py
 python3 tools/srs_init.py /tmp/srs-adopt --defaults --areas "APP" \
     --grounds yes --period year "${LEXICON[@]}" | tee /tmp/adopt-real.log
 
+# srs-end: INV-SPEC-080, FR-CHK-250
+# verifies: FR-INIT-040
+# Every file that carries requirements is byte for byte what it was: the
+# comparison above only runs after a rollback, and a successful adoption is
+# the one that could have edited them.
+grep "/tmp/srs-adopt/specs/10-fr-app/" /tmp/before.sum > /tmp/reqs.before.sum
+find /tmp/srs-adopt/specs/10-fr-app -type f | sort | xargs cksum > /tmp/reqs.after.sum
+diff /tmp/reqs.before.sum /tmp/reqs.after.sum \
+    || { echo "FAIL FR-INIT-040 — adoption changed a file that carries requirements"; exit 1; }
+# And the directory is read as the area, the wide number counted, and the
+# README beside them read as no requirement at all (INV-SPEC-080, FR-CHK-250).
+( cd /tmp/srs-adopt && python3 tools/srs_view.py --json /tmp/adopt.json >/dev/null )
+python3 - <<'PY'
+import json
+ids = sorted(r["id"] for r in json.load(open("/tmp/adopt.json"))["requirements"])
+assert ids == ["FR-APP-010", "FR-APP-020", "FR-APP-1000"], "adopted requirements: %s" % ids
+PY
+
+# srs-end: FR-INIT-040
 # verifies: FR-INIT-230 — a project with no standard of its own has nothing
 # to set aside: no archive appears and the summary has no such heading.
 test ! -e /tmp/srs-adopt/specs/archive
@@ -72,6 +93,7 @@ if grep -q "set aside" /tmp/adopt-real.log; then
     echo "FAIL FR-INIT-230 — adopt set aside a standard the project never had"; exit 1
 fi
 
+# srs-end: FR-INIT-230
 # verifies: FR-GND-480 — the adoption path takes the answer too, and the
 # comparison below is what proves the dry run listed the file it writes.
 grep -qF '"period": "year"' /tmp/srs-adopt/grounds/grounds-config.json \
@@ -122,6 +144,7 @@ assert adopted.get('rules', {}).get('annotation-absent') == 'off', \
     'adoption did not silence the unclaimed-file rule: %r' % adopted.get('rules')
 PY
 
+# srs-end: FR-GND-480
 # verifies: FR-INIT-220
 # Adopt writes the agent guide too, and builds its substitutions on a path
 # of its own — which is how the width marker once travelled into a target
@@ -131,6 +154,7 @@ grep -q 'SRS-DD-WIDTH-LINE' /tmp/srs-adopt/AGENTS.md \
 grep -q 'Line width' /tmp/srs-adopt/AGENTS.md \
     && { echo "FAIL FR-INIT-220 — a width nobody stated was named"; exit 1; }
 
+# srs-end: FR-INIT-220
 # verifies: FR-INIT-180, FR-INIT-190
 # Adopt writes the checker itself — it has to run it before any tooling is
 # installed — so it is the one path into a target that does not go through
@@ -160,6 +184,7 @@ rc=0; python3 tools/srs_init.py /tmp/srs-docs --defaults || rc=$?
 test "$rc" -eq 2
 test ! -e /tmp/srs-docs/specs/srs-config.json
 
+# srs-end: FR-INIT-180, FR-INIT-190
 # verifies: FR-INIT-230
 # A project with a standard of its own. Adopt sets it aside in the archive
 # byte for byte, installs ours in its place with the marker, names both
@@ -216,3 +241,4 @@ grep -qF 'Об этой папке' "$OWN/specs/10-fr-app/README.md" \
 (cd "$OWN" && python3 tools/srs_check.py --no-write) > /tmp/own-check.log 2>&1
 grep -q "Files scanned: 2\." /tmp/own-check.log \
     || { echo "FAIL FR-INIT-230 — the target's checker read the archive as requirements"; cat /tmp/own-check.log; exit 1; }
+# srs-end: FR-INIT-230

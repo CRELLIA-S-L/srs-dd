@@ -9,7 +9,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# verifies: NFR-SKILL-020
+# file verifies: NFR-SKILL-020
 # The budgets, each beside the reason for its number. Raising one is a
 # visible act: change the number here and say why in the commit. Lowering
 # one follows a procedure that was shortened, so that the floor stays
@@ -20,7 +20,10 @@ cd "$(dirname "$0")/.."
 #               session. 2 950 was where the longest procedure stood on
 #               2026-09-19 (`srs`, 2 902 words); 1 300 is where the longest
 #               stands since the five longest were rewritten on 2026-09-20
-#               (`srs-init`, 1 250); the number falls with it.
+#               (`srs-init`, 1 250); the number falls with it. 1 350 since
+#               2026-09-29: passages cut from `srs` to stay under 1 300 had
+#               taken criteria and reasons with them, and were put back
+#               (1 344), which the maintainer chose over cutting others.
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
@@ -33,16 +36,23 @@ cd "$(dirname "$0")/.."
 #               than three section reads in three, because every turn
 #               re-reads the context before it. The number is a ceiling on
 #               what a procedure sends the reader to, not a verdict on
-#               reading it.
+#               reading it. 7 000 since 2026-09-24, when the register's
+#               standard gained the table of its checker's rules
+#               (FR-GND-560) and `srs-bet` with it stood at 6 944.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
 #               2026-09-23 once it carries every rule the shipped guide
 #               states (INV-SKILL-010) — the constitution, the generated
-#               files, ART-030, three procedures — beside its own.
-OWN=1300
-TRANSITIVE=6700
-GUIDE=1500
+#               files, ART-030, three procedures — beside its own. 1 600
+#               since 2026-09-24, when the shipped guide gained the date
+#               command and the two optional layers and this repository's
+#               had to carry them too (1 575), ADR-0030's note says why.
+#               1 650 since 2026-09-29, for the reason OWN rose: passages
+#               cut to fit were put back (1 639).
+OWN=1350
+TRANSITIVE=7000
+GUIDE=1650
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

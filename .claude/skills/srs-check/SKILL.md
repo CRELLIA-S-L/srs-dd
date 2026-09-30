@@ -22,18 +22,18 @@ Every requirement carries a `verification` method and the paths that verify it, 
 
 2. **Read what each of them asks for.**
    `python3 tools/srs_view.py <ID>` prints the method and the `tests` field.
-   Sort them into three lists:
+   Sort them into lists:
 
    - **the checker** — always, for every change to `specs/`:
      `python3 tools/srs_check.py`;
-   - **the architecture checker**, where the project carries the layer — an `arch/` directory beside `specs/`: `python3 tools/srs_arch.py`.
+   - **the architecture checker**, where the project carries the layer — `arch/arch-config.json` beside `specs/`, what the shipped pipeline reads it by: `python3 tools/srs_arch.py`.
      It regenerates `arch/90-map.md` on the same terms as the dashboard below, and a change that moved a file between parts is exactly what it reports.
    - **the grounds checker**, where the project carries a register — a `grounds/` directory beside `specs/`: `python3 tools/srs_grounds.py`.
      It regenerates `grounds/90-dashboard.md`, and the project's gate fails on a committed copy that no longer matches, so a change that moved a requirement or a record and did not run this hands back work that passes everything else and reddens the pipeline.
      Where there is no register the command is not there, and this line does not apply — say nothing about it;
    - **the suites** those requirements name in `tests`, and nothing else:
      a change to the viewer does not call for the installer's suite;
-   - **what a person has to look at**, where the method is `I` or `D`.
+   - **what a person has to look at**, where the method is `I` or `D`, and the measurement to retake or the analysis to reread where it is `A`.
      Say it in words, naming the requirement and what to do: "this one is verified by inspection — open the page, follow a link from the dashboard, and see that it lands on the card".
 
    A requirement whose method is `T` with an empty `tests` field is a gap, not a check: say so rather than inventing something to run.

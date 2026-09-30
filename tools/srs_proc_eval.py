@@ -39,7 +39,7 @@ header of `key: value` lines between two `---` lines, then the prompt. Keys:
 Every check line is one check; a scenario states as many as it needs, and
 at least one.
 """
-# implements: FR-SKILL-310, NFR-SPEC-010, CON-SPEC-030
+# file implements: FR-SKILL-310, NFR-SPEC-010, CON-SPEC-030
 
 import argparse
 import datetime

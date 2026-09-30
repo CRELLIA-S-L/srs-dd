@@ -5,7 +5,7 @@
 set -eo pipefail
 cd "$(dirname "$0")/.."
 
-# verifies: FR-DOC-020
+# file verifies: FR-DOC-020
 # The pair is what is checked — a flag on its own belongs to nothing, and
 # the drift this exists to catch is a document naming the wrong tool for a
 # flag it knows. A tool says what it accepts on -h: the argparse ones print
@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 python3 - <<'PY'
 import glob, re, subprocess, sys
 
-TOOL = re.compile(r"\bsrs_[a-z]+\.py\b")
+TOOL = re.compile(r"\bsrs_[a-z_]+\.py\b")
 FLAG = re.compile(r"(?<![\w-])--[a-z][a-z-]*")
 
 accepted = {}

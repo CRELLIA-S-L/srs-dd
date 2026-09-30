@@ -9,14 +9,14 @@ A project that adopts SRS-DD writes its own specification; this one describes wh
 
 ## Scope
 
-In scope: the behavior of `tools/srs_check.py`, `tools/srs_view.py`, `tools/srs_init.py`, the procedures in `.claude/skills/`, the CI templates in `ci/`, this repository's own pipeline, the properties of the specification format that they collectively guarantee, and what this repository's own documentation — the landing page and `docs/` — answers and may claim.
+In scope: the behavior of the tools in `tools/` — the checker, the viewer, the installer and the upgrader, the baseline, dating and release commands, the layers' checkers, the two measurements and the local gate — the procedures in `.claude/skills/`, the CI templates in `ci/`, this repository's own pipeline, the properties of the specification format that they collectively guarantee, and what this repository's own documentation — the landing page and `docs/` — answers and may claim.
 
 Out of scope: the content of any target project's specification, the editors and agents that read the guides, and the forges the repository is hosted on.
 
 ## Boundaries
 
 The tooling reads and writes plain files in a git working tree.
-It runs no server, stores nothing outside the repository, and makes no network calls.
+It runs no server and stores nothing outside the repository; it reaches the network only where somebody asks it to — the upgrader fetching a framework, and the two measurements asking a model.
 It knows no natural language: which words carry binding force is configuration, not code.
 
 ## Audience

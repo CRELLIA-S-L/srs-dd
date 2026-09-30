@@ -35,7 +35,7 @@ tests: [tests/spec-check.sh, tests/checker-rules.sh]
 created: 2026-08-07
 ```
 
-The checker **shall** exit 0 where it found no error and, under `--strict`, no warning either; 1 on errors — or on warnings under `--strict` — and 2 when it could not run at all: an unusable configuration, an unknown flag, or no `specs/` directory.
+The checker **shall** exit 0 where it found no error and, under `--strict`, no warning either; 1 on errors — or on warnings under `--strict` — and 2 when it could not run at all: an unusable configuration, an unknown flag, no `specs/` directory, or no `srs_parse.py` beside it.
 
 **Rationale.** CI distinguishes "your specification is wrong" from "the checker never got as far as reading it": the second is not something a contributor's change to the specification can cause.
 
@@ -315,3 +315,24 @@ A front matter is the commonest way a markdown file carries its own keys, and a 
 The status is cited as written, because it is the project's word for its own decision and the citation quotes, never translates.
 A file under `adr/` without the heading is not a decision, which is what an index and a template under `adr/` need to be.
 
+### IF-SPEC-040 — An area's name joins its words with an underscore
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [specs/README.md, tools/srs_parse.py, tools/srs_check.py, tools/srs_init.py, tools/srs_view.py, tools/srs_dates.py]
+tests: [tests/checker-rules.sh, tests/installer-smoke.sh, tests/view-smoke.sh, tests/dates-smoke.sh]
+created: 2026-09-29
+```
+
+An area's name **shall** be read by one grammar — uppercase letters and digits, beginning with a letter, its words joined by single underscores, `[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*` — in the configuration and in the middle segment of every identifier a tool reads.
+
+**Rationale.** A name of two words — `MAP_ILAND`, `SPACE_SHIP` — could not be written: the grammar was one run of letters and digits, and a hyphen, which would have joined them, is what separates an identifier's segments, which every tool that splits an identifier relies on.
+The underscore is single and stands between words, so that `MAP_`, `_MAP` and `MAP__ILAND` are not names and two areas cannot differ by a character nobody sees.
+One grammar, because it was written out seven times across four tools, and a name one of them refused was a requirement gone quiet: the heading net read `### FR-MAP_ILAND-010` as prose and the annotation grammar read an annotation naming it as nothing, with no error from either.
+A name says nothing of a hierarchy.
+An area grouped under another for a reader goes into a folder (`FR-CHK-260`), because the name is inside every identifier and an identifier is never renamed (`INV-SPEC-010`): a parent written into the name is a regrouping nobody can make afterwards.

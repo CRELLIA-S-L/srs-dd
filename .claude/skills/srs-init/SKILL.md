@@ -11,7 +11,7 @@ This skill adds the one thing the script cannot do: language.
 
 ## Fresh initialization
 
-1. Ask the user for: target path, project name, requirement areas (uppercase identifiers), production code roots, test roots, source file extensions, CI platform (`github` / `gitlab` / `both` / `none`), whether to keep a **grounds register** — and, where they want one, what length of period its dashboard counts by (`month` / `quarter` / `year`) — whether to keep an **architecture layer**, and **the language of the specification**.
+1. Ask the user for: target path, project name, requirement areas (uppercase identifiers, words joined by an underscore — `MAP_ILAND`), production code roots, test roots, source file extensions, CI platform (`github` / `gitlab` / `both` / `none`), whether to keep a **grounds register** — and, where they want one, what length of period its dashboard counts by (`month` / `quarter` / `year`) — whether to keep an **architecture layer**, and **the language of the specification**.
 
    The period is the only one of the register's settings the install asks about, and the one nobody supplies later without knowing the key exists (`rules` and `grades` are the others, and both have working defaults).
    It is what "lately" means for this project: how often the dashboard gets to say that requirements have started arriving on no hypothesis.
@@ -45,7 +45,7 @@ This skill adds the one thing the script cannot do: language.
 
    Add `--period <month|quarter|year>` to that command **only with `--grounds yes`** — passed alongside `--grounds no` it has no register to configure, and the installer says so rather than dropping it, which is a note the user did not need to read.
 
-   Run that command **twice**: first with `--dry-run` appended, which writes nothing and prints the exact created / refreshed / skipped list — show that list to the user together with the lexicon — and then, once they approve, the same command without the flag.
+   Run that command **twice**: first with `--dry-run` appended, which writes nothing and prints the exact created / refreshed / set aside / skipped list — show it to the user with the lexicon — and then, once they approve, the same command without the flag.
 
 6. After a successful install, rewrite the placeholder requirement in the target (`specs/10-fr-<area>.md`) as a grammatical sentence in the specification language, then run the target's checker again.
 7. Suggest recording the force class of each chosen verb in the target's `specs/00-glossary.md`, as `specs/README.md` recommends.
@@ -77,7 +77,7 @@ git -C <framework-clone> pull
 python3 <framework-clone>/tools/srs_init.py <target> --defaults
 ```
 
-The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling and the skills refresh automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes, and the standards) only with `--force`.
+The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling and the skills refresh automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes, the hook, the standards) only with `--force`.
 Add `--dry-run` first when the user wants to see the file list before anything moves.
 Remind them to commit the refreshed tooling and the regenerated matrix.
 

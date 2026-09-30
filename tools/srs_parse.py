@@ -29,18 +29,18 @@ closes, a record with no metadata block at all.
 Standard library only, compatible with Python 3.9.
 """
 
-# implements: NFR-SPEC-010, FR-CHK-110
+# file implements: NFR-SPEC-010, FR-CHK-110
 
 import re
 
 # The framework's version, and not this module's: one number, stamped
 # by the installer into every file it writes and bumped by
-# tools/srs_release.py. It lives here because this is the one file both
-# checkers must have beside them — each exits 2 without it — and
-# ADR-0019 refuses to let the grounds checker import srs_check, which is
-# where the number used to live. Both re-export it, so everything that
-# read it from there reads it still (ADR-0021).
-__version__ = "0.20.1"
+# tools/srs_release.py. It lives here because this is the one file every
+# checker must have beside it — each exits 2 without it — and the grounds
+# checker may not import srs_check (ADR-0019), which is where the number
+# used to live. Each re-exports it, so everything that read it from there
+# reads it still (ADR-0021).
+__version__ = "0.21.0"
 
 # implements: INV-SPEC-080, INV-SPEC-090
 # The one thing every identifier grammar shares is its tail: a number of
@@ -52,6 +52,15 @@ __version__ = "0.20.1"
 # sorts wrongly as a string, so every tool orders by id_key and not by
 # the identifier itself.
 NUMBER = r"(?:\d{3}|[1-9]\d{3,})"
+# srs-end: INV-SPEC-080, INV-SPEC-090
+# implements: IF-SPEC-040
+# An area's name, the middle segment of a requirement's identifier:
+# uppercase words joined by single underscores, never by a hyphen, which
+# separates the segments. Here for the reason the number is: the config
+# check, the annotation grammar, the installer and the viewer all read
+# it, and a name one of them refuses is a requirement that goes silent.
+AREA = r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*"
+# srs-end: IF-SPEC-040
 RE_NUMBER_TAIL = re.compile(r"-(\d+)$")
 
 

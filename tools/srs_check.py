@@ -18,7 +18,7 @@ no natural language: the modal verbs, negation words, and rationale
 markers it matches all come from the lexicon in the config.
 """
 
-# implements: NFR-SPEC-010, NFR-CHK-010, CON-SPEC-030
+# file implements: NFR-SPEC-010, NFR-CHK-010, CON-SPEC-030
 
 import json
 import os
@@ -47,8 +47,8 @@ except ImportError:
         "the tooling.\n")
     sys.exit(2)
 
-# Re-exported: the number lives in srs_parse, the one file this checker
-# and the grounds checker both must have beside them (ADR-0021).
+# Re-exported: the number lives in srs_parse (ADR-0021), the one file
+# every checker — this one, the grounds and the architecture — must have.
 __version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,8 +74,11 @@ DEFAULTS = {
     "rationale_markers": ["Rationale"],
 }
 
-# Uppercase, matching the annotation grammar and the installer's rule.
-RE_AREA_NAME = re.compile(r"^[A-Z][A-Z0-9]*$")
+# implements: IF-SPEC-040
+# The grammar every tool reads in an identifier's middle segment, so that
+# an area the configuration accepts is one an annotation can name.
+RE_AREA_NAME = re.compile(r"^%s$" % srs_parse.AREA)
+# srs-end: IF-SPEC-040
 
 
 # Every rule that reports something short of an error carries a name, so a
@@ -88,7 +91,15 @@ RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "rests-on-withdrawn", "test-missing", "unlinked",
          "annotation-unknown-area", "annotation-superseded",
          "annotation-unlisted", "annotation-unpaired", "annotation-absent",
-         "baseline-without-row", "file-range")
+         "baseline-without-row", "file-range", "annotation-end-unmatched",
+         "annotation-unended", "annotation-empty")
+# srs-end: IF-SPEC-020
+
+# What a rule costs where the project has not said: `warn`, but for the
+# rules named here. A rule added at `warn` fails `--strict` in every project
+# on the upgrade that brings it, so one whose harm is in some cases and whose
+# cure is a line in every file arrives at `report`.
+DEFAULT_SEVERITY = {"annotation-unended": "report"}
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off`
 # is not printed at all.
@@ -100,8 +111,8 @@ def _config_fail(message):
     sys.exit(2)
 
 
+# implements: FR-CHK-090, FR-CHK-100
 def load_config():
-    # implements: FR-CHK-090, FR-CHK-100
     """Loads and validates the config; fails with a friendly message
     rather than letting a bad value crash regex compilation later."""
     data = {}
@@ -127,7 +138,8 @@ def load_config():
             _config_fail("%s must not be empty" % key)
     for area in cfg["areas"]:
         if not RE_AREA_NAME.match(area):
-            _config_fail("area %r must match [A-Z][A-Z0-9]*" % area)
+            _config_fail("area %r must be uppercase letters and digits, beginning with a "
+                         "letter, its words joined by single underscores" % area)
     # `rules` is a mapping rather than a list, so it is validated apart from
     # the loop above — and by name, because a silently ignored typo here
     # would look exactly like a rule that never fires.
@@ -143,6 +155,7 @@ def load_config():
                          % (name, "/".join(SEVERITIES)))
     cfg["rules"] = rules
     return cfg
+# srs-end: FR-CHK-090, FR-CHK-100
 
 
 CFG = load_config()
@@ -153,8 +166,8 @@ CODE_EXTENSIONS = CFG["code_extensions"]
 RULE_SEVERITY = CFG["rules"]
 
 
+# implements: FR-CHK-160
 def rule_finding(warnings, reports, rule, text, req=None):
-    # implements: FR-CHK-160
     """Route one rule's finding by what the project decided it costs.
 
     A requirement may excuse itself from a rule in its own block; the
@@ -163,10 +176,11 @@ def rule_finding(warnings, reports, rule, text, req=None):
     """
     if req is not None and rule in (req.meta.get("exempt") or []):
         return
-    severity = RULE_SEVERITY.get(rule, "warn")
+    severity = RULE_SEVERITY.get(rule, DEFAULT_SEVERITY.get(rule, "warn"))
     if severity == "off":
         return
     (warnings if severity == "warn" else reports).append(text)
+# srs-end: FR-CHK-160
 
 TYPES = ("FR", "NFR", "IF", "INV", "CON")
 
@@ -180,6 +194,7 @@ STATUSES = ("draft", "deferred", "partial", "implemented", "superseded",
 # nothing to say about a requirement that is over: it has no link left to
 # forget and no ground left to rest on.
 CANCELLED = ("superseded", "withdrawn")
+# srs-end: INV-SPEC-010
 VERIFICATIONS = ("T", "D", "I", "A")
 
 LINK_FIELDS = ("derives_from", "refines", "depends_on", "conflicts_with")
@@ -211,12 +226,17 @@ def _alternation(words):
 # malformed identifier must never be skipped silently. The net lives
 # here rather than in srs_parse because how a format numbers its
 # entries is the format's own business, and the register beside specs/
-# numbers its entries in two parts (ADR-0019).
+# numbers its entries in two parts (ADR-0019). The area takes an
+# underscore, so that one the configuration does not declare is refused
+# by name rather than read past as prose.
+# implements: IF-SPEC-040
 RE_HEADING = re.compile(
-    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*-\d+"
+    r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9_]*-\d+"
     r"(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
+# srs-end: IF-SPEC-040
 # implements: INV-SPEC-080
 RE_ID = re.compile(r"^(%s)-(%s)-(%s)$" % ("|".join(TYPES), "|".join(AREAS), srs_parse.NUMBER))
+# srs-end: INV-SPEC-080
 
 
 # The statement lexicon comes from the config; the patterns are
@@ -246,7 +266,7 @@ RE_RATIONALE = re.compile(
 #   implements: FR-CORE-010          -> the `code` field    srs-ignore
 #   verifies: FR-CORE-010, FR-UI-020 -> the `tests` field   srs-ignore
 # A line containing "srs-ignore" is exempt from annotation checking.
-_ANNOT_ID = r"[A-Z]+-[A-Z0-9]+-%s(?!\d)" % srs_parse.NUMBER
+_ANNOT_ID = r"[A-Z]+-%s-%s(?!\d)" % (srs_parse.AREA, srs_parse.NUMBER)   # implements: IF-SPEC-040
 RE_ANNOTATION = re.compile(
     r"\b(implements|verifies):\s*(%s(?:\s*,\s*%s)*)" % (_ANNOT_ID, _ANNOT_ID))
 
@@ -296,8 +316,8 @@ def _split_body(lines):
     return "\n".join(statement).strip(), "\n".join(rationale).strip()
 
 
+# implements: IF-SPEC-010, FR-CHK-110
 def parse_text(text, rel, errors):
-    # implements: IF-SPEC-010, FR-CHK-110
     """Parses one specification file already held in memory.
 
     Split out of parse_file so a caller that has the text but not the
@@ -314,6 +334,7 @@ def parse_text(text, rel, errors):
         req.statement, req.rationale = _split_body(entry.body)
         requirements.append(req)
     return requirements
+# srs-end: IF-SPEC-010, FR-CHK-110
 
 
 def parse_file(path, rel, errors):
@@ -321,8 +342,8 @@ def parse_file(path, rel, errors):
         return parse_text(handle.read(), rel, errors)
 
 
+# implements: FR-CHK-250
 def collect_spec_files():
-    # implements: FR-CHK-250
     # Every markdown file under specs/ at any depth, except the decision
     # log, the archive and the reserved names — reserved at any depth, so
     # that a README.md inside an area's directory is for people. An area
@@ -337,6 +358,7 @@ def collect_spec_files():
             full = os.path.join(current, name)
             result.append((full, os.path.relpath(full, ROOT)))
     return sorted(result, key=lambda pair: pair[1])
+# srs-end: FR-CHK-250
 
 
 CYCLE_FIELDS = ("derives_from", "refines")
@@ -347,10 +369,11 @@ CYCLE_FIELDS = ("derives_from", "refines")
 # one answers another, what is this meaningless without, and a path
 # alternating between the two is a circle in neither sense.
 DEPENDENCY_FIELDS = ("depends_on",)
+# srs-end: FR-CHK-240
 
 
+# implements: FR-CHK-040, FR-CHK-240
 def find_cycles(requirements, fields):
-    # implements: FR-CHK-040, FR-CHK-240
     """Loops in one link graph, as (cycle path, fields on it).
 
     The fields to walk are given, because the specification holds two
@@ -399,6 +422,7 @@ def find_cycles(requirements, fields):
         if state.get(rid, 0) == 0:
             walk(rid)
     return cycles
+# srs-end: FR-CHK-040, FR-CHK-240
 
 
 def normalize_meta(req, errors):
@@ -426,12 +450,17 @@ def normalize_meta(req, errors):
 
 
 RE_RANGE_NAME = re.compile(r"^(\d{3,})-(\d{3,})\.md$")
+# The map's own names — `10-fr-<area>.md`, `40-invariants.md` — begin with
+# two digits and a hyphen, which no range name does.
+RE_MAP_NAME = re.compile(r"^\d{2}-.+\.md$")
 
 
+# implements: FR-CHK-260
 def file_range_of(rel):
     """(low, high, kind) of the numbers a requirements file's name holds:
-    a file directly under specs/ holds 000-999 ("plain"), a file named
-    `NNN-NNN.md` in a subdirectory holds that range ("named"), and any
+    a file directly under specs/, or named as the map names one in a
+    folder that groups areas for a reader, holds 000-999 ("plain"); a file
+    named `NNN-NNN.md` in a subdirectory holds that range ("named"); any
     other file in a subdirectory holds anything (None, None, None)."""
     parts = rel.replace(os.sep, "/").split("/")
     if len(parts) == 2:
@@ -439,7 +468,10 @@ def file_range_of(rel):
     match = RE_RANGE_NAME.match(parts[-1])
     if match:
         return int(match.group(1)), int(match.group(2)), "named"
+    if RE_MAP_NAME.match(parts[-1]):
+        return 0, 999, "plain"
     return None, None, None
+# srs-end: FR-CHK-260
 
 
 def validate(requirements):
@@ -457,6 +489,7 @@ def validate(requirements):
                           % (req.where, req.id, by_id[req.id].where))
         else:
             by_id[req.id] = req
+        # srs-end: FR-CHK-010
 
         if not RE_ID.match(req.id):
             errors.append("%s — identifier does not match <TYPE>-<AREA>-<NNN>"
@@ -479,6 +512,8 @@ def validate(requirements):
             elif key not in KNOWN_FIELDS:
                 rule_finding(warnings, reports, "unknown-key",
                              "%s — unknown field %r" % (req.where, key), req)
+            # srs-end: IF-SPEC-010
+            # srs-end: FR-CHK-180
 
         for name in req.meta.get("exempt") or []:
             if name not in RULES:
@@ -493,6 +528,7 @@ def validate(requirements):
         missing = set(key for key in REQUIRED_FIELDS if key not in req.meta)
         for key in sorted(missing):
             errors.append("%s — required key %r is missing" % (req.where, key))
+        # srs-end: FR-CHK-170
 
         status = req.meta.get("status", "")
         if "status" not in missing and status not in STATUSES:
@@ -522,6 +558,7 @@ def validate(requirements):
                 errors.append("%s — %d modal verbs, expected one: "
                               "this is two requirements, split them"
                               % (req.where, found))
+            # srs-end: FR-CHK-020
 
         # Both statuses the standard defines as being realized oblige the
         # code field: they differ by how much is built, not by whether
@@ -531,6 +568,7 @@ def validate(requirements):
         if status in ("implemented", "partial") and not code:
             errors.append("%s — status %s but the code field is empty"
                           % (req.where, status))
+        # srs-end: FR-CHK-050
 
         # Implementation ahead of approval.
         # implements: FR-CHK-070
@@ -539,6 +577,7 @@ def validate(requirements):
                          "%s — %s is draft but the code field is not "
                          "empty: implementation ahead of approval"
                          % (req.where, req.id), req)
+        # srs-end: FR-CHK-070
 
         # implements: FR-CHK-055
         for field in ("code", "tests"):
@@ -546,6 +585,7 @@ def validate(requirements):
                 if not os.path.exists(os.path.join(ROOT, rel)):
                     errors.append("%s — %s points to a nonexistent path %s"
                                   % (req.where, field, rel))
+        # srs-end: FR-CHK-055
 
         # Replacement for superseded requirements.
         # implements: FR-CHK-060, INV-SPEC-050
@@ -556,6 +596,7 @@ def validate(requirements):
         if replacement and status != "superseded":
             errors.append("%s — superseded_by present but status is %r"
                           % (req.where, status))
+        # srs-end: FR-CHK-060, INV-SPEC-050
 
     # implements: FR-CHK-030, FR-CHK-075, FR-CHK-190
     # Dangling links; approved-or-better requirements resting on drafts.
@@ -602,6 +643,7 @@ def validate(requirements):
             rule_finding(warnings, reports, "test-missing",
                          "%s — %s says verification T and lists no test"
                          % (req.where, req.id), req)
+        # srs-end: FR-CHK-140
 
         replacement = req.meta.get("superseded_by", "")
         if replacement:
@@ -610,6 +652,7 @@ def validate(requirements):
                               % (req.where, replacement))
             elif replacement == req.id:
                 errors.append("%s — requirement links to itself" % req.where)
+    # srs-end: FR-CHK-030, FR-CHK-075, FR-CHK-190
 
     # Total isolation is the one case where a missing link shows: the
     # checker can prove that what is written resolves, never that something
@@ -632,6 +675,7 @@ def validate(requirements):
             rule_finding(warnings, reports, "unlinked",
                          "%s — %s is linked to nothing, and nothing links "
                          "to it" % (req.where, req.id), req)
+    # srs-end: FR-CHK-150
 
     for cycle, fields in find_cycles(requirements, CYCLE_FIELDS):
         errors.append("cycle in %s links: %s"
@@ -664,6 +708,7 @@ def validate(requirements):
                          "%s — %s is outside the range this file's name states (%s); it belongs "
                          "in %s beside it"
                          % (req.where, req.id, os.path.basename(req.path)[:-3], wanted), req)
+    # srs-end: FR-CHK-260
 
     # implements: FR-CHK-240
     # A separate walk, so a path that alternates between the two graphs is
@@ -672,6 +717,7 @@ def validate(requirements):
     for cycle, fields in find_cycles(requirements, DEPENDENCY_FIELDS):
         errors.append("cycle in %s links: %s"
                       % ("/".join(fields), " → ".join(cycle)))
+    # srs-end: FR-CHK-240
 
     return by_id, errors, warnings, reports
 
@@ -699,8 +745,8 @@ def iter_source_files():
                 yield rel
 
 
+# implements: FR-CHK-080
 def read_annotations(path):
-    # implements: FR-CHK-080
     """Every annotation one file carries, as (line number, keyword, id).
 
     The whole of the annotation grammar lives here — which lines are
@@ -725,6 +771,140 @@ def read_annotations(path):
                 for rid in match.group(2).split(","):
                     result.append((lineno, match.group(1), rid.strip()))
     return result
+# srs-end: FR-CHK-080
+
+
+def read_lines(path):
+    """A file's lines as every reader of annotations numbers them: split on
+    newlines alone, as iterating the file does in read_annotations. Not
+    str.splitlines(), which also breaks on a form feed or U+2028 and would
+    put an annotation on a line the other readers do not."""
+    with open(path, "r", encoding="utf-8", errors="replace") as handle:
+        lines = handle.read().split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
+
+RE_END = re.compile(r"\bsrs-end:\s*(%s(?:\s*,\s*%s)*)" % (_ANNOT_ID, _ANNOT_ID))
+RE_FILE_SCOPE = re.compile(r"\bfile\s+(?:implements|verifies):")
+RE_CODE_BEFORE = re.compile(r"[A-Za-z0-9]")
+# How far a region no end marker ends runs at most: far enough for a long
+# function, short enough that a file with one annotation at its top does
+# not print itself whole.
+REGION_BOUND = 60
+
+
+# implements: FR-CHK-270, FR-CHK-280, FR-VIEW-380
+def annotation_regions(path, bound=REGION_BOUND):
+    """What each annotation in one file marks, and the end markers that
+    end nothing. Returns (marks, unmatched).
+
+    Nothing is parsed: the same reading holds whatever language the file
+    is written in. A line whose annotation has code before it marks that
+    line; one with `file` before the keyword marks the file; any other is a
+    block, consecutive lines one block, marking the lines down to the first
+    `srs-end:` naming one of its requirements. Markers are matched top
+    down to the nearest block above still open, so a block inside another
+    closes first and belongs to it. A block no marker ends runs to the next
+    block, or `bound` lines, or the end of the file, and says which: that
+    is a guess, and the reader is told so.
+
+    Each mark is a dict: kind ("block", "line", "file"), lines (the lines
+    carrying it), ids, first and last (the region, 1-based, inclusive),
+    how ("end", "next", "bound", "eof", "line", "file") and stop (the line
+    of the next block, where `how` is "next") and empty (a block whose
+    region holds no line but blank ones, annotations and end markers).
+    `unmatched` is (line, id, why)
+    for each identifier an `srs-end:` names that no open block above it
+    does, or that stands on a line with an annotation.
+    """
+    lines = read_lines(path)
+    marks, ends, unmatched = [], [], []
+    for lineno, line in enumerate(lines, 1):
+        if "srs-ignore" in line:
+            continue
+        found = list(RE_ANNOTATION.finditer(line))
+        if found and RE_END.search(line):
+            # An end marker shares no line with an annotation: which of the
+            # two the line is would be a guess, so it is neither — the
+            # annotation stands, and the marker is reported as ending nothing.
+            for rid in RE_END.search(line).group(1).split(","):
+                unmatched.append((lineno, rid.strip(), "shares its line with an annotation"))
+        if found:
+            ids = []
+            for match in found:
+                ids += [rid.strip() for rid in match.group(2).split(",") if rid.strip() not in ids]
+            if RE_FILE_SCOPE.search(line):
+                kind = "file"
+            elif RE_CODE_BEFORE.search(line[:found[0].start()]):
+                kind = "line"
+            else:
+                kind = "block"
+            last = marks[-1] if marks else None
+            if kind == "block" and last and last["kind"] == "block" and last["lines"][-1] == lineno - 1:
+                last["lines"].append(lineno)
+                last["ids"] += [rid for rid in ids if rid not in last["ids"]]
+            else:
+                marks.append({"kind": kind, "lines": [lineno], "ids": ids, "end": None})
+            continue
+        match = RE_END.search(line)
+        if match:
+            ends.append((lineno, [rid.strip() for rid in match.group(1).split(",")]))
+
+    open_blocks = []
+    events = sorted([(m["lines"][0], 0, m) for m in marks if m["kind"] == "block"]
+                    + [(n, 1, ids) for n, ids in ends], key=lambda e: (e[0], e[1]))
+    for lineno, is_end, item in events:
+        if not is_end:
+            open_blocks.append(item)
+            continue
+        closed = []
+        for rid in item:
+            # One marker ends a block whole: a number the block it already
+            # ended names is spoken for, and must not reach past it to a
+            # block around it that names the same number.
+            if any(rid in b["ids"] for b in closed):
+                continue
+            block = next((b for b in reversed(open_blocks) if rid in b["ids"]), None)
+            if block is None:
+                unmatched.append((lineno, rid, "no block above it names %s and is still open" % rid))
+                continue
+            block["end"] = lineno
+            open_blocks.remove(block)
+            closed.append(block)
+
+    total = len(lines)
+    starts = sorted(m["lines"][0] for m in marks if m["kind"] == "block")
+    for mark in marks:
+        start = mark["lines"][0]
+        mark["stop"] = None
+        if mark["kind"] == "line":
+            mark.update(first=start, last=start, how="line")
+        elif mark["kind"] == "file":
+            mark.update(first=1, last=min(total, bound), how="file")
+        elif mark["end"] is not None:
+            mark.update(first=start, last=mark["end"], how="end")
+        else:
+            following = [n for n in starts if n > mark["lines"][-1]]
+            limit = min(total, start + bound - 1)
+            if following and following[0] - 1 <= limit:
+                last, how, mark["stop"] = following[0] - 1, "next", following[0]
+            elif limit < total:
+                last, how = limit, "bound"
+            else:
+                last, how = total, "eof"
+            mark.update(first=start, last=last, how=how)
+    # A line marked `srs-ignore` is an example, not an annotation: a
+    # comment, and so content.
+    for mark in marks:
+        mark["empty"] = mark["kind"] == "block" and not any(
+            "srs-ignore" in lines[n - 1]
+            or (lines[n - 1].strip() and not RE_ANNOTATION.search(lines[n - 1])
+                and not RE_END.search(lines[n - 1]))
+            for n in range(mark["first"], mark["last"] + 1))
+    return marks, unmatched
+# srs-end: FR-CHK-270, FR-CHK-280, FR-VIEW-380
 
 
 def scan_annotations(by_id, errors, warnings, reports):
@@ -778,11 +958,35 @@ def scan_annotations(by_id, errors, warnings, reports):
                     "%s — file carries `%s: %s` but is not listed in that "
                     "requirement's %s field" % (where, keyword, rid, field),
                     req)
+        marks, unmatched = annotation_regions(os.path.join(ROOT, rel))
+        for lineno, rid, why in unmatched:
+            rule_finding(
+                warnings, reports, "annotation-end-unmatched",
+                "%s:%d — `srs-end: %s` ends nothing: %s" % (rel, lineno, rid, why))
+        for mark in marks:
+            # implements: FR-CHK-290
+            if mark["empty"] and not all(
+                    "annotation-empty" in ((by_id[rid].meta.get("exempt") or []) if rid in by_id else [])
+                    for rid in mark["ids"]):
+                rule_finding(
+                    warnings, reports, "annotation-empty",
+                    "%s:%d — the block naming %s marks nothing: its region, lines %d–%d, "
+                    "holds only blank lines, annotations and end markers"
+                    % (rel, mark["lines"][0], ", ".join(mark["ids"]), mark["first"], mark["last"]))
+            # srs-end: FR-CHK-290
+            if mark["kind"] == "block" and mark["end"] is None:
+                rule_finding(
+                    warnings, reports, "annotation-unended",
+                    "%s:%d — no `srs-end:` ends the block naming %s; a reader is "
+                    "shown it down to %s and told it may be incomplete — end it "
+                    "with `srs-end: %s` where what it marks ends"
+                    % (rel, mark["lines"][0], ", ".join(mark["ids"]),
+                       "line %d" % mark["last"], mark["ids"][0]))
     return claims
 
 
+# implements: FR-CHK-200
 def check_pairing(requirements, claims, warnings, reports):
-    # implements: FR-CHK-200
     """Every file a requirement names says so.
 
     The forward half of the link has always been checked; this is the half
@@ -805,10 +1009,11 @@ def check_pairing(requirements, claims, warnings, reports):
                     "%s — %s names %s in %s and the file does not carry "
                     "`%s: %s`" % (req.where, req.id, rel, field, keyword,
                                   req.id), req)
+# srs-end: FR-CHK-200
 
 
+# implements: FR-CHK-210
 def check_unclaimed(requirements, claims, warnings, reports):
-    # implements: FR-CHK-210
     """A file neither live end claims: no requirement still standing names
     it and it names none itself. Either behaviour with no requirement
     behind it, or a helper that will never have one — and the project says
@@ -839,10 +1044,11 @@ def check_unclaimed(requirements, claims, warnings, reports):
         rule_finding(warnings, reports, "annotation-absent",
                      "%s — no requirement names this file and it claims "
                      "none" % rel)
+# srs-end: FR-CHK-210
 
 
+# implements: FR-CHK-130
 def check_baselines(warnings, reports):
-    # implements: FR-CHK-130
     """A `spec/v*` tag the baseline log has no row for.
 
     The row is what makes a baseline; a tag is a bookmark on it. One
@@ -864,6 +1070,7 @@ def check_baselines(warnings, reports):
         # silence — and the rule's whole subject is a tag freezing a state
         # the log does not describe.
         logged = set()
+        # srs-end: FR-CHK-130
     # implements: FR-CHK-220
     # An empty list and an unanswerable question are told apart by how git
     # exits: no tags is a successful run returning nothing, no repository
@@ -880,10 +1087,12 @@ def check_baselines(warnings, reports):
             "%s — no readable history, so baseline tags went uncompared"
             % rel)
         return
+    # srs-end: FR-CHK-220
     for tag in sorted(tag for tag in listed if tag not in logged):
         rule_finding(warnings, reports, "baseline-without-row",
                      "%s — no row for baseline tag %s; the tag freezes a "
                      "state the log does not describe" % (rel, tag))
+# srs-end: FR-CHK-130
 
 
 def collect_code_files():
@@ -908,8 +1117,8 @@ def _cell(text):
     return text.replace("|", "\\|")
 
 
+# implements: CON-SPEC-010
 def build_traceability(requirements):
-    # implements: CON-SPEC-010
     # The matrix is compared byte-for-byte by the CI freshness gate.
     # Everything here must stay deterministic: files and IDs are sorted,
     # link fields iterate in the fixed LINK_FIELDS order.
@@ -924,6 +1133,7 @@ def build_traceability(requirements):
             for target in req.links(field):
                 if target in by_id:
                     incoming.setdefault(target, []).append((field, req.id))
+    # srs-end: INV-SPEC-020
 
     lines = []
     lines.append("# Traceability matrix")
@@ -955,6 +1165,7 @@ def build_traceability(requirements):
                      % (req.id, _cell(req.title), req.meta.get("status", "?"),
                         req.meta.get("verification", "?"), _cell(code),
                         _cell(tests)))
+    # srs-end: INV-SPEC-090
     lines.append("")
 
     lines.append("## Incoming links")
@@ -1012,12 +1223,14 @@ def build_traceability(requirements):
     for path in orphans:
         lines.append("- `%s`" % path)
     lines.append("")
+    # srs-end: FR-CHK-230
 
     return "\n".join(lines) + "\n"
+# srs-end: CON-SPEC-010
 
 
+# implements: IF-CI-020, FR-CHK-120
 def main():
-    # implements: IF-CI-020, FR-CHK-120
     args = sys.argv[1:]
     unknown = [a for a in args if a not in ("--no-write", "--strict")]
     if unknown:
@@ -1082,6 +1295,7 @@ def main():
                          % os.path.relpath(TRACE, ROOT))
 
     return 0
+# srs-end: IF-CI-020, FR-CHK-120
 
 
 if __name__ == "__main__":

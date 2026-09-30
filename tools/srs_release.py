@@ -5,7 +5,8 @@
     python3 tools/srs_release.py 1.2.0 --dry-run
     python3 tools/srs_release.py 1.2.0
 
-It dates the changelog section, bumps the checker's version, regenerates
+It dates the changelog section, bumps the framework's version in
+tools/srs_parse.py, regenerates
 the matrix, and stops. Committing is yours, with whatever git client this
 repository is driven by, and so is the `vX.Y.Z` tag.
 
@@ -19,10 +20,11 @@ carries a date is what tells it the release was cut already.
 
 Framework-only — a target project releases nothing of ours.
 
-Exit codes: 0 prepared · 2 refused, having changed nothing.
+Exit codes: 0 prepared · 2 refused, having changed nothing — except where
+the checker fails on the edited files, which it says, naming them.
 """
 
-# implements: FR-CI-070, INV-SPEC-030, CON-SPEC-030, NFR-SPEC-010
+# file implements: FR-CI-070, INV-SPEC-030, CON-SPEC-030, NFR-SPEC-010
 
 import argparse
 import datetime
@@ -112,7 +114,10 @@ def main():
 
     # The checker regenerates the matrix, so it runs before the edits:
     # everything then goes into one commit.
-    checked = run_checker("--strict")
+    # implements: FR-CI-140
+    # A dry run writes nothing, the matrix included.
+    checked = run_checker("--strict", *(["--no-write"] if args.dry_run else []))
+    # srs-end: FR-CI-140
     if checked is not None:
         return fail("the checker does not pass; nothing was written\n%s"
                     % checked)
@@ -126,9 +131,11 @@ def main():
     plan = ["CHANGELOG.md      dated %s" % date,
             "tools/srs_parse.py __version__ -> %s" % version]
     sys.stdout.write("\n".join("  " + line for line in plan) + "\n")
+    # implements: FR-CI-140
     if args.dry_run:
         sys.stdout.write("\nDry run: nothing was written.\n")
         return 0
+    # srs-end: FR-CI-140
 
     write(CHANGELOG, dated)
     write(VERSION_HOME, bumped)
