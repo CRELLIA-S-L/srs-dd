@@ -53,6 +53,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - Checks that could not fail can. A `grep -F` fed an alternation it reads literally, a rule's name that no finding prints, a `note:` any lab prints, an environment variable unset where it was never set, a legend drawn for every edge, a version token read as a stamp, a version line every release shares, steps read over the file list above them, and a status captured after `set -e` had already ended the suite — each was found by reading the suites for what could not go red, and each now does when the behaviour goes.
 - The checker exits 2 without its parser beside it, as `IF-CI-020` now says, and a suite holds it (`IF-CI-020`).
 - The suites leave no bytecode under `tools/`. Five imported a tool without `sys.dont_write_bytecode` and left `tools/__pycache__` behind; each now sets it, and the local gate fails on the suite that leaves the directory where there was none (`FR-CI-160`).
+- The page's filter by file tells every file apart. It named a file by its name alone, so two areas split by the thousand gave one `000-999.md` button that selected both; each file is now a choice of its own, named by its path under `specs/` (`FR-VIEW-410`).
 
 ### Upgrade notes
 

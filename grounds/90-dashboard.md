@@ -70,17 +70,17 @@ Counted by quarter, which is what `period` says in the register's configuration.
 
 | quarter | arrived unclaimed | areas |
 |---|---|---|
-| 2026-Q3 | 286 | ARCH 35, CHK 32, CI 18, DOC 1, GND 67, INIT 27, SKILL 41, SPEC 28, VIEW 37 |
+| 2026-Q3 | 287 | ARCH 35, CHK 32, CI 18, DOC 1, GND 67, INIT 27, SKILL 41, SPEC 28, VIEW 38 |
 
 ## Requirements resting on no hypothesis
 
-286 of 314 requirements. Weight is what stands on them: how many
+287 of 315 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
 | FR-SKILL-200 | 8 | 14 | 22 |
-| FR-VIEW-060 | 20 | 1 | 21 |
+| FR-VIEW-060 | 21 | 1 | 22 |
 | IF-SPEC-010 | 17 | 2 | 19 |
 | FR-ARCH-010 | 17 | 1 | 18 |
 | FR-SKILL-020 | 1 | 15 | 16 |
@@ -356,6 +356,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-280 | 0 | 1 | 1 |
 | FR-VIEW-290 | 0 | 1 | 1 |
 | FR-VIEW-390 | 0 | 1 | 1 |
+| FR-VIEW-410 | 0 | 1 | 1 |
 | IF-ARCH-020 | 0 | 1 | 1 |
 | IF-ARCH-040 | 0 | 1 | 1 |
 | IF-CI-020 | 0 | 1 | 1 |

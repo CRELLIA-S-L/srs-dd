@@ -34,5 +34,5 @@ The area's grammar — `[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*` — is defined once in `t
 ### Consequences
 
 A folder moves, is renamed or is dissolved without a requirement changing, and `--diff HEAD` names anything the move lost.
-The grouping shows where files are shown — an editor, a forge — and not in the viewer's listings or its page, which group by area; the page's filter by file names a file without its folder.
+The grouping shows where files are shown — an editor, a forge — and not in the viewer's listings or its page, which group by area; the page's filter by file names each file by its path under `specs/`, folder included (`FR-VIEW-410`), and that is all the page shows of a folder.
 Two areas under one folder are two areas to every tool: nothing counts, filters or checks by folder, and a project that later wants that asks for a new requirement, not for this one widened.

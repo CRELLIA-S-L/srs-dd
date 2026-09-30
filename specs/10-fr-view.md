@@ -906,3 +906,23 @@ The viewer **shall** have a name for every verification method, a backward label
 
 **Rationale.** The viewer reads the checker's parser but keeps its own tables for what it shows — the methods by name, the incoming links by label, the statuses by colour — and a value the checker gains and the viewer lacks is a card with a blank, a link with no label, or a status drawn in the page's default.
 The tables matched on 2026-09-25 and nothing compared them with the checker's tuples; the suite now does.
+
+### FR-VIEW-410 — The page's filter by file tells every file apart
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: [FR-VIEW-060]
+conflicts_with: []
+code: [tools/srs_view.py]
+tests: [tests/view-smoke.sh]
+created: 2026-09-29
+```
+
+The page's filter by file **shall** offer every file that holds requirements as a choice of its own, named by its path under `specs/`.
+
+**Rationale.** The filter named a file by its name alone, and the names repeat: an area past its thousandth requirement is a directory of `000-999.md`, `1000-1999.md` and on, so two such areas gave one button, `000-999.md`, that selected both, and neither file could be chosen alone.
+A piece of a file cut by subject repeats the same way, `storage.md` in two areas' directories.
+The path under `specs/` is unique where the name is not, and the card already shows it after `specs/`, so the button and the card name the file alike; for a file directly under `specs/` it is the name, and nothing a reader knew changes.

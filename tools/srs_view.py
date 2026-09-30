@@ -2256,7 +2256,7 @@ def render_card(entry, model, known, links, diff_state):
              'data-area="%s" data-file="%s" data-search="%s"%s>'
              % (esc(entry["id"]), esc(entry["id"]), esc(entry["status"]),
                 esc(entry["type"]), esc(entry["area"]),
-                esc(os.path.basename(entry["path"])),
+                esc(file_key(entry["path"])),   # implements: FR-VIEW-410
                 esc(" ".join([entry["id"], entry["title"], entry["statement"],
                               entry["rationale"]]).lower()),
                 ' class="%s"' % " ".join(classes) if classes else "")]
@@ -2282,6 +2282,17 @@ def render_card(entry, model, known, links, diff_state):
     parts.append("</article>")
     return "".join(parts)
 # srs-end: FR-VIEW-130, INV-SPEC-050
+
+
+# implements: FR-VIEW-410
+def file_key(path):
+    """The name a requirements file goes by in the page's filter: its path
+    under specs/. Its name alone would merge two areas' `000-999.md` into
+    one choice, and a filter that cannot tell two files apart chooses
+    neither."""
+    prefix = "specs/"
+    return path[len(prefix):] if path.startswith(prefix) else path
+# srs-end: FR-VIEW-410
 
 
 def render_chips(key, values, counts):
@@ -2898,7 +2909,7 @@ def render_page(model, links, diff=None, baselines=None):
             counts["status"].get(entry["status"], 0) + 1
         counts["type"][entry["type"]] = counts["type"].get(entry["type"], 0) + 1
         counts["area"][entry["area"]] = counts["area"].get(entry["area"], 0) + 1
-        name = os.path.basename(entry["path"])
+        name = file_key(entry["path"])   # implements: FR-VIEW-410
         counts["file"][name] = counts["file"].get(name, 0) + 1
 
     filters = []

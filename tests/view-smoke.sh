@@ -656,6 +656,31 @@ assert "querySelectorAll('.chip')" in page and \
 PY2
 
 # srs-end: FR-VIEW-260
+# --- verifies: FR-VIEW-410 — the filter by file offers every file as a choice of
+# --- its own, named by its path under specs/: two files of one name in two
+# --- directories are two buttons, each card carries the key of its own, and a
+# --- file directly under specs/ keeps its plain name.
+mkdir -p specs/one specs/two
+printf '### FR-CORE-910 — In one\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe system **shall** be in one.\n' > specs/one/storage.md
+printf '### FR-CORE-920 — In two\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-CORE-910]\n```\n\nThe system **shall** be in two.\n' > specs/two/storage.md
+python3 tools/srs_view.py --html >/dev/null
+python3 - <<'PY2'
+import re
+page = open('.srs-site/index.html', encoding='utf-8').read()
+chips = dict(re.findall(r'data-key="file" data-value="([^"]*)">[^<]*<span class="n">(\d+)</span>', page))
+assert chips.get('one/storage.md') == '1' and chips.get('two/storage.md') == '1', \
+    'two files of one name are not two choices: %r' % chips
+assert 'storage.md' not in chips, 'a file is still offered by its name alone: %r' % chips
+assert '10-fr-core.md' in chips, 'a file directly under specs/ lost its plain name: %r' % chips
+for rid, key in (('FR-CORE-910', 'one/storage.md'), ('FR-CORE-920', 'two/storage.md')):
+    assert re.search(r'data-id="%s"[^>]*data-file="%s"' % (rid, re.escape(key)), page), \
+        '%s does not carry the key of its file' % rid
+PY2
+rm -rf specs/one specs/two
+python3 tools/srs_view.py --html >/dev/null
+echo "view-smoke: the filter by file names every file by its path under specs/"
+
+# srs-end: FR-VIEW-410
 # verifies: FR-VIEW-070
 # Deterministic output: no timestamps, so two runs must be identical.
 cp .srs-site/index.html /tmp/first.html
