@@ -74,7 +74,7 @@ A file the installer did not write is never overwritten; the version is part of 
 Copy into your repository, by hand:
 
 - `skeleton/specs/` → `specs/` (the starter files), plus `specs/README.md` and `specs/adr/template.md` from this repository — the standard itself and the decision template, each kept in one copy;
-- `tools/srs_check.py`, `tools/srs_parse.py`, `tools/srs_view.py`, `tools/srs_upgrade.py`, `tools/srs_baseline.py` and `tools/srs_dates.py` — the checker imports the parser from beside itself, so the two travel together (not the framework-only tools — the installer, the release command, the two measurements and the local gate — which stay in the framework repository);
+- `tools/srs_check.py`, `tools/srs_parse.py`, `tools/srs_view.py`, `tools/srs_upgrade.py`, `tools/srs_baseline.py`, `tools/srs_dates.py` and `tools/srs_gate.py` — the checker imports the parser from beside itself, so the two travel together, and the gate is what the hook and the pipeline call (not the framework-only tools — the installer, the release command, the two measurements and the local gate — which stay in the framework repository);
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or `srs-release`, which are framework-only);
 - to keep an architecture layer as well — what the parts are and what each carries — also `skeleton/arch/` → `arch/`, plus `arch/README.md` from this repository, `tools/srs_arch.py` and the `srs-arch` skill.
   The skeleton carries no `arch/arch-config.json` either: write it as `{"rules": {}}`.

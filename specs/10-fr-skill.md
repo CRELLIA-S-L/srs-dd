@@ -1073,3 +1073,41 @@ The everyday procedure **shall** have the closing of a change remove from `specs
 An agent that opens the file whole reads the rule in its first lines; one that reads it by ranges, as an agent deep in a long session does to spare its context, never does — the agent that split `FR-INIT-060` that day read the entry with `sed -n 50,66p`, marked the issue decided and kept it, copying two neighbours that stay for reasons of their own.
 Replayed on a fresh agent with the same task, the file was read with `cat` in the third call and the entry removed, so the difference was the reading, and the fix puts the rule where every agent has it whatever it reads: in the procedure, loaded whole at the start of the work, and in the standard's table of files.
 Tested by the procedure's list of what it must name, so a cut that drops the sentence is red.
+
+### FR-SKILL-410 — The installing procedures wire the gate into the hook
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-INIT-300]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+The installation and upgrade procedures **shall** tell the agent how to wire the gate into whatever the project runs its pre-commit hooks with — a hook of its own, the pre-commit framework, husky or lefthook — up to confirming that git runs the hook and that the hook calls the gate.
+
+**Rationale.** The hook is the project's file (`FR-INIT-290`), so the call to the gate is added where the project runs its hooks, and each way of running them takes it differently: a line in a hook, a local entry in the pre-commit framework's configuration, a command in husky's or lefthook's.
+Switching `core.hooksPath` to `.githooks` turns off whatever ran before, which is why it is done only where nothing did (`FR-INIT-080`).
+The work ends at the confirmation, from the installer's report (`FR-INIT-300`), because a hook git does not run is a gate that looks installed.
+
+### FR-SKILL-420 — The installing procedures wire the gate into the pipelines
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-INIT-310]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+The installation and upgrade procedures **shall** tell the agent how to add the gate as a step of each service the project runs its pipelines on, up to confirming from the installer's report, or by reading a pipeline the installer does not recognise, that the step is there.
+
+**Rationale.** The pipelines are the project's files (`FR-INIT-290`), and a project runs them on whatever service it chose; the installer recognises GitHub's and GitLab's (`FR-INIT-310`) and nothing else, so for any other the agent reads the pipeline itself.

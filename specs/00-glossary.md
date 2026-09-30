@@ -6,7 +6,7 @@ Where a word is also an SRS term of art, the meaning here is the one that binds.
 | Term | Meaning |
 |---|---|
 | Target | A project SRS-DD is installed into, as opposed to this repository |
-| Payload | What the installer copies into a target: `skeleton/`, the standards, the decision template, the tooling, the shipped skills, the CI templates, the hook and `.gitattributes` |
+| Payload | What the installer copies into a target: `skeleton/`, the standards, the decision template, the tooling, the shipped skills, the hook and pipeline starters and `.gitattributes` |
 | Skeleton | The starter specification files in `skeleton/specs/`, meant to be edited by the target |
 | Standard | `specs/README.md` — the normative document on the specification format, identical in every project |
 | Area | The middle segment of an identifier; a project-declared partition of the system by subject matter |

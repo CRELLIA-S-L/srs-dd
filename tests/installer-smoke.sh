@@ -62,7 +62,9 @@ done
 # one more copy that falls behind the tuple it copies.
 shipped_skills=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); import srs_init; print(' '.join(srs_init.SKILLS))")
 for skill in $shipped_skills; do
-    grep -qE "^       $skill +" /tmp/fresh.log
+    grep -qE "^       $skill +" /tmp/fresh.log \
+        || { echo "FAIL FR-SKILL-080, FR-SKILL-100, FR-SKILL-110 — the installer ships $skill and its summary does not name it"
+             cat /tmp/fresh.log; exit 1; }
 done
 for framework_only in srs-init srs-release; do
     if grep -qE "^       $framework_only +" /tmp/fresh.log; then
@@ -810,26 +812,48 @@ done
          echo "the committed one against a fresh run"; exit 1; }
 
 # srs-end: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150
-# --- verifies: FR-ARCH-170 — the gate a target installs compares the map.
-# --- Until this shipped, a project's map was generated, committed and never
-# --- looked at again: `tests/arch-check.sh` proves the comparison for this
-# --- repository and says nothing about the template that travels.
-grep -qF "python3 tools/srs_arch.py" "$AT/.github/workflows/srs.yml" \
-    || { echo "FAIL FR-ARCH-170 — the installed pipeline does not regenerate"
-         echo "the map"; exit 1; }
-grep -qF "arch/90-map.md is stale" "$AT/.github/workflows/srs.yml" \
-    || { echo "FAIL FR-ARCH-170 — the installed pipeline does not fail on a"
-         echo "stale map"; exit 1; }
-
-# --- And the same template reaches a project that keeps no layer, where the
-# --- step is inert: it is guarded by the layer's configuration file, so it
-# --- costs a project that declined the layer nothing but a passing `if`.
-grep -qF "arch/arch-config.json" "$AT/.github/workflows/srs.yml" \
-    || { echo "FAIL FR-ARCH-170 — the step is not guarded by the layer's"
-         echo "configuration, so it would run where there is no layer"; exit 1; }
-grep -qF "arch/90-map.md is stale" /tmp/srs-target/.github/workflows/srs.yml \
-    || { echo "FAIL FR-ARCH-170 — a project without the layer got a different"
-         echo "template"; exit 1; }
+# --- verifies: FR-ARCH-170, FR-CI-010, FR-GND-370, FR-CI-180 — the gate a
+# --- target installs compares the matrix, the dashboard and the map, and the
+# --- pipeline and the hook both run it through the one tool. Run here rather
+# --- than read: the installed pipeline's command is executed in a project
+# --- keeping both layers, and each generated file made stale in turn fails it
+# --- by name. The same command passes, and says nothing of a map, where the
+# --- project keeps no layer.
+GT2=/tmp/srs-gate-target
+rm -rf "$GT2"
+python3 tools/srs_init.py "$GT2" --defaults --areas APP --ci both --grounds yes --period year --arch yes \
+    > /dev/null 2>&1
+for f in .github/workflows/srs.yml .gitlab-ci.yml .githooks/pre-commit; do
+    grep -qF "python3 tools/srs_gate.py" "$GT2/$f" \
+        || { echo "FAIL FR-CI-180 — the installed $f does not run the gate through tools/srs_gate.py"; exit 1; }
+    if grep -qE "python3 tools/srs_(check|grounds|arch)\.py" "$GT2/$f"; then
+        echo "FAIL FR-CI-180 — the installed $f still runs a step of the gate itself"; exit 1
+    fi
+done
+( cd "$GT2" && git init -q . && git add -A \
+  && git -c user.email=t@t -c user.name=t commit -qm base )
+rc=0; ( cd "$GT2" && python3 tools/srs_gate.py ) > /tmp/gate-fresh.log 2>&1 || rc=$?
+[ "$rc" = 0 ] || { echo "FAIL FR-CI-180 — the gate refused a project just installed"; cat /tmp/gate-fresh.log; exit 1; }
+for generated in specs/90-traceability.md grounds/90-dashboard.md arch/90-map.md; do
+    printf '\nedited by hand\n' >> "$GT2/$generated"
+    ( cd "$GT2" && git add -A && git -c user.email=t@t -c user.name=t commit -qm "stale $generated" )
+    rc=0; ( cd "$GT2" && python3 tools/srs_gate.py ) > /tmp/gate-stale.log 2>&1 || rc=$?
+    [ "$rc" = 1 ] && grep -qF "srs_gate.py: $generated was regenerated and differs from what git holds" /tmp/gate-stale.log \
+        || { echo "FAIL — the installed pipeline's gate passed a committed $generated that is stale (exit $rc)"
+             cat /tmp/gate-stale.log; exit 1; }
+    ( cd "$GT2" && git checkout -q -- "$generated" && git reset -q --hard HEAD~1 )
+done
+rm -rf "$GT2"
+NT2=/tmp/srs-gate-nolayers
+rm -rf "$NT2"
+python3 tools/srs_init.py "$NT2" --defaults --areas APP --ci github > /dev/null 2>&1
+( cd "$NT2" && git init -q . && git add -A && git -c user.email=t@t -c user.name=t commit -qm base )
+rc=0; ( cd "$NT2" && python3 tools/srs_gate.py ) > /tmp/gate-nolayers.log 2>&1 || rc=$?
+[ "$rc" = 0 ] || { echo "FAIL FR-ARCH-170 — the gate refused a project that keeps no layer"; cat /tmp/gate-nolayers.log; exit 1; }
+absent "arch/90-map.md" /tmp/gate-nolayers.log
+absent "grounds/90-dashboard.md" /tmp/gate-nolayers.log
+rm -rf "$NT2"
+echo "installer-smoke: the installed gate compares every generated file the project keeps, through one tool"
 
 # --- Declined, it leaves no trace at all.
 rm -rf /tmp/srs-noarch
@@ -840,7 +864,7 @@ for f in arch tools/srs_arch.py .claude/skills/srs-arch; do
         && { echo "FAIL FR-ARCH-120 — --arch no still installed $f"; exit 1; }
 done
 
-# srs-end: FR-ARCH-170
+# srs-end: FR-ARCH-170, FR-CI-010, FR-GND-370, FR-CI-180
 # --- verifies: FR-ARCH-130 — an upgrade adds it only when asked, and says
 # --- how to ask.
 python3 tools/srs_init.py /tmp/srs-noarch --defaults \
@@ -871,7 +895,7 @@ grep -qF "does not remove a layer that is already there" /tmp/arch-no.log \
 echo "installer-smoke: the architecture layer is offered, complete and quiet"
 # srs-end: FR-ARCH-130
 
-# --- verifies: FR-GND-570, FR-ARCH-300 — the hook gates the dashboard and
+# --- verifies: FR-GND-570, FR-ARCH-300, FR-CI-020 — the hook gates the dashboard and
 # --- the map as it gates the matrix: regenerated, and the commit refused
 # --- while the copy being committed is not the checker's. Only where the
 # --- project keeps the layer, decided at every commit by its configuration.
@@ -893,7 +917,7 @@ hook_in() {
     ( cd "$1" && sh .githooks/pre-commit ) > /tmp/hook-layers.log 2>&1 || rc=$?
 }
 refused() {
-    [ "$rc" = 1 ] && grep -qF "pre-commit: $1 was regenerated — stage it and retry." /tmp/hook-layers.log \
+    [ "$rc" = 1 ] && grep -qF "srs_gate.py: $1 was regenerated and differs from what git holds — stage it and commit again." /tmp/hook-layers.log \
         || { echo "FAIL $2 — the hook did not refuse over $1 ($3)"; cat /tmp/hook-layers.log; exit 1; }
 }
 passed() {
@@ -956,7 +980,7 @@ hook_in "$NT"; refused grounds/90-dashboard.md FR-GND-570 "a register added afte
 rm -rf "$HT" "$NT"
 
 echo "installer-smoke: the hook refuses a stale dashboard or map where the project keeps the layer, and nowhere else"
-# srs-end: FR-GND-570, FR-ARCH-300
+# srs-end: FR-GND-570, FR-ARCH-300, FR-CI-020
 # --- verifies: IF-SPEC-040 — an area whose name joins two words with an
 # --- underscore is accepted where the installer asks for areas and found where
 # --- it adopts a specification that already uses one, in a folder grouping

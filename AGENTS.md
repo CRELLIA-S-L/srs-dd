@@ -21,7 +21,7 @@ Never run the installer against this repository: it would install the framework 
 | `specs/README.md` | The standard itself — the normative document on the specification format. Shipped to every target from here; there is no second copy |
 | `specs/` | This framework's own specification: requirements about the checker, the viewer, the installer, the skills and the CI templates |
 | `skeleton/` | The payload: starter specification files and the target-facing `AGENTS.md`/`CLAUDE.md`, copied into projects by the installer. This file and the root `CLAUDE.md` are this project's instances of those two, and carry every rule they state (INV-SKILL-010) |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (shipped to targets), `srs_grounds.py` (shipped where a project keeps a register), `srs_arch.py` (shipped where a project keeps an architecture layer), `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh` and `test_lib.sh` (framework-only) |
+| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_gate.py` (shipped to targets), `srs_grounds.py` (shipped where a project keeps a register), `srs_arch.py` (shipped where a project keeps an architecture layer), `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh` and `test_lib.sh` (framework-only) |
 | `tests/` | The suites this repository's pipeline runs; requirements cite them by path |
 | `ci/` | CI and pre-commit templates for target projects — not this repository's own pipeline |
 | `.claude/skills/` | Agent skills; `srs-init` and `srs-release` are framework-only, the rest ship to targets — `srs-bet` and `srs-arch` with their layer |
@@ -59,6 +59,6 @@ This repository is itself an SRS-DD project: behavior changes go through `specs/
 - **Date requirements** — `python3 tools/srs_dates.py` writes into each requirement the date its identifier first appeared in the history; `--dry-run` says what it would write. Run on purpose, never by a gate.
 - **Grounds register** — `python3 tools/srs_grounds.py` checks `grounds/` and regenerates its dashboard; `--blast <path>` says what the requirements behind a file stand on. The procedure is `srs-bet`.
 - **Architecture layer** — `python3 tools/srs_arch.py` checks `arch/` against the specification and regenerates its map. The procedure is `srs-arch`.
-- **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does; `git config core.hooksPath .githooks` wires it into `pre-commit`.
+- **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does, and `python3 tools/srs_gate.py` the gate a target's hook runs; `git config core.hooksPath .githooks` wires both into `pre-commit`.
 - **Cut a release** — the `srs-release` procedure; it decides nothing about the version or the notes on its own.
 - **Contribution and release rules** — `CONTRIBUTING.md`.

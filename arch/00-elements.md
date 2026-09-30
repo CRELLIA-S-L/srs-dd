@@ -127,8 +127,8 @@ The normative document on the specification format, and the starter files copied
 
 ```yaml
 status: built
-carries: [ci, .github/workflows/srs.yml, .githooks, tools/ci_selftest.sh, tools/test_lib.sh, tests, specs/50-verification.md]
-requirements: [FR-ARCH-170, FR-CI-010, FR-CI-020, FR-CI-030, FR-CI-040, FR-CI-050, FR-CI-060, FR-CI-080, FR-CI-090, FR-CI-100, FR-CI-110, FR-CI-120, FR-CI-130, FR-GND-310, FR-GND-370, INV-SPEC-100, INV-SPEC-110, FR-CI-160, FR-GND-570, FR-ARCH-300]
+carries: [ci, .github/workflows/srs.yml, .githooks, tools/ci_selftest.sh, tools/test_lib.sh, tools/srs_gate.py, tests, specs/50-verification.md]
+requirements: [FR-ARCH-170, FR-CI-010, FR-CI-020, FR-CI-030, FR-CI-040, FR-CI-050, FR-CI-060, FR-CI-080, FR-CI-090, FR-CI-100, FR-CI-110, FR-CI-120, FR-CI-130, FR-GND-310, FR-GND-370, INV-SPEC-100, INV-SPEC-110, FR-CI-160, FR-GND-570, FR-ARCH-300, FR-CI-180]
 depends_on: [E-010, E-050, E-060]
 ```
 

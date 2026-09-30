@@ -157,9 +157,13 @@ ANNOTATION_REMOVED = "annotation removed on install"
 MARKER = "SRS-DD-" + __version__
 RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
-# Tooling copied into every target, refreshed by adopt and upgrade.
+# Tooling copied into every target, refreshed by adopt and upgrade. The
+# gate is among it, so that the hook and the pipeline, which may be the
+# project's own, call a tool that moves with the framework.
+# implements: FR-CI-180
 TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
-         "srs_baseline.py", "srs_dates.py")
+         "srs_baseline.py", "srs_dates.py", "srs_gate.py")
+# srs-end: FR-CI-180
 
 # Skills shipped to targets. srs-init itself stays framework-only, and so
 # does srs-release: a target releases nothing of ours (FR-SKILL-070), and

@@ -124,6 +124,7 @@ Since 2026-09-21 adopt sets that file aside and installs the standard in its pla
 `grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
 `arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
 The code had it right from the layer's first commit — the same flag the grounds standard travels under — so what lagged was the enumeration, and an enumeration that lags is invisible: every path it names exists, and nothing reports the one it does not.
+The CI configuration and the hook leave this list when `FR-INIT-290` is built: they are the project's files, which the installer will then write once and never again.
 So the characterization widened: "commonly owns" was true of CI files and agent guides, and the standard is not something anyone writes for themselves — it is merely a file that may already be theirs.
 
 The agent guides were in this list and behaved unlike the other six: an upgrade left them alone with the flag and without it, because they are filled in rather than copied and the answers had not been kept.
@@ -158,7 +159,7 @@ Where `--dry-run` is given, the installer **shall** print the created, refreshed
 ### FR-INIT-080 — A project's own pre-commit hook is never displaced
 
 ```yaml
-status: implemented
+status: partial
 verification: T
 derives_from: []
 depends_on: [FR-CI-020]
@@ -169,9 +170,10 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-If the target already runs something on commit, the installer **shall** install the gate beside it and say so, instead of advising the `core.hooksPath` switch that would disable what is already there.
+If the target already runs something on commit, the installer **shall** write no hook and say what calls the gate from it, instead of advising the `core.hooksPath` switch that would disable what is already there.
 
 **Rationale.** Silently disabling a project's linters and secret scanners would be the single most damaging thing this tool could do.
+Built in full, it lays no copy of the gate beside the project's hook either: the gate is a tool (`FR-CI-180`), and what the project's hook needs is a call to it, which the installer will say and the installing procedure add (`FR-SKILL-410`); until then the copy is still laid beside as `.githooks/pre-commit.srs-dd` and named in the hint, which is what `partial` records.
 
 ### FR-INIT-090 — The lexicon is asked for, not assumed
 
@@ -605,9 +607,69 @@ tests: []
 created: 2026-09-30
 ```
 
-Every file the installer copies into a target whose text stays the framework's — the tools, the skills, the standards, the CI templates and the pre-commit hook — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+Every file the installer copies into a target whose text stays the framework's — the tools, the skills and the standards — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
 
 **Rationale.** The licence asks that its notice travel with every copy, and none of the files the installer copies said who holds the copyright or on what terms: a tool lifted from an installed project carried the framework's name and version and no notice of whose it was.
 The notice goes into the file rather than beside it, because a file is what gets copied on, one at a time.
-The CI templates, the hook and the standards may be edited into the project's own (`FR-INIT-060`), and the notice stays true of what of ours they keep.
+The standards may be edited into the project's own (`FR-INIT-060`), and the notice stays true of what of ours they keep.
+The pre-commit hook and the pipelines carry none: they are the project's files, shared with every other check it runs (`FR-INIT-290`), and the gate they call carries the notice as a tool.
 A file that becomes the project's own — its specification, its constitution, its agent guides once filled in — carries none, because a copyright line there would claim the project's document as ours; nor does the decision template, which a project copies into every decision it writes.
+
+### FR-INIT-290 — The hook and the pipelines are the project's files
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-CI-180]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+The installer **shall** never write into `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml` where the file already exists, with `--force` or without.
+
+**Rationale.** A project runs every pre-commit check it has through one hook, and in GitLab every job through one file; neither belongs to the framework once the project has one, and a copyright line of ours in it would claim the project's file as ours.
+Before this they were refreshed with `--force` where they carried the marker, which rewrote whatever the project had added beside the gate.
+Nothing is lost by leaving them alone: the gate is a tool refreshed with the rest (`FR-CI-180`), and all they hold of ours is a call to it.
+
+### FR-INIT-300 — The installer says whether the hook runs the gate
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-INIT-290]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+After installing or upgrading, the installer **shall** report whether git runs a pre-commit hook in the target and whether that hook, or the pre-commit framework, husky or lefthook configuration that runs it, calls `tools/srs_gate.py`, giving what to add where it does not.
+
+**Rationale.** The installer no longer writes into a hook that exists (`FR-INIT-290`), so whether the gate runs before a commit depends on a line somebody else adds, and on git running the hook at all; an install that says nothing of either leaves a gate that looks installed and never runs.
+A hook manager's own file is a shim that calls its configuration, so the configuration is what is read.
+
+### FR-INIT-310 — The installer says whether a pipeline runs the gate
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-INIT-290]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-09-30
+```
+
+After installing or upgrading, the installer **shall** report whether any file under `.github/workflows/`, or `.gitlab-ci.yml`, calls `tools/srs_gate.py`, giving the step to add where none does.
+
+**Rationale.** The pipeline is the gate nobody can skip, and it is the project's file (`FR-INIT-290`), so the installer says whether it calls the gate rather than making it.
+Any workflow will do, because a project's other workflows — a release, a deployment — have no reason to run it, and naming each of them would be a false alarm.
+These are the two services the starters are for; a pipeline elsewhere is read by the agent (`FR-SKILL-420`).

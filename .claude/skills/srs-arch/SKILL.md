@@ -25,7 +25,7 @@ Two more are about the dependencies the parts declare, and the specification has
 - **a dependency the code has and the model does not declare** — `depends_on` is incomplete, or the call is the thing that is wrong: a file in the wrong part, or a part reaching where it was cut not to. Read the file the finding names before deciding; the standard says where the checker gets these edges and which languages it reads on its own.
 - **elements that depend on each other in a circle** — the cut is wrong and two parts are one, or one edge is a dependency in name only. A warning, because nothing the checker computes is broken by a circle.
 
-One more is about the record falling behind the specification: an element still carrying a requirement that was superseded or withdrawn — drop it from the record, or carry the successor.
+Two more are about the record falling behind: an element still carrying a requirement that was superseded or withdrawn — drop it from the record, or carry the successor — and a path an element carries that is no longer in the repository — the record moves with the file.
 
 ## Naming a part
 

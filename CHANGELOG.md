@@ -8,6 +8,20 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.22.0]
+
+### Added
+
+- The hook and the pipeline run one gate, shipped as a tool. `tools/srs_gate.py` runs the checker and, where the project keeps them, the register's and the layer's, then refuses naming every generated file that differs from what git holds; the pre-commit hook and both CI templates call it and hold no step of their own, and it is refreshed with the tooling on every upgrade (`FR-CI-180`, ADR-0037).
+
+### Changed
+
+- The gate's refusal reads the same in the hook and the pipeline. It names each stale generated file and says to stage it and commit again, and in a pipeline it also prints the difference (`FR-CI-010`, `FR-CI-020`, `FR-GND-570`, `FR-ARCH-300`).
+
+### Upgrade notes
+
+- The pre-commit hook and the CI templates now call `tools/srs_gate.py`, which arrives with the tooling; they are refreshed only with `--force`, where they still carry the framework's marker. A hook or pipeline that is the project's own keeps working as it is; to have the gate move with the tooling from now on, replace its gate steps with `python3 tools/srs_gate.py --staged` in the hook and `python3 tools/srs_gate.py` in the pipeline.
+
 ## [0.21.0] — 2026-09-30
 
 ### Added
@@ -61,7 +75,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - `.gitattributes` is refreshed only with `--force`, where it still carries the framework's marker; a project whose `.gitattributes` is its own adds `grounds/90-dashboard.md text eol=lf` and `arch/90-map.md text eol=lf` for the layers it keeps.
 - Where an annotation stands changed, and nothing turns red. An annotation at the top of a function's body, or a list at the top of a file, is now a block over what follows it: with no `srs-end:` it runs to the next annotation, sixty lines or the end of the file, not to the end of the function, and a list speaks for the whole file only when it says `file implements:` or `file verifies:`; move a function's annotation above it, add `file` to a list that speaks for the whole file, and end a block with `srs-end:` where what it marks ends — the checker now reports each block no marker ends, at `report`, which fails nothing. A project that wants every block ended sets `"annotation-unended": "warn"` in `rules`.
 - The constitution is the project's own and an upgrade never touches it, even with `--force`: a project that wants ART-100 copies it from `skeleton/specs/constitution.md` of the framework it upgrades from, under a number its own constitution leaves free. The agent guide carries the matching rule, refreshed with `--force` where it still carries the framework's marker; a project whose `AGENTS.md` is its own adds the line headed *Nothing sensitive goes into the repository*.
-- The pre-commit hook is refreshed only with `--force`, where it still carries the framework's marker; a project whose hook is its own adds the block that runs `srs_grounds.py` and `srs_arch.py` from `ci/pre-commit` of the framework it upgrades from. The hook runs only where it was activated once with `git config core.hooksPath .githooks`.
+- The pre-commit hook is refreshed only with `--force`, where it still carries the framework's marker; a project whose hook is its own adds the block that runs `srs_grounds.py` and `srs_arch.py` from `ci/pre-commit` of the framework it upgrades from. The hook runs only where it was activated once with `git config core.hooksPath .githooks`. Since 0.22.0 that block is gone from `ci/pre-commit`: a hook of the project's own calls `python3 tools/srs_gate.py --staged` instead, as the 0.22.0 notes say.
 
 ## [0.20.1] — 2026-09-24
 

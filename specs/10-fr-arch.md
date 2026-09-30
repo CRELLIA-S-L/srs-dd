@@ -341,7 +341,7 @@ derives_from: []
 depends_on: [CON-ARCH-020]
 refines: []
 conflicts_with: []
-code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml]
+code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml, tools/srs_gate.py]
 tests: [tests/arch-check.sh, tests/installer-smoke.sh]
 created: 2026-09-08
 ```
@@ -630,12 +630,12 @@ derives_from: [FR-ARCH-170]
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit]
+code: [ci/pre-commit, .githooks/pre-commit, tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-29
 ```
 
-Where a project carries an architecture layer, the installed hook **shall** regenerate the map and refuse the commit while the copy being committed differs from it.
+Where a project carries an architecture layer, the gate, run before a commit, **shall** regenerate the map and refuse the commit while the copy being committed differs from it.
 
 **Rationale.** The reason `FR-GND-570` gives for the register, for the layer: `FR-ARCH-170` makes the pipeline refuse a stale map, and the map reads the specification — a requirement added to it changes how many the elements carry of how many there are — so a commit that touches only `specs/` can leave it stale.
 Whether the project carries the layer is read at every commit from `arch/arch-config.json`, as the pipeline reads it.

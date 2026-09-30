@@ -10,6 +10,7 @@ System behavior is described in `specs/` as numbered requirements with links bet
 <SRS-DD-WIDTH-LINE>
 - **Markdown is not wrapped to a width** — a line breaks where the meaning breaks, never inside a sentence; the renderer does the wrapping.
 - **Check** — `python3 tools/srs_check.py`.
+- **Gate** — `python3 tools/srs_gate.py` runs what the pipeline and the pre-commit hook run: the checkers, then every generated file compared with what git holds.
 - **Read** — `python3 tools/srs_view.py <ID>` for one requirement with its links resolved, `--code <path>` for the requirements describing a file (`--statements` adds what each obliges), `<ID> --where` for the lines that carry it (`--source` prints them), `--areas` for what the specification is divided into, `--open` for a page a non-engineer can read; `.claude/skills/srs-page/SKILL.md` is the procedure around it.
 - **Check a finished change** — `.claude/skills/srs-check/SKILL.md` reads the `verification` method and the `tests` field of every requirement the change touched, and offers exactly those; it runs nothing unasked.
 - **Skills** — the procedures in `.claude/skills/*/SKILL.md` are plain markdown; an agent without a skill system reads them directly as workflow guides.

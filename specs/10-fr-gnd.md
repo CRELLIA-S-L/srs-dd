@@ -693,12 +693,12 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit, tools/srs_grounds.py]
+code: [ci/pre-commit, .githooks/pre-commit, tools/srs_grounds.py, tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-08-20
 ```
 
-Where a project carries a grounds register, the installed hook **shall** report, without failing the commit, the bets on the requirements whose files the commit changes.
+Where a project carries a grounds register, the gate, run before a commit, **shall** report, without failing the commit, the bets on the requirements whose files the commit changes.
 
 **Rationale.** The register's promise is that a stale hypothesis becomes visible where the code is, and a dashboard nobody is obliged to open does not keep it.
 The hook is the one place the framework already reaches everyone who opted into the gate, and the moment it reaches them is the moment they are touching the code in question.
@@ -835,8 +835,8 @@ derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [.github/workflows/srs.yml, ci/github-workflow.yml, ci/gitlab-ci.yml]
-tests: [tests/grounds-check.sh]
+code: [.github/workflows/srs.yml, ci/github-workflow.yml, ci/gitlab-ci.yml, tools/srs_gate.py]
+tests: [tests/grounds-check.sh, tests/installer-smoke.sh]
 created: 2026-08-20
 ```
 
@@ -1359,12 +1359,12 @@ derives_from: [FR-GND-370]
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit]
+code: [ci/pre-commit, .githooks/pre-commit, tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-29
 ```
 
-Where a project carries a grounds register, the installed hook **shall** regenerate the dashboard and refuse the commit while the copy being committed differs from it.
+Where a project carries a grounds register, the gate, run before a commit, **shall** regenerate the dashboard and refuse the commit while the copy being committed differs from it.
 
 **Rationale.** `FR-GND-370` makes the pipeline refuse a stale dashboard, and a gate that only exists in the pipeline teaches people to push and wait — the reason `FR-CI-020` put the matrix's gate in the hook.
 The dashboard reads the specification as well as the register — a requirement changing status moves it — so a commit that touches only `specs/` can leave it stale, and an agent that ran the specification checker and stopped there was told so only by the pipeline.
