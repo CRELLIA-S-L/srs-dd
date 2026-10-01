@@ -39,7 +39,7 @@ def invocations(text, tool):
 def missing(text, wanted):
     lost = []
     for token in wanted:
-        if token.startswith("tools/") and " " in token:
+        if token.startswith(("tools/", "srs-dd/tools/")) and " " in token:
             tool, flag = token.split(" ", 1)
             if not any(flag in flags for flags in invocations(text, tool)):
                 lost.append(token)
@@ -76,18 +76,18 @@ lab = tempfile.mkdtemp()
 for name in ("kept", "cut", "empty", "unlisted"):
     os.makedirs(os.path.join(lab, ".claude/skills", name))
 os.makedirs(os.path.join(lab, "tests/skill-instructions"))
-original = ("# Kept\n\nRun `python3 tools/srs_view.py --code <path>` first; then `python3 tools/srs_view.py --list --area X`.\n"
-            "Never without confirmation (ART-030). Then `srs-new`.\n")
+original = ("# Kept\n\nRun `python3 srs-dd/tools/srs_view.py --code <path>` first; then `python3 srs-dd/tools/srs_view.py --list --area X`.\n"
+            "Never without confirmation (ART-SRS-030). Then `srs-new`.\n")
 open(os.path.join(lab, ".claude/skills/kept/SKILL.md"), "w").write(original)
 open(os.path.join(lab, ".claude/skills/cut/SKILL.md"), "w").write(original.replace("--code <path>", "<path>"))
 open(os.path.join(lab, ".claude/skills/empty/SKILL.md"), "w").write(original)
 open(os.path.join(lab, ".claude/skills/unlisted/SKILL.md"), "w").write(original)
-wanted = "# list\ntools/srs_view.py\ntools/srs_view.py --code\ntools/srs_view.py --area\nART-030\nsrs-new\n"
+wanted = "# list\nsrs-dd/tools/srs_view.py\nsrs-dd/tools/srs_view.py --code\nsrs-dd/tools/srs_view.py --area\nART-SRS-030\nsrs-new\n"
 for name in ("kept", "cut", "stale"):
     open(os.path.join(lab, "tests/skill-instructions", name + ".txt"), "w").write(wanted)
 open(os.path.join(lab, "tests/skill-instructions/empty.txt"), "w").write("# nothing\n")
 found = check(lab)
-assert ("cut", "no longer names `tools/srs_view.py --code`") in found, found
+assert ("cut", "no longer names `srs-dd/tools/srs_view.py --code`") in found, found
 assert not any(name == "kept" for name, _ in found), found       # --area is found inside `--list --area X`
 assert any(name == "stale" and "no procedure" in why for name, why in found), found
 assert any(name == "unlisted" and "no list" in why for name, why in found), found

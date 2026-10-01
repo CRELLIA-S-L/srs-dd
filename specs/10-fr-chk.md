@@ -1,6 +1,6 @@
 # Functional requirements — chk
 
-The checker, `tools/srs_check.py`: what it validates, what it generates, and how it reports.
+The checker, `srs-dd/tools/srs_check.py`: what it validates, what it generates, and how it reports.
 Everything here is observable from a single run.
 
 ### FR-CHK-010 — Well-formed and unique identifiers
@@ -12,7 +12,7 @@ derives_from: []
 depends_on: [IF-SPEC-010, IF-SPEC-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -30,7 +30,7 @@ derives_from: [INV-SPEC-060]
 depends_on: [FR-CHK-090]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -48,7 +48,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -66,7 +66,7 @@ derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -88,7 +88,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -114,7 +114,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -136,7 +136,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -156,7 +156,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -178,7 +178,7 @@ derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-12
 ```
@@ -201,7 +201,7 @@ derives_from: []
 depends_on: [FR-CHK-050, IF-SPEC-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, specs/README.md]
+code: [srs-dd/tools/srs_check.py, srs-dd/standard.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -229,7 +229,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/adopt-smoke.sh]
 created: 2026-08-07
 ```
@@ -247,7 +247,7 @@ derives_from: []
 depends_on: [FR-CHK-090, IF-SPEC-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -270,7 +270,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_parse.py]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -288,7 +288,7 @@ derives_from: []
 depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -306,7 +306,7 @@ derives_from: []
 depends_on: [FR-CHK-070]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/installer-smoke.sh, tests/checker-rules.sh]
 created: 2026-08-08
 ```
@@ -331,7 +331,7 @@ derives_from: []
 depends_on: [FR-CHK-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```
@@ -342,7 +342,7 @@ Where a requirement is `implemented` or `partial`, says it is verified by test, 
 A fact worth reporting is worth reporting where it is read.
 
 Only where the method is `T`, and that is the whole difference between a rule with a bottom and noise.
-Of the twenty-nine requirements in this project's own specification that listed no test, ten said `T` — those were violations of ART-050, and the harness that verifies the checker's rules cleared them.
+Of the twenty-nine requirements in this project's own specification that listed no test, ten said `T` — those were violations of ART-SRS-050, and the harness that verifies the checker's rules cleared them.
 The other nineteen say `I` or `A` and will never carry a test, by design; reported, they would be nineteen permanent warnings burying the ten that meant something.
 A warning rather than an error because a project mid-harvest would otherwise be unable to commit at all.
 
@@ -355,7 +355,7 @@ derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```
@@ -379,7 +379,7 @@ derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_view.py, specs/README.md]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_view.py, srs-dd/standard.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```
@@ -402,7 +402,7 @@ derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```
@@ -421,7 +421,7 @@ derives_from: [IF-SPEC-010]
 depends_on: [FR-CHK-170]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```
@@ -443,7 +443,7 @@ derives_from: []
 depends_on: [INV-SPEC-050]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-12
 ```
@@ -473,7 +473,7 @@ derives_from: []
 depends_on: [FR-CHK-080, FR-CHK-055]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, specs/README.md]
+code: [srs-dd/tools/srs_check.py, srs-dd/standard.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -490,7 +490,7 @@ named and not annotated is this rule; annotated and not named is FR-CHK-080's `a
 
 Scoped to the files the checker reads, because a `code` field names more than source.
 When this was written a fifth of this project's requirement-to-file pairs pointed at things no annotation belongs in: the standard it ships, every skill written in markdown, the CI templates, the generated matrix, and one entry that is a directory.
-A rule demanding a comment in `specs/README.md` would be answered by deleting the rule.
+A rule demanding a comment in `srs-dd/standard.md` would be answered by deleting the rule.
 
 Scoped to the two statuses that claim realization for the same reason FR-CHK-075 and FR-CHK-140 are: a `draft` carrying code is a harvested proposal, and a harvest that also has to be annotated before the maintainer has approved anything is a harvest nobody finishes.
 
@@ -509,7 +509,7 @@ derives_from: []
 depends_on: [FR-CHK-080]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_init.py, specs/README.md]
+code: [srs-dd/tools/srs_check.py, tools/srs_init.py, srs-dd/standard.md]
 tests: [tests/checker-rules.sh, tests/adopt-smoke.sh, tests/installer-smoke.sh]
 created: 2026-08-17
 ```
@@ -543,7 +543,7 @@ derives_from: []
 depends_on: [FR-CHK-130]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-25
 ```
@@ -570,7 +570,7 @@ derives_from: []
 depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-27
 ```
@@ -596,7 +596,7 @@ derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-09-10
 ```
@@ -626,7 +626,7 @@ derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh, tests/adopt-smoke.sh]
 created: 2026-09-20
 ```
@@ -647,7 +647,7 @@ derives_from: [FR-CHK-250]
 depends_on: [FR-CHK-160]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-09-20
 ```
@@ -669,7 +669,7 @@ derives_from: [FR-SPEC-040]
 depends_on: [FR-CHK-080]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-09-25
 ```
@@ -690,7 +690,7 @@ derives_from: [FR-SPEC-040]
 depends_on: [FR-CHK-080, FR-VIEW-400]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-09-25
 ```
@@ -711,7 +711,7 @@ derives_from: [FR-SPEC-040]
 depends_on: [FR-CHK-270]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-09-25
 ```
@@ -723,3 +723,20 @@ A comment is content: no reading that holds in every language can tell a comment
 A blank line is not, because a region of blank lines is almost always a mistake; where one is what a requirement is carried out by, the requirement says so with `exempt: [annotation-empty]` and the reason in its rationale, which is what `exempt` is for.
 A block no marker ends is asked too: its region is the viewer's fallback, and a fallback that is empty is the same mistake without the marker.
 
+### FR-CHK-300 — An area named like a directory the checker skips is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-040]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_check.py]
+tests: [tests/checker-rules.sh]
+created: 2026-10-01
+```
+
+The checker **shall** report as an error an area whose name, in lowercase, is a directory it skips under `specs/` — `adr`, `archive`.
+
+**Rationale.** The checker skips `adr/` and `archive/` by name, and an area may be grouped into a folder of its lowercase name (`IF-SPEC-040` and the folder rule). An area named `ADR` grouped that way is skipped whole, and nothing says so: on 2026-09-30 such a lab reported `Requirements: 0. No errors.` The error names the area and the folder it would vanish into.

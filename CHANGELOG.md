@@ -1,7 +1,7 @@
 # Changelog
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in `tools/srs_parse.py` as `__version__`, re-exported by both checkers, and stamped into every file the installer writes.
+Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in `srs-dd/tools/srs_parse.py` as `__version__`, re-exported by both checkers, and stamped into every file the installer writes.
 
 <!-- Format contract, relied upon by tools/srs_init.py when it reports an
      upgrade: a version section starts with `## [X.Y.Z]`; the lines after a `### <heading>` heading, up to the next `##`/`###`, belong to it.
@@ -12,22 +12,29 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Added
 
-- The hook and the pipeline run one gate, shipped as a tool. `tools/srs_gate.py` runs the checker and, where the project keeps them, the register's and the layer's, then refuses naming every generated file that differs from what git holds; the pre-commit hook and both CI templates call it and hold no step of their own, and it is refreshed with the tooling on every upgrade (`FR-CI-180`, ADR-0037).
+- The hook and the pipeline run one gate, shipped as a tool. `srs-dd/tools/srs_gate.py` runs the checker and, where the project keeps them, the register's and the layer's, then refuses naming every generated file that differs from what git holds; the pre-commit hook and both CI templates call it and hold no step of their own, and it is refreshed with the tooling on every upgrade (`FR-CI-180`, ADR-0037).
 
-- The installer reports whether the gate runs. After every install and upgrade it says whether git runs a pre-commit hook, whether that hook — or the pre-commit framework, husky or lefthook configuration it is a shim for — calls `tools/srs_gate.py`, and whether any workflow under `.github/workflows/` or `.gitlab-ci.yml` does, printing what to add where not (`FR-INIT-300`, `FR-INIT-310`).
+- The installer reports whether the gate runs. After every install and upgrade it says whether git runs a pre-commit hook, whether that hook — or the pre-commit framework, husky or lefthook configuration it is a shim for — calls `srs-dd/tools/srs_gate.py`, and whether any workflow under `.github/workflows/` or `.gitlab-ci.yml` does, printing what to add where not (`FR-INIT-300`, `FR-INIT-310`).
 - The installing procedures wire the gate in. `srs-init` and `srs-upgrade` say how to add the call to whatever runs the project's hooks and pipelines, and end at the installer's report saying it is there (`FR-SKILL-410`, `FR-SKILL-420`).
+- The framework's files live in one directory. Everything the framework owns in a project is under `srs-dd/` — the tools under `srs-dd/tools/`, the standard of the specification (`srs-dd/standard.md`) and of each layer (`srs-dd/grounds.md`, `srs-dd/arch.md`), the articles of the method (`srs-dd/method.md`, `ART-SRS-*`), the framework's guide (`srs-dd/guide.md`) and the licence; the installer rewrites it whole on every upgrade and refuses a `srs-dd/` that is not its own (`FR-INIT-320`, `FR-INIT-330`, ADR-0039).
+- The method's articles are the framework's. The hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates and nothing sensitive in the repository ship as `ART-SRS-010` to `ART-SRS-060` and `ART-SRS-100` in `srs-dd/method.md`; the constitution the installer ships holds only the project's own articles (`FR-SKILL-430`).
+- The framework's guide is a region of the project's. `AGENTS.md` is the project's file, written once; the region between `<!-- srs-dd -->` and `<!-- /srs-dd -->` holds `srs-dd/guide.md` and is rewritten in place by every upgrade, so every agent reading the file has the current rules (`FR-INIT-360`, `FR-INIT-370`, `FR-SKILL-440`).
+- An area named like a directory the checker skips is refused. `ADR` and `ARCHIVE`, grouped into their folders, vanished without a word; the installer and the checker now refuse the name (`FR-INIT-350`, `FR-CHK-300`).
 - Every file that stays the framework's says whose it is. The tools, the skills and the standards carry `Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License` in their first lines, and the local gate refuses a file of code this repository keeps without it (`FR-INIT-280`, `FR-CI-170`, ADR-0038).
 
 ### Changed
 
 - The gate's refusal reads the same in the hook and the pipeline. It names each stale generated file and says to stage it and commit again, and in a pipeline it also prints the difference (`FR-CI-010`, `FR-CI-020`, `FR-GND-570`, `FR-ARCH-300`).
 - The pre-commit hook and the pipelines are the project's files. The installer writes `.githooks/pre-commit`, `.github/workflows/srs.yml` and `.gitlab-ci.yml` as starters only where the file is absent, and never again — with `--force` or without — so they leave the list of precious files (`FR-INIT-290`, `FR-INIT-060`).
+- Nothing is precious any more, and `--force` is gone. A file is the framework's and lives under `srs-dd/`, or the project's and is written once as a starter — the hook, the pipelines, `AGENTS.md`, `CLAUDE.md`, `.gitattributes` — or the project's and never written; adopt no longer sets a project's `specs/README.md` aside, since the standard does not go there (`FR-INIT-060`, `FR-INIT-230`, `FR-INIT-240` and `FR-INIT-250` superseded).
 - A project's own hook gets no copy of the gate beside it. Where something already runs on commit the installer writes no hook at all and says what to call from theirs; `.githooks/pre-commit.srs-dd` is no longer written (`FR-INIT-080`).
 
 ### Upgrade notes
 
-- The pre-commit hook and the pipelines are now the project's files: an upgrade never rewrites `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml`, with `--force` or without. Both keep working as they are; to have the gate move with the tooling from now on, replace their gate steps with `python3 tools/srs_gate.py --staged` in the hook and `python3 tools/srs_gate.py` in the pipeline — the installer's report, printed after every upgrade, says whether each calls the gate and what to add where not.
-- A `.githooks/pre-commit.srs-dd` laid beside a hook of the project's own by an earlier install is no longer written or refreshed; replace the line that calls it with `python3 tools/srs_gate.py --staged` and delete the file.
+- **Incompatible with earlier versions.** The tools moved from `tools/` to `srs-dd/tools/` and the standards from `specs/README.md`, `grounds/README.md` and `arch/README.md` to `srs-dd/`; the upgrade moves them for a project installed before and deletes the old copies, and every call — in the hook, the pipelines, the guide and anything of the project's own — becomes `python3 srs-dd/tools/<tool>`. The articles ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 of the shipped constitution are `ART-SRS-*` in `srs-dd/method.md`; a reference to the old number in a record of the project means the article of the same number there, and the copies in `specs/constitution.md` may be deleted. `--force` is gone.
+- `AGENTS.md` gains the region. A guide installed before 0.22.0 carries no `<!-- srs-dd -->` … `<!-- /srs-dd -->`; the upgrade reports that and the next run fills the region once the two lines are added where the framework's rules should stand — the rules the guide holds today are the ones that were shipped with it, so nothing is lost by waiting.
+- The pre-commit hook and the pipelines are now the project's files: an upgrade never rewrites `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml`, with `--force` or without. Both keep working as they are; to have the gate move with the tooling from now on, replace their gate steps with `python3 srs-dd/tools/srs_gate.py --staged` in the hook and `python3 srs-dd/tools/srs_gate.py` in the pipeline — the installer's report, printed after every upgrade, says whether each calls the gate and what to add where not.
+- A `.githooks/pre-commit.srs-dd` laid beside a hook of the project's own by an earlier install is no longer written or refreshed; replace the line that calls it with `python3 srs-dd/tools/srs_gate.py --staged` and delete the file.
 
 ## [0.21.0] — 2026-09-30
 
@@ -82,7 +89,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - `.gitattributes` is refreshed only with `--force`, where it still carries the framework's marker; a project whose `.gitattributes` is its own adds `grounds/90-dashboard.md text eol=lf` and `arch/90-map.md text eol=lf` for the layers it keeps.
 - Where an annotation stands changed, and nothing turns red. An annotation at the top of a function's body, or a list at the top of a file, is now a block over what follows it: with no `srs-end:` it runs to the next annotation, sixty lines or the end of the file, not to the end of the function, and a list speaks for the whole file only when it says `file implements:` or `file verifies:`; move a function's annotation above it, add `file` to a list that speaks for the whole file, and end a block with `srs-end:` where what it marks ends — the checker now reports each block no marker ends, at `report`, which fails nothing. A project that wants every block ended sets `"annotation-unended": "warn"` in `rules`.
 - The constitution is the project's own and an upgrade never touches it, even with `--force`: a project that wants ART-100 copies it from `skeleton/specs/constitution.md` of the framework it upgrades from, under a number its own constitution leaves free. The agent guide carries the matching rule, refreshed with `--force` where it still carries the framework's marker; a project whose `AGENTS.md` is its own adds the line headed *Nothing sensitive goes into the repository*.
-- The pre-commit hook is refreshed only with `--force`, where it still carries the framework's marker; a project whose hook is its own adds the block that runs `srs_grounds.py` and `srs_arch.py` from `ci/pre-commit` of the framework it upgrades from. The hook runs only where it was activated once with `git config core.hooksPath .githooks`. Since 0.22.0 that block is gone from `ci/pre-commit`: a hook of the project's own calls `python3 tools/srs_gate.py --staged` instead, as the 0.22.0 notes say.
+- The pre-commit hook is refreshed only with `--force`, where it still carries the framework's marker; a project whose hook is its own adds the block that runs `srs_grounds.py` and `srs_arch.py` from `ci/pre-commit` of the framework it upgrades from. The hook runs only where it was activated once with `git config core.hooksPath .githooks`. Since 0.22.0 that block is gone from `ci/pre-commit`: a hook of the project's own calls `python3 srs-dd/tools/srs_gate.py --staged` instead, as the 0.22.0 notes say.
 
 ## [0.20.1] — 2026-09-24
 
@@ -96,7 +103,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- The sentence on tuned values is in `specs/README.md`, which an upgrade refreshes only with `--force` and only where the file still carries the framework's marker; without it, a project's agents keep reading every threshold or constant as a decision to record. From this version on, the skipped list says whether `specs/README.md` differs from what ships.
+- The sentence on tuned values is in `srs-dd/standard.md`, which an upgrade refreshes only with `--force` and only where the file still carries the framework's marker; without it, a project's agents keep reading every threshold or constant as a decision to record. From this version on, the skipped list says whether `srs-dd/standard.md` differs from what ships.
 
 ## [0.20.0] — 2026-09-24
 
@@ -110,7 +117,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - The framework's own guides carry what the shipped guides carry. This repository is the first project the framework is applied to, and its `AGENTS.md`, `CLAUDE.md` and pre-commit hook are its instances of what a target gets: each now states every rule its shipped counterpart does — the constitution, the generated files, ART-030, `srs-check`, `srs-page`, `srs-baseline`, the procedures being plain markdown, `srs` for any change to behavior, and the report of the bets a commit touches — and `tests/guide-parity.sh` holds the pairs, by the requirements that name a shipped guide and by a list of tokens per pair; the measurements of `FR-SKILL-290` and `FR-SKILL-310` run on these files and stand for the shipped ones only while they do (`INV-SKILL-010`).
 - The pipeline runs every suite the local gate runs. Five suites — the line width, the procedure budget and instructions, and the two evaluation smokes — ran only in the local gate, each added without a step; they are steps now, and `tests/pipeline-suites.sh` holds the pipeline's list of steps to `tests/`, so the next suite cannot be left out (`FR-CI-120`).
 - Where a rationale ends and a decision begins is said. A rationale explains why a requirement says what it says; a decision, why the system meets it the way it does — and a choice between ways of meeting a requirement goes to `specs/adr/` even where a rationale mentions it (`FR-SKILL-350`). The three such choices the guide changes made are ADR-0030, ADR-0031 and ADR-0032.
-- A build ends at the check procedure, not at the checker. The `srs` procedure's last build step, and its plan's last step, now hand the change to `srs-check` — the suites the touched requirements name, offered, and what a person has to inspect — where they used to end at `python3 tools/srs_check.py`, which proves the specification's form and verifies nothing a requirement asks for (`FR-SKILL-360`).
+- A build ends at the check procedure, not at the checker. The `srs` procedure's last build step, and its plan's last step, now hand the change to `srs-check` — the suites the touched requirements name, offered, and what a person has to inspect — where they used to end at `python3 srs-dd/tools/srs_check.py`, which proves the specification's form and verifies nothing a requirement asks for (`FR-SKILL-360`).
 - The verification document names every file in `tests/`. `specs/50-verification.md` listed thirteen suites of twenty-two and said all thirteen ran in CI; it names each now, and `tests/pipeline-suites.sh` holds its table to the directory beside the pipeline's steps (`FR-CI-130`).
 
 ### Changed
@@ -120,7 +127,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- The procedures are refreshed on upgrade; the standard and the agent guides only with `--force`, and only where the file still carries the framework's marker. Without that a project keeps a `specs/README.md` with no paragraph under *Workflow* on what counts as a decision — the paragraph the refreshed `srs` procedure now points at — and an `AGENTS.md` without the loop step *Record what you chose* and the two rules the shipped guide gained: offering a requirement for a rule a conversation settles, and naming in a commit the requirements it implements.
+- The procedures are refreshed on upgrade; the standard and the agent guides only with `--force`, and only where the file still carries the framework's marker. Without that a project keeps a `srs-dd/standard.md` with no paragraph under *Workflow* on what counts as a decision — the paragraph the refreshed `srs` procedure now points at — and an `AGENTS.md` without the loop step *Record what you chose* and the two rules the shipped guide gained: offering a requirement for a rule a conversation settles, and naming in a commit the requirements it implements.
 - An upgrade does not install starter files, so `specs/adr/template.md` keeps the sections it had. To give it the new one, add after *Decision outcome* a `### How it works` heading followed by: "Only where the chosen option is an algorithm or a mechanism: its steps in words, the invariants it keeps, the inputs where it stops working. The code is how it is done today; this is what a rewrite must keep."
 
 ## [0.19.0] — 2026-09-21
@@ -128,7 +135,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Added
 
 - A listing can carry the statement of each requirement. `srs_view.py --list --statements` and `--code PATH --statements` print beneath each line the sentence the requirement obliges, never its rationale, so that a procedure chooses what to open by what a requirement says rather than by its title — and then opens the chosen ones in full instead of the area's file (`FR-VIEW-350`).
-- The vocabulary of the block is printed by the tool that enforces it. `srs_view.py --vocabulary` prints the types, statuses, verification methods, fields and required fields the checker accepts, with the areas and modal verbs the project declares — some forty words in place of the standard read whole for them; a test holds the printed statuses and fields to the Lifecycle section and the Fields table of `specs/README.md` (`FR-VIEW-360`).
+- The vocabulary of the block is printed by the tool that enforces it. `srs_view.py --vocabulary` prints the types, statuses, verification methods, fields and required fields the checker accepts, with the areas and modal verbs the project declares — some forty words in place of the standard read whole for them; a test holds the printed statuses and fields to the Lifecycle section and the Fields table of `srs-dd/standard.md` (`FR-VIEW-360`).
 - What a procedure costs a fresh agent, and what it yields, is measured. `tools/srs_proc_eval.py` runs a fresh Claude Code instance through each scenario in `tests/eval/scenarios/` — a task put to one of the shipped procedures — and reports per run the tokens added to the context beyond the session's first turn, the tokens burned over all the turns, the turns, and whether every check the scenario states was met; every trace is kept under `.srs-eval/`. A measurement on request, never a gate, and framework-only (`FR-SKILL-310`).
 - A procedure fits a budget. `tests/skill-budget.sh` holds every shipped procedure and both agent guides to a budget of words — the file itself, and the file together with what a `Read first:` line tells the reader to open — with each number's reason beside it; the budget falls as procedures are shortened (`NFR-SKILL-020`).
 - A procedure keeps its instructions when it is shortened. `tests/skill-instructions.sh` holds each procedure to the commands, articles, files and procedures its list in `tests/skill-instructions/` says it must name, written off the original before any cut (`FR-SKILL-300`).
@@ -187,7 +194,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Upgrade notes
 
 - The agent guides changed and are precious, so a project that has installed already keeps its old `AGENTS.md` and `CLAUDE.md` until `--force`. To get the two changes without a forced refresh: in `AGENTS.md`, the rule on naming a record to a person now covers elements, register records and decisions, states the form of a citation and exempts commit messages; in `CLAUDE.md`, replace "Read `AGENTS.md` first" with a line holding only `@AGENTS.md`, which imports the guide into every Claude Code session — measured on the framework's own repository, that one line took bare identifiers in a fresh instance's answers from 87 in 100 to 16.
-- Where you keep the architecture layer, the checker now reads `arch/edges.json` if it exists and does nothing new if it does not. To get the dependency check for a language other than Python, write the file as a JSON list of objects with `from` and `to` naming repository-relative files and an optional `via`, by a script of your own or by hand; `arch/README.md` says the shape. The checker never writes it, and a stale file is silent the way an absent one is.
+- Where you keep the architecture layer, the checker now reads `arch/edges.json` if it exists and does nothing new if it does not. To get the dependency check for a language other than Python, write the file as a JSON list of objects with `from` and `to` naming repository-relative files and an optional `via`, by a script of your own or by hand; `srs-dd/arch.md` says the shape. The checker never writes it, and a stale file is silent the way an absent one is.
 - `srs_arch.py --cite` and `srs_grounds.py --cite` are new flags on tools you already have; nothing to change, and the upgraded `AGENTS.md` names them.
 - `srs_view.py --list` and `--code` print one more column, the file; a script that parsed those lines by position reads the file as a fourth field now.
 
@@ -230,9 +237,9 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- A cycle in `depends_on` links is now an error, and the upgrade ends by running the checker in your project. If it reports `cycle in depends_on links`, the tools are already in place and nothing is lost: break the cycle in the requirements it names and run `python3 tools/srs_check.py` again. Neither project carrying this framework held one when the rule was written.
+- A cycle in `depends_on` links is now an error, and the upgrade ends by running the checker in your project. If it reports `cycle in depends_on links`, the tools are already in place and nothing is lost: break the cycle in the requirements it names and run `python3 srs-dd/tools/srs_check.py` again. Neither project carrying this framework held one when the rule was written.
 - Where you keep the architecture layer, two rules are new. An element whose `depends_on` names no element is an error, so a layer that carried such a slip fails until it is corrected; and `element-cycle` is a warning that fails `--strict`, lowered under that name in `arch/arch-config.json` like the rest.
-- Deriving what a part carries is opt-in. Nothing changes until `arch/arch-config.json` says `"requirements": "derived"`; the default is `written`, and a layer written before this release reads exactly as it did. The standard describing the mode, `arch/README.md`, is refreshed only with `--force`, so a project keeps its old copy until `python3 tools/srs_upgrade.py --yes --force`; the `srs-arch` skill, which points at the mode, is refreshed either way.
+- Deriving what a part carries is opt-in. Nothing changes until `arch/arch-config.json` says `"requirements": "derived"`; the default is `written`, and a layer written before this release reads exactly as it did. The standard describing the mode, `srs-dd/arch.md`, is refreshed only with `--force`, so a project keeps its old copy until `python3 srs-dd/tools/srs_upgrade.py --yes --force`; the `srs-arch` skill, which points at the mode, is refreshed either way.
 - The agent guides gained the vocabulary entry and are precious, so a project that has installed already keeps its old `AGENTS.md` and `CLAUDE.md` until `--force`; the `srs` skill carries the same entry and is refreshed either way.
 
 ## [0.16.0] — 2026-09-04
@@ -240,7 +247,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Added
 
 - The architecture layer is an optional register in `arch/`. Its records name the parts the system is cut into, the files each one carries and the requirements it holds; it is a sibling of `specs/` with its own standard, configuration and checker, and `ADR-0023` records why it is not a sixth requirement type and not an external model.
-- `tools/srs_arch.py` reads that layer against the specification. It reports a file a requirement names and no element carries, a realized requirement no element carries, an element that answers to nothing, and an import crossing into another element the model does not declare; it regenerates `arch/90-map.md` on the same terms the grounds dashboard is regenerated.
+- `srs-dd/tools/srs_arch.py` reads that layer against the specification. It reports a file a requirement names and no element carries, a realized requirement no element carries, an element that answers to nothing, and an import crossing into another element the model does not declare; it regenerates `arch/90-map.md` on the same terms the grounds dashboard is regenerated.
 - `srs_arch.py --drivers` ranks the requirements that drive structure. Incoming links decide the order and the type breaks ties, and it prints the few that lead as candidates for a person to accept.
 - `srs_init.py --arch yes|no` installs the layer or declines it. `srs_upgrade.py --arch yes` adds it to a project that has none, and an upgrade refreshes the layer only where it already is.
 - `srs_view.py --cite <ID>…` prints a citation ready to paste. It gives the identifier, the title, the file and the status, for several identifiers in one call.
@@ -251,7 +258,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Changed
 
 - A citation of a requirement carries its title, its file and its status. The line number is out of it, because a line moves with the next edit above it while the file and the status keep, and `srs_view.py --cite` prints the whole thing rather than leaving it to be typed (`FR-SKILL-200`).
-- `specs/README.md` no longer tells a plan to name requirements by number. That instruction sat closer to the writing than the rule asking for the full name, so the rule lost every time; the `srs` procedure changed with it.
+- `srs-dd/standard.md` no longer tells a plan to name requirements by number. That instruction sat closer to the writing than the rule asking for the full name, so the rule lost every time; the `srs` procedure changed with it.
 - Markdown written by hand is no longer wrapped to a width. A line breaks where the meaning breaks and never inside a sentence, because the renderer does the wrapping (`INV-SPEC-070`), and the specification, the guides and the standards were reflowed accordingly.
 - A statement counts as different by its words, not by where its lines end. Comparing the raw text made that reflow report every statement as changed, which is the reading `srs_view.py --diff` exists to spare its reader (`FR-VIEW-050`).
 - Three requirements now name every file they govern. `NFR-SPEC-010`, `CON-SPEC-030` and `FR-SKILL-020` quantify over all tools, all commands and all skills, and their `code` fields had stopped at the files that existed when each sentence was written — so asking what governed the architecture checker, its procedure or its standard answered as though no such rule reached them.
@@ -268,7 +275,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 - Your `AGENTS.md` and `CLAUDE.md` are now replaced by `--force`, and were not before. The flag always said so and the installer always declined; if you have edited either, run the upgrade without the flag first and read what it lists as skipped, and use the guided merge the `srs-init` skill offers rather than the flag. That is also how to take the new form of a citation, which changed in the guides this release ships.
 - The map check does not reach a project that already has the layer. The CI template is a file a project may have edited, so an upgrade refreshes it only with `--force` (`FR-INIT-060`); to take the check, re-run the installer with `--force`, or copy the `arch/arch-config.json` block out of `ci/github-workflow.yml` or `ci/gitlab-ci.yml` by hand.
-- The architecture layer is not added by an upgrade. To install it, run the upgrade with `--arch yes`; to be rid of one, delete `arch/`, `tools/srs_arch.py` and the `srs-arch` skill, and nothing else refers to them.
+- The architecture layer is not added by an upgrade. To install it, run the upgrade with `--arch yes`; to be rid of one, delete `arch/`, `srs-dd/tools/srs_arch.py` and the `srs-arch` skill, and nothing else refers to them.
 - A project that installs the layer starts with no elements and a map of none, which its own checker accepts. The ownership rule reports every file a requirement names until elements are written, so `arch/arch-config.json` is where that rule is lowered while the parts are being described.
 - Markdown line width is this framework's own rule and reaches no target. Nothing reflows a project's files, and no gate looks at markdown in a target or here.
 
@@ -295,13 +302,13 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - A grounds register records what the requirements stand on.
   It is optional, and a project that declines it receives none of what follows.
   `grounds/` holds five kinds of record — an ideology says who the product is for, a frame says what it will not do for anyone, a hypothesis says something about the world that could turn out false, a bet joins a requirement to the hypotheses it rests on, and a declaration says a requirement rests on nothing and why.
-  `tools/srs_grounds.py` checks them and regenerates `grounds/90-dashboard.md`; the `srs-bet` skill is the procedure.
+  `srs-dd/tools/srs_grounds.py` checks them and regenerates `grounds/90-dashboard.md`; the `srs-bet` skill is the procedure.
 - A hypothesis is judged against its own arithmetic rather than by eye.
   The threshold is declared before the first measurement in a fixed grammar, and a verdict that disagrees with what the numbers compel is reported — including a value that crosses the threshold by less than a sample of that size can miss by, which has refuted nothing.
 - The register reads its own history, not only its files.
   A threshold moved after the first measurement was recorded under it, an evidence row that once existed and no longer does, and a widening of what may move an ideology are each reported from the git history, and a history that cannot be read says so instead of passing in silence.
 - A specification can be dated from its own history.
-  `tools/srs_dates.py` fills the `created` field of every requirement that lacks one, reading the date from the commit that introduced it, and the installer offers this to a project adopting the framework with an undated specification.
+  `srs-dd/tools/srs_dates.py` fills the `created` field of every requirement that lacks one, reading the date from the commit that introduced it, and the installer offers this to a project adopting the framework with an undated specification.
 - The rendered page explains its own notation.
   The verification method is drawn as a single letter and the page now says which letter means what, both in a legend above the list and on the mark itself.
 - Authoring a requirement asks what it stands on.
@@ -314,9 +321,9 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
   The format may gain keys and may not lose them, so this was the last release that could take it back.
 
 - The record shape is read by one parser instead of copied.
-  `tools/srs_parse.py` is a new file, and `tools/srs_check.py`, `tools/srs_grounds.py` and `tools/srs_dates.py` all import it; none of the three works without it.
+  `srs-dd/tools/srs_parse.py` is a new file, and `srs-dd/tools/srs_check.py`, `srs-dd/tools/srs_grounds.py` and `srs-dd/tools/srs_dates.py` all import it; none of the three works without it.
 - The framework's version has one home.
-  It lives in `tools/srs_parse.py`, the one file both checkers must have beside them, and each re-exports it;
+  It lives in `srs-dd/tools/srs_parse.py`, the one file both checkers must have beside them, and each re-exports it;
   the release command bumps that file.
   The grounds checker used to carry a second copy that nothing bumped, which would have announced 0.14.0 from this release onwards.
 - The tooling ships without this framework's identifiers.
@@ -359,14 +366,14 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
   Every tool loses this framework's `implements:`/`verifies:` comments and gains a version stamp in its header, and the comments that cited a requirement by number now say the same thing in words.
   No executable line changed, and the removal keeps each annotation's line, so a traceback still names what it named in the framework's own copy of that release.
 - The register is not added by upgrading.
-  `python3 tools/srs_upgrade.py` refreshes the tooling and leaves your project exactly as opted-out as it was; `python3 tools/srs_upgrade.py --grounds yes` adds `grounds/`, its configuration and the `srs-bet` skill.
+  `python3 srs-dd/tools/srs_upgrade.py` refreshes the tooling and leaves your project exactly as opted-out as it was; `python3 srs-dd/tools/srs_upgrade.py --grounds yes` adds `grounds/`, its configuration and the `srs-bet` skill.
   Nothing about the specification changes either way, and no rule of this release requires a requirement to be named by a bet — that absence is the register's most useful reading and is protected rather than filled.
-- `tools/srs_parse.py` must be present.
+- `srs-dd/tools/srs_parse.py` must be present.
   Three of the shipped tools import it — the specification checker, the grounds checker and the dating command — so a project that copies tools by hand, one file at a time, has one more file to copy than in 0.14.0.
 - Where you take the register, its findings are warnings and a `--strict` gate fails on them.
   Every rule name is a key under `rules` in `grounds/grounds-config.json` and can be lowered to `report` or silenced with `off`, the same way `specs/srs-config.json` tunes the specification checker.
 - The corrected specification standard arrives only with `--force`.
-  `specs/README.md` is one of the files an upgrade leaves alone unless asked, so a project keeps its own copy — including the Baselines paragraph this release corrected — until `python3 tools/srs_upgrade.py --yes --force` refreshes it, and then only where that copy still carries its `SRS-DD-<version>` marker.
+  `srs-dd/standard.md` is one of the files an upgrade leaves alone unless asked, so a project keeps its own copy — including the Baselines paragraph this release corrected — until `python3 srs-dd/tools/srs_upgrade.py --yes --force` refreshes it, and then only where that copy still carries its `SRS-DD-<version>` marker.
   The skills are refreshed either way, so for one cycle the baseline procedure points at a paragraph the project has not received yet.
 
 ## [0.14.0] — 2026-08-18
@@ -397,7 +404,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Changed
 
-- The installer refreshes the standard, `specs/README.md`, under `--force`.
+- The installer refreshes the standard, `srs-dd/standard.md`, under `--force`.
   It moves with the framework now instead of staying at whatever version installed it, and it joins the files a project may already own rather than the tooling, because adopt deliberately keeps a project's own copy and refreshing without a flag would undo that at the first upgrade (FR-INIT-060).
 - The marker on an installed file now carries the framework version.
   `SRS-DD-<version>`, matched as a pattern, because the bare name turns up in ordinary prose (FR-INIT-060).
@@ -431,9 +438,9 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - A requirement with status `partial` and an empty `code` field now fails the checker where it used to pass.
   Only `implemented` was an error before.
   Fill the field with the files carrying the part that is built, or move the requirement to `deferred`, which is the status for approved and not begun.
-- `--force` does not recognize the files it installed in a project set up before this release, and says so: `.gitattributes`, `.githooks/pre-commit` and `specs/README.md` are reported as "no SRS-DD marker — not ours, merge manually" and left alone.
+- `--force` does not recognize the files it installed in a project set up before this release, and says so: `.gitattributes`, `.githooks/pre-commit` and `srs-dd/standard.md` are reported as "no SRS-DD marker — not ours, merge manually" and left alone.
   The marker the installer looks for now carries a version and the files earlier releases wrote carry the bare name.
-  To hand those files back: in `.gitattributes` and in `.githooks/pre-commit`, change `SRS-DD` to `SRS-DD-0.14.0` in the comment on the first lines; in `specs/README.md`, which earlier releases installed with no marker at all, insert `<!-- SRS-DD-0.14.0 — installed by the framework; --force overwrites local edits -->` as the second line.
+  To hand those files back: in `.gitattributes` and in `.githooks/pre-commit`, change `SRS-DD` to `SRS-DD-0.14.0` in the comment on the first lines; in `srs-dd/standard.md`, which earlier releases installed with no marker at all, insert `<!-- SRS-DD-0.14.0 — installed by the framework; --force overwrites local edits -->` as the second line.
   `--force` refreshes all three from then on and keeps the marker current by itself.
   Check what a refresh would overwrite with `--dry-run` first if you have edited any of them.
 
@@ -554,7 +561,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Upgrade notes
 
 - Your rendered page shows baselines only where CI checks out the whole history.
-  Refresh the shipped CI template with `python3 tools/srs_upgrade.py --force`, or add it by hand: `fetch-depth: 0` under `actions/checkout` on GitHub, `GIT_DEPTH: 0` in the job's `variables:`
+  Refresh the shipped CI template with `python3 srs-dd/tools/srs_upgrade.py --force`, or add it by hand: `fetch-depth: 0` under `actions/checkout` on GitHub, `GIT_DEPTH: 0` in the job's `variables:`
   on GitLab.
 - If your page has been showing baselines that all report no changes, that is this defect and not your specification.
 
@@ -562,7 +569,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Added
 
-- `tools/srs_baseline.py` freezes the specification with one command.
+- `srs-dd/tools/srs_baseline.py` freezes the specification with one command.
   It writes the row into `specs/92-baselines.md` — version, date, and what changed since the previous baseline — and stops there; it ships with the framework, because every project baselines its own specification (FR-SPEC-010).
 
 - The `srs-baseline` skill installs into every project.
@@ -582,12 +589,12 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Upgrade notes
 
 - A release and a baseline are independent from now on (INV-SPEC-030): they need not share a number, neither implies the other, and one command each prepares them.
-- `tools/srs_baseline.py` and the `srs-baseline` skill arrive with this upgrade.
-  Ask an agent for a baseline, or run `python3 tools/srs_baseline.py X.Y.Z` yourself, then commit the row it writes — that commit is the baseline, and a `spec/v*` tag on it is optional from here on.
+- `srs-dd/tools/srs_baseline.py` and the `srs-baseline` skill arrive with this upgrade.
+  Ask an agent for a baseline, or run `python3 srs-dd/tools/srs_baseline.py X.Y.Z` yourself, then commit the row it writes — that commit is the baseline, and a `spec/v*` tag on it is optional from here on.
 - Nothing in the framework runs `git commit` or `git tag` for you.
   If you drive git through an application rather than the console, the commands now stop where that application takes over.
 - A `spec/v*` tag with no row in `specs/92-baselines.md` is no longer a baseline, and drops off the rendered page.
-  The checker has been warning about exactly those tags; where your log fell behind them, `python3 tools/srs_baseline.py X.Y.Z` writes each missing row from the tagged revision, so nothing has to be retagged or deleted.
+  The checker has been warning about exactly those tags; where your log fell behind them, `python3 srs-dd/tools/srs_baseline.py X.Y.Z` writes each missing row from the tagged revision, so nothing has to be retagged or deleted.
 
 ## [0.10.0]
 
@@ -622,10 +629,10 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 ### Upgrade notes
 
 - An upgrade brings three things into a project.
-  `tools/srs_view.py` gains `--baseline X.Y.Z`, which prints the row for your own baseline log.
+  `srs-dd/tools/srs_view.py` gains `--baseline X.Y.Z`, which prints the row for your own baseline log.
   The `srs` skill gains a step: closing the loop now means re-reading the statement and asking whether it describes what you built.
   And the release command is framework-only — nothing of it is installed.
-- What an upgrade does not bring is the standard itself: `specs/README.md` is yours once installed, and this release reordered its Baselines procedure to write the log row before the tag.
+- What an upgrade does not bring is the standard itself: `srs-dd/standard.md` is yours once installed, and this release reordered its Baselines procedure to write the log row before the tag.
   Copy that paragraph over if you want the order that keeps a tag from ever pointing at a state the log does not describe; a project that keeps tagging first loses nothing but the guarantee.
 
 ## [0.9.0] — 2026-08-08
@@ -657,7 +664,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Added
 
-- `tools/srs_upgrade.py` ships with every project.
+- `srs-dd/tools/srs_upgrade.py` ships with every project.
   One command picks up a new framework version: it fetches the framework the project was installed from, prints the version transition, the upgrade notes and the file list, asks, and then applies — removing what it fetched either way.
   No clone to keep around, no address to look up.
   `--ref` pins a release, `--from` uses a clone already on disk and never touches the network, `--yes` is required where there is no terminal to confirm at (FR-INIT-120, FR-INIT-130).
@@ -675,7 +682,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- Upgrade once the old way — `python3 path/to/srs-dd/tools/srs_init.py path/to/your-project` — and from then on the project upgrades itself with `python3 tools/srs_upgrade.py`.
+- Upgrade once the old way — `python3 path/to/srs-dd/tools/srs_init.py path/to/your-project` — and from then on the project upgrades itself with `python3 srs-dd/tools/srs_upgrade.py`.
 - That first upgrade does not add `framework_url` to your config: an upgrade never rewrites `specs/srs-config.json`.
   Without it the upgrader uses the framework's canonical address, which is right unless you install from a fork — in that case add the key by hand, pointing at your fork.
 
@@ -746,22 +753,22 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - `README.md` is a landing page: what the framework is for, what a requirement looks like, and how to install it.
   Reference material moved to `docs/`.
   The canonical clone and raw-skill URLs stay on it, marked with `canonical-url` comments.
-- `specs/README.md` — the standard itself — remains the single canonical copy and still ships from `specs/`; only the starter files moved to `skeleton/`.
+- `srs-dd/standard.md` — the standard itself — remains the single canonical copy and still ships from `srs-dd/`; only the starter files moved to `skeleton/`.
 - The `srs-init` procedure now diffs a target's agent guides against `skeleton/`, not against this repository's root copies.
 - The `srs-audit` procedure lists all four sections `--coverage` prints.
 
 ### Fixed
 
-- `tools/srs_check.py` carried two example annotations in its own header comment without `srs-ignore`.
+- `srs-dd/tools/srs_check.py` carried two example annotations in its own header comment without `srs-ignore`.
   In a target that put `tools` in `code_roots`, the shipped checker reported an error against itself (`annotation references unknown requirement FR-UI-020`).
   Both example lines are now exempt.
-- `specs/README.md` pointed at "the repository README" for the viewer's modes — a file that does not exist in a target.
+- `srs-dd/standard.md` pointed at "the repository README" for the viewer's modes — a file that does not exist in a target.
   It now points at `srs_view.py --help`.
 
 ### Upgrade notes
 
 - Re-run the installer as usual; nothing in a target changes shape.
-  The refreshed `tools/srs_check.py` no longer reports an annotation error against its own header comment, so a project that put `tools` in `code_roots` and worked around that can drop the workaround.
+  The refreshed `srs-dd/tools/srs_check.py` no longer reports an annotation error against its own header comment, so a project that put `tools` in `code_roots` and worked around that can drop the workaround.
 - If you script against a framework **clone**, note that the skeleton moved: `skeleton/specs/`, `skeleton/AGENTS.md`, `skeleton/CLAUDE.md`.
   Installed targets are unaffected.
 - Two questions are recorded in `specs/91-open-issues.md` rather than silently resolved: the checker's individual rules have no rule-level tests, and an area holds at most 99 requirements because identifiers carry exactly three digits.
@@ -801,7 +808,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Added
 
-- `tools/srs_view.py` — a viewer for the specification the checker validates, on the same dependency budget (standard library, Python ≥ 3.9) and sharing its parser.
+- `srs-dd/tools/srs_view.py` — a viewer for the specification the checker validates, on the same dependency budget (standard library, Python ≥ 3.9) and sharing its parser.
   Read-only: it never writes into `specs/` and never gates anything.
   - Terminal: one requirement with every link resolved in both directions; `--list` with filters; `--code <path>` — which requirements describe a file, by the `code`/`tests` fields and by the file's own `implements:`/`verifies:` annotations; `--tree`;
     `--coverage`; `--json`.
@@ -814,7 +821,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Changed
 
-- `tools/srs_check.py` gained `parse_text()` beside `parse_file()` and now records each requirement's rationale.
+- `srs-dd/tools/srs_check.py` gained `parse_text()` beside `parse_file()` and now records each requirement's rationale.
   Both are additive: the checks, the warnings and the generated matrix are unchanged byte-for-byte.
 
 ### Fixed
@@ -825,7 +832,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- Re-run the installer: `tools/srs_view.py` arrives beside the refreshed checker.
+- Re-run the installer: `srs-dd/tools/srs_view.py` arrives beside the refreshed checker.
   The two must stay in step — the viewer uses the checker's parser and says so if it finds an older one.
 - The new CI job and the `AGENTS.md` line about the viewer are in precious files: they reach an initialized project only with `--force` (CI) or a manual merge (`AGENTS.md`, or the guided `srs-init` upgrade).
   The skills carry the same advice and refresh on their own.
@@ -881,7 +888,7 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 
 ### Upgrade notes
 
-- Re-running the installer on an initialized target now refreshes `tools/srs_check.py` and the skills automatically — review the `refreshed:` list in its output.
+- Re-running the installer on an initialized target now refreshes `srs-dd/tools/srs_check.py` and the skills automatically — review the `refreshed:` list in its output.
 - After upgrading, commit the refreshed tooling together with the regenerated `specs/90-traceability.md`, or the CI freshness gate will fail on the next push.
 
 ## [0.1.0] — 2026-08-05
@@ -890,8 +897,8 @@ First release of SRS-DD as a reusable framework.
 
 ### Added
 
-- Normative specification rules (`specs/README.md`): ISO/IEC/IEEE 29148 structure, EARS phrasing, MADR decision log; requirement lifecycle with `draft`; annotations (`implements:` / `verifies:`); baselines; project configuration with a language-independent lexicon.
-- `tools/srs_check.py` — integrity checker and traceability generator:
+- Normative specification rules (`srs-dd/standard.md`): ISO/IEC/IEEE 29148 structure, EARS phrasing, MADR decision log; requirement lifecycle with `draft`; annotations (`implements:` / `verifies:`); baselines; project configuration with a language-independent lexicon.
+- `srs-dd/tools/srs_check.py` — integrity checker and traceability generator:
   config-driven areas, roots, and lexicon; annotation cross-checking;
   `--strict` and `--no-write` flags.
 - `tools/srs_init.py` — installer for target repositories with interactive and non-interactive modes, collision handling, and an upgrade mode for already-initialized targets.
@@ -901,4 +908,4 @@ First release of SRS-DD as a reusable framework.
 
 ### Upgrade notes
 
-- After updating `tools/srs_check.py` in a target project, regenerate `specs/90-traceability.md`: the status table gained `draft` and its rows now follow lifecycle order.
+- After updating `srs-dd/tools/srs_check.py` in a target project, regenerate `specs/90-traceability.md`: the status table gained `draft` and its rows now follow lifecycle order.

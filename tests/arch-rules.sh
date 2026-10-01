@@ -26,8 +26,8 @@ cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-arch
 rm -rf "$LAB"
-mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/arch" "$LAB/src"
-cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py "$LAB/tools/"
+mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/arch" "$LAB/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py "$LAB/srs-dd/tools/"
 printf 'x\n' > "$LAB/src/a.py"
 printf 'x\n' > "$LAB/src/b.py"
 
@@ -89,7 +89,7 @@ passes=0
 rule() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
+    ( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-arch.log; exit 1
     fi
@@ -103,7 +103,7 @@ rule() {
 silent() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
+    ( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-arch.log; exit 1
     fi
@@ -424,9 +424,9 @@ printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 # srs-end: FR-ARCH-090, IF-ARCH-030
 # --- verifies: IF-ARCH-020 — the third exit code is for what cannot be read.
 rule "IF-ARCH-020 unknown flag" 2 "unknown flag(s): --nope" --nope
-mv "$LAB/tools/srs_view.py" "$LAB/tools/srs_view.hidden"
-rule "IF-ARCH-020 no viewer to read the model through" 2 "tools/srs_view.py is not here"
-mv "$LAB/tools/srs_view.hidden" "$LAB/tools/srs_view.py"
+mv "$LAB/srs-dd/tools/srs_view.py" "$LAB/srs-dd/tools/srs_view.hidden"
+rule "IF-ARCH-020 no viewer to read the model through" 2 "srs-dd/tools/srs_view.py is not here"
+mv "$LAB/srs-dd/tools/srs_view.hidden" "$LAB/srs-dd/tools/srs_view.py"
 
 # srs-end: IF-ARCH-020
 # --- verifies: FR-ARCH-200 — a dependency the code has and the model does not.
@@ -661,7 +661,7 @@ rule "FR-ARCH-260 lowered to report under the published name" 0 \
 
 # --- The same pair from both suppliers is one finding.
 printf 'import b\n' > "$LAB/src/a.py"
-( cd "$LAB" && python3 tools/srs_arch.py --no-write ) > /tmp/srs-arch.log 2>&1 || true
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --no-write ) > /tmp/srs-arch.log 2>&1 || true
 n=$(grep -c "and E-010 does not declare it" /tmp/srs-arch.log)
 if [ "$n" != "1" ]; then
     echo "FAIL FR-ARCH-260 a pair said by the import and by the file is one finding — got $n"
@@ -1007,7 +1007,7 @@ carries: [src/b.py]
 
 Owns b.py alone.
 MD
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-240 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qE '^\| \*\*E-010\*\*.*\| FR-CORE-010 \(1 realized\) \|$' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-240 — the directory carries only what no nearer carrier owns"
@@ -1114,7 +1114,7 @@ Owns t/ and nothing a requirement realizes.
 MD
 rule "FR-ARCH-240 derived: a test file an element owns carries nothing" 0 \
      "E-020 carries no requirement"
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-240 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qF '| **FR-CORE-010**, FR-CORE-020, FR-CORE-060 (3 realized) |' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-240 — only realized requirements, through code, each once, in order"
@@ -1150,7 +1150,7 @@ requirements: [FR-CORE-010]
 
 Answers for the first and owns what realizes the second.
 MD
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-250 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qF '| **FR-CORE-010**, FR-CORE-020, FR-CORE-060 (3 realized) |' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-250 — the map does not mark written apart from derived"
@@ -1160,7 +1160,7 @@ grep -qF 'Requirements are derived' "$LAB/arch/90-map.md" \
          cat "$LAB/arch/90-map.md"; exit 1; }
 passes=$((passes + 1))
 printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-250 — the written layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qF '| **FR-CORE-010** (1 realized) |' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-250 — under the default nothing is derived"
@@ -1191,7 +1191,7 @@ created: 2026-09-02
 
 The system **shall** lean.
 MD
-( cd "$LAB" && python3 tools/srs_arch.py --drivers ) > /tmp/srs-arch-drivers.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --drivers ) > /tmp/srs-arch-drivers.log 2>&1 \
     || { echo "FAIL FR-ARCH-210 — --drivers exited non-zero"
          cat /tmp/srs-arch-drivers.log; exit 1; }
 head -3 /tmp/srs-arch-drivers.log | grep -qF "FR-CORE-010" \
@@ -1213,9 +1213,9 @@ passes=$((passes + 1))
 # --- the kind of writing this forbids and the kind a narrower comparison
 # --- never sees.
 LAB2=/tmp/srs-arch-write
-rm -rf "$LAB2"; mkdir -p "$LAB2/tools" "$LAB2/specs" "$LAB2/arch" "$LAB2/src"
-cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py \
-   "$LAB2/tools/"
+rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools" "$LAB2/specs" "$LAB2/arch" "$LAB2/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
+   "$LAB2/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB2/specs/"
 printf '{"rules": {}}\n' > "$LAB2/arch/arch-config.json"
 printf 'x\n' > "$LAB2/src/a.py"
@@ -1244,7 +1244,7 @@ BEFORE=/tmp/srs-arch-write.before
 AFTER=/tmp/srs-arch-write.after
 rm -rf "$BEFORE" "$AFTER"
 weigh > "$BEFORE"
-( cd "$LAB2" && python3 tools/srs_arch.py ) > /dev/null 2>&1
+( cd "$LAB2" && python3 srs-dd/tools/srs_arch.py ) > /dev/null 2>&1
 [ -f "$LAB2/arch/90-map.md" ] \
     || { echo "FAIL CON-ARCH-010 — the run wrote no map, so this assertion"
          echo "would hold for a checker that did nothing"; exit 1; }
@@ -1286,7 +1286,7 @@ Gone, and cited with the status that says so.
 MD
 rm -f "$LAB/arch/90-map.md"
 rc=0
-( cd "$LAB" && python3 tools/srs_arch.py --cite E-020 E-010 E-990 ) \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --cite E-020 E-010 E-990 ) \
     > /tmp/srs-arch-cite.out 2> /tmp/srs-arch-cite.err || rc=$?
 cat > /tmp/srs-arch-cite.want <<'WANT'
 E-020 — The second, cancelled (arch/00-elements.md, withdrawn)
@@ -1346,7 +1346,7 @@ MD
 # Warnings are expected of this fixture — a proposed part carrying nothing,
 # requirements no element carries — and are not what it asserts; an error
 # would be, and the exit code says which it was.
-rc=0; ( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || rc=$?
+rc=0; ( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL INV-SPEC-080 — the wide fixture exited $rc"; cat /tmp/srs-arch.log; exit 1; }
 grep -q "identifier does not match" /tmp/srs-arch.log && { echo "FAIL INV-SPEC-080 — a wide element number was refused"; cat /tmp/srs-arch.log; exit 1; }
 python3 - "$LAB/arch/90-map.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the map orders elements as strings"; exit 1; }
@@ -1421,8 +1421,8 @@ silent "FR-ARCH-280 a directory that exists is not reported" 0 "does not exist"
 # The git lab: a file renamed and committed, a file deleted and committed, a
 # file renamed in the working tree, and a file git never saw.
 GITLAB=/tmp/srs-arch-git
-rm -rf "$GITLAB"; mkdir -p "$GITLAB/tools" "$GITLAB/specs" "$GITLAB/arch" "$GITLAB/src"
-cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py "$GITLAB/tools/"
+rm -rf "$GITLAB"; mkdir -p "$GITLAB/srs-dd/tools" "$GITLAB/specs" "$GITLAB/arch" "$GITLAB/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py "$GITLAB/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$GITLAB/specs/"
 cp "$LAB/specs/10-fr-core.md" "$GITLAB/specs/"
 printf '{"rules": {}}\n' > "$GITLAB/arch/arch-config.json"
@@ -1448,7 +1448,7 @@ MD
   && git mv src/old.py src/new.py && git rm -q src/gone.py && git mv src/файл.py src/файл2.py \
   && git -c user.email=ci@example.com -c user.name=CI commit -qm moved \
   && git mv src/wt.py src/wt2.py )
-( cd "$GITLAB" && python3 tools/srs_arch.py --no-write ) > /tmp/srs-arch-git.log 2>&1 || true
+( cd "$GITLAB" && python3 srs-dd/tools/srs_arch.py --no-write ) > /tmp/srs-arch-git.log 2>&1 || true
 grep -q "E-010 carries src/old.py, which does not exist; git renamed it to src/new.py in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \
     || { echo "FAIL FR-ARCH-280 — a committed rename is not named with its new path and commit"; cat /tmp/srs-arch-git.log; exit 1; }
 grep -q "E-010 carries src/gone.py, which does not exist; git deleted it in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \

@@ -16,7 +16,7 @@ CANNED=/tmp/srs-cite-eval.jsonl
 python3 - > "$CANNED" <<'PY'
 import json, subprocess
 def cite(tool, rid):
-    return subprocess.check_output(["python3", "tools/" + tool, "--cite", rid], text=True).strip()
+    return subprocess.check_output(["python3", "srs-dd/tools/" + tool, "--cite", rid], text=True).strip()
 rows = [
     {"question": "one", "answer": "Governed by %s; later FR-VIEW-240 again is fine. Also %s, while FR-CHK-010 is bare."
                                    % (cite("srs_view.py", "FR-VIEW-240"), cite("srs_arch.py", "E-020"))},

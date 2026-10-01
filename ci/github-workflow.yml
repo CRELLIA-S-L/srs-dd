@@ -21,21 +21,21 @@ jobs:
         with:
           python-version: "3.12"
 
-      # The gate is tools/srs_gate.py, refreshed with the rest of the
+      # The gate is srs-dd/tools/srs_gate.py, refreshed with the rest of the
       # tooling, so this step has nothing to change when the gate does: it
       # runs the checker — and the grounds register's and the architecture
       # layer's where the project keeps them — and fails on any generated
       # file that differs from the one committed. Add --strict to fail on
       # warnings as well.
       - name: Specification gate
-        run: python3 tools/srs_gate.py
+        run: python3 srs-dd/tools/srs_gate.py
 
       # The readable specification as one self-contained HTML file,
       # downloadable from the run's Artifacts. Delete these two steps if
       # you do not want it.
       - name: Render the specification
         run: |
-          python3 tools/srs_view.py --html site/index.html \
+          python3 srs-dd/tools/srs_view.py --html site/index.html \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
 
       - uses: actions/upload-artifact@v7

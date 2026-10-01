@@ -29,7 +29,7 @@ Option 4 breaks what every tool relies on: the hyphen separates the segments, th
 
 The checker has read every markdown file under `specs/` at any depth since it was written (`FR-CHK-250`), so a folder needed no new reading, only a statement and one rule extended: the area's single file holds the first thousand in a folder as it does directly under `specs/`, told apart from a range name and from a piece cut by subject by its name — two digits and a hyphen first, as the map's names begin (`FR-CHK-260`).
 The folder's name means nothing to any tool; `adr` and `archive` are the two it cannot take, because nothing under them is read.
-The area's grammar — `[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*` — is defined once in `tools/srs_parse.py` and read by the configuration check, the annotation grammar, the installer and the viewer; the heading nets of the checker and the dates tool take an underscore in the area so that one nobody declared is refused by name (`IF-SPEC-040`).
+The area's grammar — `[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*` — is defined once in `srs-dd/tools/srs_parse.py` and read by the configuration check, the annotation grammar, the installer and the viewer; the heading nets of the checker and the dates tool take an underscore in the area so that one nobody declared is refused by name (`IF-SPEC-040`).
 
 ### Consequences
 

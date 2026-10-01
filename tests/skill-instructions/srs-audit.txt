@@ -5,23 +5,23 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_check.py
-tools/srs_check.py --no-write
-tools/srs_view.py
-tools/srs_view.py --area
-tools/srs_view.py --areas
-tools/srs_view.py --coverage
-tools/srs_view.py --list
-tools/srs_view.py --statements
+srs-dd/tools/srs_check.py
+srs-dd/tools/srs_check.py --no-write
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --area
+srs-dd/tools/srs_view.py --areas
+srs-dd/tools/srs_view.py --coverage
+srs-dd/tools/srs_view.py --list
+srs-dd/tools/srs_view.py --statements
 
 # articles
-ART-010
-ART-030
-ART-050
+ART-SRS-010
+ART-SRS-030
+ART-SRS-050
 
 # files
 AGENTS.md
 specs/50-verification.md
 specs/90-traceability.md
 specs/91-open-issues.md
-tools/srs_check.py
+srs-dd/tools/srs_check.py

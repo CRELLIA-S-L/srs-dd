@@ -13,7 +13,7 @@ cd "$(dirname "$0")/.."
 # their help, the hand-parsed ones refuse -h and print their usage line, and
 # either output carries every flag. Neither runs the tool for its effect.
 python3 - <<'PY'
-import glob, re, subprocess, sys
+import glob, os, re, subprocess, sys
 
 TOOL = re.compile(r"\bsrs_[a-z_]+\.py\b")
 FLAG = re.compile(r"(?<![\w-])--[a-z][a-z-]*")
@@ -21,7 +21,8 @@ FLAG = re.compile(r"(?<![\w-])--[a-z][a-z-]*")
 accepted = {}
 def flags_of(tool):
     if tool not in accepted:
-        run = subprocess.run(["python3", "tools/" + tool, "-h"],
+        home = "srs-dd/tools/" if os.path.exists("srs-dd/tools/" + tool) else "tools/"
+        run = subprocess.run(["python3", home + tool, "-h"],
                              capture_output=True, text=True)
         accepted[tool] = set(FLAG.findall(run.stdout + run.stderr))
     return accepted[tool]

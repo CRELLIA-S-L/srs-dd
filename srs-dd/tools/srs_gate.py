@@ -6,10 +6,10 @@
 # srs-end: FR-INIT-280
 """The specification gate — what the pre-commit hook and the pipeline run.
 
-    python3 tools/srs_gate.py            check, regenerate, compare
-    python3 tools/srs_gate.py --staged   the same, then the register's
+    python3 srs-dd/tools/srs_gate.py            check, regenerate, compare
+    python3 srs-dd/tools/srs_gate.py --staged   the same, then the register's
                                          report on what the commit touches
-    python3 tools/srs_gate.py --strict   warnings fail the checkers too
+    python3 srs-dd/tools/srs_gate.py --strict   warnings fail the checkers too
 
 The checker runs, and where the project keeps them the grounds register's
 and the architecture layer's checkers, each regenerating the file it
@@ -30,7 +30,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # implements: FR-CI-180
 # (checker, the file it writes, the configuration that says the project
@@ -38,9 +38,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # one list of what the gate compares byte for byte, which is also what
 # the shipped .gitattributes has to pin to LF.
 GENERATED = (
-    ("tools/srs_check.py", "specs/90-traceability.md", None),
-    ("tools/srs_grounds.py", "grounds/90-dashboard.md", "grounds/grounds-config.json"),
-    ("tools/srs_arch.py", "arch/90-map.md", "arch/arch-config.json"),
+    ("srs-dd/tools/srs_check.py", "specs/90-traceability.md", None),
+    ("srs-dd/tools/srs_grounds.py", "grounds/90-dashboard.md", "grounds/grounds-config.json"),
+    ("srs-dd/tools/srs_arch.py", "arch/90-map.md", "arch/arch-config.json"),
 )
 # srs-end: FR-CI-180
 
@@ -97,7 +97,7 @@ def report_staged():
     listing = git("diff", "--cached", "--name-only", "-z", "--diff-filter=ACM")
     paths = [p for p in listing.stdout.decode("utf-8", "replace").split("\0") if p]
     if paths:
-        subprocess.run([sys.executable, "tools/srs_grounds.py", "--blast"] + paths, cwd=ROOT)
+        subprocess.run([sys.executable, "srs-dd/tools/srs_grounds.py", "--blast"] + paths, cwd=ROOT)
 # srs-end: FR-GND-310
 
 
@@ -105,7 +105,7 @@ def main(argv):
     flags = set(argv)
     unknown = sorted(flags - {"--staged", "--strict"})
     if unknown:
-        sys.stderr.write("srs_gate.py: unknown flag %s — usage: python3 tools/srs_gate.py "
+        sys.stderr.write("srs_gate.py: unknown flag %s — usage: python3 srs-dd/tools/srs_gate.py "
                          "[--staged] [--strict]\n" % " ".join(unknown))
         return 2
     if git("rev-parse", "--is-inside-work-tree").returncode != 0:

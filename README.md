@@ -74,11 +74,11 @@ document.
 the most common source of lost work reports.
 ````
 
-`python3 tools/srs_check.py` regenerates `specs/90-traceability.md` — requirement → code → verification, in both directions — and fails on a dangling link, a status of `implemented` without code paths, a path that does not exist, a cycle in the derivation or the dependency graph, or an annotation naming a requirement that was never written.
+`python3 srs-dd/tools/srs_check.py` regenerates `specs/90-traceability.md` — requirement → code → verification, in both directions — and fails on a dangling link, a status of `implemented` without code paths, a path that does not exist, a cycle in the derivation or the dependency graph, or an annotation naming a requirement that was never written.
 Softer drift is a warning: a file a requirement names that does not name it back, a requirement verified by test that lists none, a requirement no link touches.
 `--strict` turns warnings into failures too.
 
-`python3 tools/srs_view.py --html` writes one self-contained page: search, filters, a status dashboard, the coverage gaps, a graph of every kind of link that you can narrow to one requirement's surroundings, pan, zoom and pull apart, and a comparison of any two frozen baselines.
+`python3 srs-dd/tools/srs_view.py --html` writes one self-contained page: search, filters, a status dashboard, the coverage gaps, a graph of every kind of link that you can narrow to one requirement's surroundings, pan, zoom and pull apart, and a comparison of any two frozen baselines.
 No CDN, no network, opens straight from `file://`.
 
 ## What you get back
@@ -138,8 +138,8 @@ Then it lays out `specs/`, writes the config, generates a placeholder requiremen
 
 **Already have an SRS?** The installer detects it and switches to adopt mode:
 your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical, but for a crashed earlier run's temporary copy of the checker, which is removed.
-Your requirements are never modified; your own `specs/README.md`, if you had one, is set aside in `specs/archive/` and the standard takes its place.
-Where its requirements carry no `created` dates, you are offered `tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
+Your requirements are never modified, and a README of your own under `specs/` stays where it is: the standard lives in `srs-dd/`, beside your specification, not inside it.
+Where its requirements carry no `created` dates, you are offered `srs-dd/tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
 
 **Already run a pre-commit hook?** It is never displaced — the installer says so instead of advising the `core.hooksPath` switch that would silently disable it.
 
@@ -189,7 +189,7 @@ Ask for them by name, or describe the task and let the agent pick.
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
 | "why do we do X" / a measurement came in | `srs-bet` — the grounds register: write a hypothesis, stake a requirement on it, record a measurement, settle what happens when one is refuted. |
 | "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, and read the disagreements the checker computes between that description, the specification and the code. |
-| "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, refreshes the tooling and nothing precious. |
+| "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, rewrites `srs-dd/` and the procedures, and nothing of yours. |
 
 Three rules bind every one of them, and they are why an agent with these is safer than an agent without: **it proposes, you approve** — no status is flipped and no batch is written without you; **it never runs builds or tests unasked**; **it reports what follows, not what it noticed** — an observation with no consequence is dropped rather than handed to you as homework.
 
@@ -207,41 +207,41 @@ Every task that changes behaviour goes through the same five steps:
 4. **Close the loop.**
    Status to `implemented`, `code` and `tests` filled with real paths, in the same set of edits as the code.
 5. **Check.**
-   `python3 tools/srs_check.py`, locally and in CI.
+   `python3 srs-dd/tools/srs_check.py`, locally and in CI.
 
-What a linter cannot check — behaviour over implementation, verifiability, unambiguity — is still binding; those rules live in `specs/README.md`, and the `srs-audit` skill covers the semantic side.
+What a linter cannot check — behaviour over implementation, verifiability, unambiguity — is still binding; those rules live in `srs-dd/standard.md`, and the `srs-audit` skill covers the semantic side.
 
 ## Reading the specification
 
 ```
-python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
-python3 tools/srs_view.py --code src/app.py  which requirements describe a file
-python3 tools/srs_view.py --code src/app.py --statements   the same, with what each obliges — to choose by
-python3 tools/srs_view.py FR-CORE-020 --where  where it is realized, by line; --source prints the code
-python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
-python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
-python3 tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
-python3 tools/srs_view.py --vocabulary       the words a block may use, from the checker
-python3 tools/srs_view.py --diff 0.14.0      working tree against a baseline
-python3 tools/srs_view.py --json             the model, for your own tooling
-python3 tools/srs_view.py --html             a page for people who do not grep
-python3 tools/srs_view.py --area DOC --around --svg graph.svg   one area and what it links to, as an image
+python3 srs-dd/tools/srs_view.py FR-CORE-020        one requirement, links resolved
+python3 srs-dd/tools/srs_view.py --code src/app.py  which requirements describe a file
+python3 srs-dd/tools/srs_view.py --code src/app.py --statements   the same, with what each obliges — to choose by
+python3 srs-dd/tools/srs_view.py FR-CORE-020 --where  where it is realized, by line; --source prints the code
+python3 srs-dd/tools/srs_view.py --tree FR-CORE-010 what derives from it
+python3 srs-dd/tools/srs_view.py --coverage         no tests, code outside the spec, …
+python3 srs-dd/tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
+python3 srs-dd/tools/srs_view.py --vocabulary       the words a block may use, from the checker
+python3 srs-dd/tools/srs_view.py --diff 0.14.0      working tree against a baseline
+python3 srs-dd/tools/srs_view.py --json             the model, for your own tooling
+python3 srs-dd/tools/srs_view.py --html             a page for people who do not grep
+python3 srs-dd/tools/srs_view.py --area DOC --around --svg graph.svg   one area and what it links to, as an image
 ```
 
 The viewer never writes to `specs/` and never gates anything.
-Where a project keeps a register, `python3 tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
+Where a project keeps a register, `python3 srs-dd/tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
 Each layer's checker cites its own records in the same form — `srs_arch.py --cite E-NNN…`, `srs_grounds.py --cite H-NNN…` — because the viewer reads the specification and nothing else.
 
 ## Where things are
 
 | Path | What it is |
 |---|---|
-| `specs/README.md` | The standard: markup rules, identifier scheme, lifecycle, annotations, baselines, configuration |
+| `srs-dd/` | The framework's directory, copied whole into your project and rewritten by every upgrade. Under `tools/`: `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_gate.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer). Beside them `standard.md` — the standard: markup rules, identifier scheme, lifecycle, annotations, baselines, configuration — `grounds.md` and `arch.md` for the layers, `method.md` with the articles every project is bound to (`ART-SRS-*`), `guide.md` — the region of every `AGENTS.md` — and the licence |
 | `specs/` | This framework's own specification — it uses itself. Also `91-open-issues.md` (questions nobody has settled), `92-baselines.md` (the frozen milestones) and `adr/` (the decisions) |
 | `skeleton/` | What the installer copies into your project |
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
 | `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_gate.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
+| `tools/` | `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
 | `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |

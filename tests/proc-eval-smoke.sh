@@ -21,7 +21,7 @@ cd "$(dirname "$0")/.."
 python3 - <<'PY'
 import os, re, subprocess, sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_proc_eval as e
 
 scenarios, problem = e.read_scenarios()
@@ -33,7 +33,7 @@ for s in scenarios:
     assert any(k == "skill" and a == s["procedure"] for k, a in s["checks"]), \
         "%s does not check that its procedure `%s` was invoked" % (s["name"], s["procedure"])
     for rid in s["free"]:
-        run = subprocess.run([sys.executable, "tools/srs_view.py", "--cite", rid], capture_output=True, text=True)
+        run = subprocess.run([sys.executable, "srs-dd/tools/srs_view.py", "--cite", rid], capture_output=True, text=True)
         assert run.returncode == 1 and not run.stdout.strip(), \
             "%s assumes %s is free and the specification carries it: %s" % (s["name"], rid, run.stdout.strip())
     for kind, argument in s["checks"]:
@@ -41,7 +41,7 @@ for s in scenarios:
             continue
         for rid in RE_CITED.findall(argument):
             tool = TOOL.get(rid.split("-")[0], "srs_view.py")
-            run = subprocess.run([sys.executable, "tools/" + tool, "--cite", rid], capture_output=True, text=True)
+            run = subprocess.run([sys.executable, "srs-dd/tools/" + tool, "--cite", rid], capture_output=True, text=True)
             assert run.returncode == 0, "%s expects %s, which no tool cites: %s" % (s["name"], rid, run.stderr.strip())
             assert re.search(argument, run.stdout.strip()), \
                 "%s expects `%s`, and %s prints `%s`" % (s["name"], argument, tool, run.stdout.strip())
@@ -62,7 +62,7 @@ def turn(created, read, out, fresh=2):
     return {"input_tokens": fresh, "cache_creation_input_tokens": created,
             "cache_read_input_tokens": read, "output_tokens": out}
 good = {"tools": [{"name": "Skill", "input": {"skill": "srs-arch"}},
-                  {"name": "Bash", "input": {"command": "python3 tools/srs_arch.py --cite E-050"}}],
+                  {"name": "Bash", "input": {"command": "python3 srs-dd/tools/srs_arch.py --cite E-050"}}],
         "turns": [turn(20000, 0, 10), turn(1500, 20000, 40), turn(300, 21500, 200)],
         "answer": "It is E-050 — The grounds layer (arch/00-elements.md, built), which answers for the register.",
         "cost_usd": 0.25, "num_turns": 3, "stop": "success", "is_error": False,
@@ -85,7 +85,7 @@ grep -q '^srs-arch       run 2  floor  20002  added      0  burned    20062  out
     || { echo "proc-eval: the bad run is not scored 1 of 5 with nothing added and its stop reason beside it"; cat /tmp/srs-proc-eval.out; exit 1; }
 grep -q "failed: skill srs-arch" /tmp/srs-proc-eval.out && grep -q "failed: no_tool Edit" /tmp/srs-proc-eval.out \
     && grep -q "failed: answer E-050 — The grounds layer" /tmp/srs-proc-eval.out \
-    && grep -q "failed: ran python3 tools/srs_arch.py" /tmp/srs-proc-eval.out \
+    && grep -q "failed: ran python3 srs-dd/tools/srs_arch.py" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the bad run's failed checks are not the ones expected"; cat /tmp/srs-proc-eval.out; exit 1; }
 grep -q "^srs-arch       2 run(s)  procedure srs-arch $WORDS/999 words  added    900  burned    41809  checks met 6 of 10$" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the per-scenario summary is not the mean of the two runs, naming both sizes the runs were taken under"; cat /tmp/srs-proc-eval.out; exit 1; }
@@ -111,7 +111,7 @@ BROKEN=$(mktemp -d)
 python3 - "$BROKEN" <<'PY' || { echo "proc-eval: a malformed scenario was accepted"; exit 1; }
 import os, sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_proc_eval as e
 cases = {
     "shouted": ("---\nprocedure: srs\ncheck: shouted LOUD\n---\nDo.\n", "kinds are"),

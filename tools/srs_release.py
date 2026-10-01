@@ -7,12 +7,12 @@
     python3 tools/srs_release.py 1.2.0
 
 It dates the changelog section, bumps the framework's version in
-tools/srs_parse.py, regenerates
+srs-dd/tools/srs_parse.py, regenerates
 the matrix, and stops. Committing is yours, with whatever git client this
 repository is driven by, and so is the `vX.Y.Z` tag.
 
 It cuts no baseline. A release ships what the system does; a baseline
-freezes what it must do, and `tools/srs_baseline.py` is the command for
+freezes what it must do, and `srs-dd/tools/srs_baseline.py` is the command for
 that. Cut both when both are true, in either order.
 
 It writes no prose: the `## [X.Y.Z]` section belongs to whoever made the
@@ -39,13 +39,13 @@ sys.dont_write_bytecode = True                              # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CHANGELOG = os.path.join(ROOT, "CHANGELOG.md")
-CHECKER = os.path.join(ROOT, "tools", "srs_check.py")
+CHECKER = os.path.join(ROOT, "srs-dd", "tools", "srs_check.py")
 # The version is bumped where it lives, and that is not the checker:
 # both checkers re-export it from the parser they share (ADR-0021).
-VERSION_HOME = os.path.join(ROOT, "tools", "srs_parse.py")
+VERSION_HOME = os.path.join(ROOT, "srs-dd", "tools", "srs_parse.py")
 MATRIX = os.path.join("specs", "90-traceability.md")
 
-TOUCHED = ["CHANGELOG.md", os.path.join("tools", "srs_parse.py"), MATRIX]
+TOUCHED = ["CHANGELOG.md", os.path.join("srs-dd", "tools", "srs_parse.py"), MATRIX]
 
 
 def relative(path):
@@ -130,7 +130,7 @@ def main():
     dated = changelog[:heading.start()] \
         + "## [%s] — %s" % (version, date) + changelog[heading.end():]
     plan = ["CHANGELOG.md      dated %s" % date,
-            "tools/srs_parse.py __version__ -> %s" % version]
+            "srs-dd/tools/srs_parse.py __version__ -> %s" % version]
     sys.stdout.write("\n".join("  " + line for line in plan) + "\n")
     # implements: FR-CI-140
     if args.dry_run:

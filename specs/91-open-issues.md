@@ -60,7 +60,7 @@ No rule weighs a class III verdict by it, and the register has no way to acquire
 No amount of code here produces it.
 
 **2026-09-08.** Half of this is already decided, and not where the entry looks for it: the rationale of `FR-GND-210` says the weighting needs calibration questions and a programme to run them, and calls the reversal count its affordable half.
-What is missing is the layer's standard — the word calibration does not occur in `grounds/README.md` at all, so a reader comparing the concept with the register meets the gap exactly where no note is.
+What is missing is the layer's standard — the word calibration does not occur in `srs-dd/grounds.md` at all, so a reader comparing the concept with the register meets the gap exactly where no note is.
 
 **Decision needed:** say in the layer's standard that calibration stops at the reversal count and the weighting is deliberately not attempted; or carry the fuller model as intended work and name what a project would have to run to get it.
 
@@ -70,7 +70,7 @@ What is missing is the layer's standard — the word calibration does not occur 
 
 **What diverged:** the record format has `refuted_if` and nothing else numeric.
 The concept has two numbers and says plainly that confusing them is expensive: the target magnitude is what the thing is being built for, the refutation threshold is the line below which the claim is false, and a result landing between them neither supports nor refutes — it says the claim survived and its magnitude was wrong.
-That middle band cannot be expressed here at all, and `grounds/README.md` demonstrates the collapse in its own worked example, where the statement claims three studios in ten and `refuted_if` fires below the same 0.30.
+That middle band cannot be expressed here at all, and `srs-dd/grounds.md` demonstrates the collapse in its own worked example, where the statement claims three studios in ten and `refuted_if` fires below the same 0.30.
 
 The cost is not that a number is missing.
 It is that a measurement in the middle has no name, so it reads as support to whoever compares it against the threshold and as failure to whoever compares it against the target — and both are looking at the same row of evidence.
@@ -153,6 +153,7 @@ Both now hold of a register with two hypotheses in it, which is better than hold
 The suite still cannot tell a kind deliberately left unwritten from one nobody got to.
 Unchanged on 2026-09-08: a fresh run of the dashboard still reads `0 ideology, 0 frame, 2 hypothesis, 0 bet, 0 unclaimed`, while the specification grew by 28 requirements in 0.16.0, not one of which carries a bet.
 Moved on 2026-09-18, by one file: `03-bets.md` exists and holds twenty-one bets, `B-010` to `B-210`, every one on `H-030`, so the dashboard reads `0 ideology, 0 frame, 3 hypothesis, 21 bet, 0 unclaimed`; the ideology, the frames and the unclaimed list are still no files, and every bet is on the one hypothesis about the documentation rather than on any of the 236 requirements that predate it.
+On 2026-09-30 the dashboard reads `0 ideology, 0 frame, 4 hypothesis, 28 bet, 0 unclaimed`: a fourth hypothesis, `H-040` in `grounds/12-h-procedures.md`, carries seven bets on the procedures, the other twenty-one are still on `H-030`, and the ideology, the frames and the unclaimed list are still no files.
 
 **Decision needed:** whether the other four kinds are wanted here at all.
 The two halves are not alike.
@@ -173,7 +174,7 @@ Starting or not starting changes no procedure and no requirement.
 **What would have to hold when it starts, settled now so that the decision is not re-derived:**
 
 - The notes are the `## [X.Y.Z]` section of `CHANGELOG.md` and nothing else, extracted the way `tools/srs_init.py` parses it for an upgrade; a second text written for the page is a second source of truth for the same release.
-- The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
+- The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `srs-dd/tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
 - `spec/v*` tags are not releases; the trigger filters them out, or `INV-SPEC-030` is broken by the forge on the maintainer's behalf.
 - Tags are annotated from then on — the ones made before that are lightweight and stay so.
 - The older sections in `CHANGELOG.md` can be published for their tags after the fact in one pass, so that the page does not open with a single entry.
@@ -206,17 +207,37 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 
 **Found:** 2026-09-25, while the rule for where an annotation stands was being reworked and was found to have been designed around the tooling's own language; `CON-SPEC-040` and ART-080 were written the same day, and each item below is a place where the framework does not yet hold to them.
 
-- `code_extensions` defaults to programming languages only (`.py`, `.ts`, `.tsx`, `.js`, `.swift`, `.kt`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.m`, in `tools/srs_check.py`), so an annotation in a document or a diagram source is not read unless the project extends the list, and nothing tells it to.
+- `code_extensions` defaults to programming languages only (`.py`, `.ts`, `.tsx`, `.js`, `.swift`, `.kt`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.m`, in `srs-dd/tools/srs_check.py`), so an annotation in a document or a diagram source is not read unless the project extends the list, and nothing tells it to.
 - `code_roots` defaults to `["src"]`, the layout of a code repository.
 - The standard says `code` is where a requirement is realized and `tests` what verifies it, and never says what they hold when the files are documents or diagrams — the names are service tokens and stay, but a reader of a documents project has to guess that `code` is theirs too.
 - A format that takes no comment — an image of a diagram, JSON, a binary file — cannot carry an annotation, so a realized requirement whose only file is one of them draws `annotation-unpaired`, and the standard names no way out; `exempt` is for a requirement met by the absence of code — a prohibition — which this is not.
 
 **What stays open:** each item is a change to the standard or to a default, and none is made yet; the defaults reach every target at its next install, so each is settled with the upgrade note it needs.
 
+**Decision needed:** for each of the four, the change — widen the default extensions and roots, say in the standard what `code` and `tests` hold for a document or a diagram, and give a file that takes no comment a way to be paired — with the upgrade note each needs; or narrow `CON-SPEC-040` to say the framework serves code repositories and leave the defaults as they are.
+
 ## A scanner for secrets in the gate
 
-**Found:** 2026-09-25, when ART-100 was written: the rule is text, and text is what a measured agent follows least.
+**Found:** 2026-09-25, when ART-SRS-100 was written: the rule is text, and text is what a measured agent follows least.
 
 **What is being asked:** whether the CI templates in `ci/` should run a secret scanner — gitleaks or an equivalent — over every push, so that a credential committed by mistake is refused rather than found later.
 
 **What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.
+
+**Decision needed:** whether the pipeline starters run a scanner at all and which one, recorded as the dependency ART-040 asks a decision for, with the way a false positive on a fixture is excused; or that ART-SRS-100 stays a rule of text and the starters carry none.
+
+## The notice rule did not grow with the directory
+
+**Found:** 2026-10-01, while reviewing the move of the framework's files into `srs-dd/`.
+
+**What diverged:** `FR-INIT-280` obliges every file the installer copies into a target whose text stays the framework's — glossed in the statement as the tools, the skills and the standards — to carry the notice naming the copyright holder and the licence.
+Since 0.22.0 the installer also copies four files of the directory itself, `DIR_FILES` in `tools/srs_init.py`: `srs-dd/README.md`, `srs-dd/LICENSE`, `srs-dd/method.md` and `srs-dd/guide.md`.
+Three of them carry the notice and `srs-dd/guide.md` carries none, so under the statement's main clause the requirement is violated by a file this release added; under its gloss none of the four is in the set at all and three carry a notice no rule asks for.
+The requirement's `code` field names none of the four: the move rewrote the paths in that field and did not widen it, which is the same blind spot the rewritten paths in `ADR-0029` had.
+
+**Why the file is probably right and the rule wrong.** `srs-dd/guide.md` is written verbatim into the region of the project's own `AGENTS.md` (`FR-INIT-370`), and the rationale of `FR-INIT-280` already argues that a project's agent guide carries none, because a copyright line there would claim their document as ours.
+The exception the file needs is one the rationale implies and never states, because the guide had no source file of its own until this release.
+
+**What will not notice:** `FR-CI-170`'s gate reads code and never markdown, `tests/installer-smoke.sh` walks the nine tools, the ten shipped procedures and the three standards against a floor of 22 that catches the list shrinking and never its failure to grow, and `tests/code-field-sets.sh` holds only the sets its `CLAIMS` tuple names, which `FR-INIT-280` is not among.
+
+**Decision needed:** widen the statement's gloss to the directory's own documents, add `srs-dd/README.md`, `srs-dd/method.md` and `srs-dd/LICENSE` to the `code` field, state `srs-dd/guide.md` in the rationale as the one copied file that carries none and why, and hold all four in `tests/installer-smoke.sh`; or narrow the statement to the three classes the gloss names, so that the directory's own documents stand outside it and the notice three of them carry is a courtesy rather than a rule.

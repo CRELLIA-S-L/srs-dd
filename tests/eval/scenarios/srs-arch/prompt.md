@@ -4,9 +4,9 @@
 procedure: srs-arch
 max_turns: 20
 check: skill srs-arch
-check: ran python3 tools/srs_arch.py
+check: ran python3 srs-dd/tools/srs_arch.py
 check: answer E-050 — The grounds layer \(arch/00-elements\.md, built\)
 check: no_tool Edit
 check: no_tool Write
 ---
-Which element of the architecture layer carries `tools/srs_grounds.py`, what does that element answer for, and what would the architecture checker report if `grounds/README.md` were moved out of it into `docs/`? Follow the project's procedure for the architecture layer; change nothing.
+Which element of the architecture layer carries `srs-dd/tools/srs_grounds.py`, what does that element answer for, and what would the architecture checker report if `srs-dd/grounds.md` were moved out of it into `docs/`? Follow the project's procedure for the architecture layer; change nothing.

@@ -32,7 +32,7 @@ The installer detects the mode itself.
 **adopt** — an SRS-shaped specification exists but `specs/srs-config.json` does not.
 Your spec is validated against the proposed configuration (areas, lexicon) **before anything is touched**; on failure the target is left byte-identical, but for a crashed earlier run's temporary copy of the checker, which is removed (exit 3).
 Then only the tooling and the missing service files are installed.
-Existing requirements are never modified; a `specs/README.md` of the project's own is set aside as `specs/archive/README-before-srs-dd.md` and the standard installed in its place — the checker enforces the standard's rules from then on, and the `srs-init` procedure sorts what the former document said beyond them.
+Existing requirements are never modified, and a README of the project's own under `specs/` stays where it is: the standard lives in `srs-dd/`.
 
 **upgrade** — `specs/srs-config.json` exists: see [upgrade.md](upgrade.md).
 
@@ -59,27 +59,30 @@ The installer looks at what the repository actually does on commit — `core.hoo
 No hook is written then — not beside yours either — and your hook calls the gate itself:
 
 ```
-python3 tools/srs_gate.py --staged
+python3 srs-dd/tools/srs_gate.py --staged
 ```
 
 The same holds for a hook manager: the line goes into the pre-commit framework's, husky's or lefthook's configuration, and the installer's report says whether it is there.
 
-## Precious files
+## The framework's directory
 
-`CLAUDE.md`/`AGENTS.md`, `.gitattributes`, `specs/README.md` — the standard — and the standards of the optional layers are "precious": they are refreshed only with `--force`, and only when the existing file carries the installer's marker, a line reading `SRS-DD-<version>`.
-A file the installer did not write is never overwritten; the version is part of the marker because the bare name turns up in ordinary prose, and a standard of your own that mentions SRS-DD must not be mistaken for ours.
-The pre-commit hook and the pipelines are not precious but starters: written where the file is absent, and never again — with `--force` or without — because a project runs every check it has through them.
+Everything the framework owns in your project is under `srs-dd/`: the tools, the standard of the specification and of each layer you keep, the articles of the method (`srs-dd/method.md`), the framework's guide (`srs-dd/guide.md`) and the licence.
+The installer rewrites that directory whole on every upgrade and refuses to install where a `srs-dd/` of somebody else's already stands; nothing of yours goes there.
+Everything else is yours: the hook, the pipelines, `CLAUDE.md`, `.gitattributes` and `AGENTS.md` are written once as starters and never again — except the region of `AGENTS.md` between `<!-- srs-dd -->` and `<!-- /srs-dd -->`, which holds the framework's rules and is rewritten in place by every upgrade so that every agent reading the file has them.
+The procedures under `.claude/skills/srs-*` are the framework's as well, refreshed with the tooling; a procedure of your own takes another name.
+Your constitution, `specs/constitution.md`, holds your own articles under numbers you allocate; the articles of the method are `ART-SRS-*` in `srs-dd/method.md`.
 
 ## Manual fallback
 
 Copy into your repository, by hand:
 
-- `skeleton/specs/` → `specs/` (the starter files), plus `specs/README.md` and `specs/adr/template.md` from this repository — the standard itself and the decision template, each kept in one copy;
-- `tools/srs_check.py`, `tools/srs_parse.py`, `tools/srs_view.py`, `tools/srs_upgrade.py`, `tools/srs_baseline.py`, `tools/srs_dates.py` and `tools/srs_gate.py` — the checker imports the parser from beside itself, so the two travel together, and the gate is what the hook and the pipeline call (not the framework-only tools — the installer, the release command, the two measurements and the local gate — which stay in the framework repository);
+- `skeleton/specs/` → `specs/` (the starter files), plus `specs/adr/template.md` from this repository — the decision template, kept in one copy;
+- `srs-dd/` whole — `README.md`, `LICENSE`, `standard.md`, `method.md`, `guide.md` and the tools below;
+- `srs-dd/tools/srs_check.py`, `srs-dd/tools/srs_parse.py`, `srs-dd/tools/srs_view.py`, `srs-dd/tools/srs_upgrade.py`, `srs-dd/tools/srs_baseline.py`, `srs-dd/tools/srs_dates.py` and `srs-dd/tools/srs_gate.py` — the checker imports the parser from beside itself, so the two travel together, and the gate is what the hook and the pipeline call (not the framework-only tools — the installer, the release command, the two measurements and the local gate — which stay in the framework repository);
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or `srs-release`, which are framework-only);
-- to keep an architecture layer as well — what the parts are and what each carries — also `skeleton/arch/` → `arch/`, plus `arch/README.md` from this repository, `tools/srs_arch.py` and the `srs-arch` skill.
+- to keep an architecture layer as well — what the parts are and what each carries — also `skeleton/arch/` → `arch/`, plus `srs-dd/arch.md` from this repository, `srs-dd/tools/srs_arch.py` and the `srs-arch` skill.
   The skeleton carries no `arch/arch-config.json` either: write it as `{"rules": {}}`.
-- to keep a grounds register as well — the hypotheses the requirements rest on — also `skeleton/grounds/` → `grounds/`, plus `grounds/README.md` from this repository, `tools/srs_grounds.py` and the `srs-bet` skill.
+- to keep a grounds register as well — the hypotheses the requirements rest on — also `skeleton/grounds/` → `grounds/`, plus `srs-dd/grounds.md` from this repository, `srs-dd/tools/srs_grounds.py` and the `srs-bet` skill.
   All of it or none of it: the checker, the standard and the procedure only make sense together.
   Declining costs nothing and leaves no trace.
   The skeleton carries no `grounds/grounds-config.json` and there is none to copy: write it yourself as `{"rules": {}, "period": "quarter"}`, where `period` is the calendar unit the dashboard counts arrivals in — `month`, `quarter` or `year`, a choice about your project's rhythm rather than a default worth inheriting;
@@ -90,5 +93,5 @@ Copied by hand, the tooling arrives as it is written here: with this framework's
 Neither breaks anything while your `code_roots` leave `tools/` out, which the default does.
 Where you do put `tools/` on your code roots, either run the installer instead — it removes them — or take those lines out yourself.
 
-Then write `specs/srs-config.json` by hand — the keys are documented in the Configuration section of `specs/README.md`.
-Add `framework_url` pointing at the repository you copied from, so `tools/srs_upgrade.py` knows where to go back to.
+Then write `specs/srs-config.json` by hand — the keys are documented in the Configuration section of `srs-dd/standard.md`.
+Add `framework_url` pointing at the repository you copied from, so `srs-dd/tools/srs_upgrade.py` knows where to go back to.

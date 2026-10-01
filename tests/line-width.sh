@@ -30,7 +30,7 @@ TRIPLE = re.compile(r'"""|\'\'\'')
 # into every target. JSON is not here: both files of it in this repository
 # are written by tools/srs_init.py, and the limit does not govern what the
 # tools print (FR-CI-100). Markdown is not here either, for its own reason.
-SOURCES = (glob.glob("tools/*.py") + glob.glob("tools/*.sh")
+SOURCES = (glob.glob("tools/*.py") + glob.glob("srs-dd/tools/*.py") + glob.glob("tools/*.sh")
            + glob.glob("tests/*.sh") + glob.glob("ci/*.yml")
            + glob.glob(".github/workflows/*.yml")
            + [p for p in ("ci/pre-commit", ".githooks/pre-commit")

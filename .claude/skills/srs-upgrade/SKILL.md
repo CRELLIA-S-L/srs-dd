@@ -1,12 +1,12 @@
 ---
 name: srs-upgrade
-description: Upgrade the SRS-DD framework installed in this project — the checker, the viewer, the gate, the skills and, on request, the agent guides. Invoke when the user asks to update or upgrade SRS-DD, to pick up a new framework version, or when the checker reports a version older than the one they expect. Runs tools/srs_upgrade.py, which fetches the framework this project was installed from.
+description: Upgrade the SRS-DD framework installed in this project — the checker, the viewer, the gate, the skills and, on request, the agent guides. Invoke when the user asks to update or upgrade SRS-DD, to pick up a new framework version, or when the checker reports a version older than the one they expect. Runs srs-dd/tools/srs_upgrade.py, which fetches the framework this project was installed from.
 ---
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Upgrading the framework in this project
 
-Everything needed is already here: `tools/srs_upgrade.py` fetches the framework this project was installed from, runs its installer against this repository, and removes what it fetched.
+Everything needed is already here: `srs-dd/tools/srs_upgrade.py` fetches the framework this project was installed from, runs its installer against this repository, and removes what it fetched.
 There is no clone to keep around and no address to look up.
 
 ## Procedure
@@ -15,10 +15,10 @@ There is no clone to keep around and no address to look up.
    Run it without arguments:
 
    ```
-   python3 tools/srs_upgrade.py
+   python3 srs-dd/tools/srs_upgrade.py
    ```
 
-   It prints the version transition, the upgrade notes for the versions being crossed, and the exact created / refreshed / set aside / skipped list — then asks.
+   It prints the version transition, the upgrade notes for the versions being crossed, and the exact created / refreshed / moved / skipped list — then asks.
    Nothing has been written at that point.
 
 2. **Read the upgrade notes to the user, not just the file list.**
@@ -31,25 +31,23 @@ There is no clone to keep around and no address to look up.
    Without one — an agent session, a script — pass `--yes`, and only after the user has seen step 1:
 
    ```
-   python3 tools/srs_upgrade.py --yes
+   python3 srs-dd/tools/srs_upgrade.py --yes
    ```
 
 4. **Commit the result** together with the regenerated `specs/90-traceability.md`: the refreshed checker may write a matrix that differs from the committed one, and the CI gate compares it.
 
 ## What it does and does not touch
 
-Refreshed without asking: the checker and its parser, the viewer, the upgrader itself, the commands that freeze a baseline and date requirements from the history, the checker of any optional layer the project keeps, and the skills.
-Left alone: `AGENTS.md`/`CLAUDE.md`, `.gitattributes`, and the standards — `specs/README.md`, plus the standard of any optional layer the project keeps.
-All of them are files that may already be the project's own, which is why none is replaced without being asked for.
-To refresh those too, add `--force`; it only replaces files that carry the `SRS-DD` marker, so anything hand-written stays.
-The pre-commit hook and the pipelines are never rewritten, `--force` or not: they are the project's files, and all they hold of the framework is a call to `tools/srs_gate.py`.
+Rewritten whole: `srs-dd/` — the tools, the standard (`srs-dd/standard.md`) and those of the layers, the method's articles, the framework's guide — and the skills under `.claude/skills/srs-*`; and, inside `AGENTS.md`, only the region between `<!-- srs-dd -->` and `<!-- /srs-dd -->`.
+Left alone: everything else — `AGENTS.md` outside the region, `CLAUDE.md`, `.gitattributes`, the pre-commit hook, the pipelines, `specs/constitution.md`. They are the project's files; what they hold of the framework is a call to `srs-dd/tools/srs_gate.py` or the region.
+A project installed before 0.22.0 is moved into the directory: the tools and the standards leave `tools/`, `specs/`, `grounds/` and `arch/`, and the report says what the hook, the pipelines and the guide now have to call.
 
 The specification is never touched.
 Requirements are the project's own.
 
 ## Wiring the gate
 
-The hook and the pipelines are this project's files, never rewritten by an upgrade, and the installer's report — *Pre-commit gate*, *Pipeline gate* — says whether git runs a hook, whether that hook calls `tools/srs_gate.py`, whether any pipeline does, and prints what to add where not.
+The hook and the pipelines are this project's files, never rewritten by an upgrade, and the installer's report — *Pre-commit gate*, *Pipeline gate* — says whether git runs a hook, whether that hook calls `srs-dd/tools/srs_gate.py`, whether any pipeline does, and prints what to add where not.
 Read it after every run and add what it prints where the project runs its hooks: a line in a hook of the project's own, a `repo: local` hook in `.pre-commit-config.yaml`, the line in `.husky/pre-commit`, a command in `lefthook.yml` — with `pre-commit install` or `lefthook install` where git runs nothing yet — and a step in a workflow under `.github/workflows/` or a job in `.gitlab-ci.yml`.
 Where nothing runs at all, `git config core.hooksPath .githooks` switches the starter on, and only then: the switch turns off whatever ran before.
 On a service the installer does not know, read its pipeline and add the step in that service's form.

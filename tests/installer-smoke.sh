@@ -27,7 +27,7 @@ rm -rf /tmp/srs-target
 # verifies: FR-INIT-070
 # --dry-run must list the whole install and create nothing at all.
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both --dry-run | tee /tmp/dry.log
-grep -q "tools/srs_view.py" /tmp/dry.log
+grep -q "srs-dd/tools/srs_view.py" /tmp/dry.log
 grep -q "nothing was written" /tmp/dry.log
 test ! -e /tmp/srs-target
 
@@ -39,7 +39,7 @@ test ! -e /tmp/srs-target
 # theirs rather than this repository's own pipeline — the `.gitlab-ci.yml`
 # checked further down is one of the two.
 python3 tools/srs_init.py /tmp/srs-target --defaults --ci both | tee /tmp/fresh.log
-python3 /tmp/srs-target/tools/srs_check.py --strict
+python3 /tmp/srs-target/srs-dd/tools/srs_check.py --strict
 
 # srs-end: FR-INIT-010, FR-INIT-020, FR-CI-050
 # verifies: FR-INIT-150
@@ -50,8 +50,8 @@ python3 /tmp/srs-target/tools/srs_check.py --strict
 # one of these paths too, and a grep over the whole log would pass on it.
 grep -q "First steps:" /tmp/fresh.log
 sed -n '/First steps:/,$p' /tmp/fresh.log > /tmp/fresh-steps.log
-for said in "specs/10-fr-core.md" "tools/srs_check.py" "tools/srs_view.py --html" \
-            "tools/srs_upgrade.py" "AGENTS.md"; do
+for said in "specs/10-fr-core.md" "srs-dd/tools/srs_check.py" "srs-dd/tools/srs_view.py --html" \
+            "srs-dd/tools/srs_upgrade.py" "AGENTS.md"; do
     grep -qF "$said" /tmp/fresh-steps.log \
         || { echo "FAIL FR-INIT-150 — the first steps do not name $said"; cat /tmp/fresh-steps.log; exit 1; }
 done
@@ -61,7 +61,7 @@ done
 # those is named by its absence: srs-release stays here.
 # Read from the installer rather than written here: a list in the suite is
 # one more copy that falls behind the tuple it copies.
-shipped_skills=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); import srs_init; print(' '.join(srs_init.SKILLS))")
+shipped_skills=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools'); import srs_init; print(' '.join(srs_init.SKILLS))")
 for skill in $shipped_skills; do
     grep -qE "^       $skill +" /tmp/fresh.log \
         || { echo "FAIL FR-SKILL-080, FR-SKILL-100, FR-SKILL-110 — the installer ships $skill and its summary does not name it"
@@ -86,30 +86,30 @@ first=$(grep -nE "^  2\\. Replace the placeholder" /tmp/fresh-steps.log | head -
     || { echo "FAIL FR-INIT-150 — the agent procedures do not come before the placeholder step"; cat /tmp/fresh-steps.log; exit 1; }
 
 # srs-end: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
-# verifies: FR-INIT-060, FR-INIT-270
-# Re-running on an initialized target = upgrade mode; the checker and
-# skills must refresh WITHOUT --force, precious files must be skipped.
+# verifies: FR-INIT-270
+# Re-running on an initialized target = upgrade mode; srs-dd/ and the
+# skills refresh without a flag, the project's files are left alone.
 # The stub proves upgrades deliver skill content (the fresh install above
 # already wrote the real file — a bare grep would prove nothing).
 printf 'stub\n' > /tmp/srs-target/.claude/skills/srs/SKILL.md
-printf 'stub\n' > /tmp/srs-target/tools/srs_view.py
+printf 'stub\n' > /tmp/srs-target/srs-dd/tools/srs_view.py
 
 # An upgrade dry-run reports the same refresh list and still changes
 # nothing — checked byte-for-byte, not by eye.
 find /tmp/srs-target -type f | sort | xargs cksum > /tmp/before.dry
 python3 tools/srs_init.py /tmp/srs-target --defaults --dry-run > /tmp/upgrade-dry.log
-grep -q "tools/srs_view.py" /tmp/upgrade-dry.log
+grep -q "srs-dd/tools/srs_view.py" /tmp/upgrade-dry.log
 find /tmp/srs-target -type f | sort | xargs cksum > /tmp/after.dry
 diff /tmp/before.dry /tmp/after.dry
 
 python3 tools/srs_init.py /tmp/srs-target --defaults | tee /tmp/upgrade.log
 grep -q "refreshed:" /tmp/upgrade.log
-grep -q "tools/srs_check.py" /tmp/upgrade.log
+grep -q "srs-dd/tools/srs_check.py" /tmp/upgrade.log
 grep -q "Planning multi-requirement work" /tmp/srs-target/.claude/skills/srs/SKILL.md
-grep -q "self-contained HTML site" /tmp/srs-target/tools/srs_view.py
+grep -q "self-contained HTML site" /tmp/srs-target/srs-dd/tools/srs_view.py
 test -f /tmp/srs-target/.gitlab-ci.yml   # a starter, never rewritten
 
-# srs-end: FR-INIT-060
+# srs-end: FR-INIT-270
 # verifies: FR-INIT-080, FR-INIT-290
 # A project's own pre-commit hook is never displaced: nothing is written
 # over it or beside it, the installer says what calls the gate from it,
@@ -125,7 +125,7 @@ grep -q "echo theirs" /tmp/srs-hook/.githooks/pre-commit
 if [ -e /tmp/srs-hook/.githooks/pre-commit.srs-dd ]; then
     echo "FAIL FR-INIT-080 — a copy of the gate was laid beside the project's hook"; exit 1
 fi
-grep -qF "python3 tools/srs_gate.py --staged" /tmp/hook.log \
+grep -qF "python3 srs-dd/tools/srs_gate.py --staged" /tmp/hook.log \
     || { echo "FAIL FR-INIT-080 — the installer did not say what calls the gate from the project's hook"
          cat /tmp/hook.log; exit 1; }
 # Not `grep -qv`: that inverts per line, so on GNU grep it passes whenever
@@ -146,7 +146,7 @@ grep -q "already runs .git/hooks/pre-commit" /tmp/hook2.log
 if [ -e /tmp/srs-hook2/.githooks/pre-commit ]; then
     echo "FAIL FR-INIT-080 — a hook was written although the project runs one of its own"; exit 1
 fi
-grep -qF "python3 tools/srs_gate.py --staged" /tmp/hook2.log \
+grep -qF "python3 srs-dd/tools/srs_gate.py --staged" /tmp/hook2.log \
     || { echo "FAIL FR-INIT-080 — the installer did not say what calls the gate from the project's hook"
          cat /tmp/hook2.log; exit 1; }
 
@@ -171,18 +171,18 @@ wired() { python3 tools/srs_init.py "$W" --defaults > /tmp/wiring.log; }
 wired
 said /tmp/wiring.log "git runs no pre-commit hook." FR-INIT-300 "that git runs no hook"
 said /tmp/wiring.log "git config core.hooksPath .githooks" FR-INIT-300 "how to activate the starter"
-said /tmp/wiring.log ".github/workflows/srs.yml calls tools/srs_gate.py." FR-INIT-310 "that the starter workflow calls the gate"
+said /tmp/wiring.log ".github/workflows/srs.yml calls srs-dd/tools/srs_gate.py." FR-INIT-310 "that the starter workflow calls the gate"
 # Switched on: the starter runs and calls the gate.
 ( cd "$W" && git config core.hooksPath .githooks )
 wired
 said /tmp/wiring.log "git already runs .githooks/pre-commit on commit." FR-INIT-300 "that git runs the starter"
-said /tmp/wiring.log ".githooks/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that the starter calls the gate"
+said /tmp/wiring.log ".githooks/pre-commit calls srs-dd/tools/srs_gate.py." FR-INIT-300 "that the starter calls the gate"
 unsaid /tmp/wiring.log "git config core.hooksPath" FR-INIT-300 "to activate what is already active"
 # A manager's configuration lying beside the starter git runs is not what
 # is read: the hook is.
 printf 'repos: []\n' > "$W/.pre-commit-config.yaml"
 wired
-said /tmp/wiring.log ".githooks/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that the starter git runs is what is read"
+said /tmp/wiring.log ".githooks/pre-commit calls srs-dd/tools/srs_gate.py." FR-INIT-300 "that the starter git runs is what is read"
 unsaid /tmp/wiring.log "managed by" FR-INIT-300 "that a manager runs the hook when the starter does"
 rm -f "$W/.pre-commit-config.yaml"
 # Their own hook in .git/hooks, without the call and then with it.
@@ -190,12 +190,12 @@ rm -f "$W/.pre-commit-config.yaml"
 printf '#!/bin/sh\necho mine\n' > "$W/.git/hooks/pre-commit"; chmod +x "$W/.git/hooks/pre-commit"
 wired
 said /tmp/wiring.log "git already runs .git/hooks/pre-commit on commit." FR-INIT-300 "that git runs their hook"
-said /tmp/wiring.log ".git/hooks/pre-commit does not call tools/srs_gate.py. Add to it:" FR-INIT-300 "that their hook lacks the call"
-said /tmp/wiring.log "python3 tools/srs_gate.py --staged" FR-INIT-300 "the line to add"
+said /tmp/wiring.log ".git/hooks/pre-commit does not call srs-dd/tools/srs_gate.py. Add to it:" FR-INIT-300 "that their hook lacks the call"
+said /tmp/wiring.log "python3 srs-dd/tools/srs_gate.py --staged" FR-INIT-300 "the line to add"
 said /tmp/wiring.log "no hook was written" FR-INIT-080 "that nothing displaced their hook"
-printf 'python3 tools/srs_gate.py --staged\n' >> "$W/.git/hooks/pre-commit"
+printf 'python3 srs-dd/tools/srs_gate.py --staged\n' >> "$W/.git/hooks/pre-commit"
 wired
-said /tmp/wiring.log ".git/hooks/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that their hook now calls the gate"
+said /tmp/wiring.log ".git/hooks/pre-commit calls srs-dd/tools/srs_gate.py." FR-INIT-300 "that their hook now calls the gate"
 rm -f "$W/.git/hooks/pre-commit"
 # husky: git runs the shim under .husky/_, and .husky/pre-commit is what is read.
 mkdir -p "$W/.husky/_"; printf '#!/bin/sh\n. "$(dirname "$0")/h"\n' > "$W/.husky/_/pre-commit"
@@ -203,33 +203,33 @@ printf 'npm test\n' > "$W/.husky/pre-commit"
 ( cd "$W" && git config core.hooksPath .husky/_ )
 wired
 said /tmp/wiring.log "managed by husky (.husky/pre-commit)" FR-INIT-300 "that husky manages the hook"
-said /tmp/wiring.log ".husky/pre-commit does not call tools/srs_gate.py. Add to it:" FR-INIT-300 "that husky's hook lacks the call"
-printf 'python3 tools/srs_gate.py --staged\n' >> "$W/.husky/pre-commit"
+said /tmp/wiring.log ".husky/pre-commit does not call srs-dd/tools/srs_gate.py. Add to it:" FR-INIT-300 "that husky's hook lacks the call"
+printf 'python3 srs-dd/tools/srs_gate.py --staged\n' >> "$W/.husky/pre-commit"
 wired
-said /tmp/wiring.log ".husky/pre-commit calls tools/srs_gate.py." FR-INIT-300 "that husky's hook now calls the gate"
+said /tmp/wiring.log ".husky/pre-commit calls srs-dd/tools/srs_gate.py." FR-INIT-300 "that husky's hook now calls the gate"
 # husky without a pre-commit hook yet: the place to add it is named, not the shim.
 rm -f "$W/.husky/pre-commit"
 wired
-said /tmp/wiring.log ".husky/pre-commit does not call tools/srs_gate.py. Add to it:" FR-INIT-300 "where husky's hook goes when there is none yet"
+said /tmp/wiring.log ".husky/pre-commit does not call srs-dd/tools/srs_gate.py. Add to it:" FR-INIT-300 "where husky's hook goes when there is none yet"
 unsaid /tmp/wiring.log ".husky/_/pre-commit does not call" FR-INIT-300 "to edit husky's generated shim"
 rm -rf "$W/.husky"; ( cd "$W" && git config --unset core.hooksPath )
 # The pre-commit framework: configured, not installed, and its configuration is read.
 printf 'repos: []\n' > "$W/.pre-commit-config.yaml"
 wired
 said /tmp/wiring.log "the pre-commit framework (.pre-commit-config.yaml) is configured but not installed here — run: pre-commit install" FR-INIT-300 "that the framework is not installed"
-said /tmp/wiring.log ".pre-commit-config.yaml does not call tools/srs_gate.py. Add to its repos: list:" FR-INIT-300 "that the configuration lacks the call"
-said /tmp/wiring.log "entry: python3 tools/srs_gate.py --staged" FR-INIT-300 "the local hook to add"
-printf -- '- repo: local\n  hooks:\n  - id: srs-gate\n    entry: python3 tools/srs_gate.py --staged\n' > "$W/.pre-commit-config.yaml"
+said /tmp/wiring.log ".pre-commit-config.yaml does not call srs-dd/tools/srs_gate.py. Add to its repos: list:" FR-INIT-300 "that the configuration lacks the call"
+said /tmp/wiring.log "entry: python3 srs-dd/tools/srs_gate.py --staged" FR-INIT-300 "the local hook to add"
+printf -- '- repo: local\n  hooks:\n  - id: srs-gate\n    entry: python3 srs-dd/tools/srs_gate.py --staged\n' > "$W/.pre-commit-config.yaml"
 printf '#!/bin/sh\nexec pre-commit run\n' > "$W/.git/hooks/pre-commit"; chmod +x "$W/.git/hooks/pre-commit"
 wired
 said /tmp/wiring.log "git already runs .git/hooks/pre-commit on commit, managed by the pre-commit framework" FR-INIT-300 "that the framework's shim runs"
-said /tmp/wiring.log ".pre-commit-config.yaml calls tools/srs_gate.py." FR-INIT-300 "that the configuration calls the gate"
+said /tmp/wiring.log ".pre-commit-config.yaml calls srs-dd/tools/srs_gate.py." FR-INIT-300 "that the configuration calls the gate"
 rm -f "$W/.pre-commit-config.yaml" "$W/.git/hooks/pre-commit"
 # lefthook, by its configuration file.
 printf 'pre-commit:\n  commands: {}\n' > "$W/lefthook.yml"
 wired
 said /tmp/wiring.log "lefthook (lefthook.yml) is configured but not installed here — run: lefthook install" FR-INIT-300 "that lefthook is not installed"
-said /tmp/wiring.log "run: python3 tools/srs_gate.py --staged" FR-INIT-300 "the lefthook command to add"
+said /tmp/wiring.log "run: python3 srs-dd/tools/srs_gate.py --staged" FR-INIT-300 "the lefthook command to add"
 rm -f "$W/lefthook.yml"
 # Pipelines: a second workflow without the call changes nothing; the GitLab
 # file without it is named with its job; with no pipeline at all, the report
@@ -237,16 +237,16 @@ rm -f "$W/lefthook.yml"
 printf 'on: push\njobs: {}\n' > "$W/.github/workflows/release.yml"
 printf 'stages: [test]\n' > "$W/.gitlab-ci.yml"
 wired
-said /tmp/wiring.log ".github/workflows/srs.yml calls tools/srs_gate.py." FR-INIT-310 "that one workflow calls the gate"
+said /tmp/wiring.log ".github/workflows/srs.yml calls srs-dd/tools/srs_gate.py." FR-INIT-310 "that one workflow calls the gate"
 unsaid /tmp/wiring.log "no workflow under .github/workflows/ calls" FR-INIT-310 "that no workflow calls it while one does"
-said /tmp/wiring.log ".gitlab-ci.yml does not call tools/srs_gate.py. Add a job:" FR-INIT-310 "that the GitLab file lacks the call"
-said /tmp/wiring.log "- python3 tools/srs_gate.py" FR-INIT-310 "the job's script line"
-printf 'srs-gate:\n  script:\n    - python3 tools/srs_gate.py\n' > "$W/.gitlab-ci.yml"
+said /tmp/wiring.log ".gitlab-ci.yml does not call srs-dd/tools/srs_gate.py. Add a job:" FR-INIT-310 "that the GitLab file lacks the call"
+said /tmp/wiring.log "- python3 srs-dd/tools/srs_gate.py" FR-INIT-310 "the job's script line"
+printf 'srs-gate:\n  script:\n    - python3 srs-dd/tools/srs_gate.py\n' > "$W/.gitlab-ci.yml"
 rm -f "$W/.github/workflows/srs.yml"
 wired
-said /tmp/wiring.log ".gitlab-ci.yml calls tools/srs_gate.py." FR-INIT-310 "that the GitLab file now calls the gate"
-said /tmp/wiring.log "no workflow under .github/workflows/ calls tools/srs_gate.py. Add a step" FR-INIT-310 "that no workflow calls it once the starter is gone"
-said /tmp/wiring.log "- run: python3 tools/srs_gate.py" FR-INIT-310 "the step to add"
+said /tmp/wiring.log ".gitlab-ci.yml calls srs-dd/tools/srs_gate.py." FR-INIT-310 "that the GitLab file now calls the gate"
+said /tmp/wiring.log "no workflow under .github/workflows/ calls srs-dd/tools/srs_gate.py. Add a step" FR-INIT-310 "that no workflow calls it once the starter is gone"
+said /tmp/wiring.log "- run: python3 srs-dd/tools/srs_gate.py" FR-INIT-310 "the step to add"
 rm -rf "$W/.github" "$W/.gitlab-ci.yml"
 wired
 said /tmp/wiring.log "no pipeline for GitHub or GitLab was found" FR-INIT-310 "that no pipeline was found"
@@ -260,8 +260,8 @@ printf 'stray\n' > skeleton/specs/stray.html
 rm -rf /tmp/srs-clean
 # With the register and with both pipelines, because this target is what the
 # leak check and the annotation check below walk, and they see only what is
-# installed. Without the register they never saw tools/srs_grounds.py or
-# grounds/README.md, so the whole register payload shipped unexamined — and
+# installed. Without the register they never saw srs-dd/tools/srs_grounds.py or
+# srs-dd/grounds.md, so the whole register payload shipped unexamined — and
 # did ship a citation of this framework's own requirements. Without a CI
 # config the same hole stood open at ci/: those templates become a target's
 # pipeline and hook, and nothing looked at them on the way. Declining either
@@ -279,8 +279,8 @@ test ! -e /tmp/srs-clean/specs/stray.html
 # carries none, because a line of ours there would claim their file.
 NOTICE="Copyright (c) 2026 CRELLIA S.L."
 carrying=0
-for f in /tmp/srs-clean/tools/*.py /tmp/srs-clean/.claude/skills/*/SKILL.md \
-         /tmp/srs-clean/specs/README.md /tmp/srs-clean/grounds/README.md /tmp/srs-clean/arch/README.md; do
+for f in /tmp/srs-clean/srs-dd/tools/*.py /tmp/srs-clean/.claude/skills/*/SKILL.md \
+         /tmp/srs-clean/srs-dd/standard.md /tmp/srs-clean/srs-dd/grounds.md /tmp/srs-clean/srs-dd/arch.md; do
     grep -qF "$NOTICE" "$f" && grep -q "MIT License" "$f" \
         || { echo "FAIL FR-INIT-280 — $f carries no notice of the copyright holder and the licence"; exit 1; }
     carrying=$((carrying + 1))
@@ -307,8 +307,8 @@ python3 tools/srs_init.py /tmp/srs-base --defaults --ci none >/dev/null
     git add -A
     git -c user.email=ci@example.com -c user.name=CI commit -qm base
     git tag spec/v0.1.0
-    python3 tools/srs_check.py --no-write 2>&1 | grep -q "no row for baseline tag spec/v0.1.0"
-    rc=0; python3 tools/srs_check.py --no-write --strict >/dev/null 2>&1 || rc=$?
+    python3 srs-dd/tools/srs_check.py --no-write 2>&1 | grep -q "no row for baseline tag spec/v0.1.0"
+    rc=0; python3 srs-dd/tools/srs_check.py --no-write --strict >/dev/null 2>&1 || rc=$?
     test "$rc" -eq 1
     python3 - <<'PY2'
 path = 'specs/92-baselines.md'
@@ -317,7 +317,7 @@ open(path, 'w', encoding='utf-8').write(text.replace(
     '*No baselines yet.*',
     '| 0.1.0 | 2026-01-01 | `spec/v0.1.0` | First freeze. |'))
 PY2
-    python3 tools/srs_check.py --no-write --strict >/dev/null
+    python3 srs-dd/tools/srs_check.py --no-write --strict >/dev/null
 )
 
 # srs-end: FR-CHK-130
@@ -333,86 +333,189 @@ assert 'annotation-absent' not in fresh.get('rules', {}), \
     'a fresh install silenced a rule it has no reason to: %r' % fresh.get('rules')
 PY2
 
-# FR-INIT-060 names five kinds of file that an upgrade replaces only with
-# --force and only when they carry our marker (seven until 0.22.0, when the
-# hook and the pipelines became starters, FR-INIT-290). Two of the seven
-# had fixtures and five did not, which is the shape the rule itself is about: a sentence
-# quantifying over a list, a suite exercising one entry, and nothing that
-# can tell the difference. Dropping `precious=` from the architecture
-# standard left the whole gate green.
-#
-# So the list is walked rather than sampled, and it is written here in the
-# order the statement names it.
+# srs-end: FR-CHK-210
+# verifies: FR-INIT-320
+# Everything the framework owns is under srs-dd/, nothing of it elsewhere:
+# the tools, the standards of the specification and of both layers, the
+# method's articles, the framework's guide, the licence and the README that
+# carries the marker — and no tools/, no README under specs/, grounds/ or
+# arch/.
 PT=/tmp/srs-precious
 rm -rf "$PT" /tmp/srs-pristine
 python3 tools/srs_init.py "$PT" --defaults --name "Acme Widgets" \
     --line-width 100 --ci github --grounds yes --arch yes >/dev/null
 cp -R "$PT" /tmp/srs-pristine
+for f in tools/srs_check.py tools/srs_parse.py tools/srs_view.py tools/srs_upgrade.py tools/srs_baseline.py \
+         tools/srs_dates.py tools/srs_gate.py tools/srs_grounds.py tools/srs_arch.py \
+         standard.md grounds.md arch.md method.md guide.md LICENSE README.md; do
+    test -f "$PT/srs-dd/$f" || { echo "FAIL FR-INIT-320 — srs-dd/$f was not installed"; exit 1; }
+done
+grep -q "SRS-DD-" "$PT/srs-dd/README.md" || { echo "FAIL FR-INIT-320 — srs-dd/README.md carries no marker"; exit 1; }
+for f in tools specs/README.md grounds/README.md arch/README.md; do
+    if [ -e "$PT/$f" ]; then echo "FAIL FR-INIT-320 — $f was written outside srs-dd/"; exit 1; fi
+done
+# Without the layers, their standards and tools stay home with them.
+rm -rf /tmp/srs-bare
+python3 tools/srs_init.py /tmp/srs-bare --defaults --ci none >/dev/null
+for f in grounds.md arch.md tools/srs_grounds.py tools/srs_arch.py; do
+    if [ -e "/tmp/srs-bare/srs-dd/$f" ]; then echo "FAIL FR-INIT-320 — srs-dd/$f was installed without its layer"; exit 1; fi
+done
+test -f /tmp/srs-bare/srs-dd/method.md && test -f /tmp/srs-bare/srs-dd/guide.md \
+    || { echo "FAIL FR-INIT-320 — the method and the guide did not reach a project without layers"; exit 1; }
+echo "installer-smoke: everything of the framework's is under srs-dd/, and nothing else is"
 
-# precious <path> [extra upgrade flags…]
-# Three phases, because the rule has three outcomes and a fixture for one of
-# them proves neither of the others: kept without the flag, replaced with it,
-# and left alone either way when the file at that path is not ours.
-precious() {
-    local rel=$1; shift
-    cp "/tmp/srs-pristine/$rel" "$PT/$rel"
+# srs-end: FR-INIT-320
+# verifies: FR-INIT-330
+rm -rf /tmp/srs-foreign && mkdir -p /tmp/srs-foreign/srs-dd
+printf 'theirs\n' > /tmp/srs-foreign/srs-dd/README.md
+rc=0; python3 tools/srs_init.py /tmp/srs-foreign --defaults --areas APP --ci none > /tmp/foreign.log 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "FAIL FR-INIT-330 — a srs-dd/ that is not ours was not refused (exit $rc)"; cat /tmp/foreign.log; exit 1; }
+[ "$(ls /tmp/srs-foreign)" = "srs-dd" ] && grep -q "^theirs$" /tmp/srs-foreign/srs-dd/README.md \
+    || { echo "FAIL FR-INIT-330 — the refusal wrote something"; ls -R /tmp/srs-foreign; exit 1; }
+grep -q "carries no marker" /tmp/foreign.log || { echo "FAIL FR-INIT-330 — the refusal does not say why"; cat /tmp/foreign.log; exit 1; }
+# Ours — marked — is upgraded, not refused.
+rc=0; python3 tools/srs_init.py "$PT" --defaults > /dev/null 2>&1 || rc=$?
+[ "$rc" = 0 ] || { echo "FAIL FR-INIT-330 — our own srs-dd/ was refused"; exit 1; }
+# What a crashed adopt leaves — the directory with nothing but its temporary
+# checker — is ours too: the next adopt removes the file and carries on.
+rm -rf /tmp/srs-leftover && mkdir -p /tmp/srs-leftover/srs-dd/tools /tmp/srs-leftover/specs
+printf 'crashed\n' > /tmp/srs-leftover/srs-dd/tools/.srs_check_adopt.py
+printf '### FR-APP-010 — Starts\n\n```yaml\nstatus: deferred\nverification: I\nderives_from: []\ndepends_on: []\n' \
+    > /tmp/srs-leftover/specs/10-fr-app.md
+printf 'refines: []\nconflicts_with: []\ncode: []\ntests: []\ncreated: 2026-01-01\n```\n\nThe app **shall** start.\n' \
+    >> /tmp/srs-leftover/specs/10-fr-app.md
+rc=0; python3 tools/srs_init.py /tmp/srs-leftover --defaults --areas APP --ci none > /tmp/leftover.log 2>&1 || rc=$?
+[ "$rc" = 0 ] || { echo "FAIL FR-INIT-330 — a crashed adopt's leftover was refused as a foreign directory (exit $rc)"
+                   cat /tmp/leftover.log; exit 1; }
+test -f /tmp/srs-leftover/srs-dd/README.md || { echo "FAIL FR-INIT-330 — adopt over the leftover installed no directory"; exit 1; }
+if [ -e /tmp/srs-leftover/srs-dd/tools/.srs_check_adopt.py ]; then
+    echo "FAIL FR-INIT-330 — the crashed adopt's checker was left in place"; exit 1
+fi
 
-    # srs-end: FR-CHK-210
-    # verifies: FR-INIT-240
-    # A skipped file says whether it differs from what this version ships:
-    # the copy it installed does not, the same copy edited does. Without the
-    # first half every skipped file could be reported as changed and this
-    # would stay green.
-    python3 tools/srs_init.py "$PT" --defaults "$@" > /tmp/prec-same.log
-    grep -qF "$rel (same as this version ships)" /tmp/prec-same.log \
-        || { echo "FAIL FR-INIT-240 — $rel: an untouched copy was not reported"
-             echo "as the same as what this version ships"; cat /tmp/prec-same.log; exit 1; }
+# srs-end: FR-INIT-330
+# verifies: FR-INIT-340
+# A project installed before the directory: the tools under tools/ and the
+# standards beside what they govern, each with the marker. The upgrade moves
+# them, deletes the copies, and the dry run only lists the move.
+OLD=/tmp/srs-oldlayout
+rm -rf "$OLD"; cp -R /tmp/srs-pristine "$OLD"
+( cd "$OLD" && mkdir -p tools && mv srs-dd/tools/*.py tools/ && mv srs-dd/standard.md specs/README.md \
+  && mv srs-dd/grounds.md grounds/README.md && mv srs-dd/arch.md arch/README.md && rm -rf srs-dd )
+printf '# mine\n' > "$OLD/tools/mine.py"     # a tool of the project's, no marker
+python3 tools/srs_init.py "$OLD" --defaults --dry-run > /tmp/old-dry.log
+grep -q "tools/srs_check.py -> srs-dd/tools/srs_check.py" /tmp/old-dry.log \
+    || { echo "FAIL FR-INIT-340 — the dry run does not list the move"; cat /tmp/old-dry.log; exit 1; }
+test -f "$OLD/tools/srs_check.py" && test -f "$OLD/specs/README.md" \
+    || { echo "FAIL FR-INIT-340 — the dry run moved files"; exit 1; }
+python3 tools/srs_init.py "$OLD" --defaults > /tmp/old-up.log
+for f in tools/srs_check.py tools/srs_grounds.py specs/README.md grounds/README.md arch/README.md; do
+    if [ -e "$OLD/$f" ]; then echo "FAIL FR-INIT-340 — $f was left behind after the move"; exit 1; fi
+done
+for f in tools/srs_check.py tools/srs_grounds.py standard.md grounds.md arch.md; do
+    test -f "$OLD/srs-dd/$f" || { echo "FAIL FR-INIT-340 — srs-dd/$f is missing after the move"; exit 1; }
+done
+test -f "$OLD/tools/mine.py" || { echo "FAIL FR-INIT-340 — the project's own tool was removed"; exit 1; }
+grep -q "the framework's files now live under srs-dd/" /tmp/old-up.log \
+    || { echo "FAIL FR-INIT-340 — the report does not say where the files went"; cat /tmp/old-up.log; exit 1; }
+# A README of the project's own under specs/ carries no marker and stays.
+rm -rf "$OLD"; cp -R /tmp/srs-pristine "$OLD"; printf '# ours\n' > "$OLD/specs/README.md"
+python3 tools/srs_init.py "$OLD" --defaults > /dev/null
+grep -q "^# ours$" "$OLD/specs/README.md" || { echo "FAIL FR-INIT-340 — a README of the project's was taken for the standard"; exit 1; }
+rm -rf "$OLD"
 
+# srs-end: FR-INIT-340
+# verifies: FR-INIT-350
+for area in ADR ARCHIVE; do
+    rm -rf /tmp/srs-badarea
+    rc=0; python3 tools/srs_init.py /tmp/srs-badarea --defaults --areas "$area" --ci none > /tmp/badarea.log 2>&1 || rc=$?
+    [ "$rc" = 2 ] && grep -q "is one the checker skips" /tmp/badarea.log \
+        || { echo "FAIL FR-INIT-350 — area $area was not refused (exit $rc)"; cat /tmp/badarea.log; exit 1; }
+    test ! -e /tmp/srs-badarea || { echo "FAIL FR-INIT-350 — the refusal wrote the target"; exit 1; }
+done
+
+# srs-end: FR-INIT-350
+# verifies: FR-INIT-360, FR-INIT-370, FR-INIT-200, FR-SKILL-440
+# The guides and .gitattributes are the project's: an edit outside the
+# region survives every upgrade, the region alone is rewritten, and a guide
+# without the region is reported with what to add.
+for rel in AGENTS.md CLAUDE.md .gitattributes; do
     printf 'theirs, edited\n' >> "$PT/$rel"
-    python3 tools/srs_init.py "$PT" --defaults "$@" > /tmp/prec-keep.log
-    grep -qF "$rel (differs from what this version ships; use --force to refresh)" /tmp/prec-keep.log \
-        || { echo "FAIL FR-INIT-060 — $rel: an upgrade did not report it as"
-             echo "kept behind --force, and as differing (FR-INIT-240)"; cat /tmp/prec-keep.log; exit 1; }
-    grep -qF 'theirs, edited' "$PT/$rel" \
-        || { echo "FAIL FR-INIT-060 — $rel was refreshed without --force"
-             exit 1; }
+done
+python3 tools/srs_init.py "$PT" --defaults > /tmp/starter-guides.log
+for rel in AGENTS.md CLAUDE.md .gitattributes; do
+    grep -qF 'theirs, edited' "$PT/$rel" || { echo "FAIL FR-INIT-360 — $rel was rewritten by an upgrade"; exit 1; }
+    grep -qF "$rel (the project's file — never rewritten)" /tmp/starter-guides.log \
+        || { echo "FAIL FR-INIT-360 — $rel was not reported as the project's"; cat /tmp/starter-guides.log; exit 1; }
+done
+# The region: altered inside, it is put back from srs-dd/guide.md; the text around it stays.
+python3 - "$PT/AGENTS.md" <<'PY2'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+b, e = s.index('<!-- srs-dd -->'), s.index('<!-- /srs-dd -->')
+open(p, 'w', encoding='utf-8').write(s[:b] + '<!-- srs-dd -->\nstale rules\n' + s[e:])
+PY2
+python3 tools/srs_init.py "$PT" --defaults --dry-run > /tmp/region-dry.log
+grep -qF "AGENTS.md (the region" /tmp/region-dry.log || { echo "FAIL FR-INIT-370 — the dry run does not list the region"; cat /tmp/region-dry.log; exit 1; }
+grep -q "^stale rules$" "$PT/AGENTS.md" || { echo "FAIL FR-INIT-370 — the dry run rewrote the region"; exit 1; }
+python3 tools/srs_init.py "$PT" --defaults > /tmp/region.log
+if grep -q "^stale rules$" "$PT/AGENTS.md"; then echo "FAIL FR-INIT-370 — the region was not refreshed"; exit 1; fi
+grep -qF 'theirs, edited' "$PT/AGENTS.md" && grep -q "Acme Widgets" "$PT/AGENTS.md" \
+    || { echo "FAIL FR-INIT-370 — text outside the region was lost"; exit 1; }
+python3 - "$PT/AGENTS.md" srs-dd/guide.md <<'PY2'
+import sys
+s = open(sys.argv[1], encoding='utf-8').read(); g = open(sys.argv[2], encoding='utf-8').read()
+body = g.strip('\n')
+b, e = s.index('<!-- srs-dd -->') + len('<!-- srs-dd -->'), s.index('<!-- /srs-dd -->')
+assert s[b:e].strip('\n') == body, 'FAIL FR-INIT-370 — the refreshed region is not srs-dd/guide.md'
+PY2
+# No region at all: reported, and nothing in the file touched.
+python3 - "$PT/AGENTS.md" <<'PY2'
+import sys
+p = sys.argv[1]; s = open(p, encoding='utf-8').read()
+open(p, 'w', encoding='utf-8').write(s.replace('<!-- srs-dd -->', '').replace('<!-- /srs-dd -->', ''))
+PY2
+before=$(cksum < "$PT/AGENTS.md")
+python3 tools/srs_init.py "$PT" --defaults > /tmp/noregion.log
+grep -q "AGENTS.md carries no region" /tmp/noregion.log || { echo "FAIL FR-INIT-370 — a guide without the region was not reported"; cat /tmp/noregion.log; exit 1; }
+[ "$(cksum < "$PT/AGENTS.md")" = "$before" ] || { echo "FAIL FR-INIT-370 — a guide without the region was rewritten"; exit 1; }
+# A guide written by an upgrade — the file was absent — is filled with the
+# recorded name and width (FR-INIT-200), and the directory stands in for a
+# name that was never recorded.
+rm -f "$PT/AGENTS.md"
+python3 tools/srs_init.py "$PT" --defaults > /tmp/guide-back.log
+grep -qF 'Acme Widgets' "$PT/AGENTS.md" && grep -qF '100 columns' "$PT/AGENTS.md" \
+    || { echo "FAIL FR-INIT-200 — the guide an upgrade wrote is not filled from the configuration"; exit 1; }
+absent '<Your Project Name>' "$PT/AGENTS.md"
+absent '<SRS-DD-WIDTH-LINE>' "$PT/AGENTS.md"
+python3 - "$PT/specs/srs-config.json" <<'PY2'
+import json, sys
+path = sys.argv[1]
+with open(path, encoding='utf-8') as handle:
+    data = json.load(handle)
+data.pop('project_name', None)
+with open(path, 'w', encoding='utf-8') as handle:
+    json.dump(data, handle, indent=2)
+PY2
+rm -f "$PT/AGENTS.md"
+python3 tools/srs_init.py "$PT" --defaults > /tmp/guide-noname.log
+grep -qF 'srs-precious' "$PT/AGENTS.md" || { echo "FAIL FR-INIT-200 — with no recorded name the directory did not stand in"; exit 1; }
+cp /tmp/srs-pristine/specs/srs-config.json "$PT/specs/srs-config.json"
+cp /tmp/srs-pristine/AGENTS.md "$PT/AGENTS.md"; cp /tmp/srs-pristine/CLAUDE.md "$PT/CLAUDE.md"; cp /tmp/srs-pristine/.gitattributes "$PT/.gitattributes"
+echo "installer-smoke: the guides and .gitattributes are the project's, and the region is the framework's"
 
-    # Refreshed, not removed: grep on a file that is gone answers "no match"
-    # as loudly as grep on one that was rewritten, so what the file holds
-    # afterwards is asserted and not only what it lost.
-    python3 tools/srs_init.py "$PT" --defaults --force "$@" > /tmp/prec-force.log
-    absent 'theirs, edited' "$PT/$rel"
-    grep -q "SRS-DD" "$PT/$rel" \
-        || { echo "FAIL FR-INIT-060 — $rel lost our marker under --force"
-             exit 1; }
-
-    # A file of theirs at the same path is never clobbered, flag or no flag:
-    # the marker is how the installer tells its own file from a stranger's,
-    # and getting this wrong is how a tool eats somebody's configuration.
-    printf '# Ours, and no marker in it\n' > "$PT/$rel"
-    python3 tools/srs_init.py "$PT" --defaults --force "$@" > /tmp/prec-mine.log
-    grep -qF "$rel (no SRS-DD marker" /tmp/prec-mine.log \
-        || { echo "FAIL FR-INIT-060 — $rel: a stranger's file was not reported"
-             echo "as skipped"; cat /tmp/prec-mine.log; exit 1; }
-    grep -qF 'Ours, and no marker in it' "$PT/$rel" \
-        || { echo "FAIL FR-INIT-060 — $rel: --force overwrote a file that is"
-             echo "not ours"; exit 1; }
-    cp "/tmp/srs-pristine/$rel" "$PT/$rel"
-}
-
-# srs-end: FR-INIT-240
+# srs-end: FR-INIT-360, FR-INIT-370, FR-INIT-200, FR-SKILL-440
 # verifies: FR-INIT-290
 # The hook and the pipelines are the project's files: a starter is written
-# where the file is absent and never again — edited, marked, --force or
+# where the file is absent and never again — edited, marked, or
 # not — and a --dry-run lists it under skipped, not refreshed.
 for rel in .github/workflows/srs.yml .githooks/pre-commit; do
     printf 'theirs, edited\n' >> "$PT/$rel"
-    python3 tools/srs_init.py "$PT" --defaults --force --ci github > /tmp/starter-force.log
+    python3 tools/srs_init.py "$PT" --defaults --ci github > /tmp/starter-force.log
     grep -qF 'theirs, edited' "$PT/$rel" \
-        || { echo "FAIL FR-INIT-290 — $rel was rewritten under --force"; exit 1; }
+        || { echo "FAIL FR-INIT-290 — $rel was rewritten under"; exit 1; }
     grep -qF "$rel (the project's file — never rewritten)" /tmp/starter-force.log \
         || { echo "FAIL FR-INIT-290 — $rel was not reported as never rewritten"; cat /tmp/starter-force.log; exit 1; }
-    python3 tools/srs_init.py "$PT" --defaults --force --ci github --dry-run > /tmp/starter-dry.log
+    python3 tools/srs_init.py "$PT" --defaults --ci github --dry-run > /tmp/starter-dry.log
     if grep -qE "^  $rel\$" /tmp/starter-dry.log; then
         echo "FAIL FR-INIT-290 — a dry run listed $rel as refreshed"; exit 1
     fi
@@ -427,115 +530,11 @@ for rel in .githooks/pre-commit .gitlab-ci.yml; do
     grep -q "SRS-DD" "$PT/$rel" || { echo "FAIL FR-INIT-290 — the starter $rel written is not ours"; exit 1; }
 done
 printf 'theirs, edited\n' >> "$PT/.gitlab-ci.yml"
-python3 tools/srs_init.py "$PT" --defaults --force --ci gitlab > /dev/null
+python3 tools/srs_init.py "$PT" --defaults --ci gitlab > /dev/null
 grep -qF 'theirs, edited' "$PT/.gitlab-ci.yml" \
-    || { echo "FAIL FR-INIT-290 — .gitlab-ci.yml was rewritten under --force"; exit 1; }
+    || { echo "FAIL FR-INIT-290 — .gitlab-ci.yml was rewritten under"; exit 1; }
 rm -f "$PT/.gitlab-ci.yml"
 # srs-end: FR-INIT-290
-# verifies: FR-INIT-060
-precious .gitattributes
-# The standard was the half missing until 0.14.0: installed once and never
-# moved again, so a project set up at 0.7.0 ran current tooling against a
-# standard 112 lines out of date. It is precious rather than tooling because
-# adopt leaves a project its own on purpose (FR-INIT-040), and each optional
-# layer's standard travels on exactly those terms.
-precious specs/README.md
-precious grounds/README.md
-precious arch/README.md
-precious AGENTS.md
-precious CLAUDE.md
-
-# srs-end: FR-INIT-060
-# --- verifies: FR-INIT-200 — the guides are the one payload file that is
-# --- filled in rather than copied, so refreshing one needs the answers the
-# --- install took. Until the name was recorded there was nothing to fill
-# --- the template with, and the installer refreshed them under no flag at
-# --- all — while FR-INIT-060 listed them among the files --force replaces
-# --- and the guide's own header said --force would overwrite it.
-grep -q '"project_name": "Acme Widgets"' "$PT/specs/srs-config.json" \
-    || { echo "FAIL FR-INIT-200 — the install did not record the project name"
-         exit 1; }
-
-# The generic phases above prove the guide was rewritten; they cannot tell a
-# rewrite that filled the blanks from one that shipped the template as it
-# stands. That is what this asserts, and it is the whole difficulty.
-printf 'theirs, edited\n' >> "$PT/AGENTS.md"
-python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-guides.log
-absent 'theirs, edited' "$PT/AGENTS.md"
-absent '<Your Project Name>' "$PT/AGENTS.md"
-absent '<SRS-DD-WIDTH-LINE>' "$PT/AGENTS.md"
-grep -qF 'Acme Widgets' "$PT/AGENTS.md" \
-    || { echo "FAIL FR-INIT-200 — the refreshed guide lost the project name"
-         exit 1; }
-grep -qF '100 columns' "$PT/AGENTS.md" \
-    || { echo "FAIL FR-INIT-200 — the refreshed guide lost the line width"
-         exit 1; }
-
-# An answer the configuration carries but nothing can use: both values are
-# interpolated into text, so a name that is not a string dies in
-# `str.replace` and a width that is not a whole number dies in `%d`. The
-# tool runs inside somebody else's repository, and the file it reads them
-# from is one a maintainer edits by hand.
-# badvalue <key> <json literal> — the configuration says something the
-# installer cannot use, and the run says so instead of dying.
-badvalue() {
-    KEY="$1" VAL="$2" python3 - "$PT/specs/srs-config.json" <<'PY2'
-import json
-import os
-import sys
-path = sys.argv[1]
-with open(path, encoding='utf-8') as handle:
-    data = json.load(handle)
-data[os.environ['KEY']] = json.loads(os.environ['VAL'])
-with open(path, 'w', encoding='utf-8') as handle:
-    json.dump(data, handle, indent=2)
-PY2
-    local rc=0
-    python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-bad.log 2>&1 \
-        || rc=$?
-    [ "$rc" = 0 ] || { echo "FAIL FR-INIT-200 — $1 of the wrong type stopped the"
-                       echo "upgrade"; tail -5 /tmp/prec-bad.log; exit 1; }
-    grep -qF "in specs/srs-config.json is not" /tmp/prec-bad.log \
-        || { echo "FAIL FR-INIT-200 — $1 of the wrong type was used, or dropped"
-             echo "in silence"; cat /tmp/prec-bad.log; exit 1; }
-    absent '<Your Project Name>' "$PT/AGENTS.md"
-    absent '<SRS-DD-WIDTH-LINE>' "$PT/AGENTS.md"
-    cp /tmp/srs-pristine/specs/srs-config.json "$PT/specs/srs-config.json"
-}
-
-badvalue project_name 123
-badvalue line_width '"100"'
-badvalue line_width true
-
-# A project installed before the name was recorded still gets its guides
-# back: the directory stands in, because a guide under a slightly wrong
-# title beats one that stopped being refreshed at all.
-python3 - "$PT/specs/srs-config.json" <<'PY2'
-import json
-import sys
-path = sys.argv[1]
-with open(path, encoding='utf-8') as handle:
-    data = json.load(handle)
-data.pop('project_name', None)
-with open(path, 'w', encoding='utf-8') as handle:
-    json.dump(data, handle, indent=2)
-PY2
-printf 'theirs, edited\n' >> "$PT/AGENTS.md"
-python3 tools/srs_init.py "$PT" --defaults --force > /tmp/prec-noname.log
-absent 'theirs, edited' "$PT/AGENTS.md"
-absent '<Your Project Name>' "$PT/AGENTS.md"
-grep -qF 'srs-precious' "$PT/AGENTS.md" \
-    || { echo "FAIL FR-INIT-200 — with no recorded name the directory did not"
-         echo "stand in"; exit 1; }
-# Put the target back as it was installed, the way the two helpers above do:
-# the fixtures below share it, and one left deliberately degraded is a trap
-# for whoever writes the next one.
-cp /tmp/srs-pristine/specs/srs-config.json "$PT/specs/srs-config.json"
-python3 tools/srs_init.py "$PT" --defaults --force > /dev/null
-
-echo "installer-smoke: all seven precious kinds behave as FR-INIT-060 says"
-
-# srs-end: FR-INIT-200
 # verifies: IF-CI-010
 # The installer's exit codes are a contract. The adopt suite
 # covers 0, 2 and 3; 1 — the checker found errors in the target — was
@@ -559,7 +558,7 @@ grep -q "status implemented but the code field is empty" /tmp/precious-broken.lo
 # A fresh target must hold exactly one requirement — the generated
 # placeholder — and nothing of ours. Asked through the parser rather than
 # grep: the standard itself carries example identifiers in prose.
-python3 /tmp/srs-clean/tools/srs_view.py --json /tmp/target.json >/dev/null
+python3 /tmp/srs-clean/srs-dd/tools/srs_view.py --json /tmp/target.json >/dev/null
 python3 - <<'PY'
 import json
 ids = [r['id'] for r in json.load(open('/tmp/target.json'))['requirements']]
@@ -588,7 +587,7 @@ ANY = re.compile(r'\b(?:FR|NFR|IF|INV|CON)-[A-Z]+-\d{3,}\b')
 
 def instructs(rel):
     # The standards that travel are not procedures: their identifiers sit
-    # inside the record examples that show the format, and specs/README.md
+    # inside the record examples that show the format, and srs-dd/standard.md
     # is the same document in every project (CON-SPEC-020's rationale).
     return (rel in ('AGENTS.md', 'CLAUDE.md')
             or (rel.startswith('.claude/skills/') and rel.endswith('SKILL.md')))
@@ -684,11 +683,11 @@ test ! -e /tmp/srs-width-bad/specs/srs-config.json
 python3 - <<'PY3'
 import os
 import re
-for name in sorted(os.listdir('/tmp/srs-clean/tools')):
+for name in sorted(os.listdir('/tmp/srs-clean/srs-dd/tools')):
     if not name.endswith('.py'):
         continue
-    mine = open(os.path.join('tools', name), encoding='utf-8').read()
-    theirs = open(os.path.join('/tmp/srs-clean/tools', name),
+    mine = open(os.path.join('srs-dd', 'tools', name), encoding='utf-8').read()
+    theirs = open(os.path.join('/tmp/srs-clean/srs-dd/tools', name),
                   encoding='utf-8').read()
     assert mine.count(chr(10)) == theirs.count(chr(10)), (
         '%s: %d lines here, %d in the target — a removed annotation took '
@@ -703,10 +702,10 @@ PY3
 # The example annotations are what a target reads the format from, so they
 # survive — and `srs-ignore` is what says they are examples rather than
 # claims.
-grep -q 'implements: FR-CORE-010' /tmp/srs-clean/tools/srs_check.py  # srs-ignore
+grep -q 'implements: FR-CORE-010' /tmp/srs-clean/srs-dd/tools/srs_check.py  # srs-ignore
 # End markers name this framework's requirements as annotations do, and go
 # the same way: none reaches a target's tooling.
-if grep -n -E 'srs-end: *[A-Z]+-[A-Z0-9]+-[0-9]' /tmp/srs-clean/tools/*.py | grep -v 'srs-ignore'; then
+if grep -n -E 'srs-end: *[A-Z]+-[A-Z0-9]+-[0-9]' /tmp/srs-clean/srs-dd/tools/*.py | grep -v 'srs-ignore'; then
     echo "FAIL FR-INIT-180 — an end marker naming a requirement of ours reached the target"; exit 1
 fi
 
@@ -720,15 +719,15 @@ python3 tools/srs_init.py "$GT" --defaults --areas APP --ci github \
 
 # All of it or none of it: the standard, the starter files, the checker and
 # the procedure only make sense together.
-for f in grounds/README.md grounds/grounds-config.json grounds/00-ideology.md \
+for f in srs-dd/grounds.md grounds/grounds-config.json grounds/00-ideology.md \
          grounds/01-frames.md grounds/02-unclaimed.md grounds/03-bets.md \
-         tools/srs_grounds.py .claude/skills/srs-bet/SKILL.md; do
+         srs-dd/tools/srs_grounds.py .claude/skills/srs-bet/SKILL.md; do
     [ -f "$GT/$f" ] || { echo "FAIL FR-GND-280/320 — $f did not travel"; exit 1; }
 done
 
 # What was installed passes the target's own checker strictly, so a project's
 # first red run means something the project did.
-( cd "$GT" && python3 tools/srs_grounds.py --no-write --strict ) \
+( cd "$GT" && python3 srs-dd/tools/srs_grounds.py --no-write --strict ) \
     > /tmp/grounds-strict.log 2>&1 \
     || { echo "FAIL FR-GND-300 — a fresh register does not pass strictly"
          cat /tmp/grounds-strict.log; exit 1; }
@@ -743,7 +742,7 @@ done
 rm -rf /tmp/srs-nogrounds
 python3 tools/srs_init.py /tmp/srs-nogrounds --defaults --areas APP \
     --ci none --grounds no > /dev/null 2>&1
-for f in grounds tools/srs_grounds.py .claude/skills/srs-bet; do
+for f in grounds srs-dd/tools/srs_grounds.py .claude/skills/srs-bet; do
     [ -e "/tmp/srs-nogrounds/$f" ] \
         && { echo "FAIL FR-GND-280 — $f arrived at a target that declined"
              exit 1; }
@@ -802,7 +801,7 @@ rc=0
 # The dashboard is regenerated before anything is staged: the hook refuses
 # a commit whose dashboard is not the checker's (FR-GND-570), and this
 # fixture asks about the report, not that.
-( cd "$GT" && git init -q . && python3 tools/srs_grounds.py > /dev/null && git add -A \
+( cd "$GT" && git init -q . && python3 srs-dd/tools/srs_grounds.py > /dev/null && git add -A \
   && sh .githooks/pre-commit ) > /tmp/grounds-hook.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL FR-GND-310 — the hook failed the commit over a"
                    echo "refuted hypothesis"; cat /tmp/grounds-hook.log; exit 1; }
@@ -831,7 +830,7 @@ PY2
 # before it ever reaches the register — so it is regenerated and staged here.
 # The requirement's own file is deliberately left unstaged: it is what makes
 # this fixture able to fail.
-( cd "$GT" && python3 tools/srs_check.py >/dev/null \
+( cd "$GT" && python3 srs-dd/tools/srs_check.py >/dev/null \
   && git add src/thing.py specs/90-traceability.md )
 ( cd "$GT" && git diff --cached --name-only ) > /tmp/grounds-staged.log
 absent 'specs/10-fr-app.md' /tmp/grounds-staged.log
@@ -871,21 +870,21 @@ MD
 # Any warning serves: what the next assertion needs is a register that
 # warns at all, not one that warns by a particular rule. Naming the rule
 # here couples this fixture to which of them happens to speak.
-( cd "$GT" && python3 tools/srs_grounds.py --no-write 2>&1 | grep -q "^warning:" ) \
+( cd "$GT" && python3 srs-dd/tools/srs_grounds.py --no-write 2>&1 | grep -q "^warning:" ) \
     || { echo "FAIL — the fixture register does not warn, so the next"
          echo "assertion would hold for any register at all"; exit 1; }
 python3 tools/srs_init.py "$GT" --defaults > /tmp/grounds-warn.log 2>&1 \
     || { echo "FAIL FR-GND-290 — an upgrade failed over a warning in the"
          echo "register"; tail -5 /tmp/grounds-warn.log; exit 1; }
 
-# And nothing under --force overwrites what the project authored. The
+# And nothing an upgrade does overwrites what the project authored. The
 # standard is refreshed; the records are the project's.
 printf '\n### F-010 — Ours\n\n```yaml\nstatus: active\n```\n\nWe do not sell attention.\n' \
     >> "$GT/grounds/01-frames.md"
 before=$(cksum < "$GT/grounds/01-frames.md")
-python3 tools/srs_init.py "$GT" --defaults --force > /dev/null 2>&1
+python3 tools/srs_init.py "$GT" --defaults > /dev/null 2>&1
 [ "$(cksum < "$GT/grounds/01-frames.md")" = "$before" ] \
-    || { echo "FAIL — --force overwrote a record the project wrote"; exit 1; }
+    || { echo "FAIL — an upgrade overwrote a record the project wrote"; exit 1; }
 
 # A flag that reads as an instruction and does nothing has to say so: the
 # installer tells a target about its other inert flags already.
@@ -945,12 +944,12 @@ AT=/tmp/srs-arch-target
 rm -rf "$AT"
 python3 tools/srs_init.py "$AT" --defaults --name "Arch target" \
     --areas APP --ci github --arch yes > /tmp/arch-fresh.log 2>&1
-for f in arch/README.md arch/arch-config.json arch/00-elements.md \
-         tools/srs_arch.py .claude/skills/srs-arch/SKILL.md; do
+for f in srs-dd/arch.md arch/arch-config.json arch/00-elements.md \
+         srs-dd/tools/srs_arch.py .claude/skills/srs-arch/SKILL.md; do
     [ -f "$AT/$f" ] || { echo "FAIL FR-ARCH-120 — the layer arrived without $f"
                          exit 1; }
 done
-( cd "$AT" && python3 tools/srs_arch.py --no-write --strict ) \
+( cd "$AT" && python3 srs-dd/tools/srs_arch.py --no-write --strict ) \
     > /tmp/arch-strict.log 2>&1 \
     || { echo "FAIL FR-ARCH-140 — a fresh layer does not pass its own checker"
          cat /tmp/arch-strict.log; exit 1; }
@@ -971,20 +970,20 @@ rm -rf "$GT2"
 python3 tools/srs_init.py "$GT2" --defaults --areas APP --ci both --grounds yes --period year --arch yes \
     > /dev/null 2>&1
 for f in .github/workflows/srs.yml .gitlab-ci.yml .githooks/pre-commit; do
-    grep -qF "python3 tools/srs_gate.py" "$GT2/$f" \
-        || { echo "FAIL FR-CI-180 — the installed $f does not run the gate through tools/srs_gate.py"; exit 1; }
-    if grep -qE "python3 tools/srs_(check|grounds|arch)\.py" "$GT2/$f"; then
+    grep -qF "python3 srs-dd/tools/srs_gate.py" "$GT2/$f" \
+        || { echo "FAIL FR-CI-180 — the installed $f does not run the gate through srs-dd/tools/srs_gate.py"; exit 1; }
+    if grep -qE "python3 srs-dd/tools/srs_(check|grounds|arch)\.py" "$GT2/$f"; then
         echo "FAIL FR-CI-180 — the installed $f still runs a step of the gate itself"; exit 1
     fi
 done
 ( cd "$GT2" && git init -q . && git add -A \
   && git -c user.email=t@t -c user.name=t commit -qm base )
-rc=0; ( cd "$GT2" && python3 tools/srs_gate.py ) > /tmp/gate-fresh.log 2>&1 || rc=$?
+rc=0; ( cd "$GT2" && python3 srs-dd/tools/srs_gate.py ) > /tmp/gate-fresh.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL FR-CI-180 — the gate refused a project just installed"; cat /tmp/gate-fresh.log; exit 1; }
 for generated in specs/90-traceability.md grounds/90-dashboard.md arch/90-map.md; do
     printf '\nedited by hand\n' >> "$GT2/$generated"
     ( cd "$GT2" && git add -A && git -c user.email=t@t -c user.name=t commit -qm "stale $generated" )
-    rc=0; ( cd "$GT2" && python3 tools/srs_gate.py ) > /tmp/gate-stale.log 2>&1 || rc=$?
+    rc=0; ( cd "$GT2" && python3 srs-dd/tools/srs_gate.py ) > /tmp/gate-stale.log 2>&1 || rc=$?
     [ "$rc" = 1 ] && grep -qF "srs_gate.py: $generated was regenerated and differs from what git holds" /tmp/gate-stale.log \
         || { echo "FAIL — the installed pipeline's gate passed a committed $generated that is stale (exit $rc)"
              cat /tmp/gate-stale.log; exit 1; }
@@ -995,7 +994,7 @@ NT2=/tmp/srs-gate-nolayers
 rm -rf "$NT2"
 python3 tools/srs_init.py "$NT2" --defaults --areas APP --ci github > /dev/null 2>&1
 ( cd "$NT2" && git init -q . && git add -A && git -c user.email=t@t -c user.name=t commit -qm base )
-rc=0; ( cd "$NT2" && python3 tools/srs_gate.py ) > /tmp/gate-nolayers.log 2>&1 || rc=$?
+rc=0; ( cd "$NT2" && python3 srs-dd/tools/srs_gate.py ) > /tmp/gate-nolayers.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL FR-ARCH-170 — the gate refused a project that keeps no layer"; cat /tmp/gate-nolayers.log; exit 1; }
 absent "arch/90-map.md" /tmp/gate-nolayers.log
 absent "grounds/90-dashboard.md" /tmp/gate-nolayers.log
@@ -1006,7 +1005,7 @@ echo "installer-smoke: the installed gate compares every generated file the proj
 rm -rf /tmp/srs-noarch
 python3 tools/srs_init.py /tmp/srs-noarch --defaults --areas APP \
     --ci none --arch no > /dev/null 2>&1
-for f in arch tools/srs_arch.py .claude/skills/srs-arch; do
+for f in arch srs-dd/tools/srs_arch.py .claude/skills/srs-arch; do
     [ -e "/tmp/srs-noarch/$f" ] \
         && { echo "FAIL FR-ARCH-120 — --arch no still installed $f"; exit 1; }
 done
@@ -1071,8 +1070,8 @@ passed() {
     [ "$rc" = 0 ] || { echo "FAIL $1 — the hook refused a commit it should pass ($2)"
                        cat /tmp/hook-layers.log; exit 1; }
 }
-( cd "$HT" && git init -q . && python3 tools/srs_check.py > /dev/null \
-  && python3 tools/srs_grounds.py > /dev/null && python3 tools/srs_arch.py > /dev/null && git add -A )
+( cd "$HT" && git init -q . && python3 srs-dd/tools/srs_check.py > /dev/null \
+  && python3 srs-dd/tools/srs_grounds.py > /dev/null && python3 srs-dd/tools/srs_arch.py > /dev/null && git add -A )
 hook_in "$HT"; passed "FR-GND-570/FR-ARCH-300" "every generated file current and staged"
 
 # A copy edited by hand is not the checker's.
@@ -1112,7 +1111,7 @@ hook_in "$HT"; passed "FR-GND-570/FR-ARCH-300" "everything the one refusal named
 NT=/tmp/srs-hook-nolayers
 rm -rf "$NT"
 python3 tools/srs_init.py "$NT" --defaults --areas APP > /dev/null 2>&1
-( cd "$NT" && git init -q . && python3 tools/srs_check.py > /dev/null && git add -A )
+( cd "$NT" && git init -q . && python3 srs-dd/tools/srs_check.py > /dev/null && git add -A )
 hook_in "$NT"; passed "FR-GND-570/FR-ARCH-300" "a project keeping neither layer"
 absent "Dashboard rewritten" /tmp/hook-layers.log
 absent "Map rewritten" /tmp/hook-layers.log
@@ -1138,7 +1137,7 @@ python3 tools/srs_init.py "$UT" --defaults --areas MAP_ILAND,APP --ci none > /tm
     || { echo "FAIL IF-SPEC-040 — a fresh install refused an area of two words"; cat /tmp/und-fresh.log; exit 1; }
 grep -q "^### FR-MAP_ILAND-010 " "$UT/specs/10-fr-map_iland.md" \
     || { echo "FAIL IF-SPEC-040 — the placeholder of an area of two words was not written"; exit 1; }
-( cd "$UT" && python3 tools/srs_check.py --no-write ) > /tmp/und-check.log 2>&1 \
+( cd "$UT" && python3 srs-dd/tools/srs_check.py --no-write ) > /tmp/und-check.log 2>&1 \
     || { echo "FAIL IF-SPEC-040 — the installed project's checker refuses its own area"; cat /tmp/und-check.log; exit 1; }
 rm -rf "$UT"
 for bad in MAP_ MAP__ILAND map_iland; do

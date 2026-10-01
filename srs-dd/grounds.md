@@ -1,6 +1,6 @@
 # The grounds register
 
-<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
+<!-- SRS-DD-VERSION — the framework's; rewritten whole by every upgrade -->
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 A specification records what the system must do.
@@ -103,7 +103,7 @@ calls are not a measurement.
 
 A level-three heading with the identifier and a title; a fenced `yaml` block of flat keys whose values are scalars or bracketed lists; a statement; and, optionally, a rationale and a table.
 
-The shape deliberately resembles a requirement block, so that whoever has read `specs/README.md` already knows how to read this.
+The shape deliberately resembles a requirement block, so that whoever has read `srs-dd/standard.md` already knows how to read this.
 It is not the same format.
 Neither is obliged to follow the other's edge cases, and a later reader who merges them would be inventing a coupling this register was designed to avoid.
 
@@ -454,11 +454,11 @@ The dashboard names the unit it used in the section itself, so nobody has to loo
 ## Checking
 
 ```
-python3 tools/srs_grounds.py            check, and rewrite the dashboard where there is no error
-python3 tools/srs_grounds.py --no-write check only
-python3 tools/srs_grounds.py --strict   treat warnings as errors
-python3 tools/srs_grounds.py --blast PATH…  what the requirements behind these files stand on
-python3 tools/srs_grounds.py --cite ID… name records to a person: identifier, title, file, status
+python3 srs-dd/tools/srs_grounds.py            check, and rewrite the dashboard where there is no error
+python3 srs-dd/tools/srs_grounds.py --no-write check only
+python3 srs-dd/tools/srs_grounds.py --strict   treat warnings as errors
+python3 srs-dd/tools/srs_grounds.py --blast PATH…  what the requirements behind these files stand on
+python3 srs-dd/tools/srs_grounds.py --cite ID… name records to a person: identifier, title, file, status
 ```
 
 Exit 0 where nothing was found and, under `--strict`, no warning either; 1 on errors, or on warnings under `--strict`; 2 where it could not run at all. `--cite` exits 1 where an identifier names no record, and `--blast` reports and exits 0 — a report, never a verdict.

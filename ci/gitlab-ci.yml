@@ -16,11 +16,11 @@ spec-check:
   variables:
     GIT_DEPTH: 0
   script:
-    # The gate is tools/srs_gate.py, refreshed with the rest of the
+    # The gate is srs-dd/tools/srs_gate.py, refreshed with the rest of the
     # tooling: the checker, and the grounds register's and the architecture
     # layer's where the project keeps them, then every generated file
     # compared with the one committed. Add --strict to fail on warnings.
-    - python3 tools/srs_gate.py
+    - python3 srs-dd/tools/srs_gate.py
 
 # The readable specification as a build artifact: one self-contained
 # HTML file, no Pages setup required. Delete this job if you do not
@@ -33,7 +33,7 @@ spec-site:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - python3 tools/srs_view.py --html public/index.html --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+    - python3 srs-dd/tools/srs_view.py --html public/index.html --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
   artifacts:
     paths:
       - public

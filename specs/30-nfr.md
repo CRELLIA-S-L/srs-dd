@@ -11,7 +11,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, tools/srs_parse.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_view.py, tools/srs_init.py, tools/srs_baseline.py, tools/srs_release.py, tools/srs_upgrade.py, tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/srs_gate.py]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_view.py, tools/srs_init.py, srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, srs-dd/tools/srs_gate.py]
 tests: []
 created: 2026-08-07
 ```
@@ -26,7 +26,7 @@ It may, and what binds it then is ART-040, which forbids a new dependency withou
 The one dependency the shell script has is optional and argued where it lives (FR-CI-030): a missing YAML parser costs that check and nothing else.
 
 Every tool listed, not the three that existed when this was written.
-The statement quantifies over all of them and the field named half, so an agent asking what governs `tools/srs_baseline.py` — the first step of the everyday loop — was told about baselines and git history and never about this.
+The statement quantifies over all of them and the field named half, so an agent asking what governs `srs-dd/tools/srs_baseline.py` — the first step of the everyday loop — was told about baselines and git history and never about this.
 A field that answers "where is it realized" with half the answer is worse than one that answers nothing: the reader stops looking.
 
 ### NFR-SPEC-020 — Plain text all the way down
@@ -38,7 +38,7 @@ derives_from: [NFR-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md]
+code: [srs-dd/standard.md]
 tests: []
 created: 2026-08-07
 ```
@@ -56,7 +56,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: []
 created: 2026-08-07
 ```
@@ -74,7 +74,7 @@ derives_from: []
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: []
 created: 2026-08-07
 ```

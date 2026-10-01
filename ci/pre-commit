@@ -10,10 +10,10 @@
 #     sh .githooks/pre-commit || exit 1
 # It cds to the repository root itself, so it works from anywhere.
 #
-# The gate itself is tools/srs_gate.py, refreshed with the rest of the
+# The gate itself is srs-dd/tools/srs_gate.py, refreshed with the rest of the
 # tooling on every upgrade, so this file has nothing to change when the
 # gate does. --staged adds the grounds register's report on what the
 # commit touches; add --strict to also fail on warnings.
 set -e
 cd "$(git rev-parse --show-toplevel)"
-exec python3 tools/srs_gate.py --staged
+exec python3 srs-dd/tools/srs_gate.py --staged

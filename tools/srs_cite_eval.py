@@ -28,7 +28,7 @@ import subprocess
 import sys
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "srs-dd", "tools"))
 import srs_parse                                           # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -70,7 +70,7 @@ def citations(ids):
         if tool:
             groups.setdefault(tool, []).append(rid)
     for tool, wanted in groups.items():
-        path = os.path.join(ROOT, "tools", tool)
+        path = os.path.join(ROOT, "srs-dd", "tools", tool)
         if not os.path.exists(path):
             continue
         # implements: INV-SPEC-090
@@ -150,8 +150,8 @@ def ask(question, max_turns):
         # declined --cite is an instance citing by hand, which is the failure
         # this measures and must not be the harness's doing.
         "--allowedTools", "Read,Grep,Glob,Bash(python3 tools/*),"
-                          "Bash(python3 tools/srs_view.py:*),Bash(python3 tools/srs_arch.py:*),"
-                          "Bash(python3 tools/srs_grounds.py:*)",
+                          "Bash(python3 srs-dd/tools/srs_view.py:*),Bash(python3 srs-dd/tools/srs_arch.py:*),"
+                          "Bash(python3 srs-dd/tools/srs_grounds.py:*)",
     ]
     run = subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
     if run.returncode != 0:
@@ -178,7 +178,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     model = json.loads(subprocess.run(
-        [sys.executable, os.path.join(ROOT, "tools", "srs_view.py"), "--json"],
+        [sys.executable, os.path.join(ROOT, "srs-dd", "tools", "srs_view.py"), "--json"],
         capture_output=True, text=True, cwd=ROOT, check=True).stdout)
     pattern = identifier_pattern(model["areas"])
 

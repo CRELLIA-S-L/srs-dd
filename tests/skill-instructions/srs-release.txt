@@ -5,15 +5,15 @@
 
 # commands
 tools/srs_release.py
-tools/srs_view.py
-tools/srs_view.py --cite
-tools/srs_view.py --diff
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --cite
+srs-dd/tools/srs_view.py --diff
 
 # files
 AGENTS.md
 CHANGELOG.md
 CONTRIBUTING.md
-tools/srs_parse.py
+srs-dd/tools/srs_parse.py
 
 # procedures
 srs-baseline

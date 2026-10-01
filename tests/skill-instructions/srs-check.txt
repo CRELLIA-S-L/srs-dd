@@ -4,14 +4,14 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_arch.py
-tools/srs_check.py
-tools/srs_grounds.py
-tools/srs_view.py
-tools/srs_view.py --code
+srs-dd/tools/srs_arch.py
+srs-dd/tools/srs_check.py
+srs-dd/tools/srs_grounds.py
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --code
 
 # articles
-ART-030
+ART-SRS-030
 
 # files
 AGENTS.md

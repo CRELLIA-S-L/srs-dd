@@ -14,10 +14,10 @@ What this procedure is for is the two things the command will not decide: which 
 
    ```
    git log --oneline $(git describe --tags --abbrev=0 --match 'v*')..HEAD
-   python3 tools/srs_view.py --diff <newest version in specs/92-baselines.md>
+   python3 srs-dd/tools/srs_view.py --diff <newest version in specs/92-baselines.md>
    ```
 
-   The first says what was done since the last release, the second what it did to the specification — requirements added, removed, or reworded, each named as `AGENTS.md` asks at its first mention, which `python3 tools/srs_view.py --cite <ID>…` prints.
+   The first says what was done since the last release, the second what it did to the specification — requirements added, removed, or reworded, each named as `AGENTS.md` asks at its first mention, which `python3 srs-dd/tools/srs_view.py --cite <ID>…` prints.
    The maintainer settles a version number off this list in the next step, and a bare number is a lookup per line before they can judge anything (FR-SKILL-200).
    Read the baseline out of the log rather than out of `git describe`: the log is what records a baseline, and a tag for it may never have been made (INV-SPEC-040).
    Where release tags exist, filter for them — `v*` — because an unfiltered `git describe` answers with whichever namespace came last.
@@ -49,7 +49,7 @@ What this procedure is for is the two things the command will not decide: which 
    The dry run prints the date and the version bump — the last chance to notice that the version is not the one you meant.
 
 5. **Hand the commit back.**
-   The command edits `CHANGELOG.md`, `tools/srs_parse.py` — where the version lives, the three checkers re-exporting it — and the matrix, and stops: it commits nothing and tags nothing (CON-SPEC-030).
+   The command edits `CHANGELOG.md`, `srs-dd/tools/srs_parse.py` — where the version lives, the three checkers re-exporting it — and the matrix, and stops: it commits nothing and tags nothing (CON-SPEC-030).
    Say which files are changed for the maintainer to commit, and that the `vX.Y.Z` tag is theirs to make or skip.
 
 6. **Ask whether the specification should be frozen too**, if step 1 showed it moved, and follow the `srs-baseline` procedure if so.

@@ -4,16 +4,16 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_baseline.py
-tools/srs_view.py
-tools/srs_view.py --cite
-tools/srs_view.py --diff
+srs-dd/tools/srs_baseline.py
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --cite
+srs-dd/tools/srs_view.py --diff
 
 # files
 AGENTS.md
 specs/90-traceability.md
 specs/92-baselines.md
-specs/README.md
+srs-dd/standard.md
 
 # procedures
 srs-audit

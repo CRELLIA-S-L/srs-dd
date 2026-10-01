@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
-# tools/srs_upgrade.py: the one command an installed project runs to pick up
+# srs-dd/tools/srs_upgrade.py: the one command an installed project runs to pick up
 # a new framework version. Exercised against this working tree through
 # --from, so the suite never reaches the network.
 #
@@ -24,7 +24,7 @@ python3 tools/srs_init.py /tmp/srs-upg --defaults --ci none >/dev/null
 
 # The upgrader travels with the project, and the project records where it
 # came from.
-test -f /tmp/srs-upg/tools/srs_upgrade.py
+test -f /tmp/srs-upg/srs-dd/tools/srs_upgrade.py
 test -f /tmp/srs-upg/.claude/skills/srs-upgrade/SKILL.md
 grep -q '"framework_url"' /tmp/srs-upg/specs/srs-config.json
 # An SSH remote must not travel: the project upgrading is somebody else's
@@ -38,7 +38,7 @@ fi
 # behind. Written where the version lives, which is the parser.
 python3 - <<'PY'
 import re
-p = '/tmp/srs-upg/tools/srs_parse.py'
+p = '/tmp/srs-upg/srs-dd/tools/srs_parse.py'
 s = open(p, encoding='utf-8').read()
 open(p, 'w', encoding='utf-8').write(
     re.sub(r'__version__ = "[^"]+"', '__version__ = "0.0.1"', s, count=1))
@@ -46,7 +46,7 @@ PY
 
 # Without a terminal and without --yes it must refuse, and write nothing.
 find /tmp/srs-upg -type f | sort | xargs cksum > /tmp/upg-before.sum
-rc=0; python3 /tmp/srs-upg/tools/srs_upgrade.py --from "$FRAMEWORK" \
+rc=0; python3 /tmp/srs-upg/srs-dd/tools/srs_upgrade.py --from "$FRAMEWORK" \
     > /tmp/upg-refuse.log 2>&1 </dev/null || rc=$?
 test "$rc" -eq 2
 grep -q "Re-run with --yes" /tmp/upg-refuse.log
@@ -61,7 +61,7 @@ grep -q "What is new" /tmp/upg-refuse.log
 grep -q "^  + " /tmp/upg-refuse.log
 grep -q "Full text: CHANGELOG.md" /tmp/upg-refuse.log
 grep -q "Upgrade notes" /tmp/upg-refuse.log
-grep -q "tools/srs_check.py" /tmp/upg-refuse.log
+grep -q "srs-dd/tools/srs_check.py" /tmp/upg-refuse.log
 
 # One line per entry: no bullet may run past the width the summary cuts to.
 python3 - <<'PY2'
@@ -71,30 +71,30 @@ assert longest <= 82, 'a what-is-new entry spans %d columns' % longest
 PY2
 
 # With --yes it applies, and the tooling is current afterwards.
-python3 /tmp/srs-upg/tools/srs_upgrade.py --from "$FRAMEWORK" --yes \
+python3 /tmp/srs-upg/srs-dd/tools/srs_upgrade.py --from "$FRAMEWORK" --yes \
     > /tmp/upg-apply.log 2>&1 </dev/null
 grep -q "refreshed:" /tmp/upg-apply.log
 # The number lives in srs_parse.py; srs_check.py only re-exports it, so its
 # own __version__ line is the same in every release and proves nothing.
-current=$(grep -m1 '^__version__' tools/srs_parse.py)
-grep -q "^$current" /tmp/srs-upg/tools/srs_parse.py \
+current=$(grep -m1 '^__version__' srs-dd/tools/srs_parse.py)
+grep -q "^$current" /tmp/srs-upg/srs-dd/tools/srs_parse.py \
     || { echo "FAIL FR-INIT-120 — the upgrade did not bring the parser to this version"; exit 1; }
-python3 /tmp/srs-upg/tools/srs_check.py --strict --no-write >/dev/null
+python3 /tmp/srs-upg/srs-dd/tools/srs_check.py --strict --no-write >/dev/null
 
 # A path that is not a framework clone is refused before anything happens.
-rc=0; python3 /tmp/srs-upg/tools/srs_upgrade.py --from /tmp --yes \
+rc=0; python3 /tmp/srs-upg/srs-dd/tools/srs_upgrade.py --from /tmp --yes \
     > /tmp/upg-bad.log 2>&1 </dev/null || rc=$?
 test "$rc" -eq 2
 grep -q "not a framework clone" /tmp/upg-bad.log
 
 # --ref and --from contradict each other; saying so beats ignoring one.
-rc=0; python3 /tmp/srs-upg/tools/srs_upgrade.py --from "$FRAMEWORK" --ref v0.0.0 \
+rc=0; python3 /tmp/srs-upg/srs-dd/tools/srs_upgrade.py --from "$FRAMEWORK" --ref v0.0.0 \
     --yes > /tmp/upg-both.log 2>&1 </dev/null || rc=$?
 test "$rc" -eq 2
 grep -q "drop one of them" /tmp/upg-both.log
 
 # Run inside the framework repository, it refuses: that one upgrades with git.
-rc=0; python3 tools/srs_upgrade.py --yes > /tmp/upg-self.log 2>&1 </dev/null || rc=$?
+rc=0; python3 srs-dd/tools/srs_upgrade.py --yes > /tmp/upg-self.log 2>&1 </dev/null || rc=$?
 test "$rc" -eq 2
 grep -q "framework repository itself" /tmp/upg-self.log
 
@@ -105,7 +105,7 @@ grep -q "framework repository itself" /tmp/upg-self.log
 python3 - <<'PY2'
 import sys, importlib.util
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
 spec = importlib.util.spec_from_file_location('srs_init', 'tools/srs_init.py')
 init = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(init)
@@ -126,7 +126,7 @@ import re
 def const(path, name):
     text = open(path, encoding='utf-8').read()
     return re.search(r'^%s = "([^"]+)"' % name, text, re.M).group(1)
-a = const('tools/srs_upgrade.py', 'DEFAULT_URL')
+a = const('srs-dd/tools/srs_upgrade.py', 'DEFAULT_URL')
 b = const('tools/srs_init.py', 'DEFAULT_FRAMEWORK_URL')
 assert a == b, 'fallback framework address differs: %s vs %s' % (a, b)
 PY
@@ -143,7 +143,7 @@ python3 tools/srs_init.py "$GU" --defaults --areas APP --ci none \
 [ -e "$GU/grounds" ] && { echo "FAIL — the fixture target already has a"
                           echo "register, so the next assertion proves nothing"
                           exit 1; }
-( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" \
+( cd "$GU" && python3 srs-dd/tools/srs_upgrade.py --yes --from "$FRAMEWORK" \
     --grounds yes --period month ) > /tmp/upgrade-grounds.log 2>&1 \
     || { echo "FAIL FR-GND-290 — the target's own upgrade refused --grounds"
          tail -5 /tmp/upgrade-grounds.log; exit 1; }
@@ -159,7 +159,7 @@ grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
 # the configuration is written rather than copied from the skeleton: a
 # skeleton file would arrive with every refresh and reset the project's
 # unit to the default without anyone asking.
-( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
+( cd "$GU" && python3 srs-dd/tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
     > /tmp/upgrade-grounds2.log 2>&1 \
     || { echo "FAIL — the second upgrade failed"
          tail -5 /tmp/upgrade-grounds2.log; exit 1; }
@@ -172,13 +172,13 @@ grep -qF '"period": "month"' "$GU/grounds/grounds-config.json" \
 # --- through the target's own upgrade command rather than the installer.
 [ -e "$GU/arch" ] && { echo "FAIL — the fixture target already has a layer"
                        exit 1; }
-( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
+( cd "$GU" && python3 srs-dd/tools/srs_upgrade.py --yes --from "$FRAMEWORK" ) \
     > /tmp/upgrade-noarch.log 2>&1 \
     || { echo "FAIL — the upgrade failed"; tail -5 /tmp/upgrade-noarch.log
          exit 1; }
 [ -e "$GU/arch" ] && { echo "FAIL FR-ARCH-130 — an upgrade added the layer"
                        echo "to a project that never asked for it"; exit 1; }
-( cd "$GU" && python3 tools/srs_upgrade.py --yes --from "$FRAMEWORK" --arch yes ) \
+( cd "$GU" && python3 srs-dd/tools/srs_upgrade.py --yes --from "$FRAMEWORK" --arch yes ) \
     > /tmp/upgrade-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-130 — the target's own upgrade refused --arch yes"
          tail -5 /tmp/upgrade-arch.log; exit 1; }
@@ -213,7 +213,7 @@ exec "$REALGIT" "\$@"
 STUB
 chmod +x "$FETCH/bin/git"
 ( cd /tmp/srs-upg && PATH="$FETCH/bin:$PATH" TMPDIR="$FETCH/tmp" \
-    python3 tools/srs_upgrade.py --yes ) > /tmp/upg-fetch.log 2>&1 </dev/null \
+    python3 srs-dd/tools/srs_upgrade.py --yes ) > /tmp/upg-fetch.log 2>&1 </dev/null \
     || { echo "FAIL FR-INIT-120 — the upgrade that fetches its framework failed"
          tail -5 /tmp/upg-fetch.log; exit 1; }
 grep -q "^Fetching " /tmp/upg-fetch.log \

@@ -60,8 +60,8 @@ SAVE_DIR = os.path.join(ROOT, ".srs-eval")
 # an instance working by hand, which is the failure this measures and must
 # not be the harness's doing.
 DEFAULT_TOOLS = ("Read,Grep,Glob,Skill,Bash(python3 tools/*),"
-                 "Bash(python3 tools/srs_view.py:*),Bash(python3 tools/srs_check.py:*),"
-                 "Bash(python3 tools/srs_arch.py:*),Bash(python3 tools/srs_grounds.py:*)")
+                 "Bash(python3 srs-dd/tools/srs_view.py:*),Bash(python3 srs-dd/tools/srs_check.py:*),"
+                 "Bash(python3 srs-dd/tools/srs_arch.py:*),Bash(python3 srs-dd/tools/srs_grounds.py:*)")
 CHECK_KINDS = ("skill", "ran", "not_ran", "no_tool", "answer", "no_answer")
 USAGE_KEYS = ("input_tokens", "cache_creation_input_tokens",
               "cache_read_input_tokens", "output_tokens")

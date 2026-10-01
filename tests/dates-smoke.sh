@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
-# tools/srs_dates.py: the one command that writes requirement blocks.
+# srs-dd/tools/srs_dates.py: the one command that writes requirement blocks.
 #
 # verifies: FR-SPEC-020, INV-SPEC-090
 #
@@ -21,8 +21,8 @@ cd "$(dirname "$0")/.."
 . tools/test_lib.sh
 
 LAB=/tmp/srs-dates
-rm -rf "$LAB"; mkdir -p "$LAB/tools" "$LAB/specs"
-cp tools/srs_dates.py tools/srs_check.py tools/srs_parse.py "$LAB/tools/"
+rm -rf "$LAB"; mkdir -p "$LAB/srs-dd/tools" "$LAB/specs"
+cp srs-dd/tools/srs_dates.py srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py "$LAB/srs-dd/tools/"
 printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"]}\n' \
     > "$LAB/specs/srs-config.json"
 
@@ -41,7 +41,7 @@ block() {   # block <id> <title>
 
 # --dry-run writes nothing at all.
 before=$(cksum < "$LAB/specs/10-fr-core.md")
-( cd "$LAB" && python3 tools/srs_dates.py --dry-run ) > /tmp/dates-dry.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_dates.py --dry-run ) > /tmp/dates-dry.log 2>&1
 [ "$(cksum < "$LAB/specs/10-fr-core.md")" = "$before" ] \
     || { echo "FAIL FR-SPEC-020 — --dry-run wrote to the specification"; exit 1; }
 grep -qF "FR-CORE-010 created 2026-01-15" /tmp/dates-dry.log \
@@ -50,7 +50,7 @@ grep -qF "FR-CORE-010 created 2026-01-15" /tmp/dates-dry.log \
 
 # The real run writes the date each identifier first appeared — not today's,
 # which is the whole point: a date invented now makes everything look new.
-( cd "$LAB" && python3 tools/srs_dates.py ) > /tmp/dates.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_dates.py ) > /tmp/dates.log 2>&1
 grep -qF "created: 2026-01-15" "$LAB/specs/10-fr-core.md" \
     || { echo "FAIL FR-SPEC-020 — the first requirement was not dated"
          cat "$LAB/specs/10-fr-core.md"; exit 1; }
@@ -60,13 +60,13 @@ grep -qF "created: 2026-06-20" "$LAB/specs/10-fr-core.md" \
 absent "created: $(date +%Y-%m-%d)" "$LAB/specs/10-fr-core.md"
 
 # And the specification still parses.
-( cd "$LAB" && python3 tools/srs_check.py --no-write ) > /tmp/dates-check.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_check.py --no-write ) > /tmp/dates-check.log 2>&1 \
     || { echo "FAIL FR-SPEC-020 — the dated specification does not parse"
          cat /tmp/dates-check.log; exit 1; }
 
 # A second run costs nothing, so nobody has to remember whether it was done.
 after=$(cksum < "$LAB/specs/10-fr-core.md")
-( cd "$LAB" && python3 tools/srs_dates.py ) > /tmp/dates-again.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_dates.py ) > /tmp/dates-again.log 2>&1
 [ "$(cksum < "$LAB/specs/10-fr-core.md")" = "$after" ] \
     || { echo "FAIL FR-SPEC-020 — a second run rewrote what was already dated"
          exit 1; }
@@ -96,7 +96,7 @@ MD
 ( cd "$LAB" && git add -A \
   && GIT_COMMITTER_DATE=2026-07-01T10:00:00 \
      git commit -q -m documented --date=2026-07-01T10:00:00 )
-( cd "$LAB" && python3 tools/srs_dates.py ) > /tmp/dates-fence.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_dates.py ) > /tmp/dates-fence.log 2>&1
 python3 - "$LAB/specs/10-fr-core.md" <<'PY'
 import sys
 text = open(sys.argv[1], encoding="utf-8").read()
@@ -110,12 +110,12 @@ PY
 # from today — which would be wrong in the direction that makes every
 # requirement look new.
 NOGIT=/tmp/srs-dates-nogit
-rm -rf "$NOGIT"; mkdir -p "$NOGIT/tools" "$NOGIT/specs"
-cp tools/srs_dates.py tools/srs_check.py tools/srs_parse.py "$NOGIT/tools/"
+rm -rf "$NOGIT"; mkdir -p "$NOGIT/srs-dd/tools" "$NOGIT/specs"
+cp srs-dd/tools/srs_dates.py srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py "$NOGIT/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$NOGIT/specs/"
 { printf '# core\n'; block FR-CORE-010 "First"; } > "$NOGIT/specs/10-fr-core.md"
 rc=0
-( cd "$NOGIT" && python3 tools/srs_dates.py ) > /tmp/dates-nogit.log 2>&1 || rc=$?
+( cd "$NOGIT" && python3 srs-dd/tools/srs_dates.py ) > /tmp/dates-nogit.log 2>&1 || rc=$?
 [ "$rc" = 2 ] || { echo "FAIL FR-SPEC-020 — no history, exit $rc, expected 2"
                    cat /tmp/dates-nogit.log; exit 1; }
 absent "created:" "$NOGIT/specs/10-fr-core.md"
@@ -124,7 +124,7 @@ absent "created:" "$NOGIT/specs/10-fr-core.md"
 # --- verifies: INV-SPEC-090 — what has never been committed is named in the
 # --- order of its numbers, FR-CORE-1000 after FR-CORE-200 and not before it.
 { block FR-CORE-1000 "Wide"; block FR-CORE-200 "Narrow"; } >> "$LAB/specs/10-fr-core.md"
-( cd "$LAB" && python3 tools/srs_dates.py --dry-run ) > /tmp/dates-order.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_dates.py --dry-run ) > /tmp/dates-order.log 2>&1
 grep -qF "not dated: FR-CORE-200, FR-CORE-1000." /tmp/dates-order.log \
     || { echo "FAIL INV-SPEC-090 — undated identifiers are not ordered by number"
          cat /tmp/dates-order.log; exit 1; }
@@ -140,7 +140,7 @@ mkdir -p "$LAB/specs/MAPS"
 { printf '# map iland\n'; block FR-MAP_ILAND-010 "An island"; } > "$LAB/specs/MAPS/10-fr-map_iland.md"
 ( cd "$LAB" && git add -A && GIT_COMMITTER_DATE=2026-08-01T10:00:00 \
   git commit -q -m maps --date=2026-08-01T10:00:00 )
-( cd "$LAB" && python3 tools/srs_dates.py ) > /tmp/dates-area.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_dates.py ) > /tmp/dates-area.log 2>&1
 grep -qF "created: 2026-08-01" "$LAB/specs/MAPS/10-fr-map_iland.md" \
     || { echo "FAIL IF-SPEC-040 — a requirement in an area of two words was not dated"
          cat /tmp/dates-area.log; exit 1; }

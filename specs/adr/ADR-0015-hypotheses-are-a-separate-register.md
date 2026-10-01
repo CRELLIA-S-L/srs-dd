@@ -19,7 +19,7 @@ The obvious move is therefore to make it a sixth requirement type and let the ex
 
 ## Considered options
 
-1. A sixth `TYPE` — `HYP-<AREA>-<NNN>` beside `FR`, `NFR`, `IF`, `INV`, `CON`, parsed and checked by `tools/srs_check.py`.
+1. A sixth `TYPE` — `HYP-<AREA>-<NNN>` beside `FR`, `NFR`, `IF`, `INV`, `CON`, parsed and checked by `srs-dd/tools/srs_check.py`.
 2. Reuse an existing type — record hypotheses as `INV-*` or `CON-*` and let the rationale carry what the fields cannot.
 3. A register of its own beside `specs/`, with its own format, its own checker, and the requirement model read through the published JSON.
 
@@ -27,14 +27,14 @@ The obvious move is therefore to make it a sixth requirement type and let the ex
 
 Option 3.
 
-**Option 1 breaks every installed checker, and the wall is not a matter of taste.** `TYPES` is a Python constant in `tools/srs_check.py`.
+**Option 1 breaks every installed checker, and the wall is not a matter of taste.** `TYPES` is a Python constant in `srs-dd/tools/srs_check.py`.
 The identifier grammar `RE_ID` is built from it, and a heading that does not match it is appended to `errors` where the requirements are validated — an error, not a rule.
 It is absent from `RULES`, so it cannot be lowered in `specs/srs-config.json` and cannot be excused with a requirement's `exempt` field.
 Measured rather than reasoned: renaming one heading to `HYP-VIEW-230` in a copy of this repository, with `unknown-key` turned off in the configuration, still produces `error: specs/10-fr-view.md:572 — identifier does not match <TYPE>-<AREA>-<NNN>`.
 Adding a type is therefore a framework release that older checkers reject outright, exactly as `withdrawn` was in 0.13.0 — and this time for a subsystem a project may not even want.
 
 The area is the opposite case and worth stating so nobody confuses the two:
-`areas` is a configuration key read in `tools/srs_check.py`, and adding one is a single line.
+`areas` is a configuration key read in `srs-dd/tools/srs_check.py`, and adding one is a single line.
 Types are baked; areas are not.
 
 **The deeper objection survives even if the grammar were free.** Every field of the requirement block presumes that the truth of the entry is under the author's control.
@@ -59,7 +59,7 @@ binding to the rest of the object is not, and the register does not.
 The grounds register is a sibling of `specs/`, not a part of it.
 Requirement files are never modified by the subsystem, in any mode, for any reason.
 
-Two formats now exist that look alike on purpose — a heading, a fenced block of flat keys, prose — because an agent that has read `specs/README.md` should recognise the shape without learning a second syntax.
+Two formats now exist that look alike on purpose — a heading, a fenced block of flat keys, prose — because an agent that has read `srs-dd/standard.md` should recognise the shape without learning a second syntax.
 They are not the same format and neither is obliged to track the other's edge cases; the hypothesis standard says so in as many words, so that a later reader does not "fix" the divergence by merging them.
 
 The join between the two — which requirements rest on which hypotheses — cannot live in a requirement file and does not belong in a hypothesis either.

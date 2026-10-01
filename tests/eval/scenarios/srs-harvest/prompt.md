@@ -5,7 +5,7 @@
 procedure: srs-harvest
 max_turns: 20
 check: skill srs-harvest
-check: ran python3 tools/srs_view.py
+check: ran python3 srs-dd/tools/srs_view.py
 check: answer (?s)VIEW.*CHK|CHK.*VIEW
 check: answer srs_view\.py
 check: no_tool Edit

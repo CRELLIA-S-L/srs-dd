@@ -90,10 +90,10 @@ if not example.strip():
 else:
     lab = tempfile.mkdtemp(prefix="srs-docs-example-")
     try:
-        os.makedirs(os.path.join(lab, "tools"))
+        os.makedirs(os.path.join(lab, "srs-dd", "tools"))
         os.makedirs(os.path.join(lab, "specs"))
         for tool in ("srs_check.py", "srs_parse.py", "srs_view.py"):
-            shutil.copy(os.path.join("tools", tool), os.path.join(lab, "tools", tool))
+            shutil.copy(os.path.join("srs-dd", "tools", tool), os.path.join(lab, "srs-dd", "tools", tool))
         ids = set(re.findall(r"\b[A-Z]+-[A-Z]+-\d{3,}\b", example))
         own = re.search(r"^### ([A-Z]+-[A-Z]+-\d{3,})", example, re.M)
         own = own.group(1) if own else ""
@@ -113,7 +113,7 @@ else:
             full = os.path.join(lab, path)
             os.makedirs(os.path.dirname(full), exist_ok=True)
             open(full, "a").close()
-        run = subprocess.run(["python3", "tools/srs_check.py", "--no-write"], cwd=lab,
+        run = subprocess.run(["python3", "srs-dd/tools/srs_check.py", "--no-write"], cwd=lab,
                              capture_output=True, text=True)
         if run.returncode != 0:
             fail("FR-DOC-150 — the example requirement is refused by the checker:\n" + run.stdout + run.stderr)
@@ -123,7 +123,7 @@ else:
 # srs-end: FR-DOC-150
 # --- verifies: FR-DOC-160 — the skills table names exactly what the installer copies.
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_init
 shipped = set(srs_init.SKILLS) | set(srs_init.GROUNDS_SKILLS) | set(srs_init.ARCH_SKILLS)
 named = set()
@@ -220,48 +220,57 @@ if not any(re.search(r"\[!\[[^\]]*\]\([^)]*\)\]\(https://[^)]+\)", line) for _n,
 
 # srs-end: FR-DOC-210
 # --- verifies: FR-DOC-220 — every list of this repository's tools names each
-# --- one: the row for tools/ on the landing page's map and in the agent guide
-# --- names every file tracked there, and the hand install names every tool
-# --- the installer copies. Each fell behind a tool added after it was written.
+# --- one: the rows for srs-dd/ and tools/ on the landing page's map and in
+# --- the agent guide name every file tracked there, and the hand install
+# --- names every tool the installer copies. Each fell behind a tool added
+# --- after it was written.
+sys.dont_write_bytecode = True
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
+import srs_init
 in_tools = sorted(path[len("tools/"):] for path in tracked
                   if path.startswith("tools/") and "/" not in path[len("tools/"):])
+shipped_tools = sorted(path[len("srs-dd/tools/"):] for path in tracked
+                       if path.startswith("srs-dd/tools/") and "/" not in path[len("srs-dd/tools/"):])
 for doc in ("README.md", "AGENTS.md"):
     with open(doc, encoding="utf-8") as handle:
-        row = next((line for line in handle if line.startswith("| `tools/` |")), "")
-    if not row:
-        fail("%s — FR-DOC-220 — has no row for tools/" % doc)
-    for name in in_tools:
-        if "`%s`" % name not in row:
-            fail("%s — FR-DOC-220 — the row for tools/ does not name %s" % (doc, name))
-sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
-import srs_init
+        lines = handle.read().split("\n")
+    for prefix, names in (("| `tools/` |", in_tools), ("| `srs-dd/` |", shipped_tools)):
+        row = next((line for line in lines if line.startswith(prefix)), "")
+        if not row:
+            fail("%s — FR-DOC-220 — has no row for %s" % (doc, prefix.strip("| `")))
+        for name in names:
+            if "`%s`" % name not in row:
+                fail("%s — FR-DOC-220 — the row for %s does not name %s" % (doc, prefix.strip("| `"), name))
 with open("docs/install.md", encoding="utf-8") as handle:
-    by_hand = next((line for line in handle if line.startswith("- `tools/srs_check.py`")), "")
+    by_hand = next((line for line in handle if line.startswith("- `srs-dd/tools/srs_check.py`")), "")
 for name in srs_init.TOOLS:
-    if "`tools/%s`" % name not in by_hand:
-        fail("docs/install.md — FR-DOC-220 — the hand install does not name tools/%s, which the installer copies" % name)
+    if "`srs-dd/tools/%s`" % name not in by_hand:
+        fail("docs/install.md — FR-DOC-220 — the hand install does not name srs-dd/tools/%s, which the installer copies" % name)
 # And each tool in the group it is said to be in, both ways: shipped with
 # every install, with a layer, or kept here. A name moved to the wrong group
 # passes a check that only asks whether it is named.
-kept_tools = set(in_tools) - set(srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS)
-GROUPS = {"README.md": {"yours after install": srs_init.TOOLS,
-                        "yours if you keep a register": srs_init.GROUNDS_TOOLS,
-                        "yours if you keep an architecture layer": srs_init.ARCH_TOOLS,
-                        "stay here": kept_tools},
-          "AGENTS.md": {"shipped to targets": srs_init.TOOLS,
-                        "shipped where a project keeps a register": srs_init.GROUNDS_TOOLS,
-                        "shipped where a project keeps an architecture layer": srs_init.ARCH_TOOLS,
-                        "framework-only": kept_tools}}
-for doc, groups in GROUPS.items():
+kept_tools = set(in_tools)
+assert set(shipped_tools) == set(srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS), \
+    "srs-dd/tools/ holds a tool the installer does not ship, or lacks one it does"
+GROUPS = {"README.md": {"| `srs-dd/` |": {"yours after install": srs_init.TOOLS,
+                                           "yours if you keep a register": srs_init.GROUNDS_TOOLS,
+                                           "yours if you keep an architecture layer": srs_init.ARCH_TOOLS},
+                        "| `tools/` |": {"stay here": kept_tools}},
+          "AGENTS.md": {"| `srs-dd/` |": {"shipped to targets": srs_init.TOOLS,
+                                           "shipped where a project keeps a register": srs_init.GROUNDS_TOOLS,
+                                           "shipped where a project keeps an architecture layer": srs_init.ARCH_TOOLS},
+                        "| `tools/` |": {"framework-only": kept_tools}}}
+for doc, rows in GROUPS.items():
     with open(doc, encoding="utf-8") as handle:
-        row = next((line for line in handle if line.startswith("| `tools/` |")), "")
-    said = {label: set(re.findall(r"`([^`]+)`", names))
-            for names, label in re.findall(r"((?:`[^`]+`(?:, | and )?)+) \(([^)]*)\)", row)}
-    for label, members in groups.items():
-        if said.get(label) != set(members):
-            fail("%s — FR-DOC-220 — the tools/ row says %r of %s, and it is %s"
-                 % (doc, label, sorted(said.get(label, ())), sorted(members)))
+        lines = handle.read().split("\n")
+    for prefix, groups in rows.items():
+        row = next((line for line in lines if line.startswith(prefix)), "")
+        said = {label: set(re.findall(r"`([^`]+)`", names))
+                for names, label in re.findall(r"((?:`[^`]+`(?:, | and )?)+) \(([^)]*)\)", row)}
+        for label, members in groups.items():
+            if said.get(label) != set(members):
+                fail("%s — FR-DOC-220 — the %s row says %r of %s, and it is %s"
+                     % (doc, prefix.strip("| `"), label, sorted(said.get(label, ())), sorted(members)))
 # The procedures the same way: the map's row and the agent document's table
 # name every procedure here, the hand install every one the installer
 # copies, and the contributors' list of what travels every shipped tool.

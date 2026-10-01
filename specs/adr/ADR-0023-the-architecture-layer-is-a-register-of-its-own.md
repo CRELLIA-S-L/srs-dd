@@ -14,7 +14,7 @@ Where does a description of the parts physically live, and where does the declar
 
 ## Considered options
 
-1. A sixth requirement type — `ARC-<AREA>-<NNN>` beside `FR`, `NFR`, `IF`, `INV`, `CON`, parsed by `tools/srs_check.py`.
+1. A sixth requirement type — `ARC-<AREA>-<NNN>` beside `FR`, `NFR`, `IF`, `INV`, `CON`, parsed by `srs-dd/tools/srs_check.py`.
 2. A field on the requirement — every requirement names the part it belongs to.
 3. A register of its own beside `specs/`, with its own format, its own checker, and the requirement model read through the published JSON.
 4. An external model — C4 through the Structurizr DSL, or an equivalent architecture-as-code tool.
@@ -29,7 +29,7 @@ For the model itself:
 Option 3 and option 6.
 
 **Option 1 breaks every installed checker, for the reason ADR-0015 gives at length for hypotheses.**
-`TYPES` is a Python constant in `tools/srs_check.py`, the identifier grammar `RE_ID` is built from it, and a heading that does not match is an error rather than a tunable rule.
+`TYPES` is a Python constant in `srs-dd/tools/srs_check.py`, the identifier grammar `RE_ID` is built from it, and a heading that does not match is an error rather than a tunable rule.
 A new type is a framework release that older checkers reject outright, and this time for a layer a project may decline.
 
 **Option 2 puts the link on the wrong end.**

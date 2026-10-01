@@ -12,7 +12,7 @@ CLAUDE.md
 specs/00-glossary.md
 specs/10-fr-<area>.md
 specs/90-traceability.md
-specs/README.md
+srs-dd/standard.md
 specs/srs-config.json
 tools/srs_init.py
 
@@ -20,7 +20,7 @@ tools/srs_init.py
 srs-harvest
 
 # wiring the gate (FR-SKILL-410, FR-SKILL-420)
-tools/srs_gate.py
+srs-dd/tools/srs_gate.py
 .pre-commit-config.yaml
 .husky/pre-commit
 lefthook.yml

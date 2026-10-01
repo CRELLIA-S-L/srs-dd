@@ -4,11 +4,11 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_arch.py
-tools/srs_arch.py --cite
-tools/srs_arch.py --no-write
-tools/srs_view.py
-tools/srs_view.py --code
+srs-dd/tools/srs_arch.py
+srs-dd/tools/srs_arch.py --cite
+srs-dd/tools/srs_arch.py --no-write
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --code
 
 # decisions — none since 2026-09-25: a decision's number points at nothing,
 # or at the project's own decision, in a project the procedure is installed
@@ -18,6 +18,6 @@ twenty-five edges against seven real ones
 # files
 AGENTS.md
 arch/90-map.md
-arch/README.md
+srs-dd/arch.md
 arch/edges.json
 specs/adr/

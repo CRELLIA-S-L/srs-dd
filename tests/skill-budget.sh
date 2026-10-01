@@ -53,15 +53,19 @@ cd "$(dirname "$0")/.."
 #               asked. 1 500 is where this repository's guide stands on
 #               2026-09-23 once it carries every rule the shipped guide
 #               states (INV-SKILL-010) — the constitution, the generated
-#               files, ART-030, three procedures — beside its own. 1 600
+#               files, ART-SRS-030, three procedures — beside its own. 1 600
 #               since 2026-09-24, when the shipped guide gained the date
 #               command and the two optional layers and this repository's
 #               had to carry them too (1 575), ADR-0030's note says why.
 #               1 650 since 2026-09-29, for the reason OWN rose: passages
-#               cut to fit were put back (1 639).
+#               cut to fit were put back (1 639). 2 000 since 2026-10-01:
+#               the guide carries the framework's guide verbatim as its
+#               region (FR-SKILL-440) beside the repository's own rules,
+#               so what the shipped guide holds is counted here once more
+#               (1 960).
 OWN=1450
 TRANSITIVE=7050
-GUIDE=1650
+GUIDE=2000
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by
@@ -87,7 +91,7 @@ def preamble(text):
 def told_to_open(text):
     """The files the preamble tells the reader to open, in order, once
     each: named on a line that begins `Read` (bold or not) — `Read
-    `specs/README.md` first…` — or on a `Read first:` line. A mention on
+    `srs-dd/standard.md` first…` — or on a `Read first:` line. A mention on
     any other line is a mention, not an instruction, and is not counted;
     a `Read it` line that names no file counts nothing, which is why a
     procedure says `Read first:` with the path on that line."""
@@ -143,14 +147,14 @@ lab = tempfile.mkdtemp()
 os.makedirs(os.path.join(lab, ".claude/skills/fat"))
 os.makedirs(os.path.join(lab, ".claude/skills/lean"))
 os.makedirs(os.path.join(lab, ".claude/skills/lost"))
-os.makedirs(os.path.join(lab, "specs"))
-with open(os.path.join(lab, "specs/README.md"), "w") as handle:
+os.makedirs(os.path.join(lab, "srs-dd"))
+with open(os.path.join(lab, "srs-dd/standard.md"), "w") as handle:
     handle.write("word " * (transitive_budget - 10) + "\n")
 with open(os.path.join(lab, ".claude/skills/fat/SKILL.md"), "w") as handle:
     handle.write("---\ndescription: x\n---\n\n# Fat\n\n" + "word " * (own_budget + 1) + "\n")
 with open(os.path.join(lab, ".claude/skills/lean/SKILL.md"), "w") as handle:
-    handle.write("---\ndescription: x\n---\n\n# Lean\n\nRead `specs/README.md` first.\n"
-                 "See also `specs/README.md` and `specs/other.md`, mentioned only.\n\n## Step\n\n"
+    handle.write("---\ndescription: x\n---\n\n# Lean\n\nRead `srs-dd/standard.md` first.\n"
+                 "See also `srs-dd/standard.md` and `specs/other.md`, mentioned only.\n\n## Step\n\n"
                  + "word " * 20 + "\n")
 with open(os.path.join(lab, ".claude/skills/lost/SKILL.md"), "w") as handle:
     handle.write("---\ndescription: x\n---\n\n# Lost\n\nRead `specs/gone.md` first.\n\n## Step\n\nword\n")
@@ -161,12 +165,12 @@ with open(os.path.join(lab, "skeleton/AGENTS.md"), "w") as handle:  # past a gui
     handle.write("word " * (guide_budget + 1) + "\n")
 lab_rows = {name: (own, tr, opens, missing) for name, own, tr, opens, missing in measure(lab)}
 assert lab_rows["fat"][0] == own_budget + 1 + 6, lab_rows["fat"]      # the frontmatter and the heading count too
-assert lab_rows["lean"][2] == ["specs/README.md"], lab_rows["lean"]  # once, and not the mention
+assert lab_rows["lean"][2] == ["srs-dd/standard.md"], lab_rows["lean"]  # once, and not the mention
 assert lab_rows["lean"][1] == lab_rows["lean"][0] + transitive_budget - 10, lab_rows["lean"]
 assert lab_rows["lost"][3] == ["specs/gone.md"], lab_rows["lost"]
 lab_over = judge(measure(lab))
 assert any(l.startswith("fat: ") and "of its own" in l for l in lab_over), lab_over
-assert any(l.startswith("lean: ") and "with specs/README.md" in l for l in lab_over), lab_over
+assert any(l.startswith("lean: ") and "with srs-dd/standard.md" in l for l in lab_over), lab_over
 assert any(l.startswith("lost: ") and "does not exist" in l for l in lab_over), lab_over
 assert not any(l.startswith("lean: ") and "of its own" in l for l in lab_over), lab_over
 assert any(l.startswith("skeleton/AGENTS.md: ") and "of its own" in l for l in lab_over), lab_over

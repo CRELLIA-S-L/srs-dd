@@ -68,7 +68,7 @@ for suite in tests/*.sh; do
     # matrix on purpose, so a single snapshot would leave every suite after
     # it comparing against a state that legitimately moved.
     [ -f "$index" ] && cksum < "$index" > "$tmpdir/index.before"
-    bytecode_before=no; [ -d tools/__pycache__ ] && bytecode_before=yes
+    bytecode_before=no; { [ -d tools/__pycache__ ] || [ -d srs-dd/tools/__pycache__ ]; } && bytecode_before=yes
     if ! "$suite" >"$tmpdir/$name.log" 2>&1; then
         echo "ci-selftest: $name FAILED; last output:" >&2
         tail -20 "$tmpdir/$name.log" >&2
@@ -85,7 +85,7 @@ for suite in tests/*.sh; do
     # implements: FR-CI-160
     # A suite that imports a tool without sys.dont_write_bytecode leaves
     # tools/__pycache__ behind; named per suite, so the one that did is found.
-    if [ "$bytecode_before" = no ] && [ -d tools/__pycache__ ]; then
+    if [ "$bytecode_before" = no ] && { [ -d tools/__pycache__ ] || [ -d srs-dd/tools/__pycache__ ]; }; then
         echo "ci-selftest: $name left bytecode in tools/__pycache__" >&2
         exit 1
     fi

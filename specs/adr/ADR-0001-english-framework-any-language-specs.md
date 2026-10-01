@@ -29,4 +29,4 @@ What a project writes in its `specs/` is that project's business: `modal_verbs`,
   Generating a lexicon is the `srs-init` procedure's job, and the maintainer confirms it.
 - A project that inflects its modal verb must list every form it intends to write.
   A missing form is the most common cause of a failed adoption.
-- Framework files stay free of other languages, with deliberate exceptions where a demonstration is the point: the Configuration section of `specs/README.md`, one comment in `tools/srs_check.py` about the placement of negation, the Russian fixture in `tests/adopt-smoke.sh`, and `docs/multilingual.md`.
+- Framework files stay free of other languages, with deliberate exceptions where a demonstration is the point: the Configuration section of `srs-dd/standard.md`, one comment in `srs-dd/tools/srs_check.py` about the placement of negation, the Russian fixture in `tests/adopt-smoke.sh`, and `docs/multilingual.md`.

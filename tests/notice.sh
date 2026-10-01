@@ -28,7 +28,7 @@ HEAD = 12          # a notice sits with the shebang and the marker, not at line 
 
 def sources(root):
     with_root = lambda pattern: glob.glob(os.path.join(root, pattern))
-    return sorted(with_root("tools/*.py") + with_root("tools/*.sh") + with_root("tests/*.sh")
+    return sorted(with_root("tools/*.py") + with_root("srs-dd/tools/*.py") + with_root("tools/*.sh") + with_root("tests/*.sh")
                   + with_root(".github/workflows/*.yml")
                   + [p for p in (os.path.join(root, ".githooks", "pre-commit"),) if os.path.exists(p)])
 

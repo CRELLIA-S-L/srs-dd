@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 
 # file implements: INV-SPEC-100
 # file verifies: INV-SPEC-100
-python3 tools/srs_view.py --json /tmp/srs-code-sets.json >/dev/null
+python3 srs-dd/tools/srs_view.py --json /tmp/srs-code-sets.json >/dev/null
 python3 - <<'PY'
 import glob, json, os, re, sys
 
@@ -35,7 +35,7 @@ def names_records(text):
     return "--cite" in text or "as `AGENTS.md` asks" in text
 
 
-tools_py = set(glob.glob("tools/*.py"))
+tools_py = set(glob.glob("tools/*.py")) | set(glob.glob("srs-dd/tools/*.py"))
 # The requirement, the kind of path it claims, and the set of that kind it
 # must name — the kind filters the field, so a guide beside the procedures
 # in FR-SKILL-200's field is neither required nor in the way.
@@ -45,15 +45,15 @@ CLAIMS = (
     # are the framework's, and the citation would find the project's own.
     ("FR-SKILL-200", r"^\.claude/skills/",
      skills(names_records) - {".claude/skills/srs-upgrade/SKILL.md"}),
-    ("NFR-SPEC-010", r"^tools/.*\.py$", tools_py),
+    ("NFR-SPEC-010", r"^(srs-dd/)?tools/.*\.py$", tools_py),
     # Every command: the Python tools less the module the checkers import,
     # and the local gate.
-    ("CON-SPEC-030", r"^tools/", (tools_py - {"tools/srs_parse.py"}) | {"tools/ci_selftest.sh"}),
+    ("CON-SPEC-030", r"^(srs-dd/)?tools/", (tools_py - {"srs-dd/tools/srs_parse.py"}) | {"tools/ci_selftest.sh"}),
     # Every tool that reads an identifier's number, and every one that
     # orders identifiers: the grammar and the order are the parser's, and a
     # tool that uses them is one the invariant binds.
-    ("INV-SPEC-080", r"^tools/", {p for p in tools_py if "NUMBER" in open(p, encoding="utf-8").read()}),
-    ("INV-SPEC-090", r"^tools/", {p for p in tools_py if "id_key" in open(p, encoding="utf-8").read()}),
+    ("INV-SPEC-080", r"^(srs-dd/)?tools/", {p for p in tools_py if "NUMBER" in open(p, encoding="utf-8").read()}),
+    ("INV-SPEC-090", r"^(srs-dd/)?tools/", {p for p in tools_py if "id_key" in open(p, encoding="utf-8").read()}),
 )
 
 

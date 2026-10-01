@@ -34,9 +34,9 @@ cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-grounds
 rm -rf "$LAB"
-mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/grounds"
-cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
-   tools/srs_view.py "$LAB/tools/"
+mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/grounds"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py "$LAB/srs-dd/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {
@@ -113,7 +113,7 @@ passes=0
 rule() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_grounds.py --no-write "$@" ) \
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --no-write "$@" ) \
         > /tmp/srs-grounds.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-grounds.log
@@ -129,7 +129,7 @@ rule() {
 # silent <name> <expected exit> <fragment that must NOT appear>
 silent() {
     local name=$1 want=$2 msg=$3 rc=0
-    ( cd "$LAB" && python3 tools/srs_grounds.py --no-write ) \
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --no-write ) \
         > /tmp/srs-grounds.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-grounds.log
@@ -446,7 +446,7 @@ requirement: FR-CORE-010' 'FR-CORE-010 rests on, well, nothing.'
                'status: active
 requirement: FR-CORE-010' 'Nobody could name a ground for this.')
 silent "FR-GND-100 an empty bet retires no declaration" 0 "declares FR-CORE-010 unclaimed"
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qE "^\| FR-CORE-010 \|" "$LAB/grounds/90-dashboard.md" \
     || { echo "FAIL FR-GND-220 — a bet staking nothing took the requirement"
          echo "off the list of what rests on no hypothesis"
@@ -541,7 +541,7 @@ reduce() {   # reduce <field> -> the status the dashboard says decides
                rec B-010 "The bet" "status: active
 requirement: FR-CORE-010
 $1: [H-010, H-020]" 'FR-CORE-010 rests on both.')
-    ( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
     grep -F "| FR-CORE-010 |" "$LAB/grounds/90-dashboard.md" | head -1
 }
 
@@ -564,10 +564,10 @@ esac
 # --- --no-write leaves it exactly as it was.
 before=$(cksum < "$LAB/grounds/90-dashboard.md")
 ground < <(rec H-030 "A record the dashboard has never seen" "$HYP" 'Studios archive.')
-( cd "$LAB" && python3 tools/srs_grounds.py --no-write ) > /dev/null 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --no-write ) > /dev/null 2>&1
 [ "$(cksum < "$LAB/grounds/90-dashboard.md")" = "$before" ] \
     || { echo "FAIL CON-GND-020 — --no-write rewrote the dashboard"; exit 1; }
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /dev/null 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /dev/null 2>&1
 [ "$(cksum < "$LAB/grounds/90-dashboard.md")" != "$before" ] \
     || { echo "FAIL CON-GND-020 — a write left the dashboard unchanged"; exit 1; }
 passes=$((passes + 2))
@@ -603,7 +603,7 @@ all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
            rec B-020 "On the one that did not" 'status: active
 requirement: FR-CORE-020
 all_of: [H-020]' 'FR-CORE-020 rests on H-020.')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qF "2 rest on hypotheses" "$LAB/grounds/90-dashboard.md" \
     && { echo "FAIL FR-GND-130 — a supported ground was counted as debt"
          cat "$LAB/grounds/90-dashboard.md"; exit 1; }
@@ -669,7 +669,7 @@ tests: []
 
 The system **shall** act a third time.
 MD
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qF "Of 3 requirements carrying a bet, 1 rest on" "$D" \
     || { echo "FAIL FR-GND-130 — the denominator is the rows, not the bets"
@@ -701,7 +701,7 @@ admissible_arguments: [a cohort measurement]' \
 |---|---|---|---|---|
 | 2026-02-14 | 0.38 | 42 | supported | @kira |
 | 2026-08-01 | 0.41 | 210 | supported | telemetry |')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 
 grep -qF "Ideologies: 2." "$D" \
@@ -784,7 +784,7 @@ tests: []
 The system **shall** depend on the first.
 MD
 ground < <(rec H-010 "Unstaked" "$HYP" 'Studios export weekly.')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qF "| FR-CORE-010 | 1 | 2 | 3 |" "$D" \
     || { echo "FAIL FR-GND-220 — the weight is not incoming plus code files,"
          echo "or a withdrawn dependant was counted into it"; cat "$D"; exit 1; }
@@ -798,7 +798,7 @@ cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
 # --- their heading: the amendment table is written first on purpose.
 ground < <(printf '### F-010 — No regulatory surface we cannot staff\n\n```yaml\nstatus: active\n```\n\nWe do not take on what we cannot support.\n\n| date | what changed | why | territory it opens |\n|---|---|---|---|\n| 2026-06-01 | narrowed to payroll | one refusal | nothing yet |\n\n| date | what was refused | who asked |\n|---|---|---|\n| 2026-05-02 | selling timing data to tool vendors | growth |\n\n'
            printf '### F-020 — Nothing has tested this one\n\n```yaml\nstatus: active\n```\n\nWe do not grow by making the thing worse.\n\n')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qF "selling timing data to tool vendors" "$D" \
     || { echo "FAIL FR-GND-250 — the refusal journal is not on the dashboard"
@@ -1147,7 +1147,7 @@ requirement: FR-CORE-010
 all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
            rec B-020 "Claims the second and stakes it on nothing" 'status: active
 requirement: FR-CORE-020' 'FR-CORE-020 carries a bet naming no hypothesis.')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qE "^\| 2026-Q3 \| 1 \| CORE 1 \|" "$D" \
     || { echo "FAIL FR-GND-230 — the quarter that received one unclaimed"
@@ -1165,7 +1165,7 @@ grep -qF "Counted by quarter, which is what \`period\` says" "$D" \
     || { echo "FAIL FR-GND-230 — the dashboard does not name its own unit"
          cat "$D"; exit 1; }
 printf '{"rules": {}, "period": "month"}\n' > "$LAB/grounds/grounds-config.json"
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qE "^\| 2026-08 \| 1 \| CORE 1 \|" "$D" \
     || { echo "FAIL FR-GND-230 — the configured period is not used"
          cat "$D"; exit 1; }
@@ -1186,9 +1186,9 @@ cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md" 2>/dev/null || true
 # --- weighed inside the lab above, a file left behind by an earlier
 # --- fixture's run sits in both snapshots and the assertion cannot fail.
 LAB4=/tmp/srs-grounds-write
-rm -rf "$LAB4"; mkdir -p "$LAB4/tools" "$LAB4/specs" "$LAB4/grounds"
-cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
-   tools/srs_view.py "$LAB4/tools/"
+rm -rf "$LAB4"; mkdir -p "$LAB4/srs-dd/tools" "$LAB4/specs" "$LAB4/grounds"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py "$LAB4/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB4/specs/"
 cp "$LAB/grounds/grounds-config.json" "$LAB4/grounds/"
 { printf '# g\n\n'; rec H-010 "Ground" "$HYP" 'Studios export weekly.'
@@ -1196,7 +1196,7 @@ cp "$LAB/grounds/grounds-config.json" "$LAB4/grounds/"
 weigh() { ( cd "$LAB4" && find . -type f ! -name 90-dashboard.md \
             -exec cksum {} \; | sort ); }
 weigh > /tmp/srs-grounds-before
-( cd "$LAB4" && python3 tools/srs_grounds.py ) > /dev/null 2>&1
+( cd "$LAB4" && python3 srs-dd/tools/srs_grounds.py ) > /dev/null 2>&1
 [ -f "$LAB4/grounds/90-dashboard.md" ] \
     || { echo "FAIL CON-GND-010 — the run wrote no dashboard, so this"
          echo "assertion would hold for a checker that did nothing"; exit 1; }
@@ -1218,7 +1218,7 @@ ground < <(rec H-010 "Measured twice, differently" \
 |---|---|---|---|---|
 | 2026-02-14 | 0.38 | 42 | supported | @kira |
 | 2026-08-01 | 0.09 | 210 | refuted | telemetry |')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qF "| @kira | 1 | 1 |" "$D" \
     || { echo "FAIL FR-GND-210 — the reversed verdict was not counted"
@@ -1241,9 +1241,9 @@ rule "FR-GND-270 no history" 0 "did not run, which is not the same as passing"
 # --- register's history. A lab of their own, because they need one; the
 # --- ideology pair below shares it.
 HLAB=/tmp/srs-grounds-history
-rm -rf "$HLAB"; mkdir -p "$HLAB/tools" "$HLAB/specs" "$HLAB/grounds"
-cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
-   tools/srs_view.py "$HLAB/tools/"
+rm -rf "$HLAB"; mkdir -p "$HLAB/srs-dd/tools" "$HLAB/specs" "$HLAB/grounds"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py "$HLAB/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$HLAB/specs/"
 cp "$LAB/grounds/grounds-config.json" "$HLAB/grounds/"
 ( cd "$HLAB" && git init -q . && git config user.email t@t \
@@ -1260,7 +1260,7 @@ hyp_at() {   # hyp_at <threshold> <evidence rows…>
 }
 commit_lab() { ( cd "$HLAB" && git add -A && git commit -qm "$1" ); }
 history_run() {
-    ( cd "$HLAB" && python3 tools/srs_grounds.py --no-write ) \
+    ( cd "$HLAB" && python3 srs-dd/tools/srs_grounds.py --no-write ) \
         > /tmp/srs-history.log 2>&1 || true
 }
 
@@ -1354,7 +1354,7 @@ passes=$((passes + 1))
 # And a shallow clone says so rather than passing both rules in silence.
 rm -rf /tmp/srs-grounds-shallow
 git clone -q --depth 1 "file://$HLAB" /tmp/srs-grounds-shallow 2>/dev/null
-( cd /tmp/srs-grounds-shallow && python3 tools/srs_grounds.py --no-write ) \
+( cd /tmp/srs-grounds-shallow && python3 srs-dd/tools/srs_grounds.py --no-write ) \
     > /tmp/srs-shallow.log 2>&1 || true
 grep -qF "the clone is shallow" /tmp/srs-shallow.log \
     || { echo "FAIL FR-GND-270 — a shallow clone did not say so"
@@ -1429,7 +1429,7 @@ passes=$((passes + 1))
 ( cd "$LAB" && python3 -c "
 import sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
 import srs_grounds
 
 published = (
@@ -1457,10 +1457,10 @@ rule "IF-GND-020 unknown flag" 2 "unknown flag(s): --bogus" --bogus
 # this lab: the checker locates the register from where the script sits, the
 # way the specification checker locates specs/, so a cd proves nothing.
 LAB2=/tmp/srs-grounds-none
-rm -rf "$LAB2"; mkdir -p "$LAB2/tools"
-cp tools/srs_grounds.py tools/srs_parse.py "$LAB2/tools/"
+rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py "$LAB2/srs-dd/tools/"
 rc=0
-( cd "$LAB2" && python3 tools/srs_grounds.py --no-write ) \
+( cd "$LAB2" && python3 srs-dd/tools/srs_grounds.py --no-write ) \
     > /tmp/srs-grounds.log 2>&1 || rc=$?
 [ "$rc" = 2 ] || { echo "FAIL IF-GND-020 no register — exit $rc, expected 2"
                    cat /tmp/srs-grounds.log; exit 1; }
@@ -1480,7 +1480,7 @@ requirement: FR-CORE-010
 reason: no hypothesis names it yet' 'It stands in for a bet.')
 rm -f "$LAB/grounds/90-dashboard.md"
 rc=0
-( cd "$LAB" && python3 tools/srs_grounds.py --cite U-010 H-010 H-990 ) \
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --cite U-010 H-010 H-990 ) \
     > /tmp/srs-grounds-cite.out 2> /tmp/srs-grounds-cite.err || rc=$?
 cat > /tmp/srs-grounds-cite.want <<'WANT'
 U-010 — Nobody measured this (grounds/10-h-test.md, active)
@@ -1517,7 +1517,7 @@ all_of: [H-010]' 'Rests on it too.'
 requirement: FR-CORE-1000
 all_of: [H-010]' 'And so does this.')
 silent "INV-SPEC-080 a wide bet number is accepted" 0 "identifier does not match"
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1 \
     || { echo "FAIL INV-SPEC-090 — the wide fixture does not pass"; cat /tmp/srs-grounds.log; exit 1; }
 python3 - "$LAB/grounds/90-dashboard.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the dashboard orders requirements as strings"; exit 1; }
 import re, sys

@@ -8,7 +8,7 @@
 
 `INV-SKILL-010` requires this repository's `AGENTS.md`, `CLAUDE.md` and `.githooks/pre-commit` to hold every rule their shipped counterparts state.
 The two files of a pair are written for different readers and in different words, so neither equality nor a diff can check them.
-A rule reaches a guide by two roads: a requirement whose `code` field names the guide, or a sentence the constitution or the standard put there with no requirement behind it — two of the rules the root guide lacked on 2026-09-23, the generated matrix and ART-030, were of the second kind.
+A rule reaches a guide by two roads: a requirement whose `code` field names the guide, or a sentence the constitution or the standard put there with no requirement behind it — two of the rules the root guide lacked on 2026-09-23, the generated matrix and ART-SRS-030, were of the second kind.
 
 ## Considered options
 

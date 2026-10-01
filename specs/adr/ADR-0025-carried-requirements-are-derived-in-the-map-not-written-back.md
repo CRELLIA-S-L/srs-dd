@@ -16,7 +16,7 @@ The first project that installed the layer is written by capability.
 One requirement — the user can rename a topic — names the view, the engine and the table together, because that is what the capability is made of.
 Measured there on 2026-09-17: 560 realized requirements over ten elements, 220 of them with `code` in two or three elements, 37 carriers in all, and the longest `requirements:` list 237 identifiers long.
 Assembling those lists once is a morning; keeping them is the actual problem, because every new capability lands in two or three of them, each appended by hand, or `requirement-uncarried` fires under `--strict`.
-The predictable outcome is the one `arch/README.md` warns about: the rule is lowered to `report`, the warnings become noise, and the field stops meaning anything.
+The predictable outcome is the one `srs-dd/arch.md` warns about: the rule is lowered to `report`, the warnings become noise, and the field stops meaning anything.
 
 Everything needed to fill the field is already read.
 `owner_of` decides which carrier a file belongs to, the realized requirements and their `code` fields come from the published model, and the two loops that report a file no element owns and a requirement no element carries already walk both; the join they never made — every realized requirement lands in the element owning at least one of its files — is the set the written list was supposed to equal.

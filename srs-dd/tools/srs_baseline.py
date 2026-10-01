@@ -6,8 +6,8 @@
 # srs-end: FR-INIT-280
 """Freeze the specification: write the baseline row.
 
-    python3 tools/srs_baseline.py 1.2.0 --dry-run
-    python3 tools/srs_baseline.py 1.2.0
+    python3 srs-dd/tools/srs_baseline.py 1.2.0 --dry-run
+    python3 srs-dd/tools/srs_baseline.py 1.2.0
 
 It writes the row into `specs/92-baselines.md` — version, date, and what
 changed since the previous baseline — and stops. Committing is yours, with
@@ -36,12 +36,12 @@ import sys
 
 sys.dont_write_bytecode = True                              # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools"))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(ROOT, "srs-dd", "tools"))
 
 import srs_view                                             # noqa: E402
 
-CHECKER = os.path.join(ROOT, "tools", "srs_check.py")
+CHECKER = os.path.join(ROOT, "srs-dd", "tools", "srs_check.py")
 BASELINES = os.path.join(srs_view.SPECS, "92-baselines.md")
 MATRIX = os.path.join(srs_view.SPECS, "90-traceability.md")
 

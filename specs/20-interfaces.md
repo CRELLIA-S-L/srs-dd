@@ -30,7 +30,7 @@ derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -70,7 +70,7 @@ derives_from: []
 depends_on: [IF-SPEC-010, INV-SPEC-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -99,7 +99,7 @@ derives_from: [NFR-SPEC-020]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_check.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_check.py]
 tests: []
 created: 2026-08-07
 ```
@@ -117,7 +117,7 @@ derives_from: []
 depends_on: [FR-CHK-160]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -155,7 +155,7 @@ derives_from: []
 depends_on: [INV-GND-010]
 refines: []
 conflicts_with: []
-code: [grounds/README.md, tools/srs_grounds.py]
+code: [srs-dd/grounds.md, srs-dd/tools/srs_grounds.py]
 tests: []
 created: 2026-08-20
 ```
@@ -165,9 +165,9 @@ A register record **shall** be written as a level-three heading, a fenced `yaml`
 **Rationale.** The same promise `IF-SPEC-010` makes for the requirement block, made separately because it is a separate format: an addition is compatible, a removal or a rename is not, and what lets a later version add a key is that an unknown one is tolerated rather than refused.
 
 One statement over every kind of record in the register — hypothesis, bet, ideology, frame — rather than one per kind.
-The obligation is that the rule is the same throughout, and splitting it would destroy exactly that claim, which is the reading `specs/README.md` gives for a list of exit codes.
+The obligation is that the rule is the same throughout, and splitting it would destroy exactly that claim, which is the reading `srs-dd/standard.md` gives for a list of exit codes.
 
-The shape deliberately resembles the requirement block so that whoever has read `specs/README.md` recognises it.
+The shape deliberately resembles the requirement block so that whoever has read `srs-dd/standard.md` recognises it.
 Resemblance is not identity: neither format is obliged to track the other's edge cases, and a later reader who merges them would be inventing a coupling this subsystem was built to avoid (ADR-0015).
 
 ### IF-GND-020 — Exit codes of the grounds checker
@@ -179,7 +179,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -190,7 +190,7 @@ The grounds checker **shall** exit 0 where it found no error and, under `--stric
 The three are one statement for the reason `IF-CI-020`'s are: what a caller relies on is that these are all of them.
 
 Its own requirement rather than an extension of `IF-CI-010`.
-That statement gives the installer four codes, and `specs/README.md` names an exit-code list as the case where splitting destroys the only claim a caller has.
+That statement gives the installer four codes, and `srs-dd/standard.md` names an exit-code list as the case where splitting destroys the only claim a caller has.
 A fifth code there would rewrite a promise every installed project already depends on, to describe a subsystem most of them do not have.
 
 ### IF-GND-030 — A published grounds rule name keeps its meaning
@@ -202,7 +202,7 @@ derives_from: []
 depends_on: [FR-GND-010, FR-GND-110]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -222,7 +222,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [arch/README.md]
+code: [srs-dd/arch.md]
 tests: []
 created: 2026-09-02
 ```
@@ -242,7 +242,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -261,7 +261,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-090]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -280,7 +280,7 @@ derives_from: []
 depends_on: [FR-ARCH-260]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -301,7 +301,7 @@ derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py, specs/README.md]
+code: [srs-dd/tools/srs_view.py, srs-dd/standard.md]
 tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
@@ -324,7 +324,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_parse.py, tools/srs_check.py, tools/srs_init.py, tools/srs_view.py, tools/srs_dates.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_check.py, tools/srs_init.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_dates.py]
 tests: [tests/checker-rules.sh, tests/installer-smoke.sh, tests/view-smoke.sh, tests/dates-smoke.sh]
 created: 2026-09-29
 ```

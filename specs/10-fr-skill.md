@@ -32,7 +32,7 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, specs/README.md, grounds/README.md, arch/README.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
 tests: []
 created: 2026-08-07
 ```
@@ -41,19 +41,19 @@ The skills **shall** point at the standard defining a format rather than restati
 
 **Rationale.** Two copies of the same rule diverge, and the copy an agent happens to read wins — which is the failure mode this whole framework exists to prevent.
 
-**Named by role, and there is more than one.** This said `specs/README.md` while `srs-bet` was already obeying it word for word against `grounds/README.md` — "deliberately not restated here: two descriptions of the same rules would eventually diverge" — and no requirement covered that half.
+**Named by role, and there is more than one.** This said `srs-dd/standard.md` while `srs-bet` was already obeying it word for word against `srs-dd/grounds.md` — "deliberately not restated here: two descriptions of the same rules would eventually diverge" — and no requirement covered that half.
 Naming both would have written the register into a rule that holds where there is none, so the statement names neither: a standard is whatever document defines a format, and a project has as many as it has formats.
 The generality is the point rather than an evasion — a third standard would be covered on the day it appears, which is the day somebody would otherwise restate it.
 
 Nothing here reaches the register's own machinery.
-The two files this added are shipped sources that exist whether or not this repository runs a register — `grounds/README.md` is the canonical copy the installer reads, as `specs/README.md` is — and no link into the grounds area was made.
+The two files this added are shipped sources that exist whether or not this repository runs a register — `srs-dd/grounds.md` is the canonical copy the installer reads, as `srs-dd/standard.md` is — and no link into the grounds area was made.
 A project that declined the layer has no `srs-bet` to hold to this and no second standard to point at, and the statement is simply quiet about it.
 
 **All of them, because the rule binds all of them.** Six skills define no format and satisfied this by having nothing to restate, and the field named none of them — so `--code` on those six answered as though no rule governed the file, which is the question asked before anybody edits one.
 An incomplete field here is green forever: the checker proves the paths exist and never that they are all of them.
 
 What is forbidden is a second definition, not a second mention.
-This read as an absolute ban on saying anything the standard also says, and under that reading step 4 of `srs-new` stood in violation of it, recorded as an open question rather than fixed: it names the qualities a statement owes — one capability, verifiable, unambiguous, about behaviour — which `specs/README.md` owns under *How to phrase*.
+This read as an absolute ban on saying anything the standard also says, and under that reading step 4 of `srs-new` stood in violation of it, recorded as an open question rather than fixed: it names the qualities a statement owes — one capability, verifiable, unambiguous, about behaviour — which `srs-dd/standard.md` owns under *How to phrase*.
 Cutting it to a pointer would have left the step that teaches the judgement saying nothing about it, because the passage is not a list.
 It says what the checker proves and what it cannot see, gives an agent the sentences to say back — "this names two capabilities, I would split it" — and argues why no word list would serve instead.
 That is teaching, and it belongs where the teaching happens.
@@ -246,7 +246,7 @@ When a change is finished, the check procedure **shall** name the checks the req
 
 **Rationale.** The specification already answers this and nobody reads it for the purpose: every requirement carries a `verification` method and the paths that verify it, so which checks a change calls for is derivable rather than a matter of memory.
 A method of `I` or `D` is where this matters most — those never appear in a suite, and the reader is told what to look at or learns about it from a bug.
-Offering rather than running is not politeness but ART-030: builds and test runs need the user's word each time.
+Offering rather than running is not politeness but ART-SRS-030: builds and test runs need the user's word each time.
 
 The statement said "the checker" while there was one.
 A project carrying a grounds register has two, and its gate fails on a dashboard the change left stale (`FR-GND-370`) — so a procedure naming only the first hands back work that passes everything it named and reddens the pipeline.
@@ -400,7 +400,7 @@ A requirement whose statement carries two obligations can have a suite that exer
 Both shapes read as covered — the file is named, the fixtures are there, the subject matches — and both leave a behaviour that could be deleted with the suite still green.
 Naming the edit that would redden the test is the question that separates them, and it is the same question a reader asks anyway, only made explicit.
 
-Named rather than run, because the audit does not execute anything: it is read-only by FR-SKILL-050, and ART-030 puts a test run behind the maintainer's confirmation.
+Named rather than run, because the audit does not execute anything: it is read-only by FR-SKILL-050, and ART-SRS-030 puts a test run behind the maintainer's confirmation.
 The reasoning form costs nothing and is available while reading, which is where the judgement is being made.
 
 This is a criterion, not a method of deriving what to judge.
@@ -476,7 +476,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, specs/README.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-release/SKILL.md]
+code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, srs-dd/standard.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-release/SKILL.md]
 tests: []
 created: 2026-08-27
 ```
@@ -523,7 +523,7 @@ It is checked at sending — the moment `FR-SKILL-280` already fixes for a state
 And the per-agent entry file, the one a harness loads into every session unasked, imports the guide whole rather than pointing at it: measured with `FR-SKILL-290` on the day, a fresh instance behind the pointer "read `AGENTS.md` first" named records bare in 87 cases of 100, behind a pointer at this one rule in 16 with a further 23 retyped, and with the guide imported in 16 with none retyped — the guide works where it is read, and a pointer is not reading.
 An import and not a rule of its own, because a rule that lives in one agent's file is a rule that holds for one agent; what the file carries is the same guide every other agent loads natively.
 
-**Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: ART-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
+**Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: ART-SRS-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
 The release procedure had already said this of the changelog; the maintainer settled the commit the same way on 2026-09-18.
 
 **Which procedures, and which not.** The field names every procedure that names a record to a person — by `--cite`, or by the guide's rule it points at — and the suite derives that set from the procedures' own text, so one that starts naming records is asked for here on the day it does.
@@ -892,7 +892,7 @@ A choice made for the work at hand — this file rather than that one, the wordi
 A rule that would bind the next person doing the same work, when nobody remembers this conversation, is one, and that is what gets offered.
 An offer is a finding like any other, so `FR-SKILL-170` already binds it: what follows from it is said with it, which is the whole of the offer here, and where nothing follows there is nothing to offer.
 
-Offered, never written: authoring is a dialog and a status is approval (ART-020), so this ends at the offer and what the requirement would oblige.
+Offered, never written: authoring is a dialog and a status is approval (ART-SRS-020), so this ends at the offer and what the requirement would oblige.
 The lookup comes first, because the commonest answer is that it is already written — a rule that feels new is usually one somebody stated in another area's words, and saying so is worth more than a second requirement saying the same thing.
 
 Both agent guides carry it and no procedure does: the sentence that settles a rule is said wherever the conversation happens, most often under no procedure at all, and a guide is read in every session while a procedure is read when somebody invoked it.
@@ -917,7 +917,7 @@ created: 2026-09-23
 After a check it named has failed and been repaired, the check procedure **shall** offer the whole set again rather than the check that failed.
 
 **Rationale.** A repair is a change like any other, and the set the check came from is what says whether it broke something beside it; running the one that was red proves only that it is no longer red.
-The list costs nothing to name a second time — it is the one the procedure already derived from the requirements the change touched (`FR-SKILL-100`) — and the offer stands where ART-030 leaves it, with the user.
+The list costs nothing to name a second time — it is the one the procedure already derived from the requirements the change touched (`FR-SKILL-100`) — and the offer stands where ART-SRS-030 leaves it, with the user.
 
 What holds the step against a later shortening is the list in `tests/skill-instructions/` that `FR-SKILL-300` binds: the instruction is a literal phrase there, so a cut that loses it is red rather than silent.
 
@@ -932,7 +932,7 @@ derives_from: [FR-SKILL-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md, .claude/skills/srs/SKILL.md, AGENTS.md, skeleton/AGENTS.md]
+code: [srs-dd/standard.md, .claude/skills/srs/SKILL.md, AGENTS.md, skeleton/AGENTS.md]
 tests: [tests/skill-instructions.sh]
 created: 2026-09-23
 ```
@@ -980,11 +980,11 @@ created: 2026-09-24
 When a change is built, the build procedure **shall** end by handing it to the check procedure rather than at the checker.
 
 **Rationale.** The checker proves the specification's form; it runs no suite and inspects nothing, and a requirement verified by inspection is verified only once a person has looked (`FR-SKILL-100`).
-The `srs` procedure ended its build at `python3 tools/srs_check.py`, and its plan's last step at "run the checker", and named `srs-check` nowhere.
+The `srs` procedure ended its build at `python3 srs-dd/tools/srs_check.py`, and its plan's last step at "run the checker", and named `srs-check` nowhere.
 On 2026-09-23 and 24 a build under it, and the reviews that followed, ran the checker and every suite, called the result clean, and never produced the list of what a person had to inspect — four of the requirements it touched are verified by inspection; the agent that did it named three causes, and the first was that the procedure it followed ended where it stopped.
 The names help the confusion along — `srs_check.py` is a tool, `srs-check` a procedure — and renaming either would break every project that calls it (ADR-0009); naming the procedure in the step leaves no room to mistake one for the other.
 
-Handing over is not running: the check procedure offers and waits (ART-030), so the build ends at an offer.
+Handing over is not running: the check procedure offers and waits (ART-SRS-030), so the build ends at an offer.
 What holds the step against a later shortening is the list `FR-SKILL-300` binds, and the name alone would not: the procedure is named in the build step and in the plan's last step, so the list carries each of the two phrases, and losing either one is red.
 
 ### FR-SKILL-370 — A file that restates a changed requirement is re-read with it
@@ -1004,8 +1004,8 @@ created: 2026-09-24
 When a requirement's statement changes, the build procedure **shall** have every file its `code` field names that restates it re-read against the new statement in the same set of edits.
 
 **Rationale.** `FR-DOC-200` does this for the landing page, whose sections name what they restate in `depends_on`; the standard restates requirements too and nothing led back to it.
-On 2026-08-17 `FR-CHK-200` and `FR-CHK-210` began reporting files that carry no annotation, and the commit that added them edited three other sections of `specs/README.md` and left *Annotations* saying "unannotated files are never reported" for five weeks, until a project reading both against the checker asked which was true.
-The requirements a section restates now name `specs/README.md` in their `code` field, so the file is on the route the loop already walks; this makes the procedure read it there.
+On 2026-08-17 `FR-CHK-200` and `FR-CHK-210` began reporting files that carry no annotation, and the commit that added them edited three other sections of `srs-dd/standard.md` and left *Annotations* saying "unannotated files are never reported" for five weeks, until a project reading both against the checker asked which was true.
+The requirements a section restates now name `srs-dd/standard.md` in their `code` field, so the file is on the route the loop already walks; this makes the procedure read it there.
 What holds the step is its phrase in the list `FR-SKILL-300` binds.
 
 ### FR-SKILL-380 — The shipped guide names every command the installer ships
@@ -1025,7 +1025,7 @@ created: 2026-09-24
 The agent guide the framework ships **shall** name every command the installer copies into a project.
 
 **Rationale.** A project's agents learn what they can run from the guide they read in every session, and the procedures reach them by path through it (`NFR-SKILL-010`).
-The optional layers and the dating command were added after the guide was written, each with its requirements, its procedure and its CI step, and none named the guide: on 2026-09-24 it mentioned the two layers only through their `--cite` commands, and `tools/srs_dates.py` not at all, so a project that kept a layer added the lines by hand and turned its guide into a fork that `--force` would overwrite.
+The optional layers and the dating command were added after the guide was written, each with its requirements, its procedure and its CI step, and none named the guide: on 2026-09-24 it mentioned the two layers only through their `--cite` commands, and `srs-dd/tools/srs_dates.py` not at all, so a project that kept a layer added the lines by hand and turned its guide into a fork that `--force` would overwrite.
 The lines for the layers open with "where the project keeps", the way the guide's rule on naming records already does, so one guide serves a project with the layer and one without, and the installer needs no condition.
 
 The list is read from the installer's own tuples, so a command added there is asked of the guide on the day it ships; `srs_parse.py` is excepted in the test as a module the checkers import, not a command.
@@ -1045,7 +1045,7 @@ tests: [tests/guide-parity.sh]
 created: 2026-09-25
 ```
 
-The agent guide and the constitution the installer ships **shall** each state that nothing sensitive is committed, naming credentials, personal data, documents shared in confidence and a machine's raw output as sensitive.
+The framework's guide and the method's articles the installer ships **shall** each state that nothing sensitive is committed, naming credentials, personal data, documents shared in confidence and a machine's raw output as sensitive.
 
 **Rationale.** What a repository holds is read by everyone who can clone it for as long as its history lives, and an agent committing on a person's behalf is the one most likely to sweep in a file nobody read — a trace of its own run, a document the person shared with it, a local configuration.
 Nothing in the framework said so until 2026-09-25, when a check of this repository found none of it here and found a proposal shared in confidence kept out of the history only by being excluded by hand at every commit.
@@ -1062,7 +1062,7 @@ derives_from: []
 depends_on: [FR-SKILL-370]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, specs/README.md]
+code: [.claude/skills/srs/SKILL.md, srs-dd/standard.md]
 tests: [tests/skill-instructions.sh]
 created: 2026-09-29
 ```
@@ -1111,3 +1111,57 @@ created: 2026-09-30
 The installation and upgrade procedures **shall** tell the agent how to add the gate as a step of each service the project runs its pipelines on, up to confirming from the installer's report, or by reading a pipeline the installer does not recognise, that the step is there.
 
 **Rationale.** The pipelines are the project's files (`FR-INIT-290`), and a project runs them on whatever service it chose; the installer recognises GitHub's and GitLab's (`FR-INIT-310`) and nothing else, so for any other the agent reads the pipeline itself.
+
+### FR-SKILL-430 — The method's articles are a document of the framework
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-320]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/method.md, skeleton/specs/constitution.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-01
+```
+
+The articles that bind every project to the method — the hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates, nothing sensitive in the repository — **shall** ship as `srs-dd/method.md` under identifiers `ART-SRS-NNN`, outside the constitution the installer ships.
+
+**Rationale.** The shipped constitution said *adapt the articles to your project* and the procedures stood on six of those articles as on the method's own: a project that reversed ART-SRS-020 left eight references in the procedures pointing at nothing. The articles of the method are the framework's, numbered in a space of their own and refreshed with the tooling; the constitution the project gets holds only what a project decides for itself — simplicity, and how it amends its own constitution — and is numbered by the project alone. In this repository the articles ART-SRS-010, ART-SRS-020, ART-SRS-030, ART-SRS-050, ART-SRS-060 and ART-SRS-100 of the constitution before 0.22.0 are `ART-SRS-010` to `ART-SRS-060` and `ART-SRS-100`, and every reference, decisions included, is rewritten; the release note names the change as incompatible.
+
+### FR-SKILL-440 — The framework's guide is a region of the project's guide
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-320]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md, AGENTS.md, skeleton/AGENTS.md, tools/srs_init.py]
+tests: [tests/guide-parity.sh, tests/installer-smoke.sh]
+created: 2026-10-01
+```
+
+The rules of the method an agent reads before any task **shall** be one text, `srs-dd/guide.md`, which the installer places between the region markers of the project's `AGENTS.md` and this repository's own `AGENTS.md` carries verbatim between the same markers.
+
+**Rationale.** One text in one place: the shipped guide and this repository's guide carried the same rules as two lists of numbered sentences, held equal by a list of tokens a suite walked (`INV-SKILL-010`). With the region, equality is the identity of the text, compared byte for byte, and a rule added to the method reaches every project at its next upgrade (`FR-INIT-370`) and this repository at the same commit.
+
+### FR-SKILL-450 — The standard says what of the framework's lives outside the directory
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-320]
+refines: []
+conflicts_with: []
+code: [srs-dd/standard.md]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-10-01
+```
+
+The specification's standard **shall** name `.claude/skills/srs-*` as the framework's procedures — refreshed with the tooling and edited only under another name — as the one thing of the framework's that lives outside `srs-dd/`, beside the region of the guide.
+
+**Rationale.** The procedures cannot move: the client looks for them under `.claude/skills/` and nowhere else. Where ownership is a place, the exception has to be written where the reader of the place looks, or the next person edits `srs/SKILL.md` for their project and loses it at the next upgrade.

@@ -9,7 +9,7 @@ description: Render the specification as one self-contained HTML page and open i
 One command renders it and opens it:
 
 ```
-python3 tools/srs_view.py --open
+python3 srs-dd/tools/srs_view.py --open
 ```
 
 It writes `.srs-site/index.html` — the directory ignores itself, so nothing lands in the project's history — and opens it in the reader's browser.
@@ -24,7 +24,7 @@ That is what makes it the answer for a reviewer, a new joiner, or anyone outside
 **Links to code work only if the page knows where the code lives.** Pass the forge address once:
 
 ```
-python3 tools/srs_view.py --html public/index.html \
+python3 srs-dd/tools/srs_view.py --html public/index.html \
     --repo-url https://github.com/<owner>/<repo>/blob/<sha>
 ```
 
@@ -37,5 +37,5 @@ Without it the paths are still shown, they just do not lead anywhere.
 ## When it is the wrong tool
 
 For a question about one requirement — what it links to, what breaks if it changes — the terminal answers faster:
-`python3 tools/srs_view.py <ID>`, or `--code <path>` from the other end.
+`python3 srs-dd/tools/srs_view.py <ID>`, or `--code <path>` from the other end.
 The page is for reading a specification, not for interrogating it.

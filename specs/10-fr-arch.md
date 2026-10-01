@@ -12,7 +12,7 @@ derives_from: []
 depends_on: [IF-VIEW-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh, tests/arch-check.sh]
 created: 2026-09-02
 ```
@@ -31,7 +31,7 @@ derives_from: []
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -50,7 +50,7 @@ derives_from: []
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -69,7 +69,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -88,7 +88,7 @@ derives_from: []
 depends_on: [FR-ARCH-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -107,7 +107,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -137,7 +137,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -159,7 +159,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -181,7 +181,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -200,7 +200,7 @@ derives_from: []
 depends_on: [FR-ARCH-090]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -218,7 +218,7 @@ derives_from: []
 depends_on: [CON-ARCH-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-check.sh]
 created: 2026-09-02
 ```
@@ -256,7 +256,7 @@ derives_from: []
 depends_on: [FR-ARCH-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_init.py, tools/srs_upgrade.py]
+code: [tools/srs_init.py, srs-dd/tools/srs_upgrade.py]
 tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh]
 created: 2026-09-02
 ```
@@ -341,7 +341,7 @@ derives_from: []
 depends_on: [CON-ARCH-020]
 refines: []
 conflicts_with: []
-code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml, tools/srs_gate.py]
+code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml, srs-dd/tools/srs_gate.py]
 tests: [tests/arch-check.sh, tests/installer-smoke.sh]
 created: 2026-09-08
 ```
@@ -365,7 +365,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -386,7 +386,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -407,7 +407,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-090]
 refines: []
 conflicts_with: [FR-CHK-240]
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-16
 ```
@@ -437,7 +437,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-16
 ```
@@ -462,7 +462,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py, arch/README.md, .claude/skills/srs-arch/SKILL.md]
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md, .claude/skills/srs-arch/SKILL.md]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -507,7 +507,7 @@ derives_from: []
 depends_on: [FR-ARCH-240]
 refines: [FR-ARCH-110]
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -530,7 +530,7 @@ derives_from: []
 depends_on: [FR-ARCH-200, FR-ARCH-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py, arch/README.md]
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -567,7 +567,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-SKILL-200]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -589,7 +589,7 @@ derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-21
 ```
@@ -611,7 +611,7 @@ derives_from: [IF-ARCH-030]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [arch/README.md]
+code: [srs-dd/arch.md]
 tests: [tests/standard-rules.sh]
 created: 2026-09-24
 ```
@@ -619,7 +619,7 @@ created: 2026-09-24
 The architecture layer's standard **shall** name every rule its checker reports by name, with what it reports.
 
 **Rationale.** The standard said of the rule names that "this file is written against them" (`IF-ARCH-030`), and on 2026-09-24 it named two of the seven — one in an example, one in passing — so a project setting a rule's cost in `arch/arch-config.json` learned the names by getting one wrong.
-The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `tools/srs_arch.py`.
+The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `srs-dd/tools/srs_arch.py`.
 
 ### FR-ARCH-300 — The hook refuses a stale map
 
@@ -630,7 +630,7 @@ derives_from: [FR-ARCH-170]
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit, tools/srs_gate.py]
+code: [ci/pre-commit, .githooks/pre-commit, srs-dd/tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-29
 ```

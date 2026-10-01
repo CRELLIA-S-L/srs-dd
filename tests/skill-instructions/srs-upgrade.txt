@@ -4,21 +4,21 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_upgrade.py
-tools/srs_upgrade.py --yes
+srs-dd/tools/srs_upgrade.py
+srs-dd/tools/srs_upgrade.py --yes
 
 # files
 AGENTS.md
 CLAUDE.md
 specs/90-traceability.md
-specs/README.md
-tools/srs_upgrade.py
+srs-dd/standard.md
+srs-dd/tools/srs_upgrade.py
 
 # instructions
 never through `--cite`
 
 # wiring the gate (FR-SKILL-410, FR-SKILL-420)
-tools/srs_gate.py
+srs-dd/tools/srs_gate.py
 .pre-commit-config.yaml
 .husky/pre-commit
 lefthook.yml

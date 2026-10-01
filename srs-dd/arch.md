@@ -1,6 +1,6 @@
 # The architecture layer
 
-<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
+<!-- SRS-DD-VERSION — the framework's; rewritten whole by every upgrade -->
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 A specification records what the system must do.
@@ -136,11 +136,11 @@ A committed map that no longer matches what the records produce is a change some
 ## Checking
 
 ```
-python3 tools/srs_arch.py              read the layer, report, and regenerate the map where there is no error
-python3 tools/srs_arch.py --no-write   report only
-python3 tools/srs_arch.py --strict     treat warnings as errors
-python3 tools/srs_arch.py --cite ID…   name elements to a person: identifier, title, file, status
-python3 tools/srs_arch.py --drivers    the ten requirements that drive the cut, most constrained first
+python3 srs-dd/tools/srs_arch.py              read the layer, report, and regenerate the map where there is no error
+python3 srs-dd/tools/srs_arch.py --no-write   report only
+python3 srs-dd/tools/srs_arch.py --strict     treat warnings as errors
+python3 srs-dd/tools/srs_arch.py --cite ID…   name elements to a person: identifier, title, file, status
+python3 srs-dd/tools/srs_arch.py --drivers    the ten requirements that drive the cut, most constrained first
 ```
 
 Errors are the readings that make the rest meaningless: a file that cannot be read, an identifier that is malformed or repeated, a missing required key, a status outside the four, a requirement that does not exist, and a dependency on an element no record defines.

@@ -1,5 +1,4 @@
 # <Your Project Name>
-<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
 
 `AGENTS.md` is the shared agent guide for this SRS-DD project, and it is imported here so that every session starts with it in front of you rather than behind a pointer:
 

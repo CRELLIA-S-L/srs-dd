@@ -6,8 +6,8 @@
 # srs-end: FR-INIT-280
 """Write into each requirement the date its identifier first appeared.
 
-    python3 tools/srs_dates.py             date what is undated
-    python3 tools/srs_dates.py --dry-run   say what would be written
+    python3 srs-dd/tools/srs_dates.py             date what is undated
+    python3 srs-dd/tools/srs_dates.py --dry-run   say what would be written
 
 The date git already holds, written into the block once so that every
 lifecycle reading afterwards comes off the file rather than out of the log.

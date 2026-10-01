@@ -8,7 +8,7 @@ Where a word is also an SRS term of art, the meaning here is the one that binds.
 | Target | A project SRS-DD is installed into, as opposed to this repository |
 | Payload | What the installer copies into a target: `skeleton/`, the standards, the decision template, the tooling, the shipped skills, the hook and pipeline starters and `.gitattributes` |
 | Skeleton | The starter specification files in `skeleton/specs/`, meant to be edited by the target |
-| Standard | `specs/README.md` — the normative document on the specification format, identical in every project |
+| Standard | `srs-dd/standard.md` — the normative document on the specification format, identical in every project |
 | Area | The middle segment of an identifier; a project-declared partition of the system by subject matter |
 | Lexicon | The modal verbs, negation words and rationale markers in `specs/srs-config.json`; the only place a natural language is defined |
 | Statement | The single sentence of a requirement, carrying exactly one bolded modal verb |

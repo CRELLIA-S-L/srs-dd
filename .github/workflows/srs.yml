@@ -120,7 +120,7 @@ jobs:
 
       - name: Render the specification
         run: |
-          python3 tools/srs_view.py --html site/index.html \
+          python3 srs-dd/tools/srs_view.py --html site/index.html \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
 
       - uses: actions/upload-artifact@v7
@@ -159,16 +159,16 @@ jobs:
           # over again — nothing copied, and the missing file blamed.
           travels=$(python3 -Bc "import sys; sys.path.insert(0, 'tools'); import srs_init; print(*(srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS))")
           for f in $travels; do
-            cp "tools/$f" /tmp/srs-consumer/tools/
+            mkdir -p /tmp/srs-consumer/srs-dd/tools && cp "srs-dd/tools/$f" /tmp/srs-consumer/srs-dd/tools/
           done
           cd /tmp/srs-consumer
-          python3 tools/srs_check.py --strict --no-write
-          python3 tools/srs_grounds.py --no-write --strict
+          python3 srs-dd/tools/srs_check.py --strict --no-write
+          python3 srs-dd/tools/srs_grounds.py --no-write --strict
           # Without --strict: the project's own layer carries warnings of
           # its own, and this job asks whether the tooling accepts the
           # layer, not whether the project has cleared it.
-          python3 tools/srs_arch.py --no-write
-          python3 tools/srs_view.py --html /tmp/consumer-site/index.html
+          python3 srs-dd/tools/srs_arch.py --no-write
+          python3 srs-dd/tools/srs_view.py --html /tmp/consumer-site/index.html
 
   # The published specification (FR-CI-040). Runs only on the default
   # branch and only after the suites pass — a page is worth publishing
@@ -203,11 +203,11 @@ jobs:
 
       - name: Render the specification
         run: |
-          python3 tools/srs_view.py --html site/index.html \
+          python3 srs-dd/tools/srs_view.py --html site/index.html \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
           # The landing page shows the graph of its own requirements by this
           # URL; the name is fixed because README.md addresses it (FR-CI-110).
-          python3 tools/srs_view.py --area DOC --around --svg site/readme-graph.svg
+          python3 srs-dd/tools/srs_view.py --area DOC --around --svg site/readme-graph.svg
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

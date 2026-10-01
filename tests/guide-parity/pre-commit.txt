@@ -2,4 +2,4 @@
 # run the gate through the one tool, with the register's report on what the
 # commit touches; the hook here runs the whole local gate after it.
 core.hooksPath .githooks
-python3 tools/srs_gate.py --staged
+python3 srs-dd/tools/srs_gate.py --staged

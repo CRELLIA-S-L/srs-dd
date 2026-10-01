@@ -6,12 +6,12 @@
 # srs-end: FR-INIT-280
 """Upgrade SRS-DD in this project — one command, no clone to keep around.
 
-    python3 tools/srs_upgrade.py              show the change, then ask
-    python3 tools/srs_upgrade.py --yes        apply without asking
-    python3 tools/srs_upgrade.py --ref v1.2.0 pin a release
-    python3 tools/srs_upgrade.py --from ../srs-dd   use a clone you have
-    python3 tools/srs_upgrade.py --grounds yes     add the grounds register
-    python3 tools/srs_upgrade.py --arch yes        add the architecture layer
+    python3 srs-dd/tools/srs_upgrade.py              show the change, then ask
+    python3 srs-dd/tools/srs_upgrade.py --yes        apply without asking
+    python3 srs-dd/tools/srs_upgrade.py --ref v1.2.0 pin a release
+    python3 srs-dd/tools/srs_upgrade.py --from ../srs-dd   use a clone you have
+    python3 srs-dd/tools/srs_upgrade.py --grounds yes     add the grounds register
+    python3 srs-dd/tools/srs_upgrade.py --arch yes        add the architecture layer
 
 It fetches the framework this project was installed from, runs that
 framework's installer against this project, and removes what it fetched.
@@ -36,7 +36,7 @@ import subprocess
 import sys
 import tempfile
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CONFIG = os.path.join(ROOT, "specs", "srs-config.json")
 
 # Used when the project's config does not name one — projects installed
@@ -80,11 +80,6 @@ def main():
     parser.add_argument("--from", dest="source", metavar="PATH",
                         help="use an existing framework clone instead of "
                              "fetching one")
-    # implements: FR-INIT-250
-    parser.add_argument("--force", action="store_true",
-                        help="also refresh precious files (agent guides, "
-                             ".gitattributes, the standards)")
-    # srs-end: FR-INIT-250
     # implements: FR-GND-290, FR-GND-480
     # Asking has to be possible with the command a project actually has.
     # Without this the only way to add the register is the framework
@@ -110,7 +105,7 @@ def main():
     args = parser.parse_args()
 
     if not os.path.isdir(os.path.join(ROOT, "specs")):
-        return fail("no specs/ next to tools/ — run this from inside a "
+        return fail("no specs/ beside srs-dd/ — run this from inside a "
                     "project SRS-DD is installed in")
     if os.path.isdir(os.path.join(ROOT, "skeleton")) \
             and os.path.exists(os.path.join(ROOT, "tools", "srs_init.py")):
@@ -145,7 +140,7 @@ def main():
             return fail("could not fetch %s" % url)
 
     try:
-        extra = ["--force"] if args.force else []
+        extra = []
         if args.grounds:
             extra += ["--grounds", args.grounds]
         if args.period:

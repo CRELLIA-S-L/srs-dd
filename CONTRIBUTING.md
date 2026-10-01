@@ -8,7 +8,7 @@ After cloning, point git at the repository's hooks:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook first runs the gate a target's hook runs, `python3 tools/srs_gate.py --staged` — the checkers, every generated file compared with what is staged, then the bets the staged files touch — and then `tools/ci_selftest.sh`: a YAML parse of the pipeline and of the templates shipped to target projects, then every suite in `tests/`, the specification gate and the installer smoke among them, each but the specification gate followed by a check that it left the git index it was handed as it found it — that gate stages the matrix on purpose.
+The pre-commit hook first runs the gate a target's hook runs, `python3 srs-dd/tools/srs_gate.py --staged` — the checkers, every generated file compared with what is staged, then the bets the staged files touch — and then `tools/ci_selftest.sh`: a YAML parse of the pipeline and of the templates shipped to target projects, then every suite in `tests/`, the specification gate and the installer smoke among them, each but the specification gate followed by a check that it left the git index it was handed as it found it — that gate stages the matrix on purpose.
 The parse goes first because a suite fails routinely on a matrix that has been regenerated but not staged, and that must not hide a broken template.
 
 These are the same scripts `.github/workflows/srs.yml` runs, one step each, and `tests/pipeline-suites.sh` holds that list of steps to the directory, so the local gate and CI cannot drift apart; any suite can also be run on its own:
@@ -27,7 +27,7 @@ Two directories are easy to confuse, and the difference is the one rule ART-070 
 
 - `specs/` — **this repository's own specification.**
   Requirements here describe the checker, the viewer, the installer, the skills and the CI templates.
-  Nothing in it is copied into target projects, with one deliberate exception: `specs/README.md`, the standard itself, which is identical everywhere and therefore kept as a single canonical copy.
+  Nothing in it is copied into target projects, with one deliberate exception: `specs/adr/template.md`, the decision template, which is identical everywhere and therefore kept beside the decisions it shapes as the single canonical copy.
 - `skeleton/` — **the payload.**
   Starter specification files and the target-facing `AGENTS.md`/`CLAUDE.md`, copied into projects by `tools/srs_init.py`.
   A requirement of ours landing here fails a stranger's checker on their first install, pointing at files that do not exist in their project.
@@ -41,7 +41,7 @@ What not to do is quiet one with `srs-ignore`, whose exemption is unconditional 
 
 ## Kinds of change
 
-- **Standard change** — anything that alters `specs/README.md` (the rules, the identifier grammar, statuses, annotation syntax) or the checker's enforcement of it.
+- **Standard change** — anything that alters `srs-dd/standard.md` (the rules, the identifier grammar, statuses, annotation syntax) or the checker's enforcement of it.
   Standard changes ship as framework releases: an entry in `CHANGELOG.md`, a `vX.Y.Z` tag.
 - **Constitution amendment** — follows ART-090 of `specs/constitution.md`: a dedicated commit, a version bump, the reason in the commit message.
 - **Tooling and documentation** — everything else.
@@ -54,24 +54,24 @@ Three things outside this repository depend on what is inside it, and all three 
   Do not rename or move it.
 - The clone URL and that raw URL live in `README.md`, each marked with an HTML comment: `grep -n canonical-url README.md`.
   They belong on the landing page, not in `docs/` — an agent given the repository URL reads the README.
-  Changing hosts also touches the other clone commands in `README.md` and `docs/install.md` and the default address in `tools/srs_init.py` and `tools/srs_upgrade.py` — `grep -rn CRELLIA-S-L` finds them all; make it in one commit.
+  Changing hosts also touches the other clone commands in `README.md` and `docs/install.md` and the default address in `tools/srs_init.py` and `srs-dd/tools/srs_upgrade.py` — `grep -rn CRELLIA-S-L` finds them all; make it in one commit.
 - The keys of the requirement metadata block (IF-SPEC-010).
   Adding one is compatible; **renaming or withdrawing one is not**, and the projects that break are not yours to fix (ADR-0009).
-  When you do it, add the old name to `RETIRED_FIELDS` in `tools/srs_check.py` — `{old: (replacement or None, version)}` — so the checker says what to change instead of "unknown field", and put the instruction in that release's upgrade notes.
+  When you do it, add the old name to `RETIRED_FIELDS` in `srs-dd/tools/srs_check.py` — `{old: (replacement or None, version)}` — so the checker says what to change instead of "unknown field", and put the instruction in that release's upgrade notes.
   A merge or a split of keys cannot be expressed as a replacement name, so there the note is all the reader gets.
 
 ## Ground rules
 
-- `python3 tools/srs_check.py --strict` must pass on your branch.
+- `python3 srs-dd/tools/srs_check.py --strict` must pass on your branch.
 - An `### Upgrade notes` entry stands on its own.
   The installer prints that section and nothing around it, so "see the list above", "the fix described earlier" and their kind reach the reader as dangling references — spell the thing out instead.
 - If your change affects the generated matrix, commit the regenerated `specs/90-traceability.md` in the same change set — CI compares it byte-for-byte.
-- No two sources of truth: if a rule is stated in a standard — `specs/README.md`, `grounds/README.md` where a register is kept, `arch/README.md` where an architecture layer is kept, and `AGENTS.md` for the form of a reference to a requirement — other documents may point at it but must not restate it.
+- No two sources of truth: if a rule is stated in a standard — `srs-dd/standard.md`, `srs-dd/grounds.md` where a register is kept, `srs-dd/arch.md` where an architecture layer is kept, and `AGENTS.md` for the form of a reference to a requirement — other documents may point at it but must not restate it.
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
 - **Line width: 120 columns in code, none in markdown, none over what the tools print.**
   Python, shell and YAML wrap at 120 — the hooks included, which are shell without the extension to say so.
   JSON does not: the files of it here — the specification's configuration and each layer's — are written by `tools/srs_init.py`, so their width is the installer's output rather than anybody's choice, and JSON offers no continuation and no concatenation, so a long string value cannot be narrowed at all.
-  Markdown is not bounded at all, and where its lines may break is stated once, in the Line breaks section of `specs/README.md` (INV-SPEC-070): not by width, never inside a sentence.
+  Markdown is not bounded at all, and where its lines may break is stated once, in the Line breaks section of `srs-dd/standard.md` (INV-SPEC-070): not by width, never inside a sentence.
   What a tool prints is a third case and is not bounded at all: a finding is written to be read, and breaking one into fixed lines in the source freezes the wrapping against a terminal nobody has measured, at a width that depends on how long the reader's own paths and identifiers happen to be.
   Wrapping is the terminal's business.
   Do not add a suite that asserts a width over a log — FR-CI-100's rationale records why.
@@ -101,11 +101,11 @@ It cuts no baseline.
 Freezing the specification is its own act, with its own command and its own number:
 
 ```
-python3 tools/srs_baseline.py X.Y.Z
+python3 srs-dd/tools/srs_baseline.py X.Y.Z
 ```
 
 Cut one when the specification reached a milestone, cut the other when the framework ships, and cut both when both are true — in either order.
-The Baselines section of `specs/README.md` describes the first for every project, because every project baselines its own specification; this repository is no exception.
+The Baselines section of `srs-dd/standard.md` describes the first for every project, because every project baselines its own specification; this repository is no exception.
 
 ## Version schemes
 
@@ -117,7 +117,7 @@ Three independent version numbers exist by design; do not mix them.
 | rows in `specs/92-baselines.md` | each project, this one included | baselines of that project's specification; a `spec/vX.Y.Z` tag is an optional bookmark |
 | Version field in `specs/constitution.md` | each project | its constitution, amended per ART-090 |
 
-`tools/srs_check.py` prints the framework version it shipped with on every run that reads a specification — the first thing to ask for when debugging a target project.
+`srs-dd/tools/srs_check.py` prints the framework version it shipped with on every run that reads a specification — the first thing to ask for when debugging a target project.
 
 What the framework's own number means, read from the target's side:
 

@@ -1,7 +1,7 @@
 # Functional requirements — documentation
 
 What this repository's own documentation — the landing page and `docs/` — answers, and what it may claim.
-The standard for the specification is `specs/README.md` and is not documentation in this sense; the guides for agents are the `SKILL` area's.
+The standard for the specification is `srs-dd/standard.md` and is not documentation in this sense; the guides for agents are the `SKILL` area's.
 
 ### FR-DOC-010 — The landing page consists of eleven sections, in the order a reader's questions arise
 

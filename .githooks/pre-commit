@@ -14,7 +14,7 @@ cd "$(git rev-parse --show-toplevel)"
 # register and a layer of its own: the checkers, every generated file
 # compared with what is staged, and what the requirements this commit
 # touches are standing on — a report that fails nothing.
-python3 tools/srs_gate.py --staged
+python3 srs-dd/tools/srs_gate.py --staged
 # srs-end: FR-GND-310, FR-GND-570, FR-ARCH-300, FR-CI-180, INV-SKILL-010
 
 exec tools/ci_selftest.sh

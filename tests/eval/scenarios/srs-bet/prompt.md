@@ -5,7 +5,7 @@
 procedure: srs-bet
 max_turns: 20
 check: skill srs-bet
-check: ran python3 tools/srs_grounds.py
+check: ran python3 srs-dd/tools/srs_grounds.py
 check: answer H-030 — Specified documents stay current \(grounds/11-h-documentation\.md, assumed\)
 check: answer supported
 check: no_tool Edit

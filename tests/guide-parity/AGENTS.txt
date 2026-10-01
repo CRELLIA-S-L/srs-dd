@@ -5,14 +5,14 @@
 # out: the upgrade command and the width line the installer fills in.
 
 # the standard, the principles, the generated matrix
-specs/README.md
+srs-dd/standard.md
 specs/constitution.md
-ART-030
+ART-SRS-030
 specs/90-traceability.md
 never edit
 
 # the tools
-tools/srs_check.py
+srs-dd/tools/srs_check.py
 --vocabulary
 --code
 --statements
@@ -21,9 +21,9 @@ tools/srs_check.py
 --areas
 --open
 --cite
-tools/srs_arch.py --cite
-tools/srs_grounds.py --cite
-tools/srs_baseline.py
+srs-dd/tools/srs_arch.py --cite
+srs-dd/tools/srs_grounds.py --cite
+srs-dd/tools/srs_baseline.py
 specs/92-baselines.md
 
 # the procedures
@@ -42,20 +42,20 @@ match the sentence to it
 as shown above
 specs/adr/
 offer to author
-ART-060
+ART-SRS-060
 trailing parenthesis
 
 # the date command and the optional layers
-tools/srs_dates.py
+srs-dd/tools/srs_dates.py
 Run on purpose, never by a gate
-tools/srs_grounds.py
+srs-dd/tools/srs_grounds.py
 --blast
-tools/srs_arch.py
+srs-dd/tools/srs_arch.py
 srs-bet
 srs-arch
 Date requirements
 Grounds register
 Architecture layer
-# ART-100 — nothing sensitive goes into the repository
-ART-100
-tools/srs_gate.py
+# ART-SRS-100 — nothing sensitive goes into the repository
+ART-SRS-100
+srs-dd/tools/srs_gate.py

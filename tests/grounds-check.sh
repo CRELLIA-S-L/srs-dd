@@ -25,7 +25,7 @@ cd "$(dirname "$0")/.."
 
 [ -d grounds ] || { echo "grounds-check: no register in this repository"; exit 1; }
 
-python3 tools/srs_grounds.py --no-write --strict
+python3 srs-dd/tools/srs_grounds.py --no-write --strict
 
 # The committed dashboard against a fresh one. The copy is a tree of its
 # own so that a difference cannot be created by the act of looking.
@@ -33,14 +33,14 @@ LAB=/tmp/srs-grounds-check
 rm -rf "$LAB"; mkdir -p "$LAB"
 tar --exclude ./.git --exclude ./.srs-site --exclude ./public \
     --exclude ./__pycache__ -cf - . | tar -xf - -C "$LAB"
-( cd "$LAB" && python3 tools/srs_grounds.py > /tmp/grounds-check.log 2>&1 ) || {
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py > /tmp/grounds-check.log 2>&1 ) || {
     echo "grounds-check: the copy does not pass its own checker:"
     cat /tmp/grounds-check.log; exit 1; }
 
 if [ -f grounds/90-dashboard.md ]; then
     cmp -s grounds/90-dashboard.md "$LAB/grounds/90-dashboard.md" || {
         echo "grounds-check: grounds/90-dashboard.md is stale — run"
-        echo "python3 tools/srs_grounds.py and commit the result"
+        echo "python3 srs-dd/tools/srs_grounds.py and commit the result"
         diff grounds/90-dashboard.md "$LAB/grounds/90-dashboard.md" | head -20
         exit 1; }
 else

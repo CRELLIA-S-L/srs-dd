@@ -30,7 +30,7 @@ A two-line pointer is enough — do not duplicate the rules:
 
 ```
 This project follows the SRS-DD standard.
-Read AGENTS.md first; the specification rules live in specs/README.md.
+Read AGENTS.md first; the specification rules live in srs-dd/standard.md.
 ```
 
 That works for `.cursor/rules/srs.mdc`, `.github/copilot-instructions.md`, and anything else of that shape.

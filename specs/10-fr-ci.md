@@ -11,7 +11,7 @@ derives_from: []
 depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
-code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml, tools/srs_gate.py]
+code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml, srs-dd/tools/srs_gate.py]
 tests: [tests/spec-check.sh, tests/installer-smoke.sh]
 created: 2026-08-07
 ```
@@ -33,12 +33,12 @@ derives_from: [FR-CI-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit, tools/ci_selftest.sh, tools/srs_gate.py]
+code: [ci/pre-commit, .githooks/pre-commit, tools/ci_selftest.sh, srs-dd/tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-Run before a commit as `tools/srs_gate.py --staged`, the gate **shall** compare every file it regenerates with what is staged, so a stale matrix is caught before it is pushed.
+Run before a commit as `srs-dd/tools/srs_gate.py --staged`, the gate **shall** compare every file it regenerates with what is staged, so a stale matrix is caught before it is pushed.
 
 **Rationale.** A gate that only exists in CI teaches people to push and wait;
 one that runs on commit is the difference between a habit and a chore.
@@ -219,7 +219,7 @@ A baseline records where a project stands, warnings and all; a release hands the
 
 It bumps one number, and the statement says whose: the framework's, not the checker's.
 What a release versions is the delivery — the tools and the standards one installer writes into a target and one upgrade command refreshes — and the same number is stamped into every file that installer writes, the grounds standard included.
-The number lives in `tools/srs_parse.py`, the one file both checkers must have beside them, and each re-exports it (ADR-0021).
+The number lives in `srs-dd/tools/srs_parse.py`, the one file both checkers must have beside them, and each re-exports it (ADR-0021).
 It used to live in the specification checker, which left the grounds checker announcing a version nothing bumped.
 
 ### FR-CI-100 — The gate refuses a source line nobody had to write long
@@ -262,7 +262,7 @@ What settles it is neither: both JSON files here are written by `tools/srs_init.
 Where JSON does get a width elsewhere it comes from a formatter, and this project runs none — there is no `.editorconfig` here and no formatter or linter configuration of any kind.
 
 Markdown is not looked at, in this repository or in any target.
-A line break inside a paragraph renders as a space — `tools/srs_view.py` joins them with `p.replace("\n", " ")` — so where a line ends is invisible to every reader and matters only to `git diff`.
+A line break inside a paragraph renders as a space — `srs-dd/tools/srs_view.py` joins them with `p.replace("\n", " ")` — so where a line ends is invisible to every reader and matters only to `git diff`.
 Where a markdown line may break at all is INV-SPEC-070's question rather than this rule's: this one refuses a long line of code, and that one refuses a break nobody meant.
 
 **And neither is what the tools print.** The limit governs code.
@@ -376,7 +376,7 @@ created: 2026-09-24
 The `.gitattributes` the framework ships **shall** pin to LF endings every file a shipped gate compares byte for byte.
 
 **Rationale.** The gates compare a generated file with what the checker writes now, and a checkout that converted its line endings makes that file stale without anything having changed; the pin existed for the matrix and not for the register's dashboard or the architecture map, which the CI templates compare the same way since those layers shipped.
-The list of files is read off the gate itself — the list `tools/srs_gate.py` compares, and any `git diff --exit-code -- <path>` a template still holds — so a file the gate starts comparing asks for its pin on the day it is written.
+The list of files is read off the gate itself — the list `srs-dd/tools/srs_gate.py` compares, and any `git diff --exit-code -- <path>` a template still holds — so a file the gate starts comparing asks for its pin on the day it is written.
 
 ### FR-CI-160 — The local gate refuses a suite that leaves bytecode behind
 
@@ -429,7 +429,7 @@ derives_from: []
 depends_on: [FR-INIT-270, FR-CI-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_gate.py, ci/pre-commit, .githooks/pre-commit, ci/github-workflow.yml, ci/gitlab-ci.yml, tools/srs_init.py]
+code: [srs-dd/tools/srs_gate.py, ci/pre-commit, .githooks/pre-commit, ci/github-workflow.yml, ci/gitlab-ci.yml, tools/srs_init.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```

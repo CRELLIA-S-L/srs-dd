@@ -11,7 +11,7 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
-# file verifies: INV-SKILL-010, FR-SKILL-380, FR-SKILL-390
+# file verifies: INV-SKILL-010, FR-SKILL-380, FR-SKILL-390, FR-SKILL-430, FR-SKILL-440
 python3 - <<'PY'
 import glob, os, re, sys
 
@@ -78,11 +78,11 @@ import shutil, tempfile
 lab = tempfile.mkdtemp()
 for sub in ("skeleton", "specs", "tests/guide-parity"):
     os.makedirs(os.path.join(lab, sub))
-open(os.path.join(lab, "OWN.md"), "w").write("Run `tools/srs_check.py`. ART-030 binds.\n")
-open(os.path.join(lab, "skeleton/OWN.md"), "w").write("Run `tools/srs_check.py`.\n")
+open(os.path.join(lab, "OWN.md"), "w").write("Run `srs-dd/tools/srs_check.py`. ART-SRS-030 binds.\n")
+open(os.path.join(lab, "skeleton/OWN.md"), "w").write("Run `srs-dd/tools/srs_check.py`.\n")
 open(os.path.join(lab, "HOOK"), "w").write("hook\n")
 open(os.path.join(lab, "skeleton/HOOK"), "w").write("hook\n")
-open(os.path.join(lab, "tests/guide-parity/own.txt"), "w").write("# list\ntools/srs_check.py\nART-030\n")
+open(os.path.join(lab, "tests/guide-parity/own.txt"), "w").write("# list\nsrs-dd/tools/srs_check.py\nART-SRS-030\n")
 open(os.path.join(lab, "tests/guide-parity/hook.txt"), "w").write("# nothing\n")
 open(os.path.join(lab, "specs/10-fr-x.md"), "w").write(
     "### FR-X-010 — Both\n\n```yaml\ncode: [OWN.md, skeleton/OWN.md]\n```\n\n"
@@ -90,7 +90,7 @@ open(os.path.join(lab, "specs/10-fr-x.md"), "w").write(
     "### FR-X-030 — Excused\n\n```yaml\ncode: [skeleton/OWN.md]\n```\n")
 lab_pairs = (("OWN.md", "skeleton/OWN.md", "own.txt"), ("HOOK", "skeleton/HOOK", "hook.txt"))
 found = check(lab, lab_pairs, {"FR-X-030": "a target alone"})
-assert ("skeleton/OWN.md", "no longer names `ART-030`") in found, found
+assert ("skeleton/OWN.md", "no longer names `ART-SRS-030`") in found, found
 assert ("FR-X-020", "names skeleton/OWN.md in `code` and not OWN.md") in found, found
 assert any(path == "HOOK" and "empty list" in why for path, why in found), found
 assert not any(path in ("OWN.md", "FR-X-010", "FR-X-030") for path, _ in found), found
@@ -104,7 +104,7 @@ found = check(".", PAIRS, TARGET_ONLY)
 # A file identical in every project is no pair: it ships from this
 # repository's own tree, so there is one copy and nothing to keep in step.
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_init
 template = os.path.join("specs", "adr", "template.md")
 if (template, template) not in srs_init.collect_spec_skeleton():
@@ -120,16 +120,40 @@ NOT_COMMANDS = {"srs_parse.py": "a module the checkers import, not a command"}
 
 
 def unnamed(text, commands):
-    return ["tools/%s" % name for name in commands
-            if name not in NOT_COMMANDS and "tools/%s" % name not in text]
+    return ["srs-dd/tools/%s" % name for name in commands
+            if name not in NOT_COMMANDS and "srs-dd/tools/%s" % name not in text]
 
 
-assert unnamed("run `python3 tools/srs_check.py`", ("srs_check.py", "srs_parse.py", "srs_dates.py")) \
-    == ["tools/srs_dates.py"], "a command the guide leaves out must be reported"
+assert unnamed("run `python3 srs-dd/tools/srs_check.py`", ("srs_check.py", "srs_parse.py", "srs_dates.py")) \
+    == ["srs-dd/tools/srs_dates.py"], "a command the guide leaves out must be reported"
 shipped = srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS
-with open("skeleton/AGENTS.md", encoding="utf-8") as handle:
+with open("srs-dd/guide.md", encoding="utf-8") as handle:
     for command in unnamed(handle.read(), shipped):
-        found.append(("skeleton/AGENTS.md", "does not name %s, which the installer ships" % command))
+        found.append(("srs-dd/guide.md", "does not name %s, which the installer ships" % command))
+
+# The framework's guide is one text: the region of this repository's
+# AGENTS.md and of the shipped starter each carry srs-dd/guide.md verbatim.
+REGION = re.compile(r"<!-- srs-dd -->\n(.*?)\n<!-- /srs-dd -->", re.S)
+
+
+def region_gaps(guide, guides):
+    gaps = []
+    for path, text in guides:
+        hit = REGION.search(text)
+        if not hit:
+            gaps.append((path, "carries no region <!-- srs-dd --> … <!-- /srs-dd -->"))
+        elif hit.group(1).strip("\n") != guide.strip("\n"):
+            gaps.append((path, "its region differs from srs-dd/guide.md"))
+    return gaps
+
+
+assert region_gaps("a\nb", (("x", "t\n<!-- srs-dd -->\na\nb\n<!-- /srs-dd -->\nz"),)) == []
+assert region_gaps("a\nb", (("x", "t\n<!-- srs-dd -->\na\n<!-- /srs-dd -->"),)) == [("x", "its region differs from srs-dd/guide.md")]
+assert region_gaps("a", (("x", "no region"),)) == [("x", "carries no region <!-- srs-dd --> … <!-- /srs-dd -->")]
+with open("srs-dd/guide.md", encoding="utf-8") as handle:
+    guide_text = handle.read()
+found += region_gaps(guide_text, [(path, open(path, encoding="utf-8").read())
+                                  for path in ("AGENTS.md", "skeleton/AGENTS.md")])
 
 # What the installer ships keeps sensitive data out of the repository: the
 # guide names the article, and the constitution carries it with each kind
@@ -138,28 +162,42 @@ with open("skeleton/AGENTS.md", encoding="utf-8") as handle:
 SENSITIVE_KINDS = ("credentials", "personal data", "in confidence", "raw output")
 
 
-def sensitive_gaps(guide, constitution):
+def sensitive_gaps(guide, method):
     gaps = []
-    if "ART-100" not in guide:
-        gaps.append(("skeleton/AGENTS.md", "does not name ART-100"))
-    start = constitution.find("## ART-100")
-    article = constitution[start:constitution.find("\n## ", start + 1)] if start >= 0 else ""
+    if "ART-SRS-100" not in guide:
+        gaps.append(("srs-dd/guide.md", "does not name ART-SRS-100"))
+    start = method.find("## ART-SRS-100")
+    article = method[start:method.find("\n## ", start + 1)] if start >= 0 else ""
     if not article:
-        gaps.append(("skeleton/specs/constitution.md", "carries no ART-100"))
-    gaps += [("skeleton/specs/constitution.md", "ART-100 does not name %s" % kind)
+        gaps.append(("srs-dd/method.md", "carries no ART-SRS-100"))
+    gaps += [("srs-dd/method.md", "ART-SRS-100 does not name %s" % kind)
              for kind in SENSITIVE_KINDS if article and kind not in article]
     return gaps
 
 
-whole = "## ART-100 — x\n\nNo credentials; no personal data; nothing in confidence; no raw output.\n"
-assert sensitive_gaps("rule (ART-100)", whole) == []
-assert sensitive_gaps("rule", whole) == [("skeleton/AGENTS.md", "does not name ART-100")]
-assert sensitive_gaps("ART-100", "## ART-090 — y\n") == [("skeleton/specs/constitution.md", "carries no ART-100")]
-assert sensitive_gaps("ART-100", whole.replace("no raw output", "no logs")) \
-    == [("skeleton/specs/constitution.md", "ART-100 does not name raw output")]
-with open("skeleton/AGENTS.md", encoding="utf-8") as guide, \
-        open("skeleton/specs/constitution.md", encoding="utf-8") as constitution:
-    found += sensitive_gaps(guide.read(), constitution.read())
+whole = "## ART-SRS-100 — x\n\nNo credentials; no personal data; nothing in confidence; no raw output.\n"
+assert sensitive_gaps("rule (ART-SRS-100)", whole) == []
+assert sensitive_gaps("rule", whole) == [("srs-dd/guide.md", "does not name ART-SRS-100")]
+assert sensitive_gaps("ART-SRS-100", "## ART-SRS-090 — y\n") == [("srs-dd/method.md", "carries no ART-SRS-100")]
+assert sensitive_gaps("ART-SRS-100", whole.replace("no raw output", "no logs")) \
+    == [("srs-dd/method.md", "ART-SRS-100 does not name raw output")]
+with open("srs-dd/method.md", encoding="utf-8") as method:
+    method_text = method.read()
+found += sensitive_gaps(guide_text, method_text)
+
+# The method's articles are the framework's: each of the six stands in
+# srs-dd/method.md, and the constitution the installer ships carries none of
+# them — nor any article under their old numbers.
+METHOD_ARTICLES = ("010", "020", "030", "050", "060", "100")
+with open("skeleton/specs/constitution.md", encoding="utf-8") as handle:
+    shipped_constitution = handle.read()
+for number in METHOD_ARTICLES:
+    if "## ART-SRS-%s — " % number not in method_text:
+        found.append(("srs-dd/method.md", "carries no ART-SRS-%s" % number))
+    if re.search(r"^## ART-(SRS-)?%s — " % number, shipped_constitution, re.M):
+        found.append(("skeleton/specs/constitution.md", "still carries an article numbered %s, which is the method's" % number))
+if "## ART-040 — " not in shipped_constitution or "## ART-090 — " not in shipped_constitution:
+    found.append(("skeleton/specs/constitution.md", "lost ART-040 or ART-090, the project's own starting articles"))
 
 for path, why in found:
     print("  %s: %s" % (path, why))

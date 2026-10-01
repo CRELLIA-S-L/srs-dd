@@ -29,7 +29,7 @@ The tool is Python, like the checkers it runs, rather than a shell script beside
 
 ### How it works
 
-`tools/srs_gate.py` holds one list: each checker, the file it writes, and the configuration that says the project keeps it — none for the specification, which every project keeps.
+`srs-dd/tools/srs_gate.py` holds one list: each checker, the file it writes, and the configuration that says the project keeps it — none for the specification, which every project keeps.
 For each entry whose configuration is there it runs the checker, `--strict` passed on when given; a checker that fails stops the gate with its own exit code.
 Only when every checker has run does it compare: a generated file is stale when git does not hold it, or when the copy on disk differs from the one in the index.
 In a pipeline's fresh checkout the index is the commit, and before a commit it is what is staged, so one comparison serves both; every stale file is named in one refusal, and the gate exits 1.
