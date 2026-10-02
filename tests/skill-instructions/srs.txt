@@ -21,9 +21,13 @@ srs-dd/tools/srs_view.py --source
 srs-dd/tools/srs_view.py --list
 
 # articles
-ART-SRS-020
-ART-SRS-030
-ART-040
+SRS-DD-ART-020
+SRS-DD-ART-030
+# ART-040 dropped on 2026-10-02: it was the number in the form example
+# for citing an article, and a project that adopts keeps its own
+# constitution, so the shipped ART-040 never arrives and the example
+# named nothing there. The example is `SRS-DD-ART-030` now, already
+# listed above; the project's own form is shown in step 2 as `ART-*`.
 
 # decisions — none since 2026-09-25: a decision's number points at nothing,
 # or at the project's own decision, in a project the procedure is installed

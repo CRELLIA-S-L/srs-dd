@@ -16,7 +16,7 @@ The decision log follows **MADR**.
 |---|---|
 | `README.md` | For people, never read as requirements — here or in any folder below. The standard itself is `srs-dd/standard.md`, outside `specs/` |
 | `00-glossary.md` | Terms. Read first if the project's vocabulary is unfamiliar |
-| `constitution.md` | The project's own standing principles, `ART-*`, numbered by the project alone; changed only via its own amendment procedure. The articles of the method are the framework's, in `srs-dd/method.md` as `ART-SRS-*` |
+| `constitution.md` | The project's own standing principles, `ART-*`, numbered by the project alone; changed only via its own amendment procedure. The articles of the method are the framework's, in `srs-dd/method.md` as `SRS-DD-ART-*` |
 | `01-introduction.md` | §1: purpose, scope, boundaries, audience |
 | `02-overview.md` | §2: product perspective, user classes, environment, assumptions |
 | `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area holding its first thousand numbers; from the thousandth on, a directory `10-fr-<area>/` of files by the thousand — `000-999.md`, `1000-1999.md`, … — each holding the numbers its name states |

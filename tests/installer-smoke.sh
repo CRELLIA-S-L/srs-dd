@@ -404,7 +404,7 @@ fi
 # A path somebody else put under the framework's directory is named in the
 # run and left where it is: the directory is declared ours, so a file of
 # theirs in it stays for ever unless somebody is told about it, and
-# deleting it is what ART-SRS-030 reserves for the user's word.
+# deleting it is what SRS-DD-ART-030 reserves for the user's word.
 rm -rf /tmp/srs-foreign
 python3 tools/srs_init.py /tmp/srs-foreign --defaults --area CORE --grounds no --arch no --ci none \
     > /tmp/foreign-install.log

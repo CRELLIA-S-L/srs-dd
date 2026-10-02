@@ -342,7 +342,7 @@ Where a requirement is `implemented` or `partial`, says it is verified by test, 
 A fact worth reporting is worth reporting where it is read.
 
 Only where the method is `T`, and that is the whole difference between a rule with a bottom and noise.
-Of the twenty-nine requirements in this project's own specification that listed no test, ten said `T` — those were violations of ART-SRS-050, and the harness that verifies the checker's rules cleared them.
+Of the twenty-nine requirements in this project's own specification that listed no test, ten said `T` — those were violations of SRS-DD-ART-050, and the harness that verifies the checker's rules cleared them.
 The other nineteen say `I` or `A` and will never carry a test, by design; reported, they would be nineteen permanent warnings burying the ten that meant something.
 A warning rather than an error because a project mid-harvest would otherwise be unable to commit at all.
 

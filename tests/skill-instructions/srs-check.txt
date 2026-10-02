@@ -11,13 +11,16 @@ srs-dd/tools/srs_view.py
 srs-dd/tools/srs_view.py --code
 
 # articles
-ART-SRS-030
+SRS-DD-ART-030
 
 # files
 AGENTS.md
 arch/90-map.md
 grounds/90-dashboard.md
-specs/constitution.md
+# srs-dd/method.md, not specs/constitution.md, since 2026-10-02: the
+# procedure names the file the article it cites lives in, and the
+# method's articles left the constitution in 0.22.0 (FR-SKILL-430).
+srs-dd/method.md
 
 # instructions
 offer the whole set again

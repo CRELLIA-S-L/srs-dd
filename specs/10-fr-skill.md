@@ -246,7 +246,7 @@ When a change is finished, the check procedure **shall** name the checks the req
 
 **Rationale.** The specification already answers this and nobody reads it for the purpose: every requirement carries a `verification` method and the paths that verify it, so which checks a change calls for is derivable rather than a matter of memory.
 A method of `I` or `D` is where this matters most — those never appear in a suite, and the reader is told what to look at or learns about it from a bug.
-Offering rather than running is not politeness but ART-SRS-030: builds and test runs need the user's word each time.
+Offering rather than running is not politeness but SRS-DD-ART-030: builds and test runs need the user's word each time.
 
 The statement said "the checker" while there was one.
 A project carrying a grounds register has two, and its gate fails on a dashboard the change left stale (`FR-GND-370`) — so a procedure naming only the first hands back work that passes everything it named and reddens the pipeline.
@@ -400,7 +400,7 @@ A requirement whose statement carries two obligations can have a suite that exer
 Both shapes read as covered — the file is named, the fixtures are there, the subject matches — and both leave a behaviour that could be deleted with the suite still green.
 Naming the edit that would redden the test is the question that separates them, and it is the same question a reader asks anyway, only made explicit.
 
-Named rather than run, because the audit does not execute anything: it is read-only by FR-SKILL-050, and ART-SRS-030 puts a test run behind the maintainer's confirmation.
+Named rather than run, because the audit does not execute anything: it is read-only by FR-SKILL-050, and SRS-DD-ART-030 puts a test run behind the maintainer's confirmation.
 The reasoning form costs nothing and is available while reading, which is where the judgement is being made.
 
 This is a criterion, not a method of deriving what to judge.
@@ -523,7 +523,7 @@ It is checked at sending — the moment `FR-SKILL-280` already fixes for a state
 And the per-agent entry file, the one a harness loads into every session unasked, imports the guide whole rather than pointing at it: measured with `FR-SKILL-290` on the day, a fresh instance behind the pointer "read `AGENTS.md` first" named records bare in 87 cases of 100, behind a pointer at this one rule in 16 with a further 23 retyped, and with the guide imported in 16 with none retyped — the guide works where it is read, and a pointer is not reading.
 An import and not a rule of its own, because a rule that lives in one agent's file is a rule that holds for one agent; what the file carries is the same guide every other agent loads natively.
 
-**Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: ART-SRS-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
+**Two records are exempt, and for the same reason.** A commit message and the changelog name identifiers bare: SRS-DD-ART-060 asks a commit for the identifiers it implements, and both are records of what a change did at the time — a status inside them is a value that moves while the record stays, and a record nobody re-dates should carry nothing that dates.
 The release procedure had already said this of the changelog; the maintainer settled the commit the same way on 2026-09-18.
 
 **Which procedures, and which not.** The field names every procedure that names a record to a person — by `--cite`, or by the guide's rule it points at — and the suite derives that set from the procedures' own text, so one that starts naming records is asked for here on the day it does.
@@ -892,7 +892,7 @@ A choice made for the work at hand — this file rather than that one, the wordi
 A rule that would bind the next person doing the same work, when nobody remembers this conversation, is one, and that is what gets offered.
 An offer is a finding like any other, so `FR-SKILL-170` already binds it: what follows from it is said with it, which is the whole of the offer here, and where nothing follows there is nothing to offer.
 
-Offered, never written: authoring is a dialog and a status is approval (ART-SRS-020), so this ends at the offer and what the requirement would oblige.
+Offered, never written: authoring is a dialog and a status is approval (SRS-DD-ART-020), so this ends at the offer and what the requirement would oblige.
 The lookup comes first, because the commonest answer is that it is already written — a rule that feels new is usually one somebody stated in another area's words, and saying so is worth more than a second requirement saying the same thing.
 
 Both agent guides carry it and no procedure does: the sentence that settles a rule is said wherever the conversation happens, most often under no procedure at all, and a guide is read in every session while a procedure is read when somebody invoked it.
@@ -917,7 +917,7 @@ created: 2026-09-23
 After a check it named has failed and been repaired, the check procedure **shall** offer the whole set again rather than the check that failed.
 
 **Rationale.** A repair is a change like any other, and the set the check came from is what says whether it broke something beside it; running the one that was red proves only that it is no longer red.
-The list costs nothing to name a second time — it is the one the procedure already derived from the requirements the change touched (`FR-SKILL-100`) — and the offer stands where ART-SRS-030 leaves it, with the user.
+The list costs nothing to name a second time — it is the one the procedure already derived from the requirements the change touched (`FR-SKILL-100`) — and the offer stands where SRS-DD-ART-030 leaves it, with the user.
 
 What holds the step against a later shortening is the list in `tests/skill-instructions/` that `FR-SKILL-300` binds: the instruction is a literal phrase there, so a cut that loses it is red rather than silent.
 
@@ -984,7 +984,7 @@ The `srs` procedure ended its build at `python3 srs-dd/tools/srs_check.py`, and 
 On 2026-09-23 and 24 a build under it, and the reviews that followed, ran the checker and every suite, called the result clean, and never produced the list of what a person had to inspect — four of the requirements it touched are verified by inspection; the agent that did it named three causes, and the first was that the procedure it followed ended where it stopped.
 The names help the confusion along — `srs_check.py` is a tool, `srs-check` a procedure — and renaming either would break every project that calls it (ADR-0009); naming the procedure in the step leaves no room to mistake one for the other.
 
-Handing over is not running: the check procedure offers and waits (ART-SRS-030), so the build ends at an offer.
+Handing over is not running: the check procedure offers and waits (SRS-DD-ART-030), so the build ends at an offer.
 What holds the step against a later shortening is the list `FR-SKILL-300` binds, and the name alone would not: the procedure is named in the build step and in the plan's last step, so the list carries each of the two phrases, and losing either one is red.
 
 ### FR-SKILL-370 — A file that restates a changed requirement is re-read with it
@@ -1126,9 +1126,9 @@ tests: [tests/guide-parity.sh]
 created: 2026-10-01
 ```
 
-The articles that bind every project to the method — the hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates, nothing sensitive in the repository — **shall** ship as `srs-dd/method.md` under identifiers `ART-SRS-NNN`, outside the constitution the installer ships.
+The articles that bind every project to the method — the hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates, nothing sensitive in the repository — **shall** ship as `srs-dd/method.md` under identifiers `SRS-DD-ART-NNN`, outside the constitution the installer ships.
 
-**Rationale.** The shipped constitution said *adapt the articles to your project* and the procedures stood on six of those articles as on the method's own: a project that reversed ART-SRS-020 left eight references in the procedures pointing at nothing. The articles of the method are the framework's, numbered in a space of their own and refreshed with the tooling; the constitution the project gets holds only what a project decides for itself — simplicity, and how it amends its own constitution — and is numbered by the project alone. In this repository the articles ART-SRS-010, ART-SRS-020, ART-SRS-030, ART-SRS-050, ART-SRS-060 and ART-SRS-100 of the constitution before 0.22.0 are `ART-SRS-010` to `ART-SRS-060` and `ART-SRS-100`, and every reference, decisions included, is rewritten; the release note names the change as incompatible.
+**Rationale.** The shipped constitution said *adapt the articles to your project* and the procedures stood on six of those articles as on the method's own: a project that reversed its own ART-020 left eight references in the procedures pointing at nothing. The articles of the method are the framework's, numbered in a space of their own and refreshed with the tooling; the constitution the project gets holds only what a project decides for itself — simplicity, and how it amends its own constitution — and is numbered by the project alone. In this repository the articles ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 of the constitution before 0.22.0 are `SRS-DD-ART-010` to `SRS-DD-ART-060` and `SRS-DD-ART-100`, and every reference, decisions included, is rewritten; the release note names the change as incompatible.
 
 ### FR-SKILL-440 — The framework's guide is a region of the project's guide
 

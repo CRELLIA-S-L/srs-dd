@@ -218,10 +218,10 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 
 ## A scanner for secrets in the gate
 
-**Found:** 2026-09-25, when ART-SRS-100 was written: the rule is text, and text is what a measured agent follows least.
+**Found:** 2026-09-25, when SRS-DD-ART-100 was written: the rule is text, and text is what a measured agent follows least.
 
 **What is being asked:** whether the CI templates in `ci/` should run a secret scanner — gitleaks or an equivalent — over every push, so that a credential committed by mistake is refused rather than found later.
 
 **What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.
 
-**Decision needed:** whether the pipeline starters run a scanner at all and which one, recorded as the dependency ART-040 asks a decision for, with the way a false positive on a fixture is excused; or that ART-SRS-100 stays a rule of text and the starters carry none.
+**Decision needed:** whether the pipeline starters run a scanner at all and which one, recorded as the dependency ART-040 asks a decision for, with the way a false positive on a fixture is excused; or that SRS-DD-ART-100 stays a rule of text and the starters carry none.

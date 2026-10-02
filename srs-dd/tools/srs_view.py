@@ -2386,7 +2386,7 @@ def render_dashboard(model, links):
             "<ul>%s</ul>"
             % (rows,
                listing(untested, "Verified by other means, or not yet set up."),
-               listing(ahead, "Code exists before approval (ART-SRS-020)."),
+               listing(ahead, "Code exists before approval (SRS-DD-ART-020)."),
                listing(resting, "Approve the parent or revisit the child."),
                outlived_html,
                len(model["orphan_code"]), model["code_total"],

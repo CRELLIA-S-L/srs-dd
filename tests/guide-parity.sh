@@ -78,11 +78,11 @@ import shutil, tempfile
 lab = tempfile.mkdtemp()
 for sub in ("skeleton", "specs", "tests/guide-parity"):
     os.makedirs(os.path.join(lab, sub))
-open(os.path.join(lab, "OWN.md"), "w").write("Run `srs-dd/tools/srs_check.py`. ART-SRS-030 binds.\n")
+open(os.path.join(lab, "OWN.md"), "w").write("Run `srs-dd/tools/srs_check.py`. SRS-DD-ART-030 binds.\n")
 open(os.path.join(lab, "skeleton/OWN.md"), "w").write("Run `srs-dd/tools/srs_check.py`.\n")
 open(os.path.join(lab, "HOOK"), "w").write("hook\n")
 open(os.path.join(lab, "skeleton/HOOK"), "w").write("hook\n")
-open(os.path.join(lab, "tests/guide-parity/own.txt"), "w").write("# list\nsrs-dd/tools/srs_check.py\nART-SRS-030\n")
+open(os.path.join(lab, "tests/guide-parity/own.txt"), "w").write("# list\nsrs-dd/tools/srs_check.py\nSRS-DD-ART-030\n")
 open(os.path.join(lab, "tests/guide-parity/hook.txt"), "w").write("# nothing\n")
 open(os.path.join(lab, "specs/10-fr-x.md"), "w").write(
     "### FR-X-010 — Both\n\n```yaml\ncode: [OWN.md, skeleton/OWN.md]\n```\n\n"
@@ -90,7 +90,7 @@ open(os.path.join(lab, "specs/10-fr-x.md"), "w").write(
     "### FR-X-030 — Excused\n\n```yaml\ncode: [skeleton/OWN.md]\n```\n")
 lab_pairs = (("OWN.md", "skeleton/OWN.md", "own.txt"), ("HOOK", "skeleton/HOOK", "hook.txt"))
 found = check(lab, lab_pairs, {"FR-X-030": "a target alone"})
-assert ("skeleton/OWN.md", "no longer names `ART-SRS-030`") in found, found
+assert ("skeleton/OWN.md", "no longer names `SRS-DD-ART-030`") in found, found
 assert ("FR-X-020", "names skeleton/OWN.md in `code` and not OWN.md") in found, found
 assert any(path == "HOOK" and "empty list" in why for path, why in found), found
 assert not any(path in ("OWN.md", "FR-X-010", "FR-X-030") for path, _ in found), found
@@ -164,40 +164,102 @@ SENSITIVE_KINDS = ("credentials", "personal data", "in confidence", "raw output"
 
 def sensitive_gaps(guide, method):
     gaps = []
-    if "ART-SRS-100" not in guide:
-        gaps.append(("srs-dd/guide.md", "does not name ART-SRS-100"))
-    start = method.find("## ART-SRS-100")
+    if "SRS-DD-ART-100" not in guide:
+        gaps.append(("srs-dd/guide.md", "does not name SRS-DD-ART-100"))
+    start = method.find("## SRS-DD-ART-100")
     article = method[start:method.find("\n## ", start + 1)] if start >= 0 else ""
     if not article:
-        gaps.append(("srs-dd/method.md", "carries no ART-SRS-100"))
-    gaps += [("srs-dd/method.md", "ART-SRS-100 does not name %s" % kind)
+        gaps.append(("srs-dd/method.md", "carries no SRS-DD-ART-100"))
+    gaps += [("srs-dd/method.md", "SRS-DD-ART-100 does not name %s" % kind)
              for kind in SENSITIVE_KINDS if article and kind not in article]
     return gaps
 
 
-whole = "## ART-SRS-100 — x\n\nNo credentials; no personal data; nothing in confidence; no raw output.\n"
-assert sensitive_gaps("rule (ART-SRS-100)", whole) == []
-assert sensitive_gaps("rule", whole) == [("srs-dd/guide.md", "does not name ART-SRS-100")]
-assert sensitive_gaps("ART-SRS-100", "## ART-SRS-090 — y\n") == [("srs-dd/method.md", "carries no ART-SRS-100")]
-assert sensitive_gaps("ART-SRS-100", whole.replace("no raw output", "no logs")) \
-    == [("srs-dd/method.md", "ART-SRS-100 does not name raw output")]
+whole = "## SRS-DD-ART-100 — x\n\nNo credentials; no personal data; nothing in confidence; no raw output.\n"
+assert sensitive_gaps("rule (SRS-DD-ART-100)", whole) == []
+assert sensitive_gaps("rule", whole) == [("srs-dd/guide.md", "does not name SRS-DD-ART-100")]
+assert sensitive_gaps("SRS-DD-ART-100", "## SRS-DD-ART-090 — y\n") == [("srs-dd/method.md", "carries no SRS-DD-ART-100")]
+assert sensitive_gaps("SRS-DD-ART-100", whole.replace("no raw output", "no logs")) \
+    == [("srs-dd/method.md", "SRS-DD-ART-100 does not name raw output")]
 with open("srs-dd/method.md", encoding="utf-8") as method:
     method_text = method.read()
 found += sensitive_gaps(guide_text, method_text)
 
 # The method's articles are the framework's: each of the six stands in
-# srs-dd/method.md, and the constitution the installer ships carries none of
-# them — nor any article under their old numbers.
+# srs-dd/method.md. The numbers themselves are the project's, freed when the
+# six moved out and spelled apart since (SRS-DD-ART-*), so the starter uses
+# the first two rather than the gap the six left behind.
 METHOD_ARTICLES = ("010", "020", "030", "050", "060", "100")
 with open("skeleton/specs/constitution.md", encoding="utf-8") as handle:
     shipped_constitution = handle.read()
 for number in METHOD_ARTICLES:
-    if "## ART-SRS-%s — " % number not in method_text:
-        found.append(("srs-dd/method.md", "carries no ART-SRS-%s" % number))
-    if re.search(r"^## ART-(SRS-)?%s — " % number, shipped_constitution, re.M):
-        found.append(("skeleton/specs/constitution.md", "still carries an article numbered %s, which is the method's" % number))
-if "## ART-040 — " not in shipped_constitution or "## ART-090 — " not in shipped_constitution:
-    found.append(("skeleton/specs/constitution.md", "lost ART-040 or ART-090, the project's own starting articles"))
+    if "## SRS-DD-ART-%s — " % number not in method_text:
+        found.append(("srs-dd/method.md", "carries no SRS-DD-ART-%s" % number))
+
+STARTING_ARTICLES = ("ART-010", "ART-020")
+# A rule that is true of this framework and of nobody else, stated in the
+# constitution a stranger receives as their own. The stdlib rule travelled
+# that way until 2026-10-02: ADR-0003 holds it of our Python tools because
+# targets are written in other languages, and it then told those targets
+# what their own tooling may depend on.
+FRAMEWORK_ONLY = ("standard-library", "standard library", "virtualenv")
+
+
+def constitution_gaps(text):
+    """What the constitution the installer ships must and must not hold.
+
+    It defines the project's own starting articles and no article of the
+    method's. Every article number it names outside its amendment log is one
+    it defines: a number only mentioned is one a reader looks up and does
+    not find. And no rule in it holds of this framework alone. The log is
+    exempt — it is the history of this document, and the numbers in it are
+    the ones the method's articles held before they moved out.
+    """
+    gaps = []
+    where = "skeleton/specs/constitution.md"
+    if re.search(r"^## SRS-DD-ART-", text, re.M):
+        gaps.append((where, "carries an article of the method's"))
+    defined = set(re.findall(r"^## (ART-\d{3}) — ", text, re.M))
+    for wanted in STARTING_ARTICLES:
+        if wanted not in defined:
+            gaps.append((where, "defines no %s, a starting article of the project's own" % wanted))
+    for line in text.splitlines():
+        if line.startswith("- **Amended:**"):
+            continue
+        for named in sorted(set(re.findall(r"(?<!SRS-DD-)\bART-\d{3}\b", line))):
+            if named not in defined:
+                gaps.append((where, "names %s outside its amendment log and defines no such article" % named))
+    for rule in FRAMEWORK_ONLY:
+        if rule in text:
+            gaps.append((where, "states as the project's a rule that holds of this framework alone: %r" % rule))
+    return gaps
+
+
+# --- Negation first, on strings: each of the four must be red.
+assert constitution_gaps("## ART-010 — A\n\n## ART-020 — B\n") == []
+assert constitution_gaps("## ART-010 — A\n\n## ART-020 — B\n\n## SRS-DD-ART-030 — C\n") \
+    == [("skeleton/specs/constitution.md", "carries an article of the method's")]
+assert constitution_gaps("## ART-010 — A\n") \
+    == [("skeleton/specs/constitution.md", "defines no ART-020, a starting article of the project's own")]
+assert constitution_gaps("rejected per ART-040\n\n## ART-010 — A\n\n## ART-020 — B\n") \
+    == [("skeleton/specs/constitution.md",
+         "names ART-040 outside its amendment log and defines no such article")]
+assert constitution_gaps("- **Amended:** ART-040 moved\n\n## ART-010 — A\n\n## ART-020 — B\n") == []
+assert constitution_gaps("## ART-010 — A\n\nTooling stays standard-library only.\n\n## ART-020 — B\n") \
+    == [("skeleton/specs/constitution.md",
+         "states as the project's a rule that holds of this framework alone: 'standard-library'")]
+print("guide-parity: an article of the method's, a missing starting article, a number named and "
+      "not defined, and a rule only ours are each red in the shipped constitution")
+found += constitution_gaps(shipped_constitution)
+
+# A starter that points at `README.md` pointed at the standard until it moved
+# to srs-dd/ in 0.22.0; the path then resolved to nothing a target has, and
+# no link check reaches the payload — FR-DOC-190 covers the landing page and
+# docs/ alone.
+for path in sorted(glob.glob("skeleton/**/*.md", recursive=True)):
+    with open(path, encoding="utf-8") as handle:
+        if "`README.md`" in handle.read():
+            found.append((path, "points at `README.md`, which a target has only under srs-dd/"))
 
 for path, why in found:
     print("  %s: %s" % (path, why))

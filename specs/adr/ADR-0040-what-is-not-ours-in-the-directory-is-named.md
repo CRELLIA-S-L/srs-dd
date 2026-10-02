@@ -20,7 +20,7 @@ Driven through a sandbox on 2026-10-01, `srs-dd/notes-of-mine.md` and `srs-dd/to
 ## Decision outcome
 
 Option 1.
-Option 2 makes the sentences exact and buys it with the one thing `ART-SRS-030` reserves for the user's explicit confirmation — deleting a file the tool did not create.
+Option 2 makes the sentences exact and buys it with the one thing `SRS-DD-ART-030` reserves for the user's explicit confirmation — deleting a file the tool did not create.
 A path under `srs-dd/` is both at once: in a place declared ours, and somebody else's work, and `FR-INIT-340` already draws that line by deleting only copies that carry the marker.
 Option 3 leaves the maintainer to discover the file, which is how the sandbox found it rather than how a project would.
 So the installer names what it does not own and leaves the choice where it belongs, and the sentences say that instead of promising the directory is empty of everything else.

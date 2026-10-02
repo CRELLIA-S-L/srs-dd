@@ -115,7 +115,7 @@ Three independent version numbers exist by design; do not mix them.
 |---|---|---|
 | `vX.Y.Z` tags + `CHANGELOG.md` | this repository | the framework: checker, installer, skills, skeleton |
 | rows in `specs/92-baselines.md` | each project, this one included | baselines of that project's specification; a `spec/vX.Y.Z` tag is an optional bookmark |
-| Version field in `specs/constitution.md` | each project | its constitution, amended per ART-090 |
+| Version field in `specs/constitution.md` | each project | its constitution, amended per its own amendment procedure |
 
 `srs-dd/tools/srs_check.py` prints the framework version it shipped with on every run that reads a specification — the first thing to ask for when debugging a target project.
 

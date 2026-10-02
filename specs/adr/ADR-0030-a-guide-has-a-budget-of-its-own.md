@@ -8,7 +8,7 @@
 
 `tests/skill-budget.sh` held every shipped procedure and both agent guides to one number of words of their own, 1 300 — where the longest procedure stood after the five longest were rewritten on 2026-09-20.
 On 2026-09-23 this repository's `AGENTS.md` stood at exactly 1 300.
-The same day `FR-SKILL-350` added a line to it, and `INV-SKILL-010` then required it to carry every rule the shipped guide states — the constitution, the generated files, ART-SRS-030, three procedures and more — which took it to 1 497.
+The same day `FR-SKILL-350` added a line to it, and `INV-SKILL-010` then required it to carry every rule the shipped guide states — the constitution, the generated files, SRS-DD-ART-030, three procedures and more — which took it to 1 497.
 The guide had been tuned over many measured runs, so what it already said could not be cut to make room without measuring it again.
 
 ## Considered options

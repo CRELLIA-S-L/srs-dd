@@ -15,7 +15,7 @@ srs-dd/tools/srs_view.py --statements
 srs-dd/tools/srs_view.py --vocabulary
 
 # articles
-ART-SRS-030
+SRS-DD-ART-030
 
 # files
 AGENTS.md

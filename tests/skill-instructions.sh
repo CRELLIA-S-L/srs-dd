@@ -77,12 +77,12 @@ for name in ("kept", "cut", "empty", "unlisted"):
     os.makedirs(os.path.join(lab, ".claude/skills", name))
 os.makedirs(os.path.join(lab, "tests/skill-instructions"))
 original = ("# Kept\n\nRun `python3 srs-dd/tools/srs_view.py --code <path>` first; then `python3 srs-dd/tools/srs_view.py --list --area X`.\n"
-            "Never without confirmation (ART-SRS-030). Then `srs-new`.\n")
+            "Never without confirmation (SRS-DD-ART-030). Then `srs-new`.\n")
 open(os.path.join(lab, ".claude/skills/kept/SKILL.md"), "w").write(original)
 open(os.path.join(lab, ".claude/skills/cut/SKILL.md"), "w").write(original.replace("--code <path>", "<path>"))
 open(os.path.join(lab, ".claude/skills/empty/SKILL.md"), "w").write(original)
 open(os.path.join(lab, ".claude/skills/unlisted/SKILL.md"), "w").write(original)
-wanted = "# list\nsrs-dd/tools/srs_view.py\nsrs-dd/tools/srs_view.py --code\nsrs-dd/tools/srs_view.py --area\nART-SRS-030\nsrs-new\n"
+wanted = "# list\nsrs-dd/tools/srs_view.py\nsrs-dd/tools/srs_view.py --code\nsrs-dd/tools/srs_view.py --area\nSRS-DD-ART-030\nsrs-new\n"
 for name in ("kept", "cut", "stale"):
     open(os.path.join(lab, "tests/skill-instructions", name + ".txt"), "w").write(wanted)
 open(os.path.join(lab, "tests/skill-instructions/empty.txt"), "w").write("# nothing\n")

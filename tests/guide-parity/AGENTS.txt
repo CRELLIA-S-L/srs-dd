@@ -7,7 +7,7 @@
 # the standard, the principles, the generated matrix
 srs-dd/standard.md
 specs/constitution.md
-ART-SRS-030
+SRS-DD-ART-030
 specs/90-traceability.md
 never edit
 
@@ -42,7 +42,7 @@ match the sentence to it
 as shown above
 specs/adr/
 offer to author
-ART-SRS-060
+SRS-DD-ART-060
 trailing parenthesis
 
 # the date command and the optional layers
@@ -56,6 +56,6 @@ srs-arch
 Date requirements
 Grounds register
 Architecture layer
-# ART-SRS-100 — nothing sensitive goes into the repository
-ART-SRS-100
+# SRS-DD-ART-100 — nothing sensitive goes into the repository
+SRS-DD-ART-100
 srs-dd/tools/srs_gate.py

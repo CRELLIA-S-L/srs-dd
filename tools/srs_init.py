@@ -562,7 +562,7 @@ class Installer(object):
     # implements: FR-INIT-380
     def note_foreign(self):
         """Every path under the framework's directory this run did not
-        write. Reported and never deleted: `ART-SRS-030` reserves deleting
+        write. Reported and never deleted: `SRS-DD-ART-030` reserves deleting
         a file it did not create for the user's word, and a path here is
         both at once — in a place declared ours, and somebody else's."""
         ours = {item.split(" ")[0].replace(os.sep, "/")

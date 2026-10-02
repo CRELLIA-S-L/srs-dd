@@ -15,9 +15,9 @@ srs-dd/tools/srs_view.py --list
 srs-dd/tools/srs_view.py --statements
 
 # articles
-ART-SRS-010
-ART-SRS-030
-ART-SRS-050
+SRS-DD-ART-010
+SRS-DD-ART-030
+SRS-DD-ART-050
 
 # files
 AGENTS.md

@@ -30,7 +30,7 @@ Inside `AGENTS.md`, only the region between `<!-- srs-dd -->` and `<!-- /srs-dd 
 Left alone: `AGENTS.md` outside the region, `CLAUDE.md`, `.gitattributes`, the pre-commit hook, the pipelines — the project's files, written once as starters; what they hold of the framework is a call to `srs-dd/tools/srs_gate.py` or the region.
 
 A project installed before 0.22.0 is moved into the directory: the tools leave `tools/`, the standards leave `specs/`, `grounds/` and `arch/`, the copies are deleted, and the report after the upgrade says what the hook, the pipelines and the guide now have to call.
-The articles of the method that the shipped constitution carried until then — ART-010 to ART-060 and ART-100 — are `ART-SRS-*` in `srs-dd/method.md` now; the copies in your `specs/constitution.md` may be deleted.
+The articles of the method that the shipped constitution carried until then — ART-010 to ART-060 and ART-100 — are `SRS-DD-ART-*` in `srs-dd/method.md` now; the copies in your `specs/constitution.md` may be deleted.
 
 Your requirements are never touched: they are the project's own, whatever flag you pass.
 Commit the refreshed tooling together with the regenerated `specs/90-traceability.md`: a new checker may generate a matrix that differs from the committed one, and the gate compares them byte-for-byte.
@@ -91,6 +91,6 @@ Three independent numbers exist by design:
 |---|---|
 | `vX.Y.Z` tags + `CHANGELOG.md` in the framework repository | the framework: checker, viewer, installer, skills, skeleton |
 | rows in `specs/92-baselines.md` in your repository | baselines of your specification; a `spec/vX.Y.Z` tag on the row's commit is optional |
-| The version field in `specs/constitution.md` | your constitution, amended per ART-090 |
+| The version field in `specs/constitution.md` | your constitution, amended per its own amendment procedure |
 
 Every checker run that reads the specification reports the framework version your copy shipped with — on the summary line, or on the strict failure line — `Files scanned: 7. Requirements: 1. No errors. (srs_check X.Y.Z)` — the first thing to establish when something behaves unexpectedly.

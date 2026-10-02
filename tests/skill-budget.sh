@@ -59,7 +59,7 @@ cd "$(dirname "$0")/.."
 #               asked. 1 500 is where this repository's guide stands on
 #               2026-09-23 once it carries every rule the shipped guide
 #               states (INV-SKILL-010) — the constitution, the generated
-#               files, ART-SRS-030, three procedures — beside its own. 1 600
+#               files, SRS-DD-ART-030, three procedures — beside its own. 1 600
 #               since 2026-09-24, when the shipped guide gained the date
 #               command and the two optional layers and this repository's
 #               had to carry them too (1 575), ADR-0030's note says why.

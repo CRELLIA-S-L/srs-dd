@@ -6,7 +6,7 @@
 # that the tools behave. None of them proved that a broken specification is
 # *rejected*: a duplicate identifier, a dangling link, a cycle, a second
 # modal verb could each have been deleted from srs_check.py and the pipeline
-# would have stayed green. ART-SRS-050 does not allow a `verification: T`
+# would have stayed green. SRS-DD-ART-050 does not allow a `verification: T`
 # requirement to sit with an empty `tests` field, and ten FR-CHK-* did.
 #
 # Each fixture writes one broken specification into a throwaway project and

@@ -58,14 +58,14 @@ The checker flags what rests on a withdrawal — a guard, not a substitute.
 
 1. Resolve the requirements in scope and their closure: `depends_on`, `derives_from`, `refines`, and the incoming links.
 2. Behaviour with no covering requirement: the first steps author it (`srs-new`).
-3. Order the steps by `depends_on`; each step cites its requirements (`--cite`), the articles that bind it ("per ART-040") and the verification method.
-4. A `draft` in scope is a blocker, marked so (ART-SRS-020). A `superseded` one sends the plan to its successor; a `withdrawn` one is an error to surface.
-5. The last two steps, always: close the loop; the checker and the `srs-check` procedure. A step that builds or tests is marked "requires the user's explicit confirmation each time" (ART-SRS-030).
+3. Order the steps by `depends_on`; each step cites its requirements (`--cite`), the articles that bind it ("per SRS-DD-ART-030") and the verification method.
+4. A `draft` in scope is a blocker, marked so (SRS-DD-ART-020). A `superseded` one sends the plan to its successor; a `withdrawn` one is an error to surface.
+5. The last two steps, always: close the loop; the checker and the `srs-check` procedure. A step that builds or tests is marked "requires the user's explicit confirmation each time" (SRS-DD-ART-030).
 
-The plan lives in the conversation, never in `specs/`; a plan is not approval — statuses are (ART-SRS-020).
+The plan lives in the conversation, never in `specs/`; a plan is not approval — statuses are (SRS-DD-ART-020).
 
 ## Also
 
-- Prohibitions: *What not to do* in `srs-dd/standard.md`; and no builds or tests without the user's explicit confirmation (ART-SRS-030).
+- Prohibitions: *What not to do* in `srs-dd/standard.md`; and no builds or tests without the user's explicit confirmation (SRS-DD-ART-030).
 - What is put to the maintainer for a decision — a statement, a rewording, a step of a plan — is in the message that asks, as it would be written, never "as above".
 - A mismatch between code and requirement: fix neither side; record it in `specs/91-open-issues.md` and tell the user. A finding ends in *therefore* — must be fixed; is deliberate, and why; needs the maintainer's decision, with the options. Without one it is an observation, and is worked out or dropped, not handed over.

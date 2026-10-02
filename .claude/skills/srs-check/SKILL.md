@@ -40,7 +40,7 @@ Every requirement carries a `verification` method and the paths that verify it, 
    A requirement whose method is `T` with an empty `tests` field is a gap, not a check: say so rather than inventing something to run.
 
 3. **Offer, and wait.**
-   Builds and test runs need the user's word each time — that is ART-SRS-030 of `specs/constitution.md`, not politeness.
+   Builds and test runs need the user's word each time — that is SRS-DD-ART-030 of `srs-dd/method.md`, not politeness.
    List the commands and ask.
    Where the project has checks of its own that the specification does not name, ask rather than guess.
 
@@ -48,7 +48,7 @@ Every requirement carries a `verification` method and the paths that verify it, 
 
 5. **After a repair, offer the whole set again.**
    A fix is a change like any other: rerunning the check that was red says it is no longer red and nothing about what the fix broke beside it.
-   The list is the one from step 2, unchanged — a repair does not narrow the change it belongs to — and it is offered, not run (ART-SRS-030).
+   The list is the one from step 2, unchanged — a repair does not narrow the change it belongs to — and it is offered, not run (SRS-DD-ART-030).
    Where the repair touched the specification, the checker is in that list too.
 
 6. **Say what is left to eyes.**

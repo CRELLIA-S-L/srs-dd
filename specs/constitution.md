@@ -3,11 +3,11 @@
 Standing engineering principles of the SRS-DD framework itself.
 Every plan and every diff is checked against them.
 Unlike requirements (what the system does) and ADRs (single decisions with their context), articles apply to all work at all times and change only through the amendment procedure in ART-090.
-The articles of the method are the framework's and stand in `srs-dd/method.md` as `ART-SRS-*`, this repository being the first project of its own method; this file holds what the repository decides for itself.
+The articles of the method are the framework's and stand in `srs-dd/method.md` as `SRS-DD-ART-*`, this repository being the first project of its own method; this file holds what the repository decides for itself.
 
 - **Version:** 2.0.0
 - **Ratified:** 2026-08-06 — this repository's own constitution, adopted from the skeleton it ships (v1.1.0)
-- **Amended:** 2026-10-01 — v2.0.0: ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 moved to `srs-dd/method.md` as `ART-SRS-*`; every reference, decisions included, is rewritten, and the release note names the change as incompatible (removing an article is MAJOR per ART-090)
+- **Amended:** 2026-10-01 — v2.0.0: ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 moved to `srs-dd/method.md` as `SRS-DD-ART-*`; every reference, decisions included, is rewritten, and the release note names the change as incompatible (removing an article is MAJOR per ART-090)
 - **Amended:** 2026-09-25 — v1.5.0: ART-100 added, so that keeping credentials, personal data, documents shared in confidence and a machine's raw output out of the repository is a standing principle rather than a habit nobody wrote down (adding an article is MINOR per ART-090)
 - **Amended:** 2026-09-25 — v1.4.0: ART-080 added, so that serving any project agents work on — code in any language, documents, diagrams — is a standing principle rather than an intention nobody wrote down; the rule for where an annotation stands had just been designed around the tooling's own language (adding an article is MINOR per ART-090)
 - **Amended:** 2026-09-25 — v1.3.0: ART-070 covers everything the installer copies into a project rather than the four things it listed; the standards, the tooling beyond the checker and the viewer, the decision template, the CI templates, the hook and `.gitattributes` were shipped and unnamed (widening an article's reach tightens it, MINOR per ART-090)

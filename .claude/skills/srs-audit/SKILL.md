@@ -19,12 +19,12 @@ The checker (`srs-dd/tools/srs_check.py`) catches everything mechanical — brok
 
 ## Test adequacy
 
-Only `verification: T` requirements get derived cases; for `D`, `I` and `A`, check that the evidence `specs/50-verification.md` expects is recorded, and report (ART-SRS-050).
+Only `verification: T` requirements get derived cases; for `D`, `I` and `A`, check that the evidence `specs/50-verification.md` expects is recorded, and report (SRS-DD-ART-050).
 
 1. Decompose the statement along its parts — trigger ("When…"), state ("While…"), condition, obligation, constraint; each is a test dimension. **Where conditions combine, build a decision table** — causes down the side, effects across, one row per combination that can occur — and take the rows as the cases: a rule firing on `--force` **and** a marker has four rows, and a suite with one fixture reads as covered from every other angle. The table is an instrument, not a finding: only the gaps go in the report, and only where conditions genuinely combine — most statements are unconditional.
 2. A quantified constraint implies boundary cases: "within 2 seconds" at and beyond the boundary; "all unsaved changes" — none, one, many.
-3. Map the cases against what the `tests` files assert: covered, partial, uncovered — or asserted yet not derivable from the statement, which means the statement is under-specified: report it, do not edit it. **Covered means the test could fail**: for each covered case, name the change to the code that would turn the test red; if you cannot, the case is uncovered however much the test mentions its subject. The two shapes that look most convincing and are not — a statement with two obligations and a suite exercising one, a rule firing on several fields with a fixture for one. Name the edit; do not make it (ART-SRS-030).
-4. On the user's explicit request — and only then — author the missing tests; the path goes into `tests` in the same set of edits (ART-SRS-050). Running them needs its own confirmation (ART-SRS-030).
+3. Map the cases against what the `tests` files assert: covered, partial, uncovered — or asserted yet not derivable from the statement, which means the statement is under-specified: report it, do not edit it. **Covered means the test could fail**: for each covered case, name the change to the code that would turn the test red; if you cannot, the case is uncovered however much the test mentions its subject. The two shapes that look most convincing and are not — a statement with two obligations and a suite exercising one, a rule firing on several fields with a fixture for one. Name the edit; do not make it (SRS-DD-ART-030).
+4. On the user's explicit request — and only then — author the missing tests; the path goes into `tests` in the same set of edits (SRS-DD-ART-050). Running them needs its own confirmation (SRS-DD-ART-030).
 
 ## Links between requirements
 
@@ -40,6 +40,6 @@ Say what the pass covered — the area, how many requirements, how many links pr
 
 ## Boundaries
 
-- Do not flip statuses, edit requirements or change code during the audit — which side is wrong is the maintainer's call (ART-SRS-010).
+- Do not flip statuses, edit requirements or change code during the audit — which side is wrong is the maintainer's call (SRS-DD-ART-010).
 - Write findings into `specs/91-open-issues.md` only with the user's explicit confirmation.
-- Do not run builds or tests (ART-SRS-030); authoring missing tests on explicit request is the one exception.
+- Do not run builds or tests (SRS-DD-ART-030); authoring missing tests on explicit request is the one exception.
