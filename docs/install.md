@@ -67,7 +67,8 @@ The same holds for a hook manager: the line goes into the pre-commit framework's
 ## The framework's directory
 
 Everything the framework owns in your project is under `srs-dd/`: the tools, the standard of the specification and of each layer you keep, the articles of the method (`srs-dd/method.md`), the framework's guide (`srs-dd/guide.md`) and the licence.
-The installer rewrites that directory whole on every upgrade and refuses to install where a `srs-dd/` of somebody else's already stands; nothing of yours goes there.
+The installer rewrites the files it owns there on every upgrade and refuses to install where a `srs-dd/` of somebody else's already stands.
+Nothing of yours goes there, and a path of yours it finds under the directory is named in its report and left alone — it deletes nothing it did not write.
 Everything else is yours: the hook, the pipelines, `CLAUDE.md`, `.gitattributes` and `AGENTS.md` are written once as starters and never again — except the region of `AGENTS.md` between `<!-- srs-dd -->` and `<!-- /srs-dd -->`, which holds the framework's rules and is rewritten in place by every upgrade so that every agent reading the file has them.
 The procedures under `.claude/skills/srs-*` are the framework's as well, refreshed with the tooling; a procedure of your own takes another name.
 Your constitution, `specs/constitution.md`, holds your own articles under numbers you allocate; the articles of the method are `ART-SRS-*` in `srs-dd/method.md`.

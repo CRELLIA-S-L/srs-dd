@@ -53,6 +53,12 @@ Where nothing runs at all, `git config core.hooksPath .githooks` switches the st
 On a service the installer does not know, read its pipeline and add the step in that service's form.
 Done is the report, run again, saying the hook and a pipeline call the gate — or your reading of the step on a service it does not know; a hook git does not run is a gate that looks installed.
 
+## Where the region landed
+
+The installer finds the framework's region of `AGENTS.md` by its border alone: a line holding nothing but a marker is one, a sentence naming the markers is not, and a fenced example of those lines reads to it exactly like the region.
+So open the file once and see that the region stands where an agent meets the method's rules — not inside an example or a fenced block.
+Where it landed wrong, move the two marker lines to where the rules belong and run again.
+
 ## Options worth knowing
 
 - `--ref v1.2.0` — fetch a specific release instead of the default branch, for a project that pins its framework version.

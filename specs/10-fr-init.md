@@ -606,18 +606,20 @@ derives_from: []
 depends_on: [FR-INIT-270, FR-INIT-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md, srs-dd/method.md, srs-dd/README.md, srs-dd/LICENSE]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
-Every file the installer copies into a target whose text stays the framework's — the tools, the skills and the standards — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+Every file the installer copies into a target whose text stays the framework's — the tools, the skills, the standards and the documents of its own directory, the source of the guide aside — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
 
 **Rationale.** The licence asks that its notice travel with every copy, and none of the files the installer copies said who holds the copyright or on what terms: a tool lifted from an installed project carried the framework's name and version and no notice of whose it was.
 The notice goes into the file rather than beside it, because a file is what gets copied on, one at a time.
 The standards may be edited into the project's own (`FR-INIT-060`), and the notice stays true of what of ours they keep.
 The pre-commit hook and the pipelines carry none: they are the project's files, shared with every other check it runs (`FR-INIT-290`), and the gate they call carries the notice as a tool.
 A file that becomes the project's own — its specification, its constitution, its agent guides once filled in — carries none, because a copyright line there would claim the project's document as ours; nor does the decision template, which a project copies into every decision it writes.
+The source of the guide is the one file the installer copies that stays ours and carries none: its text is written into the region of the project's own `AGENTS.md` (`FR-INIT-370`), so a line of ours in it would arrive inside their document for the same reason.
+It came with the directory in 0.22.0, and the statement named the three classes of file that existed before it; the documents of the directory joined the set on 2026-10-02 and the guide's source was excused by name.
 
 ### FR-INIT-290 — The hook and the pipelines are the project's files
 
@@ -695,7 +697,7 @@ created: 2026-10-01
 The installer **shall** put every file that stays the framework's — the tools, the standards of the specification and of each layer the project keeps, the method's articles, the source of the framework's guide and the licence — under `srs-dd/` in the target, and write nothing of the framework's elsewhere but the procedures under `.claude/skills/` and the region of the guide that `FR-INIT-370` names.
 
 **Rationale.** After an install two authors wrote into the same places, and the border between them was only implied: a marker in a file, a prefix in a name, a row in a table. Articles of the constitution were numbered by both, each taking the next free number; the guide held the framework's numbered rules and the project's additions in one file that `--force` replaced whole; `tools/` and `.claude/skills/` held files of both with nothing saying which an upgrade rewrites. The first visible case was ART-SRS-100, written twice on 2026-09-25 and 2026-09-29 by the framework and by a project; the others are of the same kind.
-Ownership is now a place: what is under `srs-dd/` is the framework's and an upgrade rewrites it whole, what is outside is the project's and the framework writes it once as a starter or never. The procedures are the one exception, because the client looks for them under `.claude/skills/` and nowhere else (`FR-SKILL-450`).
+Ownership is now a place: what is under `srs-dd/` is the framework's and an upgrade rewrites the files it owns there, naming any other path it finds (`FR-INIT-380`), what is outside is the project's and the framework writes it once as a starter or never. The procedures are the one exception, because the client looks for them under `.claude/skills/` and nowhere else (`FR-SKILL-450`).
 This repository is the first project of its own method, and here the rule is literal: its `srs-dd/` is the source the installer copies, not a copy; `tools/` keeps what never ships — the installer, the release, the measurements, the local self-test — and `skeleton/` keeps only the starters of the project's files.
 
 ### FR-INIT-330 — A directory of that name that is not the framework's is refused
@@ -784,6 +786,26 @@ tests: [tests/installer-smoke.sh]
 created: 2026-10-01
 ```
 
-On every install and upgrade, the installer **shall** rewrite in the target's `AGENTS.md` only the region between the lines `<!-- srs-dd -->` and `<!-- /srs-dd -->`, replacing it with the current text of `srs-dd/guide.md`, and leave every line outside the region as it is, reporting the text to add where the guide carries no such region.
+On every install and upgrade, the installer **shall** rewrite in the target's `AGENTS.md` only the region between the first line holding nothing but `<!-- srs-dd -->` and the next line holding nothing but `<!-- /srs-dd -->`, replacing it with the current text of `srs-dd/guide.md`, and leave every line outside the region as it is, reporting the text to add where the guide carries no such region.
 
 **Rationale.** An import mechanism exists only in Claude Code's `CLAUDE.md`; every other client reads `AGENTS.md` as plain text, and a line that says to read another file is followed as well as any instruction is — which is not a mechanism. The rules of the method therefore have to be in the guide's text, and the only way to keep them current without touching what the project wrote around them is a region with a border the installer can find. The region is the framework's by place, as the directory is; the file is the project's.
+
+### FR-INIT-380 — What the installer does not own in its directory is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-320]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-02
+```
+
+After installing or upgrading, the installer **shall** report every path under `srs-dd/` in the target that it did not write, naming each.
+
+**Rationale.** The directory is declared the framework's and the installer refreshes the files it owns there, so a file somebody else put beside them stayed for ever and nothing said so: driven through a sandbox on 2026-10-01, `srs-dd/notes-of-mine.md` and `srs-dd/tools/mytool.py` survived three upgrades unmentioned. `FR-INIT-330` does not reach them, because it reads the marker in `srs-dd/README.md` alone and a stranger's file beside a marked README never makes the directory somebody else's.
+It is reported and not deleted. Deleting a file it did not write is what `ART-SRS-030` reserves for the user's explicit confirmation, and `FR-INIT-340` deletes only copies that carry the marker; a path under `srs-dd/` is both at once — in a place declared ours, and written by somebody else — so the installer names it and leaves the choice where it belongs.
+Naming each rather than counting them: the list is what a maintainer acts on, and a count says only that something is there.

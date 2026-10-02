@@ -25,3 +25,7 @@ lefthook.yml
 core.hooksPath
 .github/workflows/
 .gitlab-ci.yml
+
+# where the region landed (FR-SKILL-460)
+holding nothing but
+inside an example

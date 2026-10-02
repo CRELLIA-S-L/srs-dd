@@ -280,12 +280,19 @@ test ! -e /tmp/srs-clean/specs/stray.html
 NOTICE="Copyright (c) 2026 CRELLIA S.L."
 carrying=0
 for f in /tmp/srs-clean/srs-dd/tools/*.py /tmp/srs-clean/.claude/skills/*/SKILL.md \
-         /tmp/srs-clean/srs-dd/standard.md /tmp/srs-clean/srs-dd/grounds.md /tmp/srs-clean/srs-dd/arch.md; do
+         /tmp/srs-clean/srs-dd/standard.md /tmp/srs-clean/srs-dd/grounds.md /tmp/srs-clean/srs-dd/arch.md \
+         /tmp/srs-clean/srs-dd/method.md /tmp/srs-clean/srs-dd/README.md /tmp/srs-clean/srs-dd/LICENSE; do
     grep -qF "$NOTICE" "$f" && grep -q "MIT License" "$f" \
         || { echo "FAIL FR-INIT-280 — $f carries no notice of the copyright holder and the licence"; exit 1; }
     carrying=$((carrying + 1))
 done
-[ "$carrying" -ge 22 ] || { echo "FAIL FR-INIT-280 — only $carrying shipped files were looked at; the tuples shrank"; exit 1; }
+[ "$carrying" -ge 25 ] || { echo "FAIL FR-INIT-280 — only $carrying shipped files were looked at; the tuples shrank"; exit 1; }
+# The guide's source stays the framework's and carries none, deliberately:
+# its text is written into the region of the project's own AGENTS.md, where
+# a line of ours would claim their document.
+if grep -qF "$NOTICE" /tmp/srs-clean/srs-dd/guide.md; then
+    echo "FAIL FR-INIT-280 — srs-dd/guide.md carries a notice; its text goes into the project's AGENTS.md"; exit 1
+fi
 for f in .githooks/pre-commit .github/workflows/srs.yml .gitlab-ci.yml AGENTS.md CLAUDE.md .gitattributes \
          specs/adr/template.md specs/constitution.md specs/00-glossary.md specs/10-fr-core.md; do
     if grep -qF "$NOTICE" "/tmp/srs-clean/$f"; then
@@ -393,6 +400,32 @@ if [ -e /tmp/srs-leftover/srs-dd/tools/.srs_check_adopt.py ]; then
 fi
 
 # srs-end: FR-INIT-330
+# verifies: FR-INIT-380
+# A path somebody else put under the framework's directory is named in the
+# run and left where it is: the directory is declared ours, so a file of
+# theirs in it stays for ever unless somebody is told about it, and
+# deleting it is what ART-SRS-030 reserves for the user's word.
+rm -rf /tmp/srs-foreign
+python3 tools/srs_init.py /tmp/srs-foreign --defaults --area CORE --grounds no --arch no --ci none \
+    > /tmp/foreign-install.log
+printf 'mine\n' > /tmp/srs-foreign/srs-dd/notes-of-mine.md
+printf 'print(1)\n' > /tmp/srs-foreign/srs-dd/tools/mytool.py
+python3 tools/srs_init.py /tmp/srs-foreign --defaults > /tmp/foreign.log
+for rel in srs-dd/notes-of-mine.md srs-dd/tools/mytool.py; do
+    grep -qF "$rel" /tmp/foreign.log \
+        || { echo "FAIL FR-INIT-380 — $rel was not named in the run"; cat /tmp/foreign.log; exit 1; }
+    test -f "/tmp/srs-foreign/$rel" \
+        || { echo "FAIL FR-INIT-380 — $rel was deleted; the run reports and never deletes"; exit 1; }
+done
+grep -q "are not the framework's" /tmp/foreign.log \
+    || { echo "FAIL FR-INIT-380 — the run does not say what the list is"; cat /tmp/foreign.log; exit 1; }
+# A directory holding nothing but ours says nothing.
+if grep -q "are not the framework's" /tmp/foreign-install.log; then
+    echo "FAIL FR-INIT-380 — a fresh install reported a foreign path where there is none"; exit 1
+fi
+rm -rf /tmp/srs-foreign
+
+# srs-end: FR-INIT-380
 # verifies: FR-INIT-340
 # A project installed before the directory: the tools under tools/ and the
 # standards beside what they govern, each with the marker. The upgrade moves
@@ -499,6 +532,50 @@ PY2
 rm -f "$PT/AGENTS.md"
 python3 tools/srs_init.py "$PT" --defaults > /tmp/guide-noname.log
 grep -qF 'srs-precious' "$PT/AGENTS.md" || { echo "FAIL FR-INIT-200 — with no recorded name the directory did not stand in"; exit 1; }
+# A marker written into a sentence is not a border: the note this run
+# prints asks for two lines, and a guide that pasted that sentence in must
+# still have its own region found, not the prose.
+python3 - "$PT/AGENTS.md" <<'PY2'
+import io, sys
+io.open(sys.argv[1], "w", encoding="utf-8").write(
+    "# Theirs\n\nAdd `<!-- srs-dd -->` and `<!-- /srs-dd -->` where the rules go.\n\n"
+    "<!-- srs-dd -->\nstale\n<!-- /srs-dd -->\n\nbelow\n")
+PY2
+python3 tools/srs_init.py "$PT" --defaults > /tmp/region-prose.log
+python3 - "$PT/AGENTS.md" srs-dd/guide.md <<'PY2'
+import io, sys
+text = io.open(sys.argv[1], encoding="utf-8").read()
+guide = io.open(sys.argv[2], encoding="utf-8").read().strip("\n")
+assert "Add `<!-- srs-dd -->` and `<!-- /srs-dd -->` where the rules go." in text, \
+    "FAIL FR-INIT-370 — the sentence naming the markers was taken for the region"
+assert text.count(guide) == 1, \
+    "FAIL FR-INIT-370 — the guide did not land in the region exactly once"
+assert text.endswith("below\n"), "FAIL FR-INIT-370 — text below the region was lost"
+PY2
+# A guide whose endings are CRLF: the region is filled and every line
+# outside it keeps the ending it had. Read through the universal newline
+# translation the whole file comes back as LF, which is a rewrite of every
+# line the statement says to leave alone.
+python3 - "$PT/AGENTS.md" <<'PY2'
+import io, sys
+body = ("# Theirs\n\nabove\n\n<!-- srs-dd -->\nstale\n<!-- /srs-dd -->\n\nbelow\n")
+io.open(sys.argv[1], "w", encoding="utf-8", newline="").write(body.replace("\n", "\r\n"))
+PY2
+python3 tools/srs_init.py "$PT" --defaults > /tmp/region-crlf.log
+python3 - "$PT/AGENTS.md" srs-dd/guide.md <<'PY2'
+import io, sys
+raw = io.open(sys.argv[1], "rb").read()
+guide = io.open(sys.argv[2], encoding="utf-8").read().strip("\n")
+bare = raw.count(b"\n") - raw.count(b"\r\n")
+assert bare == 0, "FAIL FR-INIT-370 — a CRLF guide came back with %d LF-only lines" % bare
+text = raw.decode("utf-8").replace("\r\n", "\n")
+begin = text.index("<!-- srs-dd -->") + len("<!-- srs-dd -->")
+end = text.index("<!-- /srs-dd -->")
+assert text[begin:end].strip("\n") == guide, \
+    "FAIL FR-INIT-370 — the region of a CRLF guide is not srs-dd/guide.md"
+assert "above" in text and "below" in text, \
+    "FAIL FR-INIT-370 — text outside the region of a CRLF guide was lost"
+PY2
 cp /tmp/srs-pristine/specs/srs-config.json "$PT/specs/srs-config.json"
 cp /tmp/srs-pristine/AGENTS.md "$PT/AGENTS.md"; cp /tmp/srs-pristine/CLAUDE.md "$PT/CLAUDE.md"; cp /tmp/srs-pristine/.gitattributes "$PT/.gitattributes"
 echo "installer-smoke: the guides and .gitattributes are the project's, and the region is the framework's"

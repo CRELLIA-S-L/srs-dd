@@ -225,19 +225,3 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 **What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.
 
 **Decision needed:** whether the pipeline starters run a scanner at all and which one, recorded as the dependency ART-040 asks a decision for, with the way a false positive on a fixture is excused; or that ART-SRS-100 stays a rule of text and the starters carry none.
-
-## The notice rule did not grow with the directory
-
-**Found:** 2026-10-01, while reviewing the move of the framework's files into `srs-dd/`.
-
-**What diverged:** `FR-INIT-280` obliges every file the installer copies into a target whose text stays the framework's — glossed in the statement as the tools, the skills and the standards — to carry the notice naming the copyright holder and the licence.
-Since 0.22.0 the installer also copies four files of the directory itself, `DIR_FILES` in `tools/srs_init.py`: `srs-dd/README.md`, `srs-dd/LICENSE`, `srs-dd/method.md` and `srs-dd/guide.md`.
-Three of them carry the notice and `srs-dd/guide.md` carries none, so under the statement's main clause the requirement is violated by a file this release added; under its gloss none of the four is in the set at all and three carry a notice no rule asks for.
-The requirement's `code` field names none of the four: the move rewrote the paths in that field and did not widen it, which is the same blind spot the rewritten paths in `ADR-0029` had.
-
-**Why the file is probably right and the rule wrong.** `srs-dd/guide.md` is written verbatim into the region of the project's own `AGENTS.md` (`FR-INIT-370`), and the rationale of `FR-INIT-280` already argues that a project's agent guide carries none, because a copyright line there would claim their document as ours.
-The exception the file needs is one the rationale implies and never states, because the guide had no source file of its own until this release.
-
-**What will not notice:** `FR-CI-170`'s gate reads code and never markdown, `tests/installer-smoke.sh` walks the nine tools, the ten shipped procedures and the three standards against a floor of 22 that catches the list shrinking and never its failure to grow, and `tests/code-field-sets.sh` holds only the sets its `CLAIMS` tuple names, which `FR-INIT-280` is not among.
-
-**Decision needed:** widen the statement's gloss to the directory's own documents, add `srs-dd/README.md`, `srs-dd/method.md` and `srs-dd/LICENSE` to the `code` field, state `srs-dd/guide.md` in the rationale as the one copied file that carries none and why, and hold all four in `tests/installer-smoke.sh`; or narrow the statement to the three classes the gloss names, so that the directory's own documents stand outside it and the notice three of them carry is a courtesy rather than a rule.

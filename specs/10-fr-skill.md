@@ -1165,3 +1165,22 @@ created: 2026-10-01
 The specification's standard **shall** name `.claude/skills/srs-*` as the framework's procedures — refreshed with the tooling and edited only under another name — as the one thing of the framework's that lives outside `srs-dd/`, beside the region of the guide.
 
 **Rationale.** The procedures cannot move: the client looks for them under `.claude/skills/` and nowhere else. Where ownership is a place, the exception has to be written where the reader of the place looks, or the next person edits `srs/SKILL.md` for their project and loses it at the next upgrade.
+
+### FR-SKILL-460 — The installing procedures confirm where the region landed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-370]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-init/SKILL.md, .claude/skills/srs-upgrade/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-02
+```
+
+The installation and upgrade procedures **shall** tell the agent to read the target's `AGENTS.md` after the run and confirm that the framework's region stands where the rules an agent reads belong, rather than inside an example or a fenced block.
+
+**Rationale.** The installer finds the region by its border and cannot tell the border of the region from a border shown as an example. `FR-INIT-370` narrowed the search to a line holding nothing but the marker, which settles a marker written into a sentence and not one displayed on a line of its own inside a fenced block: measured on 2026-10-01, a guide that showed the two markers in a fence before its real region had the whole guide written into the fence, the real region standing at byte 7 839 of 7 951 and keeping the text it had.
+What is left is a judgement about where the rules belong in a document, which is what an agent reading the document can make and a search over lines cannot. So the procedure that ran the installer looks, once, at the file it just changed.

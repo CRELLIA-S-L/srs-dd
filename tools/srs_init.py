@@ -559,7 +559,34 @@ class Installer(object):
                 lines.extend("  %s" % item for item in items)
         return "\n".join(lines) if lines else "nothing to do"
 
+    # implements: FR-INIT-380
+    def note_foreign(self):
+        """Every path under the framework's directory this run did not
+        write. Reported and never deleted: `ART-SRS-030` reserves deleting
+        a file it did not create for the user's word, and a path here is
+        both at once — in a place declared ours, and somebody else's."""
+        ours = {item.split(" ")[0].replace(os.sep, "/")
+                for item in self.created + self.refreshed + self.skipped + self.moved}
+        base = os.path.join(self.target, SRS_DIR)
+        found = []
+        for root, dirs, names in os.walk(base):
+            # A directory whose name begins with a dot holds a tool's
+            # working state rather than anybody's text, and naming it would
+            # be noise on every run.
+            dirs[:] = [name for name in dirs if not name.startswith(".")]
+            for name in sorted(names):
+                rel = os.path.relpath(os.path.join(root, name), self.target)
+                if rel.replace(os.sep, "/") not in ours:
+                    found.append(rel.replace(os.sep, "/"))
+        if found:
+            self.notes.append(
+                "these are under %s/ and are not the framework's:\n%s\n"
+                "That directory is the framework's and this run rewrote what it owns "
+                "there; nothing else in it was touched." % (SRS_DIR, "\n".join("  " + f for f in sorted(found))))
+    # srs-end: FR-INIT-380
+
     def print_notes(self):
+        self.note_foreign()
         for note in self.notes:
             sys.stdout.write("\nNote: %s\n" % note)
 
@@ -1036,6 +1063,28 @@ def install_agent_docs(installer, substitute):
 
 
 # implements: FR-INIT-370, FR-SKILL-440
+def region_bounds(text):
+    """Where the framework's region starts and ends, or None.
+
+    A border is a line holding nothing but the marker, whitespace aside: a
+    marker written into a sentence is not a border, and the note below asks
+    for two lines, so a guide that pasted that sentence in would otherwise
+    have its region found in the prose. The end is given as the start of
+    its line, so an indented border keeps its indentation.
+    """
+    begin = None
+    offset = 0
+    for line in text.splitlines(True):
+        bare = line.strip()
+        if begin is None:
+            if bare == REGION_BEGIN:
+                begin = offset + line.index(REGION_BEGIN) + len(REGION_BEGIN)
+        elif bare == REGION_END:
+            return begin, offset
+        offset += len(line)
+    return None
+
+
 def refresh_guide_region(installer):
     """Rewrites the framework's region of the target's AGENTS.md with the
     current guide, and nothing outside it. A guide without the region is
@@ -1043,12 +1092,15 @@ def refresh_guide_region(installer):
     the file as plain text any other way."""
     path = os.path.join(installer.target, "AGENTS.md")
     try:
-        with open(path, "r", encoding="utf-8") as handle:
+        # newline="" keeps the file's own endings: everything outside the
+        # region comes back byte for byte, and a guide written with CRLF
+        # read through the universal translation would be rewritten whole.
+        with open(path, "r", encoding="utf-8", newline="") as handle:
             text = handle.read()
     except OSError:
         return
-    begin, end = text.find(REGION_BEGIN), text.find(REGION_END)
-    if begin < 0 or end < 0 or end < begin:
+    bounds = region_bounds(text)
+    if bounds is None:
         installer.notes.append(
             "AGENTS.md carries no region %s … %s, so the framework's rules "
             "in it are whatever it holds today. Add the two lines where the "
@@ -1057,14 +1109,19 @@ def refresh_guide_region(installer):
         return
     with open(os.path.join(ROOT, GUIDE_SOURCE), "r", encoding="utf-8") as handle:
         guide = handle.read().strip("\n")
-    fresh = text[:begin + len(REGION_BEGIN)] + "\n" + guide + "\n" + text[end:]
+    # The region is written with the endings the file already uses, so the
+    # guide does not arrive as the one block of LF in a CRLF document.
+    eol = "\r\n" if "\r\n" in text else "\n"
+    body = eol.join(guide.split("\n"))
+    begin, end = bounds
+    fresh = text[:begin] + eol + body + eol + text[end:]
     if fresh == text:
         return
     installer.refreshed.append("AGENTS.md (the region %s … %s)"
                                % (REGION_BEGIN, REGION_END))
     if installer.dry_run:
         return
-    with open(path, "w", encoding="utf-8") as handle:
+    with open(path, "w", encoding="utf-8", newline="") as handle:
         handle.write(fresh)
 # srs-end: FR-INIT-370, FR-SKILL-440
 

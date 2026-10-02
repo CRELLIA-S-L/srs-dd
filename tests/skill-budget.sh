@@ -30,6 +30,12 @@ cd "$(dirname "$0")/.."
 #               (FR-SKILL-410, FR-SKILL-420), a section the report the
 #               installer prints cannot replace — the procedure is what
 #               says to read that report and finish what it names.
+#               1 550 since 2026-10-02: both installing procedures gained
+#               the look at where the region of `AGENTS.md` landed
+#               (FR-SKILL-460), and `srs-init` with it stands at 1 532. The
+#               installer cannot make that judgement: it finds the region by
+#               a border, and a border shown as an example reads to it like
+#               the real one, so what is left is a reading of the document.
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
@@ -63,7 +69,7 @@ cd "$(dirname "$0")/.."
 #               region (FR-SKILL-440) beside the repository's own rules,
 #               so what the shipped guide holds is counted here once more
 #               (1 960).
-OWN=1450
+OWN=1550
 TRANSITIVE=7050
 GUIDE=2000
 
