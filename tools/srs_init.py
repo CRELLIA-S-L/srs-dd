@@ -8,56 +8,29 @@ Run from a clone of the framework repository:
     python3 tools/srs_init.py ../my-project
     python3 tools/srs_init.py ../my-project --defaults --ci github
 
-Three modes, detected automatically:
+Three modes, detected from the target and overridable with `--mode fresh|adopt`:
+**fresh**, no specification, lays out the whole skeleton; **adopt**, a specification
+without `specs/srs-config.json`, validates it first and installs tooling only;
+**upgrade**, a configuration present, refreshes the tooling and prints the version
+transition with the changelog notes.
 
-- **fresh** — the target has no specification: the full skeleton is laid
-  out, including a placeholder requirement.
-- **adopt** — the target already has an SRS-shaped specification but no
-  `specs/srs-config.json`: the spec is validated against the proposed
-  configuration BEFORE anything else changes; on validation failure the
-  target is left untouched (exit 3). Only tooling and missing service
-  files are installed — existing specification files are never modified.
-- **upgrade** — `specs/srs-config.json` exists: the tooling and the
-  skills are refreshed without a flag, the version
-  transition and relevant CHANGELOG upgrade notes are printed.
+Everything the framework owns lives under srs-dd/ and is rewritten whole by every
+upgrade; the hook, the pipelines, the guides and .gitattributes are starters written
+once, bar the region of AGENTS.md between the markers. A project's requirements are
+never touched. `--dry-run` writes nothing and prints the list a real run would
+produce. Interactive unless `--defaults`; the specification's language arrives as word
+lists, or through the `srs-init` skill.
 
-`--mode fresh|adopt` overrides the fresh/adopt detection; upgrade is
-always config-driven. Everything the framework owns lives under srs-dd/
-in the target and is rewritten whole by every upgrade; the hook, the
-pipelines, the agent guides and .gitattributes are starters, written
-where the file is absent and never again — only the region of AGENTS.md
-between <!-- srs-dd --> and <!-- /srs-dd --> is refreshed in place. The
-project's requirements are never touched.
-
-`--dry-run` writes nothing in any mode and prints the created /
-refreshed / skipped list the real run would produce, so the change can
-be reviewed — or shown to a maintainer by an agent — before it happens.
-In adopt mode it skips the spec validation, which needs the checker
-running inside the target; the real run does that first regardless.
-
-Interactive by default; --defaults answers every remaining question with
-its default. The script knows no natural language: to write the
-specification in another language, pass the word lists (--modal-verbs,
---negation-words, --rationale-markers) — or use the `srs-init` agent
-skill, which generates and confirms them for you.
-
-Exit codes: 0 — success; 1 — checker errors in the target, or a failure
-after adopt's point of no return (partial completion, see output);
-2 — refused before any change (usage, ambiguous target, config errors);
-3 — adopt refused or rolled back, the target is byte-identical (modulo removal of a
-stale temp file from a previously crashed adopt run).
+Exit codes: 0 success · 1 checker errors in the target, or a failure after adopt's
+point of no return · 2 refused before any change · 3 adopt refused or rolled back.
 """
 
 # file implements: NFR-SPEC-010, CON-SPEC-030
 
 import sys
 
-# Importing srs_check writes tools/__pycache__ in this clone, and a
-# cached module is validated by (mtime, size) alone: a version string
-# that changes without changing the file size — 0.5.0 to 0.6.0 — can be
-# served stale, so the installer would report and select upgrade notes
-# for a version it is not installing. This line must stay above the
-# import below.
+# A cached module is validated by (mtime, size) alone, so a version string that changes
+# without changing the size can be served stale. This line stays above the import.
 sys.dont_write_bytecode = True
 
 import argparse                                            # noqa: E402
@@ -80,9 +53,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PLACEHOLDER_NAME = "<Your Project Name>"
 # implements: IF-SPEC-040
 RE_AREA = RE_AREA_NAME
-# Strict requirement identifier: composed from the framework's TYPES and
-# the area grammar, NOT from srs_check.RE_ID (that one is bound to the
-# framework's own configured areas).
+# Composed from TYPES and the area grammar, not from srs_check.RE_ID, which is bound to
+# this repository's own areas.
 RE_STRICT_ID = re.compile(r"^(?:%s)-%s-%s$"   # implements: INV-SPEC-080
                           % ("|".join(TYPES), srs_parse.AREA, srs_parse.NUMBER))
 # srs-end: IF-SPEC-040
@@ -90,10 +62,8 @@ RE_VERSION = re.compile(r'^__version__\s*=\s*"([^"]+)"', re.M)
 
 TEMP_CHECKER = ".srs_check_adopt.py"
 
-# The payload directory: starter files a target edits into its own
-# specification. It is deliberately not specs/ — this repository keeps a
-# real specification of the framework there, and requirements about the
-# framework's own tooling must never travel into somebody's project.
+# Starter files a target edits into its own specification. Deliberately not specs/,
+# which holds this framework's own requirements.
 # implements: CON-SPEC-020
 SKELETON = "skeleton"
 # srs-end: CON-SPEC-020
@@ -106,10 +76,8 @@ DEFAULT_FRAMEWORK_URL = "https://github.com/CRELLIA-S-L/srs-dd.git"
 SKELETON_SUFFIXES = (".md", ".json", ".gitkeep")
 
 # implements: FR-INIT-320
-# The framework's directory in a target: everything that stays the
-# framework's lives under it and is rewritten whole by every upgrade. In
-# this repository the directory is the source the installer copies, not a
-# copy — the repository is the first project of its own method.
+# The framework's directory in a target, rewritten whole by every upgrade; here it is
+# the source the installer copies (ADR-0039).
 SRS_DIR = "srs-dd"
 SRS_TOOLS = os.path.join(SRS_DIR, "tools")
 SPEC_STANDARD = os.path.join(SRS_DIR, "standard.md")
@@ -126,17 +94,14 @@ DIR_FILES = (DIR_README, os.path.join(SRS_DIR, "LICENSE"), SPEC_STANDARD,
 REGION_BEGIN = "<!-- srs-dd -->"
 REGION_END = "<!-- /srs-dd -->"
 # srs-end: FR-INIT-370
-# The decision template: identical for the framework and for every target
-# in the same way, and kept beside the decisions it shapes so that this
-# repository's own authors see the copy a target gets.
+# The decision template, kept beside the decisions it shapes so this repository's
+# authors see the copy a target gets.
 # implements: INV-SKILL-010
 ADR_TEMPLATE = os.path.join("specs", "adr", "template.md")
 # srs-end: INV-SKILL-010
 
-# The grounds register: optional, and the same single-copy arrangement for
-# its standard. Its presence in a target is read from the configuration
-# file rather than from a setting — what is on disk is the only answer that
-# cannot disagree with itself.
+# The register is optional, and its presence in a target is read from the configuration
+# on disk — the only answer that cannot disagree with itself.
 GROUNDS_STANDARD = os.path.join(SRS_DIR, "grounds.md")
 GROUNDS_CONFIG = os.path.join("grounds", "grounds-config.json")
 GROUNDS_TOOLS = ("srs_grounds.py",)
@@ -150,16 +115,8 @@ ARCH_TOOLS = ("srs_arch.py",)
 ARCH_SKILLS = ("srs-arch",)
 
 # implements: FR-INIT-330, FR-INIT-340
-# How the installer tells a file it wrote from one the project wrote.
-# Shipped files carry the token; `copy` stamps the running version into
-# it on the way out, and `carries_marker` looks for the stamped shape.
-# The version is what makes the marker a marker: the bare name turns up
-# in ordinary prose — skeleton/AGENTS.md teaches the sentence "the
-# project follows the SRS-DD standard" — and a project that wrote that
-# in a file of its own would have it read as ours and overwritten. Two
-# questions still need it: whether a `srs-dd/` already in a target is
-# ours, and whether a file an earlier version wrote elsewhere is ours to
-# move.
+# How the installer tells its own file from the project's: the token with the version
+# stamped in, since the bare name turns up in ordinary prose (FR-INIT-320).
 MARKER_TOKEN = "SRS-DD-VERSION"
 # srs-end: FR-INIT-330, FR-INIT-340
 # A whole line of the agent guide, so a project that states no width
@@ -167,24 +124,21 @@ MARKER_TOKEN = "SRS-DD-VERSION"
 WIDTH_TOKEN = "<SRS-DD-WIDTH-LINE>\n"
 WIDTH_LINE = ("- **Line width** — this project's code stays inside %d "
               "columns.\n")
-# What an annotation becomes on the way out. The line stays a line so
-# that a traceback from a target names the same number as the source
-# here, and the identifier it named does not travel (CON-SPEC-020).
+# What an annotation becomes on the way out: the line stays, so a traceback from a
+# target names the same number, and the identifier does not travel.
 ANNOTATION_REMOVED = "annotation removed on install"
 MARKER = "SRS-DD-" + __version__
 RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 
-# Tooling copied into every target, refreshed by adopt and upgrade. The
-# gate is among it, so that the hook and the pipeline, which may be the
-# project's own, call a tool that moves with the framework.
+# Tooling copied into every target, the gate among it, so a project's own hook calls a
+# tool that moves with the framework.
 # implements: FR-CI-180
 TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
          "srs_baseline.py", "srs_dates.py", "srs_gate.py")
 # srs-end: FR-CI-180
 
-# Skills shipped to targets. srs-init itself stays framework-only, and so
-# does srs-release: a target releases nothing of ours (FR-SKILL-070), and
-# this tuple is where that is kept.
+# Skills shipped to targets; srs-init and srs-release stay framework-only, and this
+# tuple is where that is kept.
 # implements: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100
 # implements: FR-SKILL-110
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
@@ -206,10 +160,8 @@ CI_TEMPLATES = {
 HOOK_SRC = os.path.join("ci", "pre-commit")
 HOOK_DST = os.path.join(".githooks", "pre-commit")
 # implements: FR-INIT-300
-# The hook managers the report knows: what says the manager is in use,
-# the configuration it runs on commit — where the call goes, whether the
-# file exists yet or not — and the command that makes git run it at all.
-# What to add to each is in GATE_LINES.
+# The hook managers the report knows: what says one is in use, the configuration it
+# runs on commit, and the command that makes git run it. What to add is in GATE_LINES.
 HOOK_MANAGERS = (
     ("the pre-commit framework", ".pre-commit-config.yaml", ".pre-commit-config.yaml",
      "pre-commit install"),
@@ -346,12 +298,8 @@ def ask(prompt, default, batch):
 
 # implements: FR-INIT-100
 def is_inside(path, ancestor):
-    """True when path is the ancestor or lies anywhere below it.
-
-    Compares inodes (samefile) while walking up, so neither symlinks nor
-    case variations on case-insensitive filesystems bypass the refusal
-    (os.path.normcase is a no-op everywhere except Windows).
-    """
+    """True when path is the ancestor or lies anywhere below it, compared by inode while
+    walking up so neither symlinks nor case variations bypass the refusal."""
     probe = os.path.realpath(os.path.abspath(path))
     while True:
         try:
@@ -368,18 +316,10 @@ def is_inside(path, ancestor):
 
 # implements: FR-INIT-190
 def outbound(raw, rel):
-    """The bytes a file leaves this repository as.
-
-    Every path that puts one of our files into a target goes through
-    here — the copier below, and adopt, which writes the checker itself
-    because it has to run it before the tooling is installed. A second
-    path that transformed nothing is how a target ended up with a file
-    the framework never meant to ship.
-    """
-    # Stamped byte-level, so a file this does not concern is never
-    # decoded. Threading the version through six `substitute`
-    # dictionaries instead would leave the seventh unstamped and
-    # unrecognizable.
+    """The bytes a file leaves this repository as — every path that puts one of our files
+    into a target goes through here, including adopt, which writes the checker itself."""
+    # Stamped byte-level, so an unrelated file is never decoded; threading the version
+    # through six substitution maps would leave the seventh unstamped.
     if MARKER_TOKEN.encode("utf-8") in raw:
         raw = raw.replace(MARKER_TOKEN.encode("utf-8"),
                           MARKER.encode("utf-8"))
@@ -399,12 +339,8 @@ def outbound(raw, rel):
 
 # implements: FR-INIT-220
 def substitutions(name, settings):
-    """What a template's placeholders become on the way into a target.
-
-    Both install paths ask this rather than building their own map: fresh
-    and adopt each write the agent guide, and a marker filled in by one of
-    them and not the other reaches a project as itself.
-    """
+    """What a template's placeholders become on the way into a target, asked by both install
+    paths so a marker filled in by one and not the other never reaches a project."""
     out = {}
     if name:
         out[PLACEHOLDER_NAME] = name
@@ -416,41 +352,27 @@ def substitutions(name, settings):
 # srs-end: FR-INIT-220
 
 
-# A citation of one of this framework's decisions, as a comment in the
-# shipped tooling carries it: the number in brackets after the sentence it
-# supports.
+# A citation of one of this framework's decisions, as the shipped tooling carries it:
+# the numbers in brackets after the sentence they support.
 RE_DECISION = re.compile(r" ?\(ADR-\d{4}(?:,\s*ADR-\d{4})*\)")
 
 
 # implements: FR-INIT-260
 def strip_decisions(text):
-    """Takes this framework's decision numbers out of the shipped tooling on
-    the way into a target, leaving the sentence they supported.
-
-    In a target `ADR-0009` points at nothing, or at the project's own
-    decision under that number, which is worse; the reasoning stays in the
-    comment and the number stays here, where the decision is. Lines keep
-    their place, as they do when an annotation is taken out.
-    """
+    """Takes this framework's decision numbers out of the shipped tooling, leaving the
+    sentence they supported: in a target the number points at nothing, or at the project's
+    own decision, which is worse."""
     return RE_DECISION.sub("", text)
 # srs-end: FR-INIT-260
 
 
 # implements: FR-INIT-180
 def strip_annotations(text):
-    """Takes this framework's traceability annotations out of a file on
-    the way into a target, leaving the line where it was.
+    """Takes this framework's traceability annotations out of a file, leaving the line where
+    it was, so a traceback from a target names the same number.
 
-    Exactly what the checker would have read as a claim, and nothing
-    else. A line carrying `srs-ignore` is how the standard marks an
-    example rather than a claim, and the two examples in the checker's
-    own comments are where a target reads the annotation format at all;
-    stripping those would ship a file documenting a syntax it no longer
-    shows.
-
-    The line survives so that a traceback from a target names the same
-    number as the source here, which is the first thing a bug report is
-    read against.
+    Exactly what the checker would have read as a claim: a line carrying `srs-ignore` is an
+    example, and the checker's own two are where a target reads the format at all.
     """
     lines = text.split("\n")
     for index, line in enumerate(lines):
@@ -715,11 +637,8 @@ def has_grounds(target):
 
 
 def collect_grounds_skeleton():
-    """(source, destination) pairs of the register skeleton.
-
-    The standard comes from grounds/ for the reason srs-dd/standard.md comes
-    from specs/: one canonical copy, kept in the place it describes.
-    """
+    """(source, destination) pairs of the register skeleton; its standard comes from
+    grounds/, one canonical copy kept in the place it describes."""
     result = []
     base = os.path.join(ROOT, SKELETON, "grounds")
     for name in sorted(os.listdir(base)):
@@ -742,12 +661,8 @@ def grounds_config_json(period):
 
 # implements: FR-GND-280, FR-GND-300, FR-GND-320
 def install_grounds(installer, substitute=None, period="quarter"):
-    """The register, its checker and its procedure — all or none of them.
-
-    Declined, this writes nothing at all: a target that said no is
-    byte-for-byte a target that was never asked, which is what makes the
-    choice cheap to make and cheap to reverse.
-    """
+    """The register, its checker and its procedure — all or none: declined, this writes
+    nothing, so a target that said no is byte-for-byte one never asked."""
     installer.put(GROUNDS_CONFIG, grounds_config_json(period), tooling=False)
     for src, dst in collect_grounds_skeleton():
         installer.copy(src, dst, tooling=dst == GROUNDS_STANDARD,
@@ -764,14 +679,8 @@ def install_grounds(installer, substitute=None, period="quarter"):
 
 # implements: FR-INIT-170
 def undated_hint(target):
-    """Says that an undated specification can be dated, and runs nothing.
-
-    The dating command exists for specifications written before the field
-    did, which is every specification a project already has, and nobody
-    looks for a tool they have not heard of. Said and not done: nothing
-    else here writes a requirement block unasked, and a project that wants
-    no dates at all is not a project in error.
-    """
+    """Says that an undated specification can be dated, and runs nothing: nothing else here
+    writes a requirement block unasked, and a project wanting no dates is not in error."""
     specs_dir = os.path.join(target, "specs")
     if not os.path.isdir(specs_dir):
         return
@@ -807,11 +716,8 @@ def has_arch(target):
 
 
 def collect_arch_skeleton():
-    """(source, destination) pairs of the layer skeleton.
-
-    The standard comes from arch/ for the reason srs-dd/standard.md comes from
-    specs/: one canonical copy, kept in the place it describes.
-    """
+    """(source, destination) pairs of the layer skeleton; its standard comes from arch/, one
+    canonical copy kept in the place it describes."""
     result = []
     base = os.path.join(ROOT, SKELETON, "arch")
     if os.path.isdir(base):
@@ -831,11 +737,8 @@ def arch_config_json():
 
 # implements: FR-ARCH-120, FR-ARCH-140, FR-ARCH-150
 def install_arch(installer, substitute=None):
-    """The layer, its checker and its procedure — all or none of them.
-
-    Declined, this writes nothing at all: a target that said no is
-    byte-for-byte a target that was never asked.
-    """
+    """The layer, its checker and its procedure — all or none: declined, this writes
+    nothing at all."""
     installer.put(ARCH_CONFIG, arch_config_json(), tooling=False)
     for src, dst in collect_arch_skeleton():
         installer.copy(src, dst, tooling=dst == ARCH_STANDARD,
@@ -852,14 +755,10 @@ def install_arch(installer, substitute=None):
 
 # implements: FR-ARCH-140
 def run_target_arch(target):
-    """The target's own architecture checker, on what was just installed.
+    """The target's own architecture checker, on what was just installed: it writes the map a
+    gate compares, and a first commit without one would fail that gate.
 
-    It writes the map, which a gate compares against a fresh run — a target
-    whose first commit has no map would fail that gate before anybody had
-    written a single element. Not `--strict`, for the reason the grounds
-    checker is not run strictly either: a project that has just installed
-    the layer owns no parts yet, and every carrier is unclaimed until it
-    does.
+    Not `--strict`: a project that has just installed the layer owns no parts yet.
     """
     checker = os.path.join(target, SRS_TOOLS, "srs_arch.py")
     if not os.path.exists(checker):
@@ -872,38 +771,26 @@ def run_target_arch(target):
 
 # implements: FR-GND-300
 def run_target_grounds(target):
-    """The target's own grounds checker, on what was just installed.
-
-    It writes the dashboard, which a gate compares against a fresh run —
-    a target whose first commit has no dashboard would fail that gate
-    before anybody had written a single record.
-    """
+    """The target's own grounds checker, on what was just installed: it writes the dashboard
+    a gate compares, and a first commit without one would fail that gate."""
     checker = os.path.join(target, SRS_TOOLS, "srs_grounds.py")
     if not os.path.exists(checker):
         return 0
     sys.stdout.write("\nRunning the grounds checker in the target:\n")
     sys.stdout.flush()
-    # Not `--strict`, for the reason the specification checker is not run
-    # strictly either: an expired hypothesis is the most ordinary state a
-    # register can be in and the thing this layer exists to surface, and an
-    # install that reports failure over one is an install nobody believes.
-    # The exit code the installer publishes is for errors.
+    # Not `--strict`: an expired hypothesis is the most ordinary state a register can be in,
+    # and an install reporting failure over one is an install nobody believes.
     return subprocess.call([sys.executable, checker])
 # srs-end: FR-GND-300
 
 
 def describe_hooks(target):
-    """What the target already runs on commit.
-
-    `core.hooksPath` decides which directory git looks in, so an
-    existing hook may live anywhere; pointing that setting at
-    .githooks would silently stop whatever is there today.
-    """
+    """What the target already runs on commit: `core.hooksPath` decides where git looks, so
+    an existing hook may live anywhere and pointing the setting elsewhere would silence it."""
     info = {"active": "", "framework": "", "config": "", "install": ""}
     try:
-        # One question to git rather than two guesses: --git-path
-        # resolves core.hooksPath and the shared hooks directory of a
-        # worktree (where .git is a file, not a directory) in one go.
+        # One question to git rather than two guesses: --git-path resolves core.hooksPath and a
+        # worktree's shared hooks directory at once.
         out = subprocess.check_output(
             ["git", "-C", target, "rev-parse", "--git-path", "hooks"],
             stderr=subprocess.DEVNULL)
@@ -928,9 +815,8 @@ def describe_hooks(target):
 
 
 def runs_starter_path(target, active):
-    """Whether the hook git runs is the one at .githooks/pre-commit:
-    core.hooksPath may say ./.githooks, .githooks/, or an absolute path
-    to the very same directory."""
+    """Whether the hook git runs is the one at .githooks/pre-commit, which core.hooksPath may
+    spell three ways."""
     return bool(active) and (
         os.path.realpath(os.path.join(target, active))
         == os.path.realpath(os.path.join(target, HOOK_DST)))
@@ -938,11 +824,8 @@ def runs_starter_path(target, active):
 
 # implements: FR-INIT-080, FR-INIT-290
 def install_hook(installer, hooks):
-    """The starter hook, written only where nothing runs on commit and
-    nothing is at .githooks/pre-commit. A project that already runs a
-    hook, or a hook manager, keeps it and is told what to call from it
-    (FR-INIT-300); nothing is laid beside it, because the gate is a tool
-    and what the hook needs is one line."""
+    """The starter hook, written only where nothing runs on commit and nothing is at
+    .githooks/pre-commit; a project with a hook keeps it and is told what to call."""
     if hooks["framework"]:
         return
     if hooks["active"] and not runs_starter_path(installer.target,
@@ -966,10 +849,8 @@ def calls_gate(target, rel):
 
 # implements: FR-INIT-080, FR-INIT-300
 def report_hook(installer, hooks):
-    """Whether git runs a pre-commit hook here, whether that hook — or
-    the manager's configuration it is a shim for — calls the gate, and
-    what to add where it does not. Said after every install and upgrade,
-    because both rest on a line the project keeps."""
+    """Whether git runs a pre-commit hook, whether it or the manager's configuration calls
+    the gate, and what to add where it does not."""
     target = installer.target
     active = hooks["active"]
     if runs_starter_path(target, active):
@@ -1009,9 +890,8 @@ def report_hook(installer, hooks):
 
 # implements: FR-INIT-310
 def report_pipelines(target):
-    """Whether any GitHub workflow or the GitLab file calls the gate; the
-    step to add where none does. Any workflow will do — a project's other
-    workflows have no reason to run it, and naming each would be noise."""
+    """Whether any GitHub workflow or the GitLab file calls the gate, and the step to add
+    where none does; any workflow will do."""
     workflows = sorted(
         os.path.join(".github", "workflows", name)
         for name in (os.listdir(os.path.join(target, ".github", "workflows"))
@@ -1048,11 +928,8 @@ def report_wiring(installer, target):
 
 # implements: FR-INIT-360
 def install_agent_docs(installer, substitute):
-    """The target's agent guides come from skeleton/ — the ones in this
-    repository's root describe the framework repository itself — and are
-    the project's from the moment they exist: written where absent, never
-    rewritten. What the framework keeps current in them is the region
-    (FR-INIT-370)."""
+    """The target's agent guides come from skeleton/ and are the project's from the moment
+    they exist: written where absent, never rewritten. The region is what stays current."""
     for doc in ("CLAUDE.md", "AGENTS.md"):
         src = os.path.join(SKELETON, doc)
         if os.path.exists(os.path.join(ROOT, src)):
@@ -1064,14 +941,9 @@ def install_agent_docs(installer, substitute):
 
 # implements: FR-INIT-370, FR-SKILL-440
 def region_bounds(text):
-    """Where the framework's region starts and ends, or None.
-
-    A border is a line holding nothing but the marker, whitespace aside: a
-    marker written into a sentence is not a border, and the note below asks
-    for two lines, so a guide that pasted that sentence in would otherwise
-    have its region found in the prose. The end is given as the start of
-    its line, so an indented border keeps its indentation.
-    """
+    """Where the framework's region starts and ends, or None: a border is a line holding
+    nothing but the marker, so a marker written into a sentence is not one. The end is the
+    start of its line, so an indented border keeps its indentation."""
     begin = None
     offset = 0
     for line in text.splitlines(True):
@@ -1086,15 +958,12 @@ def region_bounds(text):
 
 
 def refresh_guide_region(installer):
-    """Rewrites the framework's region of the target's AGENTS.md with the
-    current guide, and nothing outside it. A guide without the region is
-    reported, with what to add: the rules cannot reach an agent that reads
-    the file as plain text any other way."""
+    """Rewrites the framework's region of the target's AGENTS.md and nothing outside it; a
+    guide without the region is reported with what to add."""
     path = os.path.join(installer.target, "AGENTS.md")
     try:
-        # newline="" keeps the file's own endings: everything outside the
-        # region comes back byte for byte, and a guide written with CRLF
-        # read through the universal translation would be rewritten whole.
+        # newline="" keeps the file's own endings: a guide written with CRLF would otherwise be
+        # rewritten whole.
         with open(path, "r", encoding="utf-8", newline="") as handle:
             text = handle.read()
     except OSError:
@@ -1152,12 +1021,8 @@ def run_target_checker(target):
 
 # implements: FR-INIT-200
 def read_target_config(target):
-    """The target's own configuration, for the answers its install took.
-
-    Unreadable is not a failure here: everything taken from it has a
-    fallback, and the checker runs at the end of this same command and
-    will say so properly.
-    """
+    """The target's own configuration, for the answers its install took; unreadable is not a
+    failure here, since everything taken from it has a fallback."""
     path = os.path.join(target, "specs", "srs-config.json")
     try:
         with open(path, encoding="utf-8") as handle:
@@ -1170,15 +1035,9 @@ def read_target_config(target):
 
 # implements: FR-INIT-200
 def guide_answers(target):
-    """(name, settings) for filling the agent guides on an upgrade.
-
-    Both values come out of a file a maintainer edits by hand, and both
-    are about to be interpolated into text — a name that is not a string
-    and a width that is not a number each end in a traceback out of
-    `str.replace` and `%d`. Neither is worth refusing an upgrade over:
-    the rest of it is fine and each has an honest fallback, so the run
-    says what it disbelieved and carries on.
-    """
+    """(name, settings) for filling the agent guides on an upgrade, each with an honest
+    fallback: both come from a hand-edited file and are about to be interpolated, and
+    neither is worth refusing an upgrade over — the run says what it disbelieved."""
     cfg = read_target_config(target)
     name = cfg.get("project_name")
     if name is not None and not isinstance(name, str):
@@ -1200,14 +1059,9 @@ def guide_answers(target):
 
 
 def read_target_version(target):
-    """The framework version a target is on, read from its own tooling.
-
-    Two files, in order: the parser is where the number lives from 0.15.0
-    on, and the checker is where it lived before. A project upgrading from
-    0.14.0 or earlier has it only in the second, and reporting it as
-    unversioned would drop the version transition and the upgrade notes —
-    the two things an upgrade exists to show.
-    """
+    """The framework version a target is on, read from its own tooling: the parser from
+    0.15.0 on, the checker before that. Reporting a 0.14.0 project as unversioned would
+    drop the version transition and the upgrade notes."""
     for home in (SRS_TOOLS, "tools"):
         for name in ("srs_parse.py", "srs_check.py"):
             path = os.path.join(target, home, name)
@@ -1251,12 +1105,8 @@ def print_version_transition(old):
 
 
 def changelog_sections(headings):
-    """{version: {heading: [lines]}} for the `### <heading>` blocks named.
-
-    The format contract is documented in CHANGELOG.md's header. Missing
-    or unparseable CHANGELOG — an empty result, and the caller says
-    nothing.
-    """
+    """{version: {heading: [lines]}} for the `### <heading>` blocks named, by the format
+    contract in CHANGELOG.md's header; a missing or unparseable file is an empty result."""
     path = os.path.join(ROOT, "CHANGELOG.md")
     try:
         with open(path, "r", encoding="utf-8") as handle:
@@ -1300,11 +1150,8 @@ def crossed_versions(collected, old_version, show_all):
 
 
 def one_line(bullet, width=76):
-    """A bullet reduced to its first sentence, or to one cut line.
-
-    Whole entries would be a wall of text across several versions; a raw
-    first line ends mid-sentence, which reads worse than a cut one.
-    """
+    """A bullet reduced to its first sentence, or to one cut line: whole entries would be a
+    wall of text, and a raw first line ends mid-sentence."""
     text = " ".join(part.strip() for part in bullet).strip()
     stop = text.find(". ")
     if 0 < stop <= width:
@@ -1380,9 +1227,7 @@ def collect_settings(args, batch, area_default):
                 "interpolated into the identifier grammar.\n" % area)
             return None
         # implements: FR-INIT-350
-        # An area grouped into its folder is read from specs/<area>/, and a
-        # folder of that name is one the checker skips: its requirements
-        # would vanish without a word.
+        # An area grouped into a folder the checker skips would vanish without a word.
         if area.lower() in SKIP_DIRS:
             sys.stderr.write(
                 "Invalid area %r: its folder, specs/%s/, is one the checker "
@@ -1454,9 +1299,8 @@ def collect_settings(args, batch, area_default):
         sys.stderr.write("Unknown period %r.\n" % period)
         return None
     if period and not settings["grounds"]:
-        # The setting belongs to a register, and there is not going to be
-        # one. Said rather than dropped: a flag that does nothing and says
-        # nothing is a flag somebody believes worked.
+        # The setting belongs to a register there is not going to be: said rather than dropped,
+        # since a flag that does nothing silently is one somebody believes worked.
         sys.stdout.write(
             "Note: --period sets the grounds dashboard's calendar unit and "
             "this install takes no register, so it has nothing to set.\n")
@@ -1464,9 +1308,8 @@ def collect_settings(args, batch, area_default):
     # srs-end: FR-GND-480
 
     # implements: FR-INIT-210
-    # Taken as given. Which file a project states this in differs by
-    # toolchain, and reading them is the install procedure's job
-    # (FR-SKILL-190) — a heuristic here would be wrong quietly.
+    # Taken as given: which file a project states this in differs by toolchain, and a
+    # heuristic here would be wrong quietly.
     width = args.line_width
     if width is not None:
         try:
@@ -1485,20 +1328,15 @@ def collect_settings(args, batch, area_default):
 
 # implements: FR-INIT-140
 def framework_url():
-    """The address a target upgrades from: this clone's own remote.
-
-    A fork or a mirror must send its targets back to itself, not to the
-    address compiled into the tooling. SSH remotes are rewritten to HTTPS
-    — the target that upgrades is somebody else's machine, without this
-    maintainer's keys.
-    """
+    """The address a target upgrades from: this clone's own remote, so a fork sends its
+    targets back to itself. SSH is rewritten to HTTPS — the upgrading machine has no keys
+    of this maintainer's."""
     try:
         remotes = subprocess.check_output(
             ["git", "-C", ROOT, "remote"],
             stderr=subprocess.DEVNULL).decode("utf-8").split()
-        # `origin` when it exists: a clone with several remotes usually has
-        # the one it came from under that name, and the alphabetically
-        # first is nobody's idea of the canonical source.
+        # `origin` where it exists: the alphabetically first remote is nobody's idea of the
+        # canonical source.
         chosen = "origin" if "origin" in remotes else remotes[0]
         url = subprocess.check_output(
             ["git", "-C", ROOT, "remote", "get-url", chosen],
@@ -1518,9 +1356,8 @@ def config_json(settings, adopting=False, name=None):
                   ("areas", "code_roots", "test_roots", "code_extensions",
                    "modal_verbs", "negation_words", "rationale_markers"))
     config["framework_url"] = settings.get("framework_url") or framework_url()
-    # The agent guides are filled in from this rather than copied, and an
-    # upgrade does not ask again (FR-INIT-200). Absent where adoption found
-    # the guides already written and never asked for a name.
+    # The guides are filled in from this rather than copied, and an upgrade does not ask
+    # again; absent where adoption never asked for a name.
     if name:
         config["project_name"] = name
     # Absent where the project states none: a width invented here would be
@@ -1528,11 +1365,8 @@ def config_json(settings, adopting=False, name=None):
     if settings.get("line_width"):
         config["line_width"] = settings["line_width"]
     if adopting:
-        # A project that arrives with code already written has files under
-        # its roots that no requirement names yet, and every one of them
-        # would be reported on the first run. That is a wall rather than a
-        # queue, so adoption starts with the rule silenced; switching it on
-        # is what finishing the adoption means (ADR-0014).
+        # A project arriving with code has files no requirement names yet, and reporting every
+        # one is a wall rather than a queue, so adoption starts with the rule silenced (ADR-0014).
         config["rules"] = {"annotation-absent": "off"}
     return json.dumps(config, ensure_ascii=False, indent=2) + "\n"
 # srs-end: FR-INIT-140, FR-INIT-200, FR-CHK-210
@@ -1632,13 +1466,8 @@ def run_fresh(args, target, batch):
 # implements: FR-INIT-040
 def install_adopt_files(installer, settings, substitute, target,
                         tools_skip=()):
-    """Everything adopt lays down beside the config and the checker.
-
-    Shared by the real run, which reaches it past its point of no
-    return, and by --dry-run, which never reaches that point at all. A
-    README the project keeps under specs/ is its own and stays: the
-    standard lives in srs-dd/ and the checker never reads a README.
-    """
+    """Everything adopt lays down beside the config and the checker, shared by the real run
+    and by --dry-run. A README the project keeps under specs/ is its own and stays."""
     for service in ADOPT_SERVICE_FILES:
         rel = os.path.join("specs", service)
         if not os.path.exists(os.path.join(target, rel)):
@@ -1694,10 +1523,8 @@ def run_adopt(args, target, batch, found_areas):
     checker_dst = os.path.join(tools_dir, "srs_check.py")
 
     if args.dry_run:
-        # The transactional block below is skipped whole: validating the
-        # existing spec needs the checker running inside the target, and
-        # --dry-run promises not to write. The real run validates before
-        # touching anything, so nothing is lost by deferring it.
+        # Skipped whole under --dry-run: validating the existing spec needs the checker inside
+        # the target, and the real run validates before touching anything.
         installer.created.append(os.path.join("specs", "srs-config.json"))
         install_adopt_files(installer, settings, substitute, target)
         sys.stdout.write("\n" + installer.summary() + "\n")
@@ -1725,9 +1552,8 @@ def run_adopt(args, target, batch, found_areas):
 
         with open(os.path.join(ROOT, SRS_TOOLS, "srs_check.py"), "rb") as src:
             checker_bytes = src.read()
-        # This file becomes the target's checker at the point of no
-        # return below, without passing through the copier, so it is
-        # prepared the same way the copier prepares everything else.
+        # This becomes the target's checker without passing through the copier, so it is
+        # prepared the same way.
         checker_bytes = outbound(checker_bytes,
                                  os.path.join(SRS_TOOLS, "srs_check.py"))
         with open(temp_path, "wb") as handle:
@@ -1736,12 +1562,8 @@ def run_adopt(args, target, batch, found_areas):
         sys.stdout.write("Validating the existing specification against "
                          "the proposed configuration:\n")
         sys.stdout.flush()
-        # The checker reads the record shape through srs_parse, which it
-        # imports from beside itself — and nothing of ours is in the
-        # target yet, because the tooling is installed only once this
-        # validation has passed. Lend it the framework's copy for the
-        # duration rather than writing a second file the rollback would
-        # have to take back out.
+        # The checker imports srs_parse from beside itself, and nothing of ours is in the target
+        # yet: lend it the framework's copy rather than writing a file the rollback must undo.
         env = dict(os.environ)
         env["PYTHONPATH"] = os.pathsep.join(
             [os.path.join(ROOT, SRS_TOOLS)]
@@ -1823,10 +1645,8 @@ def run_adopt(args, target, batch, found_areas):
 
 # implements: FR-INIT-340
 def old_layout_files(target):
-    """What an earlier version wrote outside srs-dd/ and this one moves:
-    the tools under tools/ and the standards beside what they govern —
-    only where the file is ours, by its marker; a project's own README is
-    not the standard and stays."""
+    """What an earlier version wrote outside srs-dd/ and this one moves — the tools and the
+    standards — only where the file is ours by its marker."""
     old = [os.path.join("tools", name)
            for name in TOOLS + GROUNDS_TOOLS + ARCH_TOOLS]
     old += [os.path.join("specs", "README.md"), os.path.join("grounds", "README.md"),
@@ -1853,10 +1673,8 @@ def new_home(rel):
 
 
 def migrate_layout(installer, old):
-    """Deletes the copies an earlier version left outside srs-dd/, once
-    the directory holds the current files: a stale tools/srs_check.py
-    beside a current one is two checkers, and the project's gate would
-    run whichever its pipeline still names."""
+    """Deletes the copies an earlier version left outside srs-dd/, once the directory holds
+    the current files: two checkers is one the gate might still name."""
     for rel in old:
         installer.moved.append("%s -> %s" % (rel, new_home(rel)))
         if not installer.dry_run:
@@ -1908,10 +1726,8 @@ def run_upgrade(args, target):
     installer.copy(".gitattributes", ".gitattributes", tooling=False,
                    starter=True)
     # implements: FR-GND-290
-    # Refreshed where the register already is; added only when this run
-    # was told to add it. An upgrade is what every project runs, and a
-    # subsystem that arrived through one would arrive at projects that
-    # never declined it because they never heard of it.
+    # Refreshed where the register already is, added only when asked: an upgrade is what
+    # every project runs, and a subsystem would arrive at projects that never heard of it.
     if has_grounds(target):
         if args.grounds == "no":
             sys.stdout.write(
@@ -1956,16 +1772,12 @@ def run_upgrade(args, target):
     # srs-end: FR-ARCH-130
     install_skills(installer, substitute=None)
     # implements: FR-INIT-200
-    # The guides are starters, written only where absent — and filled in
-    # rather than copied, so this needs the answers the install took: the
-    # name from the configuration, the width beside it (FR-INIT-210). A
-    # project installed before the name was recorded falls back to its
-    # directory. Whether or not a guide is written, its region is refreshed.
+    # Starters written only where absent and filled in rather than copied, so this needs the
+    # answers the install took; the region is refreshed either way.
     install_agent_docs(installer, substitutions(*guide_answers(target)))
     # srs-end: FR-INIT-200
-    # A pipeline starter only where this run asked for one: an upgrade run
-    # through srs_upgrade.py has no --ci to pass, and what the project
-    # already has is its own, starter or not (FR-INIT-290).
+    # A pipeline starter only where this run asked for one; what the project already has is
+    # its own, starter or not.
     install_ci(installer, args.ci)
     install_hook(installer, describe_hooks(target))
     migrate_layout(installer, old)

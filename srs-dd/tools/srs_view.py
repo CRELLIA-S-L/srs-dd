@@ -6,11 +6,6 @@
 # srs-end: FR-INIT-280
 """Specification viewer: terminal queries and a self-contained HTML site.
 
-Standard library only, compatible with Python 3.9. Read-only by
-construction: it never rewrites specs/90-traceability.md and never acts
-as a gate. The matrix stays the committed, byte-compared artifact; this
-is a projection of the same data for people to read.
-
     srs_view.py                    summary: counts, areas, every requirement
     srs_view.py --areas            what the specification is divided into
     srs_view.py FR-CORE-020        one requirement in full
@@ -23,20 +18,17 @@ is a projection of the same data for people to read.
     srs_view.py --html [PATH]      self-contained page, default .srs-site/
     srs_view.py --json [PATH]      the model as JSON, for your own scripts
 
-The parser lives in srs_parse.py — one parser for the whole framework.
-A broken specification is still worth reading, so parse errors and
-duplicate identifiers are reported as a banner rather than a failure;
-judging the specification remains the checker's job.
+Read-only by construction: it never rewrites the matrix and never gates. A broken
+specification is still worth reading, so parse errors come back as a banner.
+Standard library only, compatible with Python 3.9.
 """
 
 # file implements: NFR-SPEC-010, CON-SPEC-030
 
 import sys
 
-# An import writes __pycache__ next to the imported module — inside the
-# *target* repository, which has no reason to gitignore it. This line
-# must stay above the srs_check import; moving it below is what makes
-# the mess reappear.
+# An import writes __pycache__ inside the target repository. This line must stay
+# above the srs_check import.
 sys.dont_write_bytecode = True
 
 import argparse                                            # noqa: E402
@@ -81,20 +73,15 @@ INCOMING_LABEL = {
 # srs-end: FR-VIEW-390
 
 # implements: FR-VIEW-270
-# What a text search skips beyond what the page skips. The standard is the
-# framework's own document and the same in every project that took it from
-# here; the three that record rather than state answer an ordinary word
-# with lines the requirement above them already answered; and the open
-# issues hold sentences they have since retracted, which a search would
-# return one line at a time.
+# What a text search skips beyond what the page skips: the framework's own standard,
+# the three that record rather than state, and the open issues.
 PROSE_EXCLUDED = ("README.md", "90-traceability.md", "91-open-issues.md",
                   "92-baselines.md")
 # srs-end: FR-VIEW-270
 
 # implements: FR-VIEW-280
-# What the standard's map names as prose, used only to say which of them a
-# project does not have. The search itself takes whatever is there, so a
-# project's own prose file is read without being listed here.
+# What the map names as prose, used only to say which a project lacks; the search
+# itself takes whatever is there.
 PROSE_EXPECTED = ("00-glossary.md", "01-introduction.md", "02-overview.md",
                   "50-verification.md", "constitution.md")
 # srs-end: FR-VIEW-280
@@ -116,13 +103,8 @@ GRAPH_NODE_LIMIT = 150
 
 # implements: FR-VIEW-310
 def read_repo_url():
-    """The blob-URL prefix used for links to code, e.g.
-    https://gitlab.com/acme/app/-/blob/main — copied out of a browser,
-    so no per-host URL shapes are guessed here.
-
-    Viewer-only key: srs_check.load_config() iterates its own defaults
-    and ignores anything else, so the checker never sees it.
-    """
+    """The blob-URL prefix for links to code, copied out of a browser so no per-host URL
+    shape is guessed. A viewer-only key the checker never sees."""
     try:
         with open(srs_check.CONFIG, "r", encoding="utf-8") as handle:
             data = json.load(handle)
@@ -163,11 +145,8 @@ def _requirement_dict(req):
     }
     for field in srs_check.LIST_FIELDS:
         entry[field] = _as_list(req.meta.get(field))
-    # Every field of the block, not only the ones this viewer has heard of.
-    # The format permits a key it declares neither required nor optional,
-    # so blocks legitimately carry keys nothing here knows — and a model
-    # that drops them is not "the fields of its block". Known fields keep
-    # the normalized form above; the rest pass through as written.
+    # Every field of the block, not only the known ones: the format permits a key it
+    # declares neither required nor optional, and the rest pass through as written.
     for key, value in sorted(req.meta.items()):
         if key not in entry:
             entry[key] = value
@@ -202,11 +181,8 @@ def build_model(requirements, problems, with_code_scan=True):
         refs.sort(key=lambda pair: (pair[1], pair[0]))
 
     # implements: FR-VIEW-040
-    # A cancelled requirement's `code` field records what it once pointed
-    # at, not a claim on the file now — the same reading the checker
-    # uses. Counted here, a withdrawal would quietly move its files out
-    # of the gap list, and the two tools would describe one file
-    # differently in the same run.
+    # A cancelled requirement's `code` records what it pointed at, not a claim now — the
+    # checker's reading, so one file is not described two ways in one run.
     covered = set()
     for entry in entries:
         if entry["status"] in srs_check.CANCELLED:
@@ -233,23 +209,16 @@ def build_model(requirements, problems, with_code_scan=True):
 
 # implements: FR-VIEW-210
 def outlived(entries, with_code_scan):
-    """What still points at a cancelled requirement.
+    """What still points at a cancelled requirement, in the three places the checker reports
+    one line at a time, so whoever decides a withdrawal sees all of it.
 
-    Cancelling is the one edit whose consequences outlive it, and they lie
-    in three places the checker reports one line at a time. Gathered here so
-    the reader deciding a withdrawal sees the whole of it at once.
-
-    The first kind needs no tree at all — it is fields and statuses — so it
-    is computed even for a past revision, where `with_code_scan` is off
-    because the working tree is not what that revision had.
+    The first kind is fields and statuses, so it is computed for a past revision too.
     """
     dead = dict((e["id"], e) for e in entries
                 if e["status"] in srs_check.CANCELLED)
     if not dead:
-        # Nothing was cancelled, so nothing can have outlived it — and the
-        # walk below would read every source file to prove it. Most
-        # specifications are in this state most of the time, and this is on
-        # the way to every terminal query.
+        # Nothing cancelled, nothing outliving it, and the walk below would read every source
+        # file to prove it — on the way to every terminal query.
         return {"links": [], "files": [], "annotations": []}
     live = [e for e in entries if e["status"] not in srs_check.CANCELLED]
 
@@ -287,19 +256,10 @@ def outlived(entries, with_code_scan):
 
 # implements: FR-VIEW-260
 def collect_documents(entries):
-    """Every file in specs/ that carries no requirements: the standard,
-    the glossary, the introduction, the overview, the verification notes,
-    the generated reports and the decision log — invisible to the parser,
-    wanted by a reviewer, since requirements cite ART-* articles in their
-    rationales.
-
-    Derived from what the parse produced rather than listed by hand.
-    The list that used to stand here was a copy of the checker's skipped
-    set and fell behind it: three files the standard's own map names were
-    offered nowhere, and a name added later would have gone the same way.
-    The archive is out — not normative by that map, and a link is an
-    invitation to read.
-    """
+    """Every file in specs/ that carries no requirements — the standard, the glossary, the
+    introduction, the overview, the verification notes, the generated reports, the
+    decisions — derived from what the parse produced rather than listed by hand, since the
+    list kept here fell behind the checker's. The archive is out."""
     carrying = set(entry["path"] for entry in entries)
     result = []
     for current, dirs, files in os.walk(SPECS):
@@ -311,9 +271,8 @@ def collect_documents(entries):
             rel = rel.replace(os.sep, "/")
             if rel not in carrying:
                 result.append(rel)
-    # The decision log after the documents rather than mixed in by name:
-    # a run of ADRs between the constitution and the glossary is a sidebar
-    # nobody reads to the end.
+    # The decisions after the documents, not mixed in by name: a run of them between the
+    # constitution and the glossary is a sidebar nobody finishes.
     result.sort(key=lambda path: ("/adr/" in path, path))
     return result
 # srs-end: FR-VIEW-260
@@ -321,20 +280,14 @@ def collect_documents(entries):
 
 # implements: FR-VIEW-270
 def collect_prose(entries):
-    """What a text search reads, and what the map names and the project
-    does not have.
+    """What a text search reads, and what the map names and the project does not have,
+    filtered from the documents the page offers rather than walked again.
 
-    Filtered from the documents the page offers rather than walked again:
-    the two sets differ by four files and nothing else, and a second walk
-    is a second thing to keep true.
-    The page and the search differ deliberately — a link costs nothing
-    when it is the wrong document, and a line out of its document is what
-    misleads.
+    The page and the search differ deliberately: a link costs nothing when it is the wrong
+    document, and a line out of its document is what misleads.
     """
-    # Compared as whole paths, not as names: an index of decisions is
-    # commonly `adr/README.md`, and it is not the standard. Dropped by its
-    # basename it would be dropped in silence, which is the one thing the
-    # neighbouring obligation exists to prevent.
+    # Whole paths, not names: an index of decisions is commonly `adr/README.md`, and
+    # dropping it by basename would drop it in silence.
     excluded = set(_repo_relative(os.path.join(SPECS, name))
                    for name in PROSE_EXCLUDED)
     present = [path for path in collect_documents(entries)
@@ -347,14 +300,8 @@ def collect_prose(entries):
 
 # implements: FR-VIEW-270
 def grep_prose(needle, paths):
-    """Every line of the prose holding the text, as (path, line, text).
-
-    By the line, because a line of markdown written by hand breaks where
-    the meaning breaks — which is what lets a glossary table and a
-    page of prose come back in the same shape.
-    Tolerant of an odd byte for the reason read_annotations is: one file
-    the encoding trips over must not take the whole answer with it.
-    """
+    """Every line of the prose holding the text, as (path, line, text) — by the line, since
+    markdown written by hand breaks where the meaning breaks. Tolerant of an odd byte."""
     needle = needle.lower()
     hits = []
     for path in paths:
@@ -375,9 +322,8 @@ def load_current():
     problems = []
     requirements = []
     for full, rel in srs_check.collect_spec_files():
-        # A file that is not readable UTF-8, or vanished between the
-        # listing and the read, is one more problem to report — not a
-        # reason to refuse to show the other 400 requirements.
+        # An unreadable file is one more problem to report, not a reason to refuse the other
+        # four hundred requirements.
         try:
             requirements.extend(srs_check.parse_file(full, rel, problems))
         except (OSError, UnicodeDecodeError) as exc:
@@ -396,14 +342,9 @@ RE_ADR_STATUS = re.compile(r"^- \*\*Status:\*\* (.+?)\s*$")
 
 # implements: FR-VIEW-330, IF-SPEC-030
 def decisions():
-    """Every decision in specs/adr/ as {id: entry}, shaped like a
-    requirement entry as far as a citation needs: id, title, path, status.
-
-    Read from the heading and the status line, not the file name: a file is
-    renamed, the number in the heading is what a plan cites. A file whose
-    heading does not carry the form is not a decision to this reader and is
-    left out, which is what an index or a template under adr/ wants.
-    """
+    """Every decision in specs/adr/ as {id: entry} — id, title, path, status — read from the
+    heading and not the file name, since a plan cites the number in the heading. A file
+    without that heading is no decision here."""
     found = {}
     root = os.path.join(SPECS, "adr")
     if not os.path.isdir(root):
@@ -417,10 +358,8 @@ def decisions():
                 lines = handle.read().splitlines()
         except (OSError, UnicodeDecodeError):
             continue
-        # A file may open with a front matter — `---`, `key: value` lines,
-        # `---` — before its heading: the shape a project writing decisions
-        # in its own language chose, and the status is then one of its
-        # keys. Skipped to find the heading, read for the status.
+        # A file may open with a front matter before its heading, the status then being one of
+        # its keys: skipped to find the heading, read for the status.
         front = {}
         body = lines
         if lines and lines[0].strip() == "---":
@@ -461,9 +400,8 @@ def _matches_path(candidate, wanted):
 
 # implements: FR-VIEW-020
 def requirements_for_path(model, path):
-    """Which requirements describe a file — the `code`/`tests` fields
-    plus any implements:/verifies: annotation carried by the file
-    itself. A directory prefix matches everything under it."""
+    """Which requirements describe a file: the `code`/`tests` fields plus any annotation the
+    file carries. A directory prefix matches everything under it."""
     wanted = path.replace(os.sep, "/").strip()
     while wanted.startswith("./"):
         wanted = wanted[2:]
@@ -479,11 +417,8 @@ def requirements_for_path(model, path):
                 found.add(entry["id"])
     full = os.path.join(ROOT, wanted)
     if os.path.isfile(full):
-        # The grammar is the checker's, read through its function rather
-        # than reimplemented here: which lines are exempt and what counts
-        # as an annotation must be one answer, not two that agree today.
-        # Which keyword it was does not matter to this question — a file
-        # named by a requirement is a file the requirement describes.
+        # The annotation grammar is the checker's, read through its function: which lines are
+        # exempt must be one answer, not two that agree today.
         found.update(rid for _line, _kw, rid
                      in srs_check.read_annotations(full))
     return found
@@ -494,12 +429,8 @@ def requirements_for_path(model, path):
 def split_line_spec(spec):
     """`path:line` into (path, line), or (spec, None) when it is not one.
 
-    A colon is not enough to say so: `C:\\src` and a path with a colon in
-    its name both carry one and mean no line. Only a wholly numeric tail
-    behind a head that exists as a file is read as a line, so a path that
-    happens to end that way and exists as written is kept whole first.
-    A directory before the colon is not a file with lines, and is left as
-    the whole spec for the caller to say so.
+    A colon is not enough: only a numeric tail behind a head that exists as a file reads
+    as a line, so `C:\\src` and a path with a colon keep their shape.
     """
     head, sep, tail = spec.rpartition(":")
     if not sep or not tail.isdigit() or not head:
@@ -862,10 +793,8 @@ def where_realized(entry):
 
 # implements: FR-VIEW-380
 def mark_at(rel, lineno):
-    """The mark of `srs_check.annotation_regions` whose annotation stands on
-    `lineno` of `rel` — the region an annotation found by `where_realized`
-    marks. Read through the checker's grammar, so the region printed and the
-    region a line is answered from are one region."""
+    """The mark whose annotation stands on `lineno` of `rel`, read through the checker's
+    grammar so the region printed and the region a line is answered from are one."""
     marks, _unmatched = srs_check.annotation_regions(os.path.join(ROOT, rel))
     for mark in marks:
         if lineno in mark["lines"]:
@@ -876,10 +805,8 @@ def mark_at(rel, lineno):
 
 # implements: FR-VIEW-400
 def region_note(mark, total):
-    """What the viewer says of a region beside the line that names it:
-    its lines, and where no `srs-end:` ends it, where it stopped instead.
-    Never among the file's lines, which each carry their number, so the
-    note cannot be read as the file's."""
+    """What the viewer says of a region: its lines, and where no `srs-end:` ends it, where
+    it stopped instead. Never among the file's numbered lines."""
     text = "lines %d–%d" % (mark["first"], mark["last"])
     if mark["how"] == "next":
         text += " — no srs-end: stops at the next annotation, line %d; may be incomplete" % mark["stop"]
@@ -901,9 +828,8 @@ def print_where(entry, style, source=False):
     if not places:
         out(style.d("%s names no file and no annotation names it" % entry["id"]))
         return
-    # The files no line speaks for first: under --source the regions run
-    # long, and the one fact the reader must not miss is which file they
-    # will have to open whole.
+    # The files no line speaks for come first: under --source the regions run long, and
+    # which file must be opened whole is the fact not to miss.
     for rel, lineno, keyword in places:
         if lineno is None:
             out("%s  %s" % (rel, style.d("named in the fields, no annotation for %s" % entry["id"])))
@@ -961,14 +887,9 @@ def emphasize(text, style):
 
 # implements: FR-VIEW-240
 def citation(entry):
-    """The form a requirement is named in outside the specification.
-
-    Assembled here and nowhere else: the identifier, the title, the file
-    and the status, in the order they are read. No line number — it is
-    right for the minute it is written and wrong after the next edit above
-    it, and the card below prints the current one for whoever wants to
-    open the file.
-    """
+    """The form a requirement is named in outside the specification — identifier, title, file,
+    status — assembled here and nowhere else. No line number: it is wrong after the next
+    edit above it."""
     return "%s — %s (%s, %s)" % (entry["id"], entry["title"], entry["path"],
                                  entry["status"] or "?")
 # srs-end: FR-VIEW-240
@@ -1099,11 +1020,8 @@ def print_coverage(model, style):
                 if other and other["status"] == "draft":
                     resting.append((entry["id"], field, target))
     out()
-    # Counted by requirement, which is what the summary names and what
-    # the page already reported; listed by link, because which field
-    # reaches which draft is what a reader acts on. One requirement resting on two
-    # drafts is one in the count and two lines under it — counting the
-    # lines instead inflated the number an audit starts from.
+    # Counted by requirement, listed by link: which field reaches which draft is what a
+    # reader acts on, and counting lines inflated the number an audit starts from.
     out(style.b("Realized but resting on a draft: %d"
                 % len({rid for rid, _, _ in resting})))
     for rid, field, target in resting:
@@ -1132,28 +1050,21 @@ def git(args, cwd=ROOT):
 
 # implements: FR-VIEW-050
 def load_revision(rev):
-    """Parses the specification as of `rev`. Paths come from git, i.e.
-    relative to the git root, which is not necessarily this script's
-    ROOT — nested repositories exist."""
+    """The specification as of `rev`; paths come from git, relative to the git root, which
+    is not necessarily this script's ROOT."""
     try:
         top = git(["rev-parse", "--show-toplevel"]).decode("utf-8").strip()
     except (OSError, subprocess.CalledProcessError):
         raise ViewError("git is unavailable or this is not a git "
                         "repository — --diff needs both")
-    # realpath on both sides: git reports the physical path, while ROOT
-    # comes from __file__ and keeps whatever symlinks led here (/tmp on
-    # macOS). A mismatched prefix would walk out of the repository.
+    # realpath on both sides: git reports the physical path, ROOT keeps the symlinks that
+    # led here, and a mismatched prefix would walk out of the repository.
     prefix = os.path.relpath(os.path.realpath(ROOT),
                              os.path.realpath(top)).replace(os.sep, "/")
     prefix = "" if prefix == "." else prefix + "/"
-    # From here on git runs at the top of the repository: an ls-tree
-    # pathspec is resolved against the current directory, so running it
-    # from a nested ROOT would look for <prefix>/<prefix>/specs and
-    # quietly report every requirement as new.
-    #
-    # -z, because a path outside ASCII comes back C-quoted otherwise
-    # ("specs/10-\321\204.md") — and a specification in any language is
-    # the point of this framework.
+    # git runs at the top of the repository: a pathspec resolved against a nested ROOT
+    # would report every requirement as new. -z, because a path outside ASCII comes back
+    # C-quoted otherwise.
     try:
         listing = git(["ls-tree", "-r", "-z", "--name-only", rev, "--",
                        prefix + "specs"], cwd=top).decode("utf-8", "replace")
@@ -1187,9 +1098,8 @@ def version_key(version):
 
 
 def versions_in(text):
-    """The versions a baseline log names, oldest first. Spacing inside the
-    cells is the writer's business: a row typed by hand is as valid as one
-    the tooling wrote."""
+    """The versions a baseline log names, oldest first; a row typed by hand is as valid as
+    one the tooling wrote."""
     seen = []
     for version in re.findall(r"^\|\s*(\d+(?:\.\d+)+)\s*\|", text, re.M):
         if version not in seen:
@@ -1199,12 +1109,8 @@ def versions_in(text):
 
 # implements: INV-SPEC-040
 def logged_baselines():
-    """The versions the baseline log records, oldest first.
-
-    The log is what defines a baseline: a `spec/v*` tag is a bookmark
-    somebody may or may not have made, and requiring one would put the
-    process at the mercy of whichever git client a project uses.
-    """
+    """The versions the baseline log records, oldest first: the log defines a baseline, and
+    a `spec/v*` tag is a bookmark somebody may not have made."""
     try:
         with open(os.path.join(SPECS, BASELINE_LOG), "r",
                   encoding="utf-8") as handle:
@@ -1223,20 +1129,15 @@ def has_tag(version):
 
 
 def introduces(revision, path, version, top):
-    """Whether this commit is where that version's row appeared.
-
-    A commit that merely *contains* the row proves nothing: in a shallow
-    checkout the oldest commit available contains every row there has ever
-    been, and answering with it would date every baseline to the same
-    revision and report that nothing ever changed.
-    """
+    """Whether this commit is where that version's row appeared — containing it proves
+    nothing, since a shallow checkout's oldest commit contains every row there has ever
+    been."""
     try:
         parent = git(["rev-parse", "-q", "--verify", "%s^" % revision],
                      cwd=top).decode("utf-8").strip()
     except (OSError, subprocess.CalledProcessError):
-        # No parent to compare against: a root commit, or the boundary of
-        # a shallow one — and at a boundary the honest answer is that this
-        # cannot be known.
+        # No parent: a root commit, or a shallow boundary, where the honest answer is that
+        # this cannot be known.
         try:
             shallow = git(["rev-parse", "--is-shallow-repository"],
                           cwd=top).decode("utf-8").strip()
@@ -1244,10 +1145,8 @@ def introduces(revision, path, version, top):
             return False
         if shallow != "false":
             return False
-        # A parentless commit brought its whole log in at once — history
-        # that was squashed or imported looks exactly like this. Only the
-        # newest version it names describes the tree it left behind; the
-        # states the older rows froze are not in this repository at all.
+        # A parentless commit brought its whole log in at once, so only the newest version it
+        # names describes the tree it left behind.
         try:
             blob = git(["show", "%s:%s" % (revision, path)], cwd=top)
         except (OSError, subprocess.CalledProcessError):
@@ -1262,14 +1161,9 @@ def introduces(revision, path, version, top):
 
 
 def baseline_revision(version):
-    """The revision a baseline froze: its tag where one was made,
-    otherwise the commit that added its row — and nothing at all where
-    neither can be established.
-
-    Both halves are needed. Rows have been written a release late for
-    this project's whole history, so their commit is not what those tags
-    froze; and a project that never tags still has baselines.
-    """
+    """The revision a baseline froze: its tag where one was made, else the commit that added
+    its row, else nothing. Both halves are needed — rows have been written a release late,
+    and a project that never tags still has baselines."""
     if has_tag(version):
         return "spec/v%s" % version
     try:
@@ -1278,10 +1172,8 @@ def baseline_revision(version):
                                  os.path.realpath(top)).replace(os.sep, "/")
         prefix = "" if prefix == "." else prefix + "/"
         path = prefix + "specs/" + BASELINE_LOG
-        # One call finds a row written the way the tooling writes it. A row
-        # typed by hand may space its cells otherwise — and this reads such
-        # a row perfectly well — so a miss falls back to the file's own
-        # history rather than declaring the baseline lost.
+        # One call finds a row written the way the tooling writes it; a miss falls back to the
+        # file's history rather than declaring the baseline lost.
         found = git(["log", "--reverse", "--format=%H",
                      "-S", "| %s |" % version, "--", path], cwd=top)
         candidates = found.decode("utf-8", "replace").split()
@@ -1310,11 +1202,8 @@ def fingerprint(text):
 
 # implements: FR-VIEW-100
 def baseline_snapshots():
-    """[{tag, version, requirements: {id: {fields…}}}], oldest first.
-
-    A snapshot per baseline is what lets the page compare an arbitrary
-    pair without a clone; statements travel as fingerprints.
-    """
+    """[{tag, version, requirements: {id: {fields…}}}], oldest first: a snapshot per baseline
+    is what lets the page compare any pair without a clone."""
     snapshots = []
     for version in logged_baselines():
         revision = baseline_revision(version)
@@ -1336,14 +1225,8 @@ def baseline_snapshots():
 
 
 def as_deltas(snapshots):
-    """The first baseline in full, every later one as its change.
-
-    A snapshot per baseline costs the size of the whole specification
-    each time; the page is meant to be carried around, and ten baselines
-    of a growing specification is not a page any more. The reader still
-    compares an arbitrary pair — the page folds the deltas up to each
-    end first.
-    """
+    """The first baseline in full, every later one as its change: a snapshot each would cost
+    the whole specification per baseline, and the page is meant to be carried around."""
     out = []
     for index, snap in enumerate(snapshots):
         entry = {"tag": snap["tag"], "version": snap["version"]}
@@ -1359,21 +1242,16 @@ def as_deltas(snapshots):
     return out
 
 
-# Every field a requirement carries, and its title, except `created`: the
-# date a requirement was born is written once and never changes, so it is
-# never a difference between two revisions.
+# Every field and the title, except `created`: written once, so never a difference.
 DIFF_FIELDS = ("status", "verification", "title", "superseded_by",
                "code", "tests", "exempt") + LINK_FIELDS
 
 
 # implements: FR-VIEW-050
 def statement_words(text):
-    """A statement as its words, so that where its lines end is not a difference.
-
-    A line break inside a markdown paragraph renders as a space and is invisible to every reader;
-    only `git diff` sees it. Comparing the raw text made a reflow of the specification report every
-    statement in it as changed, which is the reading this command exists to spare its reader.
-    """
+    """A statement as its words, so where its lines end is not a difference: a break inside a
+    paragraph renders as a space, and comparing raw text reported every reflowed statement
+    as changed."""
     return " ".join((text or "").split())
 # srs-end: FR-VIEW-050
 
@@ -1623,10 +1501,8 @@ footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 12px 20px
 """
 # srs-end: FR-VIEW-390
 
-# Leaving a kind out is a class on the drawing rather than a style on each
-# edge: the script rebuilds an edge when an area folds, and a style set
-# on the element would not survive that. Generated from LINK_FIELDS so a
-# kind added later cannot arrive unhideable.
+# A class on the drawing rather than a style per edge, since the script rebuilds edges
+# when an area folds; generated from LINK_FIELDS so no kind arrives unhideable.
 EDGE_HIDE_CSS = "".join(
     "#graph-svg.hide-%s .edge.%s { display: none; }\n" % (field, field)
     for field in LINK_FIELDS)
@@ -2123,14 +1999,11 @@ def esc(text):
 
 
 def render_inline(text, modal_pattern):
-    """A deliberately partial Markdown renderer: escaping, the modal
-    verb, **strong**, *em*, `code`, paragraphs. A full parser without
-    dependencies is not worth its weight here; anything else in a
-    statement shows up literally.
+    """A deliberately partial Markdown renderer — escaping, the modal verb, **strong**, *em*,
+    `code`, paragraphs — anything else showing up literally.
 
-    The modal verb is substituted first — srs_check.RE_MODAL matches the
-    asterisks along with the word, so after **strong** became <strong>
-    it would never match again.
+    The modal verb goes first: its pattern matches the asterisks, so after **strong** became
+    <strong> it would never match again.
     """
     text = esc(text)
     if modal_pattern is not None:
@@ -2161,19 +2034,14 @@ def _pair(text, marker, tag):
 
 # implements: FR-VIEW-310
 class Links(object):
-    """Paths become links twice over: relative ones so the page works
-    from file://, and repository ones when repo_url is configured.
-
-    A page written outside the repository gets absolute file:// URLs
-    instead — a relative path out of, say, /tmp is correct only for as
-    long as nobody moves the page.
-    """
+    """Paths become links twice over: relative, so the page works from file://, and
+    repository ones where repo_url is set. A page written outside the repository gets
+    absolute file:// URLs instead."""
 
     def __init__(self, model, out_dir):
         self.repo_url = model["repo_url"]
-        # One resolved pair for both the decision and the path: mixing
-        # resolved and unresolved sides is how a symlinked root produces
-        # links that walk out of the repository.
+        # One resolved pair for both: mixing resolved and unresolved sides is how a symlinked
+        # root produces links out of the repository.
         root, here = os.path.realpath(ROOT), os.path.realpath(out_dir)
         if os.path.relpath(here, root).startswith(".."):
             self.prefix = "file://" + quote(root)
@@ -2192,10 +2060,8 @@ class Links(object):
 
 
 # implements: FR-VIEW-230
-# The verification letters the page draws, in the words `srs-dd/standard.md`
-# gives them, and in its order rather than alphabetical. A letter is not a
-# word, and this page is the one that reaches a reader who has neither that
-# file nor `specs/50-verification.md` to look it up in.
+# The verification letters in the standard's own words and order: a letter is not a
+# word, and this page reaches a reader who has neither file to look it up in.
 # implements: FR-VIEW-390
 METHODS = (("T", "test"), ("D", "demonstration"),
            ("I", "inspection"), ("A", "analysis"))
@@ -2289,10 +2155,8 @@ def render_card(entry, model, known, links, diff_state):
 
 # implements: FR-VIEW-410
 def file_key(path):
-    """The name a requirements file goes by in the page's filter: its path
-    under specs/. Its name alone would merge two areas' `000-999.md` into
-    one choice, and a filter that cannot tell two files apart chooses
-    neither."""
+    """The name a requirements file goes by in the filter: its path under specs/, since two
+    areas' `000-999.md` would otherwise merge into one choice."""
     prefix = "specs/"
     return path[len(prefix):] if path.startswith(prefix) else path
 # srs-end: FR-VIEW-410
@@ -2349,11 +2213,8 @@ def render_dashboard(model, links):
                       for path in model["orphan_code"])
 
     # implements: FR-VIEW-210
-    # Requirement identifiers go out as `href="#<id>"` so that following
-    # one from here reaches its card like every other view. `left` rather
-    # than `outlived`: the name belongs to the function that
-    # computes this, and a local shadowing it here is how somebody later
-    # calls the dict.
+    # Identifiers go out as `href="#<id>"`, so following one reaches its card like every
+    # other view. `left` rather than `outlived`, which names the function that computes it.
     left = model["outlived"]
     parts = []
     for item in left["links"]:
@@ -2432,17 +2293,11 @@ def render_diff_section(diff):
 # --------------------------------------------------------------------
 
 NODE_W, NODE_H, GAP_X, GAP_Y = 118, 28, 18, 22
-# Room above the first row for the lane's name, and how far an intra-lane
-# edge may swing out. The header is also the control that folds its column
-# away, so it is sized as a target a person can hit: at 26 it came to some
-# thirteen screen pixels once the drawing was fitted into a panel. The
-# stride has to hold the widest bow, or an edge would be drawn across the
-# neighbouring column.
+# Room above the first row for the lane's name, which is also the control that folds
+# the column, and the stride that holds the widest bow (ADR-0012).
 HEADER_H, BOW_MAX = 34, 34
-# What a collapsed lane shrinks to, and where its members' edges land while
-# they are folded away: at the bottom of that block, clear of the lane's
-# name rather than through it. The page's script carries the height too —
-# it is what does the folding — so the two have to agree.
+# What a collapsed lane shrinks to, and where folded edges land: at the bottom of that
+# block, clear of the name. The page's script carries the height too.
 LANE_FOLD_H = 44
 LANE_FOLD_Y = LANE_FOLD_H - NODE_H
 LANE_STRIDE = NODE_W + GAP_X + BOW_MAX
@@ -2459,18 +2314,15 @@ def svg_escape(text):
 
 
 def _area_of(node):
-    """The middle segment of `<TYPE>-<AREA>-<NNN>`. The checker has already
-    rejected anything shaped otherwise, but the graph is drawn from a model
-    and must not lose a node to a surprise."""
+    """The middle segment of `<TYPE>-<AREA>-<NNN>`; the graph is drawn from a model and must
+    not lose a node to a surprise."""
     parts = node.split("-")
     return parts[1] if len(parts) > 2 else ""
 
 
 def _row_key(node):
-    """Within a lane: by number, then by identifier. Sorting by the whole
-    string would sort by type first and interleave the numbering — SPEC
-    would read 010, 030, 040, 020 because two of them are `IF` and one is
-    `CON`."""
+    """Within a lane: by number, then by identifier — the whole string would sort by type
+    first and interleave the numbering."""
     parts = node.split("-")
     try:
         return (int(parts[-1]), node)
@@ -2479,22 +2331,16 @@ def _row_key(node):
 
 
 def _bow(y_from, y_to):
-    """How far an intra-lane edge swings out to clear the boxes between its
-    ends. The page's script carries this expression too — it recomputes an
-    edge when an area is collapsed, and an edge that changed shape at that
-    moment would read as a different link."""
+    """How far an intra-lane edge swings out to clear the boxes between its ends; the page's
+    script carries this expression too, and an edge changing shape when an area folds
+    would read as a different link."""
     return min(BOW_MAX, 14 + int(abs(y_from - y_to) / 5))
 
 
 def edge_path(ax, ay, bx, by, same_lane):
-    """The `d` of one edge, from the child's box to the parent's.
-
-    Within a lane the two boxes share an x, so a straight line would run
-    underneath everything between them: the edge leaves the right-hand
-    side and bows out. Across lanes it leaves the side facing the other
-    lane and runs straight. Both rules live in the page's script as well
-    (see `_bow`).
-    """
+    """The `d` of one edge, from the child's box to the parent's: within a lane it bows out
+    to clear what lies between, across lanes it runs straight. Both rules live in the
+    page's script as well."""
     a_mid, b_mid = ay + NODE_H / 2, by + NODE_H / 2
     if same_lane:
         side = ax + NODE_W
@@ -2509,12 +2355,8 @@ def edge_path(ax, ay, bx, by, same_lane):
 # implements: FR-VIEW-110, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180
 # implements: NFR-VIEW-010
 def build_graph(model):
-    """Every link drawn; a lane per area, a row per requirement.
-
-    Position is arithmetic — a lane index from the area, a row index from
-    the number — so the drawing comes out identical on every run without
-    a heuristic having to be kept stable for it.
-    """
+    """Every link drawn; a lane per area, a row per requirement. Position is arithmetic, so
+    the drawing comes out identical on every run (ADR-0012)."""
     known = by_id(model)
     edges = []
     for entry in model["requirements"]:
@@ -2523,10 +2365,8 @@ def build_graph(model):
                 if target in known:
                     edges.append((entry["id"], target, field))
     nodes = sorted({rid for edge in edges for rid in edge[:2]}, key=srs_parse.id_key)
-    # The identifiers rather than their number: the page has to say what
-    # was left out, and a count says how many. Sorted order means the cut
-    # falls at one place in the alphabet, so whole families go at once —
-    # which is the fact worth carrying out of here.
+    # The identifiers, not their count: in sorted order the cut falls at one place in the
+    # alphabet, so whole families go at once.
     dropped = []
     if len(nodes) > GRAPH_NODE_LIMIT:
         dropped = nodes[GRAPH_NODE_LIMIT:]
@@ -2538,9 +2378,8 @@ def build_graph(model):
 
     area = dict((node, _area_of(node)) for node in nodes)
     present = set(area.values())
-    # The configured order first — it is the maintainer's and it is
-    # committed — then whatever the configuration does not name, so a node
-    # can never fall out of the drawing by being in an unexpected area.
+    # The configured order first, then what it does not name, so no node falls out of the
+    # drawing by being in an unexpected area.
     lanes = ([a for a in model["areas"] if a in present]
              + sorted(present - set(model["areas"])))
 
@@ -2568,10 +2407,8 @@ def build_graph(model):
     # control that folds the column away.
     for index, lane in enumerate(lanes):
         x = LANE_PAD + index * LANE_STRIDE
-        # Two rectangles, not one: the band is the column's backdrop and
-        # takes no clicks — catching them meant a click in the gap between
-        # two boxes folded the whole area away. The head is the control,
-        # and it is the size of the block the column folds into.
+        # Two rectangles: the band is the backdrop and takes no clicks, the head is the control
+        # — catching clicks on the band folded an area from the gap between two boxes.
         parts.append('<g class="lane" data-area="%s" data-x="%d" data-y="%d" '
                      'data-h="%d">'
                      '<rect class="lane-band" x="%d" y="0" width="%d" '
@@ -2592,10 +2429,8 @@ def build_graph(model):
             continue
         cx, cy = position[child]
         px, py = position[parent]
-        # The kind is always on the edge: a form that tells one relation
-        # from another is the requirement. Nothing marks an edge as
-        # running backwards any more — with a lane for an area and a row
-        # for a number, no direction claims to be forward.
+        # The kind is always on the edge; nothing marks one as running backwards, since with a
+        # lane per area and a row per number no direction is forward.
         parts.append('<path class="edge %s" data-from="%s" data-to="%s" '
                      'd="%s" marker-end="url(#a)"/>'
                      % (field, svg_escape(child), svg_escape(parent),
@@ -2620,16 +2455,9 @@ def build_graph(model):
                         x + NODE_W / 2, y + NODE_H / 2 + 4, svg_escape(node)))
     options = "".join('<option value="%s">%s</option>'
                       % (svg_escape(node), svg_escape(node)) for node in nodes)
-    # Both legends are lists, so both read down the rail rather than
-    # across. The link swatch is a line carrying the very class the edge
-    # carries, so the dash pattern cannot drift from the drawing; the
-    # status swatch takes its colour from the same st-* class a node does.
-    # Colour is not the only channel: every key is named, and a node's
-    # tooltip says its status in words.
-    # Pressed means drawn: every kind starts on, and a click subtracts
-    # it. That is the direction the requirement argues for — a link that
-    # is drawn and unwanted is one click away, a link never drawn is
-    # invisible.
+    # Each swatch carries the very class the drawing uses, so dash and colour cannot drift;
+    # colour is not the only channel, every key being named. Pressed means drawn: every
+    # kind starts on and a click subtracts it.
     link_keys = "".join(
         '<span class="key kind" role="button" tabindex="0" '
         'aria-pressed="true" data-kind="%s">'
@@ -2709,23 +2537,19 @@ RE_CSS_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}")
 
 # implements: FR-VIEW-340
 def graph_stylesheet():
-    """The rules the drawing needs and the background colour, taken from
-    the page's own stylesheet rather than kept as a second copy: every rule
-    addressed to `.graph` and the status colours the nodes carry, with the
-    light theme's variables resolved into them.
+    """The rules the drawing needs, taken from the page's own stylesheet rather than kept as
+    a second copy.
 
-    Light and only light, on an opaque background. An SVG shown as an
-    image is not told what theme the page around it uses, and a drawing
-    that is legible on one background is worth more than one that guesses.
+    Light and only light, on an opaque background: an SVG shown as an image is not told
+    what theme surrounds it.
     """
     # Comments out first: a rule written after one would otherwise carry
     # the comment inside its selector and match nothing.
     rules = RE_CSS_RULE.findall(re.sub(r"/\*.*?\*/", "", CSS, flags=re.S))
     root = next(body for selector, body in rules if selector.strip() == ":root")
     values = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", root))
-    # Resolved to literal colours: an SVG rendered as an image is not
-    # promised custom properties by every renderer, and a variable it does
-    # not resolve is a node drawn in black on black.
+    # Literal colours: a renderer that does not resolve a custom property draws a node
+    # black on black.
     def resolve(body):
         return re.sub(r"var\((--[\w-]+)\)",
                       lambda m: values.get(m.group(1), m.group(0)), body)
@@ -2740,10 +2564,8 @@ def graph_stylesheet():
 
 # implements: FR-VIEW-340
 def neighbourhood(model, chosen):
-    """The selection and every requirement one link away from it, in either
-    direction — what it names in a link field and what names it. One step,
-    because the picture is of the selection's place in the specification,
-    and two steps from anything is most of it."""
+    """The selection and every requirement one link away, either direction — one step,
+    because two steps from anything is most of the specification."""
     known = by_id(model)
     core = set(entry["id"] for entry in chosen)
     wanted = set(core)
@@ -2759,10 +2581,8 @@ def neighbourhood(model, chosen):
 
 # implements: FR-VIEW-340
 def graph_image(model):
-    """The graph of `model` as one self-contained SVG document, or "" where
-    the selection has no edges to draw. The drawing is the page's — the
-    same function, the same arithmetic — lifted out of the stage it sits in
-    on the page and given the styles it needs to stand alone."""
+    """The graph of `model` as one self-contained SVG, or "" where the selection has no edges:
+    the page's own drawing, lifted out of its stage and given the styles to stand alone."""
     stage, _dropped = build_graph(model)
     if not stage:
         return ""
@@ -2785,15 +2605,9 @@ def graph_image(model):
 def baseline_row(version, date=None):
     """The row for `92-baselines.md`, ready to paste.
 
-    Normally computed from the working tree against the newest existing
-    baseline, because the row is written before its own tag exists — that
-    order is what keeps the tag from ever pointing at a state the log does
-    not describe.
-
-    Where the tag is already there — somebody tagged by hand — the row is
-    computed from that revision against the baseline before it, and dated
-    from its commit. A row written late then says what it would have said
-    on time, instead of describing whatever the working tree holds now.
+    Normally the working tree against the newest baseline, since the row is written before
+    its tag exists. Where the tag is already there, the row is computed from that revision
+    and dated from its commit, so a row written late says what it would have said on time.
     """
     earlier = [logged for logged in logged_baselines()
                if version_key(logged) < version_key(version)]
@@ -2857,10 +2671,8 @@ def render_baselines(snapshots, logged=()):
     page, from the snapshots embedded beside it."""
     if not snapshots:
         if logged:
-            # The log is a file and reads anywhere; the states it names
-            # live in commits, and a shallow checkout has none of them.
-            # Saying nothing here would show a page that quietly claims
-            # this specification has never been frozen.
+            # The log reads anywhere; the states it names live in commits a shallow checkout lacks,
+            # and silence here would claim the specification has never been frozen.
             return ("<p><strong>%d baselines are recorded</strong> in "
                     "<code>92-baselines.md</code>, and none of them could be "
                     "read here: comparing them needs the repository's "
@@ -2893,9 +2705,8 @@ def render_baselines(snapshots, logged=()):
 
 # implements: FR-VIEW-060, FR-VIEW-090
 def render_page(model, links, diff=None, baselines=None):
-    # From the log, not from the snapshots: which baselines exist is a
-    # question the log answers on its own, and it answers it in a checkout
-    # too shallow to hold the states they name.
+    # From the log, not the snapshots: which baselines exist is a question the log answers
+    # in a checkout too shallow to hold them.
     logged = logged_baselines()
     entries = model["requirements"]
     known = by_id(model)
@@ -2964,10 +2775,8 @@ def render_page(model, links, diff=None, baselines=None):
                            esc(path[len("specs/"):]))
                         for path in model["documents"])
 
-    # One pass over the template, not one pass per token: a requirement
-    # whose text happens to contain __GRAPH__ (this tool's own
-    # specification, for one) must not have it substituted after the
-    # cards are already in place.
+    # One pass over the template: a requirement whose text contains __GRAPH__ — this tool's
+    # own specification — must not have it substituted after the cards are in place.
     filled = dict((
             ("__TITLE__", esc(project_title())),
             ("__CSS__", CSS + EDGE_HIDE_CSS),
@@ -3002,10 +2811,8 @@ def render_page(model, links, diff=None, baselines=None):
 
 
 def project_title():
-    """The project's name, borrowed from the agent guide's heading
-    ("# Acme — agent guide"). The specification's own §1 heading would
-    only ever say "Introduction", and the directory name is the last
-    thing left to fall back on."""
+    """The project's name, borrowed from the agent guide's heading, since §1 would only ever
+    say "Introduction" and the directory name is the last fallback."""
     for name in ("AGENTS.md", "CLAUDE.md"):
         try:
             with open(os.path.join(ROOT, name), "r",
@@ -3137,11 +2944,8 @@ def parse_args(argv):
                              "revision is usually known, e.g. "
                              "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA")
     # implements: FR-VIEW-010
-    # One requirement at a time is what the card shows, and two identifiers
-    # on the line are the commonest way of asking for more: answered with a
-    # sentence rather than the usage block, so that whoever asked — an
-    # agent chaining calls, a person at the terminal — knows what to do
-    # next without a second attempt.
+    # Two identifiers on the line are the commonest way of asking for more, answered with a
+    # sentence rather than the usage block.
     args, extra = parser.parse_known_args(argv)
     if extra:
         # implements: INV-SPEC-080, IF-SPEC-040
@@ -3255,13 +3059,8 @@ def main(argv=None):
             out("Page written: %s" % written)
             if args.open:
                 # implements: FR-VIEW-140
-                # Rendering and opening are one act for a reader, and the
-                # command that opens differs by platform; the standard
-                # library knows which, so the tool carries it once instead
-                # of every reader carrying it forever.
-                # as_uri rather than "file://" + path: a Windows path
-                # concatenated onto the scheme is not a URL, and the
-                # standard library already knows the difference.
+                # Rendering and opening are one act for a reader, and the standard library knows which
+                # command opens; as_uri, since a Windows path concatenated onto a scheme is not a URL.
                 webbrowser.open(pathlib.Path(written).as_uri())
                 # srs-end: FR-VIEW-140
 
@@ -3311,10 +3110,8 @@ def main(argv=None):
         return 0
 
     # implements: FR-VIEW-300
-    # Its own branch rather than a narrowing of select(): the mode for a
-    # path answers from three sources and this one from the annotations
-    # alone, and the count beside the answer is the path mode's, so the
-    # reader handed one requirement knows it is one of thirty.
+    # Its own branch: the path mode answers from three sources and this from annotations
+    # alone, and the count beside the answer is the path mode's.
     if args.code:
         path, line = split_line_spec(args.code)
         if line is not None:
