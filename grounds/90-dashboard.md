@@ -71,11 +71,11 @@ Counted by quarter, which is what `period` says in the register's configuration.
 | quarter | arrived unclaimed | areas |
 |---|---|---|
 | 2026-Q3 | 291 | ARCH 35, CHK 32, CI 20, DOC 1, GND 67, INIT 27, SKILL 43, SPEC 28, VIEW 38 |
-| 2026-Q4 | 25 | ARCH 11, CHK 1, INIT 7, SKILL 5, SPEC 1 |
+| 2026-Q4 | 26 | ARCH 11, CHK 1, INIT 8, SKILL 5, SPEC 1 |
 
 ## Requirements resting on no hypothesis
 
-316 of 344 requirements. Weight is what stands on them: how many
+317 of 345 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
@@ -207,8 +207,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-270 | 0 | 3 | 3 |
 | FR-SKILL-280 | 0 | 3 | 3 |
 | FR-SKILL-290 | 1 | 2 | 3 |
-| FR-SKILL-390 | 0 | 3 | 3 |
-| FR-SKILL-430 | 1 | 2 | 3 |
+| FR-SKILL-430 | 2 | 1 | 3 |
 | FR-SPEC-020 | 2 | 1 | 3 |
 | FR-VIEW-080 | 2 | 1 | 3 |
 | FR-VIEW-250 | 2 | 1 | 3 |
@@ -279,6 +278,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-330 | 0 | 2 | 2 |
 | FR-SKILL-370 | 1 | 1 | 2 |
 | FR-SKILL-380 | 0 | 2 | 2 |
+| FR-SKILL-390 | 0 | 2 | 2 |
 | FR-SKILL-400 | 0 | 2 | 2 |
 | FR-SKILL-410 | 0 | 2 | 2 |
 | FR-SKILL-420 | 0 | 2 | 2 |
@@ -364,6 +364,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-INIT-340 | 0 | 1 | 1 |
 | FR-INIT-350 | 0 | 1 | 1 |
 | FR-INIT-380 | 0 | 1 | 1 |
+| FR-INIT-390 | 0 | 1 | 1 |
 | FR-SKILL-140 | 0 | 1 | 1 |
 | FR-SKILL-150 | 0 | 1 | 1 |
 | FR-SKILL-230 | 0 | 1 | 1 |

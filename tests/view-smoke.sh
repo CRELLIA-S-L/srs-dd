@@ -608,6 +608,11 @@ python3 srs-dd/tools/srs_view.py --html
 # about the list. The named ones are what the page never offered while its
 # list was a hand-made copy of the checker's skipped set; 10-fr-core.md is
 # the one file the target carries requirements in, and it must stay out.
+# The constitution is the project's own file and the framework ships none, so
+# the target writes one here: what the page owes is every prose file it finds.
+printf '# Constitution\n\n- **Version:** 1.0.0\n\n## ART-010 — Ours\n\nSomething this project decided.\n' \
+    > specs/constitution.md
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 python3 - <<'PY2'
 page = open('.srs-site/index.html', encoding='utf-8').read()
 listing = page[page.index('<h2>Documents</h2>'):]

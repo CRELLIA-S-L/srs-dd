@@ -71,7 +71,20 @@ The installer rewrites the files it owns there on every upgrade and refuses to i
 Nothing of yours goes there, and a path of yours it finds under the directory is named in its report and left alone — it deletes nothing it did not write.
 Everything else is yours: the hook, the pipelines, `CLAUDE.md`, `.gitattributes` and `AGENTS.md` are written once as starters and never again — except the region of `AGENTS.md` between `<!-- srs-dd -->` and `<!-- /srs-dd -->`, which holds the framework's rules and is rewritten in place by every upgrade so that every agent reading the file has them.
 The procedures under `.claude/skills/srs-*` are the framework's as well, refreshed with the tooling; a procedure of your own takes another name.
-Your constitution, `specs/constitution.md`, holds your own articles under numbers you allocate; the articles of the method are `SRS-DD-ART-*` in `srs-dd/method.md`.
+A constitution is yours to write: the framework ships none, and `specs/constitution.md` holds your own articles under numbers you allocate, changed as `SRS-DD-ART-130` says. The articles of the method are `SRS-DD-ART-*` in `srs-dd/method.md` and arrive with every upgrade. One to copy if you want a start:
+
+```markdown
+# Constitution
+
+Standing engineering principles of this project. Every plan and every diff is checked against them.
+
+- **Version:** 1.0.0
+- **Ratified:** <the day you adopt it>
+
+## ART-010 — <your first principle>
+
+<what it obliges, in a sentence or two.>
+```
 
 ## Manual fallback
 

@@ -14,7 +14,7 @@ The articles of the method are the framework's and stand in `srs-dd/method.md` a
 - **Amended:** 2026-08-06 — v1.2.0: ART-070 added, so that keeping framework content out of installed projects is a standing principle rather than a note in a guide (adding an article is MINOR per ART-090)
 
 Articles are numbered in steps of 10 and referenced from plans, reviews, and ADRs the same way requirements are: “rejected per ART-040”.
-The starting point targets receive is `skeleton/specs/constitution.md`; this file is this repository's own copy, and the two diverge as either side is amended.
+The framework ships no constitution: a project writes its own where it has principles of its own (`SRS-DD-ART-130`), and this file is this repository's.
 
 ## ART-040 — Simplicity
 

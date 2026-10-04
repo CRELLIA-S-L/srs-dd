@@ -287,6 +287,14 @@ for f in /tmp/srs-clean/srs-dd/tools/*.py /tmp/srs-clean/.claude/skills/*/SKILL.
     carrying=$((carrying + 1))
 done
 [ "$carrying" -ge 25 ] || { echo "FAIL FR-INIT-280 — only $carrying shipped files were looked at; the tuples shrank"; exit 1; }
+# verifies: FR-INIT-390
+# A project's principles are a file the project creates: the installer writes
+# none, so no article of ours takes a number in the project's space.
+if [ -e /tmp/srs-clean/specs/constitution.md ]; then
+    echo "FAIL FR-INIT-390 — the installer wrote specs/constitution.md; a project writes its own"; exit 1
+fi
+# srs-end: FR-INIT-390
+
 # The guide's source stays the framework's and carries none, deliberately:
 # its text is written into the region of the project's own AGENTS.md, where
 # a line of ours would claim their document.
@@ -294,7 +302,7 @@ if grep -qF "$NOTICE" /tmp/srs-clean/srs-dd/guide.md; then
     echo "FAIL FR-INIT-280 — srs-dd/guide.md carries a notice; its text goes into the project's AGENTS.md"; exit 1
 fi
 for f in .githooks/pre-commit .github/workflows/srs.yml .gitlab-ci.yml AGENTS.md CLAUDE.md .gitattributes \
-         specs/adr/template.md specs/constitution.md specs/00-glossary.md specs/10-fr-core.md; do
+         specs/adr/template.md specs/00-glossary.md specs/10-fr-core.md; do
     if grep -qF "$NOTICE" "/tmp/srs-clean/$f"; then
         echo "FAIL FR-INIT-280 — $f becomes the project's own and must carry no notice of ours"; exit 1
     fi

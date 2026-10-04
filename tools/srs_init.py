@@ -146,8 +146,7 @@ SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
 # srs-end: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
 
 # Service spec files adopt lays down when (and only when) absent.
-ADOPT_SERVICE_FILES = ("constitution.md", "00-glossary.md",
-                      "91-open-issues.md", "92-baselines.md")
+ADOPT_SERVICE_FILES = ("00-glossary.md", "91-open-issues.md", "92-baselines.md")
 
 # implements: FR-CI-050
 CI_TEMPLATES = {
@@ -1473,13 +1472,6 @@ def install_adopt_files(installer, settings, substitute, target,
         if not os.path.exists(os.path.join(target, rel)):
             installer.copy(skeleton_src(rel), rel, tooling=False,
                            substitute=substitute)
-    if os.path.join("specs", "constitution.md") in installer.created \
-            and settings["modal_verbs"] != DEFAULTS["modal_verbs"]:
-        sys.stdout.write(
-            "Note: the installed specs/constitution.md is in English "
-            "(framework language); adapt or translate it as you see "
-            "fit.\n")
-
     install_tools(installer, skip=tools_skip)
     if settings["grounds"]:
         install_grounds(installer, substitute, settings["period"])

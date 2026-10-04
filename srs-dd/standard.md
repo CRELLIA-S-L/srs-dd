@@ -16,7 +16,7 @@ The decision log follows **MADR**.
 |---|---|
 | `README.md` | For people, never read as requirements — here or in any folder below. The standard itself is `srs-dd/standard.md`, outside `specs/` |
 | `00-glossary.md` | Terms. Read first if the project's vocabulary is unfamiliar |
-| `constitution.md` | The project's own standing principles, `ART-*`, numbered by the project alone; changed only via its own amendment procedure. The articles of the method are the framework's, in `srs-dd/method.md` as `SRS-DD-ART-*` |
+| `constitution.md` | The project's own standing principles, `ART-*`, numbered by the project alone and changed as `SRS-DD-ART-130` says; written by the project where it has principles of its own, and shipped by nobody. The articles of the method are the framework's, in `srs-dd/method.md` as `SRS-DD-ART-*` |
 | `01-introduction.md` | §1: purpose, scope, boundaries, audience |
 | `02-overview.md` | §2: product perspective, user classes, environment, assumptions |
 | `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area holding its first thousand numbers; from the thousandth on, a directory `10-fr-<area>/` of files by the thousand — `000-999.md`, `1000-1999.md`, … — each holding the numbers its name states |
@@ -242,7 +242,7 @@ Its status is the front matter's `status` key or a `- **Status:** <status>` line
 A file under `adr/` with no such heading — an index, a template — is not a decision.
 The number in the heading is the decision's name; the file name is a convention, and renaming the file changes nothing.
 
-A rule that binds every procedure is written once, where the procedure's reader can open it: in this standard or in the constitution, which travel with the procedure, and the procedure points at it with a line that says what it asks.
+A rule that binds every procedure is written once, where the procedure's reader can open it: in this standard or in the method's articles, which travel with the procedure, and the procedure points at it with a line that says what it asks.
 A rule that lives only in a requirement of the framework that ships the procedure does not travel with it, so the procedure carries that rule in its own words, and the requirement names the procedure in its `code` field — the one pointer that can be written.
 
 ## Annotations

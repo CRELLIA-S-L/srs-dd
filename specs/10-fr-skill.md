@@ -1040,7 +1040,7 @@ derives_from: []
 depends_on: [INV-SKILL-010]
 refines: []
 conflicts_with: []
-code: [skeleton/AGENTS.md, AGENTS.md, skeleton/specs/constitution.md]
+code: [skeleton/AGENTS.md, AGENTS.md]
 tests: [tests/guide-parity.sh]
 created: 2026-09-25
 ```
@@ -1121,12 +1121,12 @@ derives_from: [FR-INIT-320]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/method.md, skeleton/specs/constitution.md]
+code: [srs-dd/method.md]
 tests: [tests/guide-parity.sh]
 created: 2026-10-01
 ```
 
-The articles that bind every project to the method — the hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates, nothing sensitive in the repository — **shall** ship as `srs-dd/method.md` under identifiers `SRS-DD-ART-NNN`, outside the constitution the installer ships.
+The articles that bind every project to the method — the hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates, nothing sensitive in the repository, simplicity, and how a project keeps principles of its own — **shall** ship as `srs-dd/method.md` under identifiers `SRS-DD-ART-NNN`.
 
 **Rationale.** The shipped constitution said *adapt the articles to your project* and the procedures stood on six of those articles as on the method's own: a project that reversed its own ART-020 left eight references in the procedures pointing at nothing. The articles of the method are the framework's, numbered in a space of their own and refreshed with the tooling; the constitution the project gets holds only what a project decides for itself — simplicity, and how it amends its own constitution — and is numbered by the project alone. In this repository the articles ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 of the constitution before 0.22.0 are `SRS-DD-ART-010` to `SRS-DD-ART-060` and `SRS-DD-ART-100`, and every reference, decisions included, is rewritten; the release note names the change as incompatible.
 

@@ -809,3 +809,28 @@ After installing or upgrading, the installer **shall** report every path under `
 **Rationale.** The directory is declared the framework's and the installer refreshes the files it owns there, so a file somebody else put beside them stayed for ever and nothing said so: driven through a sandbox on 2026-10-01, `srs-dd/notes-of-mine.md` and `srs-dd/tools/mytool.py` survived three upgrades unmentioned. `FR-INIT-330` does not reach them, because it reads the marker in `srs-dd/README.md` alone and a stranger's file beside a marked README never makes the directory somebody else's.
 It is reported and not deleted. Deleting a file it did not write is what `SRS-DD-ART-030` reserves for the user's explicit confirmation, and `FR-INIT-340` deletes only copies that carry the marker; a path under `srs-dd/` is both at once — in a place declared ours, and written by somebody else — so the installer names it and leaves the choice where it belongs.
 Naming each rather than counting them: the list is what a maintainer acts on, and a count says only that something is there.
+
+### FR-INIT-390 — The installer writes no constitution
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-430]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/guide-parity.sh, tests/installer-smoke.sh]
+exempt: [annotation-unpaired]
+created: 2026-10-04
+```
+
+The installer **shall** write no `specs/constitution.md` into a target, in any mode.
+
+**Rationale.** A constitution is a project's own principles in a number space of its own, and everything the framework asserts is an article of the method (`FR-SKILL-430`) — so there is nothing of ours to put in that file, and a starter we wrote is content of the framework's in the project's space.
+What that costs was paid twice in one day: the article on comments shipped as `ART-030`, the first project to receive it found the number taken, renumbered to `ART-050`, and landed on a number the starter's own amendment log names as an article of the method's; the same had happened earlier with `ART-040`.
+The log was the other half of it — a project received four amendments it never made, a ratification date from this repository's history and a version that counted our changes — and both halves go with the file.
+
+A project that wants principles of its own writes the file, and `SRS-DD-ART-130` says where it lives, how it is numbered and how it changes; `docs/install.md` shows one a project may copy.
+Nothing reads the file: the checker and the viewer pass it over as prose, and no procedure cites an article of it by number, so a project without one loses nothing.
+Met by the absence of a write, in the list adopt lays down and in the walk of the payload alike, so there is no line to stand an annotation above and the requirement is excused from `annotation-unpaired`.

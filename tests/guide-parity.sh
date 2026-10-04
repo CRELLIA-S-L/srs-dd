@@ -185,72 +185,24 @@ with open("srs-dd/method.md", encoding="utf-8") as method:
     method_text = method.read()
 found += sensitive_gaps(guide_text, method_text)
 
-# The method's articles are the framework's: each of the six stands in
-# srs-dd/method.md. The numbers themselves are the project's, freed when the
-# six moved out and spelled apart since (SRS-DD-ART-*), so the starter uses
-# the first two rather than the gap the six left behind.
-METHOD_ARTICLES = ("010", "020", "030", "050", "060", "100")
-with open("skeleton/specs/constitution.md", encoding="utf-8") as handle:
-    shipped_constitution = handle.read()
+# Every article the framework asserts stands in srs-dd/method.md, spelled
+# apart from a project's own (SRS-DD-ART-*), so none of them takes a number in
+# the project's space.
+METHOD_ARTICLES = ("010", "020", "030", "050", "060", "100", "110", "120", "130")
 for number in METHOD_ARTICLES:
     if "## SRS-DD-ART-%s — " % number not in method_text:
         found.append(("srs-dd/method.md", "carries no SRS-DD-ART-%s" % number))
 
-STARTING_ARTICLES = ("ART-010", "ART-020")
-# A rule that is true of this framework and of nobody else, stated in the
-# constitution a stranger receives as their own. The stdlib rule travelled
-# that way until 2026-10-02: ADR-0003 holds it of our Python tools because
-# targets are written in other languages, and it then told those targets
-# what their own tooling may depend on.
-FRAMEWORK_ONLY = ("standard-library", "standard library", "virtualenv")
-
-
-def constitution_gaps(text):
-    """What the constitution the installer ships must and must not hold.
-
-    It defines the project's own starting articles and no article of the
-    method's. Every article number it names outside its amendment log is one
-    it defines: a number only mentioned is one a reader looks up and does
-    not find. And no rule in it holds of this framework alone. The log is
-    exempt — it is the history of this document, and the numbers in it are
-    the ones the method's articles held before they moved out.
-    """
-    gaps = []
-    where = "skeleton/specs/constitution.md"
-    if re.search(r"^## SRS-DD-ART-", text, re.M):
-        gaps.append((where, "carries an article of the method's"))
-    defined = set(re.findall(r"^## (ART-\d{3}) — ", text, re.M))
-    for wanted in STARTING_ARTICLES:
-        if wanted not in defined:
-            gaps.append((where, "defines no %s, a starting article of the project's own" % wanted))
-    for line in text.splitlines():
-        if line.startswith("- **Amended:**"):
-            continue
-        for named in sorted(set(re.findall(r"(?<!SRS-DD-)\bART-\d{3}\b", line))):
-            if named not in defined:
-                gaps.append((where, "names %s outside its amendment log and defines no such article" % named))
-    for rule in FRAMEWORK_ONLY:
-        if rule in text:
-            gaps.append((where, "states as the project's a rule that holds of this framework alone: %r" % rule))
-    return gaps
-
-
-# --- Negation first, on strings: each of the four must be red.
-assert constitution_gaps("## ART-010 — A\n\n## ART-020 — B\n") == []
-assert constitution_gaps("## ART-010 — A\n\n## ART-020 — B\n\n## SRS-DD-ART-030 — C\n") \
-    == [("skeleton/specs/constitution.md", "carries an article of the method's")]
-assert constitution_gaps("## ART-010 — A\n") \
-    == [("skeleton/specs/constitution.md", "defines no ART-020, a starting article of the project's own")]
-assert constitution_gaps("rejected per ART-040\n\n## ART-010 — A\n\n## ART-020 — B\n") \
-    == [("skeleton/specs/constitution.md",
-         "names ART-040 outside its amendment log and defines no such article")]
-assert constitution_gaps("- **Amended:** ART-040 moved\n\n## ART-010 — A\n\n## ART-020 — B\n") == []
-assert constitution_gaps("## ART-010 — A\n\nTooling stays standard-library only.\n\n## ART-020 — B\n") \
-    == [("skeleton/specs/constitution.md",
-         "states as the project's a rule that holds of this framework alone: 'standard-library'")]
-print("guide-parity: an article of the method's, a missing starting article, a number named and "
-      "not defined, and a rule only ours are each red in the shipped constitution")
-found += constitution_gaps(shipped_constitution)
+# verifies: FR-INIT-390, FR-SKILL-430
+# The payload ships no constitution: a project's principles are a file the
+# project creates, in its own number space, and everything the framework
+# asserts is an article of the method.
+if os.path.exists("skeleton/specs/constitution.md"):
+    found.append(("skeleton/specs/constitution.md",
+                  "is shipped, and a project's constitution is the project's own file"))
+if "ART-NNN" not in method_text:
+    found.append(("srs-dd/method.md", "does not say where a project's own articles live"))
+# srs-end: FR-INIT-390
 
 # verifies: FR-SKILL-470
 # The method asks for minimal comments: in its own number space, so the rule
@@ -265,9 +217,6 @@ else:
         if phrase not in comments.group(1):
             found.append(("srs-dd/method.md",
                           "its article on comments does not say %r" % phrase))
-if re.search(r"^## ART-\d{3} — Comments are minimal", shipped_constitution, re.M):
-    found.append(("skeleton/specs/constitution.md",
-                  "holds an article of the method's in the project's number space"))
 # srs-end: FR-SKILL-470
 
 # A starter that points at `README.md` pointed at the standard until it moved
