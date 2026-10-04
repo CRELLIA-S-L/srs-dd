@@ -639,3 +639,113 @@ Where a project carries an architecture layer, the gate, run before a commit, **
 
 **Rationale.** The reason `FR-GND-570` gives for the register, for the layer: `FR-ARCH-170` makes the pipeline refuse a stale map, and the map reads the specification — a requirement added to it changes how many the elements carry of how many there are — so a commit that touches only `specs/` can leave it stale.
 Whether the project carries the layer is read at every commit from `arch/arch-config.json`, as the pipeline reads it.
+
+### FR-ARCH-310 — A designed part's carriers need not exist yet
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-010]
+refines: [FR-ARCH-280]
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-03
+```
+
+While an element's status is `proposed`, the architecture checker **shall not** report the paths its `carries` names as missing from the repository.
+
+**Rationale.** A part designed before it is built names where its files will be, so every one of them is missing by construction, and `carrier-missing` — written for a record that went stale (`FR-ARCH-280`) — would fire on the whole design at once, which is how a report teaches its reader to skim it.
+The status is what tells the two cases apart: `proposed` says the files are not there yet, `built` says they are.
+The exception keys on a value the format already carried, so no key is added and a layer written against an earlier version keeps parsing, which is the whole of what `IF-ARCH-010` promises.
+What the exception costs is a design that shipped and never had its status flipped, and that is the finding `FR-ARCH-330` makes.
+
+### FR-ARCH-320 — An approved requirement no part answers for is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-03
+```
+
+Where a requirement is `deferred` and no element carries it, the architecture checker **shall** report it as a warning named `requirement-unassigned`, naming the requirement.
+
+**Rationale.** Where a cut is designed against the specification rather than read off the repository, this is the finding that says the design is unfinished, and nothing else in the layer makes it.
+`FR-ARCH-070` asks the same question from the built end and therefore answers it too late: by the time a requirement is `implemented`, the part that carries it has been chosen in code, and choosing it is what designing is.
+`deferred` is the status the Lifecycle gives an approved and unbuilt obligation, which is exactly what a cut is designed against.
+`draft` stays out: a `draft` is recorded and not approved, which SRS-DD-ART-020 of the method makes non-negotiable for code, and the same reason holds for structure — a part designed to carry an obligation nobody has approved answers for one that may still be reworded or dropped.
+A warning the project prices (`FR-ARCH-090`), because a project adopting the layer with a backlog of approved work would otherwise be told to design all of it at once.
+A name of its own beside `requirement-uncarried`, because the two findings are about different things — one says the description decayed, the other that the design has a hole — and a project may want one without the other.
+
+### FR-ARCH-330 — A designed part that is already built is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-310]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-03
+```
+
+Where an element is `proposed`, carries at least one requirement, every requirement it carries is `implemented` or `partial` and every path its `carries` names exists, the architecture checker **shall** report it as a warning named `element-built`, naming the element.
+
+**Rationale.** This is the price of `FR-ARCH-310`: an exception that lets a design name files nobody has also lets a design that shipped keep reading as a plan, and the layer's claim is that it says what the system is made of today.
+Both conditions and not either, because a part whose files exist while its obligations are still unbuilt is being built rather than built, and a warning firing then would be noise during exactly the work it watches.
+At least one requirement, because a record naming none carries none, and that part is already reported by `FR-ARCH-080` — a second voice from here would say the same thing about the same record.
+Reported and not corrected: the layer writes the map and nothing else (`CON-ARCH-010`), so the status is flipped by whoever knows the part is done.
+
+### FR-ARCH-340 — A designed part does not own what it names yet
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-010]
+refines: [FR-ARCH-060, FR-ARCH-070]
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-03
+```
+
+While an element's status is `proposed`, the architecture checker **shall** read it as owning neither the paths it carries nor the requirements it names.
+
+**Rationale.** Owning what it names is what `built` says about a part, and a designed part has not reached that yet: until it does, the files it names are answered for by whatever part answers for them today.
+Counting the design's claim as ownership would silence `FR-ARCH-060` for every file a design mentions — the file would read as owned while no built part owns it — and would silence `FR-ARCH-070` for every requirement a design means to take over.
+It would also erase the one thing a design is read for: what moving to it requires, which is computed from the difference between what the designed parts claim and what the built ones own.
+One obligation and not two, because what is being defined is ownership rather than a rule apiece; both ownership findings read it, and a project whose layer holds only built elements sees no change at all.
+
+### FR-ARCH-350 — What moving to the designed cut requires is computed
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, FR-ARCH-340]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-03
+```
+
+When asked what moving to the designed parts requires, the architecture command **shall** print the difference between them and the built parts: the paths that change hands and between which parts, the requirements that change part, and the dependencies the designed parts add and drop.
+
+**Rationale.** A design is read for one thing — what it would cost to get there — and that question is answered today by comparing two records in a text editor, which is where a redraw starts going wrong: the files are moved, and the obligations and the edges are discovered afterwards.
+Printed when asked and not reported as a finding, because a designed cut differing from the built one is the normal state of a project that designs before it builds, and a warning for it would fire for as long as the design lives.
+It fails nothing either, so the three exit codes of `IF-ARCH-020` keep describing a checking run rather than a reading.
+All three differences in one printing, for the reason a list of exit codes is one requirement: what the reader relies on is that this is the whole difference, and a plan that named only the files would lie by omission in exactly the way the editor does today.
+Both ends of a path, because a file that changes hands is only actionable with the part losing it and the part taking it named together.
+Computed and not written down, which is the split the layer already lives by (`ADR-0023`): the model is authored and the disagreement is computed, and a difference kept by hand is stale the first time an element is edited.
+Not called a difference against a revision: `FR-VIEW-050` compares the specification with what git holds, this compares two cuts recorded side by side in the same file, and one name over both acts would leave the reader guessing which they asked for.
