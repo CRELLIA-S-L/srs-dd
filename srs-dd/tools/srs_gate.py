@@ -33,10 +33,8 @@ sys.dont_write_bytecode = True
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # implements: FR-CI-180
-# (checker, the file it writes, the configuration that says the project
-# keeps it — None for the specification, which every project keeps). The
-# one list of what the gate compares byte for byte, which is also what
-# the shipped .gitattributes has to pin to LF.
+# (checker, the file it writes, the configuration that says the project keeps it —
+# None for the specification). What the shipped .gitattributes has to pin to LF.
 GENERATED = (
     ("srs-dd/tools/srs_check.py", "specs/90-traceability.md", None),
     ("srs-dd/tools/srs_grounds.py", "grounds/90-dashboard.md", "grounds/grounds-config.json"),
@@ -52,18 +50,16 @@ def git(*args):
 
 # implements: FR-CI-010, FR-CI-020, FR-GND-370, FR-GND-570, FR-ARCH-170, FR-ARCH-300
 def stale(path):
-    """Whether what git holds for a generated file is not what was just
-    written: git does not hold it, or the copy on disk differs from the
-    one git holds — the index, which in a fresh checkout is the commit."""
+    """Whether git holds something other than what was just written: nothing at all, or a
+    copy differing from the index, which in a fresh checkout is the commit."""
     if git("ls-files", "--error-unmatch", "--", path).returncode != 0:
         return True
     return git("diff", "--quiet", "--", path).returncode != 0
 
 
 def run_gate(strict, show):
-    """Runs every checker the project keeps, then compares every file they
-    wrote. A checker that fails stops the gate with its exit code, as it
-    would have stopped the pipeline's step."""
+    """Every checker the project keeps, then every file they wrote; a checker that fails
+    stops the gate with its own exit code."""
     compared = []
     for checker, written, config in GENERATED:
         if config and not os.path.isfile(os.path.join(ROOT, config)):
@@ -87,11 +83,8 @@ def run_gate(strict, show):
 
 # implements: FR-GND-310
 def report_staged():
-    """What the requirements this commit touches are staked on. A report
-    and never a verdict: a refuted hypothesis is not the committer's fault
-    and may be what they are repairing, so nothing here fails the commit.
-    Every staged file counts, not only the specification — a requirement
-    owns the files its `code` and `tests` fields name."""
+    """What the requirements this commit touches are staked on — a report, never a verdict:
+    a refuted hypothesis may be what the committer is repairing. Every staged file counts."""
     if not os.path.isfile(os.path.join(ROOT, "grounds", "grounds-config.json")):
         return
     listing = git("diff", "--cached", "--name-only", "-z", "--diff-filter=ACM")

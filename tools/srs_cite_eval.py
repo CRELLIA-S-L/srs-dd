@@ -2,20 +2,14 @@
 # Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 """Measure whether a fresh agent instance names records the way the guide asks.
 
-Asks a non-interactive Claude Code instance the questions in a file, one at a
-time, in this repository, and scores each answer: of the records it names —
-requirements, elements, register records, decisions — how many are named at
-their first mention in the citation form the guide asks for, with the title
-the project actually gives them.
-
-A measurement, not a gate: the answers of a model vary run to run, and the
-number this prints is read by whoever changes the guides, against the number
-before the change. Asking never runs in CI — its suite scores canned answers —
-and it says so and stops where no agent CLI is on the path.
-
     python3 tools/srs_cite_eval.py                       # the default questions
     python3 tools/srs_cite_eval.py --questions FILE      # another set
     python3 tools/srs_cite_eval.py --score FILE          # score canned answers instead of asking
+
+It asks a non-interactive Claude Code instance each question in this repository and
+scores how many records it names at their first mention in the citation form, with
+the project's own titles. A measurement and not a gate: answers vary run to run, and
+asking never runs in CI.
 """
 # file implements: FR-SKILL-290, NFR-SPEC-010, CON-SPEC-030
 
@@ -44,10 +38,8 @@ def read_questions(path):
 
 
 def identifier_pattern(areas):
-    """Every identifier this project can name — requirements by the declared
-    areas, decisions, and the records of the two layers — as (core, mention,
-    span): the bare alternation, the pattern for one mention of it, and the
-    pattern for a span written with it at either end."""
+    """Every identifier this project can name, as (core, mention, span): the bare
+    alternation, one mention of it, and a span with it at either end."""
     area = "|".join(re.escape(a) for a in areas)
     # implements: INV-SPEC-080
     number = srs_parse.NUMBER
@@ -59,9 +51,8 @@ def identifier_pattern(areas):
 
 
 def citations(ids):
-    """What each tool prints for the identifiers it holds: {id: line}. An
-    identifier no tool resolves is left out, and a mention of it is not a
-    record of this project."""
+    """What each tool prints for the identifiers it holds, {id: line}; one no tool resolves
+    is not a record of this project."""
     found = {}
     groups = {}
     for rid in ids:
@@ -84,18 +75,14 @@ def citations(ids):
     return found
 
 
-# The far end may be a number alone — "FR-GND-010…540" — which is how a
-# span is written when both ends share the area. Assembled with the core
-# alternation by identifier_pattern.
+# The far end may be a number alone — "FR-GND-010…540" — which is how a span is
+# written when both ends share the area.
 SPAN = r"`?(ID)`?\s*(?:through|to|…|\.\.\.|–|—|-)\s*`?(?:(ID)|\d{3,})`?"
 
 
 def mentions(answer, mention, span):
-    """Where each record is first named on its own, {id: offset}, in the
-    order of naming. The ends of a span — "A through B", "A…B", "A–B" — are
-    one name for a set and not a mention of each member, so an occurrence
-    inside a span is passed over; the same record named alone elsewhere is a
-    mention, and is scored where it stands alone."""
+    """Where each record is first named on its own, {id: offset}; the ends of a span are
+    one name for a set, so an occurrence inside one is passed over."""
     order = {}
     for match in mention.finditer(answer):
         rid = match.group(1)

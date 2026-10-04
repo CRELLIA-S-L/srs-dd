@@ -39,9 +39,8 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CONFIG = os.path.join(ROOT, "specs", "srs-config.json")
 
-# Used when the project's config does not name one — projects installed
-# before a project recorded the framework it came from, and hand-made
-# installations.
+# Used where the project's config names none: installed before the field existed, or
+# made by hand.
 DEFAULT_URL = "https://github.com/CRELLIA-S-L/srs-dd.git"
 
 
@@ -81,10 +80,8 @@ def main():
                         help="use an existing framework clone instead of "
                              "fetching one")
     # implements: FR-GND-290, FR-GND-480
-    # Asking has to be possible with the command a project actually has.
-    # Without this the only way to add the register is the framework
-    # clone's own installer, which is the thing this tool exists to spare
-    # anyone from keeping around.
+    # Asking has to be possible with the command a project has; otherwise adding the
+    # register needs the framework clone this tool exists to spare anyone.
     parser.add_argument("--period", choices=("month", "quarter", "year"),
                         default=None,
                         help="with --grounds yes: the calendar unit the "

@@ -419,7 +419,7 @@ def substitutions(name, settings):
 # A citation of one of this framework's decisions, as a comment in the
 # shipped tooling carries it: the number in brackets after the sentence it
 # supports.
-RE_DECISION = re.compile(r" ?\(ADR-\d{4}\)")
+RE_DECISION = re.compile(r" ?\(ADR-\d{4}(?:,\s*ADR-\d{4})*\)")
 
 
 # implements: FR-INIT-260

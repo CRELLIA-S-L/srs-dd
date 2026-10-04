@@ -13,14 +13,9 @@
     python3 srs-dd/tools/srs_grounds.py --blast P…  what the requirements these
                                              files belong to are staked on
 
-The register's format is described in srs-dd/grounds.md — that file is the
-normative one; this script only enforces it. Standard library only,
-compatible with Python 3.9.
-
-The requirement model is read by running srs-dd/tools/srs_view.py as a subprocess
-rather than importing the checker: an optional subsystem must not die on the
-mandatory one's configuration before it can say anything of its own, and a
-register whose specification is broken still has plenty to report.
+The format is srs-dd/grounds.md's; this script only enforces it. The requirement
+model comes from srs_view.py as a subprocess, so an optional subsystem never dies
+on the mandatory one's configuration. Standard library only, Python 3.9.
 """
 
 # file implements: NFR-SPEC-010, CON-GND-030, CON-SPEC-030
@@ -103,9 +98,8 @@ REQUIRED = {
 CLASSES = ("I", "II", "III")
 # srs-end: FR-GND-390
 GRADES = ("high", "moderate", "low", "very-low")
-# `declined` carries both halves because they are useless apart: a refusal
-# with no reason answers nothing next time, one with no date cannot be told
-# from one that predates everything since.
+# `declined` carries both halves: a refusal without a reason answers nothing next
+# time, one without a date cannot be told from one that predates everything.
 RE_DECLINED = re.compile(r"^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(\S.*)$")
 STATUSES = {
     "I": ("active", "dissolved"),
@@ -116,18 +110,14 @@ STATUSES = {
     "U": ("active", "retired"),
 }
 
-# How much ground a hypothesis provides, weakest first. `declined` is beside
-# `refuted` on purpose: the core looked at it and said no, so a requirement
-# standing on it stands on something nobody agreed to carry.
+# How much ground a hypothesis provides, weakest first; `declined` sits beside
+# `refuted` because the core looked at it and said no.
 STRENGTH = {"refuted": 0, "declined": 0, "expired": 1, "untested": 2,
             "assumed": 3, "supported": 4}
 DEBT_STATUSES = ("refuted", "expired", "assumed")
 # implements: FR-GND-220, FR-GND-230
-# What the specification calls a cancelled requirement. The readings
-# below range over the requirements that have not been cancelled, which
-# is the reading the viewer's gap list and the specification checker's
-# unclaimed-file rule already take — one file described two ways in one run
-# is worse than either answer.
+# What the specification calls a cancelled requirement; the readings below range
+# over the live ones, as the viewer and the specification checker do.
 CANCELLED = ("withdrawn", "superseded")
 # srs-end: FR-GND-220, FR-GND-230
 
@@ -143,28 +133,22 @@ RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
 SEVERITIES = ("warn", "report", "off")
 
 # implements: FR-GND-230
-# What counts as "lately" is the project's: a product shipping weekly and
-# one shipping twice a year do not share a unit. Calendar periods only —
-# a window measured back from today would move this file every night.
+# What counts as "lately" is the project's. Calendar periods only — a window
+# measured back from today would move this file every night.
 PERIODS = ("month", "quarter", "year")
 # srs-end: FR-GND-230
 
 # implements: FR-GND-490
-# A criterion that allows for error has to be told how much, and no answer
-# is right everywhere. Named levels rather than a free number: a confidence
-# somebody typed as 0.973 came from nowhere and cannot be discussed.
+# Named levels rather than a free number: a confidence typed as 0.973 came from
+# nowhere and cannot be discussed (ADR-0044).
 CONFIDENCES = (0.9, 0.95, 0.99)
 # srs-end: FR-GND-490
-# One-sided, because a threshold asks whether the truth is past it, not
-# whether it sits inside a band. Two-sided quantiles here would demand more
-# of a measurement than the sentence its author wrote does.
+# One-sided: a threshold asks whether the truth is past it (ADR-0044).
 Z_ONE_SIDED = {0.9: 1.2816, 0.95: 1.6449, 0.99: 2.3263}
 
 # implements: FR-GND-150
-# What a measurement's error is depends on what was measured. A mean's does
-# not follow from anything the row carries — it needs the spread behind the
-# mean, and the row holds the mean and the sample size. So a mean closes
-# class I rather than falling back to a comparison that refutes on noise.
+# A mean's error does not follow from what the row carries, so a mean closes
+# class I rather than refuting on noise (ADR-0044).
 TESTABLE_KINDS = ("proportion", "count")
 # srs-end: FR-GND-150
 
@@ -210,9 +194,8 @@ def load_config():
                          % (name, ", ".join(SEVERITIES)))
     cfg["rules"] = rules
     # implements: FR-GND-170
-    # What a weakly supported hypothesis may be used for is a matter of
-    # appetite, so the map is the project's and the format only says it
-    # exists. A grade absent from it permits anything.
+    # What a weak hypothesis may be used for is appetite, so the map is the project's;
+    # a grade absent from it permits anything.
     grades = raw.get("grades", {})
     if not isinstance(grades, dict):
         _config_fail("grades must be an object of grade to permitted actions")
@@ -243,12 +226,8 @@ def load_config():
 
 # implements: FR-GND-150
 def wilson_bounds(value, n, z):
-    """Where a proportion's truth may sit, given `value` observed out of n.
-
-    Wilson's interval and not value ± z·sqrt(pq/n): the plain one runs off
-    the end of [0, 1] near zero and one, which is exactly where a threshold
-    on a proportion tends to be drawn.
-    """
+    """Where a proportion's truth may sit, given `value` observed out of n: Wilson, not
+    `p ± z·sqrt(pq/n)`, which runs off [0, 1] where thresholds are drawn (ADR-0044)."""
     denominator = 1.0 + z * z / n
     centre = (value + z * z / (2 * n)) / denominator
     half = z * math.sqrt(value * (1 - value) / n
@@ -258,11 +237,8 @@ def wilson_bounds(value, n, z):
 
 
 def poisson_cdf(k, rate):
-    """P(X <= k) for a Poisson of this rate.
-
-    Summed through logarithms so that a large rate loses the first terms to
-    underflow one at a time instead of the whole sum at once.
-    """
+    """P(X <= k) for a Poisson of this rate, summed through logarithms so a large rate
+    loses terms to underflow one at a time."""
     if k < 0:
         return 0.0
     total, log_term = 0.0, -rate
@@ -275,18 +251,11 @@ def poisson_cdf(k, rate):
 
 # implements: FR-GND-150
 def poisson_bounds(k, confidence):
-    """Where a count's truth may sit, given k events observed.
-
-    Exact rather than k ± z·sqrt(k), because counts in a register of
-    hypotheses are small and the approximation is worst there: it puts the
-    bound for nought observations at nought, which would read as certainty
-    from the one measurement that carries none.
-    """
+    """Where a count's truth may sit, given k events observed: exact, since counts here
+    are small and `k ± z·sqrt(k)` reads nought as certainty (ADR-0044)."""
     if k > POISSON_EXACT_TO:
-        # Far from nought the normal approximation is within two tenths of a
-        # percent of the exact bound, and the exact one costs a term per
-        # event counted. A register recording millions of events would wait
-        # half a minute to be told what a square root answers at once.
+        # Beyond the crossover the approximation is within two tenths of a percent and
+        # costs no term per event (ADR-0044).
         spread = Z_ONE_SIDED[confidence] * math.sqrt(k)
         return k - spread, k + spread
 
@@ -305,17 +274,14 @@ def poisson_bounds(k, confidence):
 # srs-end: FR-GND-150
 
 
-# Beyond this many events the exact sum is not worth its terms; see
-# poisson_bounds. Chosen where the two methods already agree to a tenth of
-# a percent, so the seam is invisible in any message either produces.
+# Where the exact sum stops being worth its terms, chosen where the two methods
+# already agree to a tenth of a percent (ADR-0044).
 POISSON_EXACT_TO = 1000
 
 
 # implements: FR-GND-140
-# A register is written by hand, so a typo is ordinary input rather than an
-# attack. Every one of these used to reach the arithmetic and either crash
-# it or be silently judged, which for a checker is the same failure: it
-# stops being runnable on the file somebody actually has.
+# A register is written by hand, so a typo is ordinary input: every one of these
+# used to crash the arithmetic or be judged in silence.
 def measurement_fault(kind, value, n):
     """Why this row cannot be compared to a threshold of this kind, or None."""
     for name, number in (("value", value), ("n", n)):
@@ -335,9 +301,8 @@ def measurement_fault(kind, value, n):
 
 
 # implements: FR-GND-140
-# The two words a measurement may end in. A record's `status` has six, and
-# four of them are things that happen to a hypothesis rather than things a
-# measurement found.
+# The two words a measurement may end in; a record's `status` has six, four of them
+# things that happen to a hypothesis rather than things a measurement found.
 VERDICTS = ("supported", "refuted")
 # srs-end: FR-GND-140
 
@@ -357,13 +322,9 @@ def _crosses(op, edge, bound):
 def verdict_owed(threshold, value, n, cfg, interval=True):
     """The verdict a measurement compels, with the phrase that says why.
 
-    `(None, None)` where the row does not compel one: the kind carries no
-    error the row can produce, and the raw value is on the refuting side, so
-    whether it refuted is exactly the question nothing here can answer.
-    With `interval` off — a class III reading — the two contradictions of
-    the threshold's own words are still compelled, a sample smaller than
-    its gate and a value on its safe side, and nothing beyond them is: how
-    far a person's reading of two people can miss is not this arithmetic's.
+    `(None, None)` where the row compels none. With `interval` off — class III — only the
+    threshold's own contradictions are compelled: a sample under its gate, a value on its
+    safe side.
     """
     kind, op, raw_bound, raw_gate = threshold.groups()
     bound, gate = float(raw_bound), int(raw_gate)
@@ -403,12 +364,8 @@ def rule_finding(warnings, reports, cfg, rule, text):
 
 # implements: FR-GND-010
 def collect_files():
-    """Every record file in the register, subdirectories included.
-
-    The layout in the standard is flat, and a register that grows a folder
-    is not thereby exempt: `every record in it` has to mean every one, or
-    a file one directory down goes unread with nothing said about it.
-    """
+    """Every record file in the register, subdirectories included: a register that grows a
+    folder is not thereby exempt."""
     out = []
     if not os.path.isdir(GROUNDS):
         return out
@@ -1005,10 +962,8 @@ def validate(records, model, model_error, cfg):
     # Both ends of every bet.
     by_requirement = {}
     # implements: FR-GND-100
-    # Kept apart from `by_requirement`: two bets on one requirement is a
-    # fact about the records whatever they name, while a declaration is
-    # only retired by a bet that actually stands the requirement on
-    # something.
+    # Kept apart from `by_requirement`: a declaration is retired only by a bet that
+    # actually stands the requirement on something.
     staking = {}
     # srs-end: FR-GND-100
     for rid in sorted(bets, key=srs_parse.id_key):
@@ -1038,9 +993,8 @@ def validate(records, model, model_error, cfg):
                          % (rec.where, rid, req, target["status"]))
 
     # implements: FR-GND-420, FR-GND-430
-    # What a hypothesis says about itself against what the register does
-    # with it. Both readings are of the same pair — the record and the bets
-    # standing on it — so they are computed together.
+    # What a hypothesis says about itself against what the register does with it; both
+    # readings are of the same pair, so they are computed together.
     for name in sorted(staked, key=srs_parse.id_key):
         if name not in hyps:
             continue                      # already reported as dangling
@@ -1098,11 +1052,8 @@ def validate(records, model, model_error, cfg):
 
 
 def _pick(hyps, names, strongest):
-    """The strongest or weakest of the named hypotheses, as (rank, id).
-
-    Ties break on the identifier so that a dashboard regenerated from
-    unchanged records comes out byte for byte the same.
-    """
+    """The strongest or weakest of the named hypotheses, as (rank, id); ties break on the
+    identifier so an unchanged dashboard comes out byte for byte the same."""
     ranked = [(STRENGTH[hyps[n].fields["status"]], n) for n in names
               if n in hyps and hyps[n].fields.get("status") in STRENGTH]
     if not ranked:
@@ -1114,18 +1065,12 @@ def _pick(hyps, names, strongest):
 
 # implements: FR-GND-070, INV-GND-020
 def decide(records, req):
-    """The hypothesis that decides a requirement, as (rank, id).
+    """The hypothesis that decides a requirement, as (rank, id), read off the bets every
+    time rather than stored, which keeps the join in one direction.
 
-    Nothing stores what a requirement rests on. It is read off the bets
-    every time it is needed, which is what keeps the join in one direction.
-
-    Within a bet: the weakest of what it requires, the strongest of what it
-    offers as alternatives, and the weaker of those two. Across the bets of
-    one requirement: the weakest. None where nothing decides it.
-
-    The hypothesis is returned rather than its rank alone because two
-    statuses can share a rank, and naming a status the record does not
-    carry is worse than saying nothing.
+    Within a bet: the weakest required, the strongest offered, the weaker of the two.
+    Across bets: the weakest. The hypothesis and not its rank alone, since two statuses
+    can share one.
     """
     hyps = {i: r for i, r in records.items() if r.kind == "H"}
     best = None
@@ -1158,13 +1103,8 @@ def confirmation_dates(rec):
 
 # implements: FR-GND-210
 def reversals(records):
-    """Per author: verdicts given, and how many a later one reversed.
-
-    Read from the evidence table and not from history. A verdict and the
-    measurement that reversed it are two rows of the same table, ordered
-    by their own dates, so the file in front of us holds the whole
-    answer.
-    """
+    """Per author: verdicts given, and how many a later one reversed — read from the
+    evidence table, whose rows carry their own dates, not from history."""
     given, turned = {}, {}
     for hid in sorted(records, key=srs_parse.id_key):
         rec = records[hid]
@@ -1269,13 +1209,8 @@ def build_dashboard(records, model, incoming, cfg):
             weak += 1 if status in DEBT_STATUSES else 0
             rows.append("| %s | %s | %s |" % (req, decided[1], status))
         # implements: FR-GND-130
-        # The denominator is what the sentence names — requirements carrying
-        # a bet — and not the rows below it, which are the ones whose bet
-        # resolves. A bet naming no hypothesis carries neither `refuted` nor
-        # `expired` nor `assumed`, so it counts here and not in `weak`: it
-        # rests on nothing, which is a different reading and belongs to the
-        # list below. The two questions differ, and one record answers them
-        # differently.
+        # The denominator is what the sentence names, requirements carrying a bet, not the
+        # rows whose bet resolves; a bet naming no hypothesis counts here and not in `weak`.
         if staked:
             out += ["Of %d requirements carrying a bet, %d rest on "
                     "hypotheses that are" % (len(staked), weak),
@@ -1295,17 +1230,11 @@ def build_dashboard(records, model, incoming, cfg):
         # srs-end: FR-GND-130
 
     # implements: INV-GND-030
-    # The list no rule of this layer is allowed to shorten. A requirement
-    # standing on nothing is a reading, and demanding a bet would replace it
-    # with invented ones.
+    # The list no rule here may shorten: demanding a bet would replace a requirement
+    # standing on nothing with an invented one.
     # implements: FR-GND-230
-    # The rate, not the total: one requirement standing on nothing is noise
-    # and is meant to be, and five in a quarter with four of them in one
-    # area is the product having become something nobody said out loud.
-    # A calendar period and not "the last ninety days", whatever length the
-    # configuration names: this file is committed and compared, and a window
-    # anchored to today would move every night and fail the gate every
-    # morning without saying anything new.
+    # The rate, not the total, over a calendar period: this file is committed and
+    # compared, and a window anchored to today would fail the gate every morning.
     out += ["## Requirements that arrived standing on nothing", "",
             "Counted by %s, which is what `period` says in the register's "
             "configuration." % cfg["period"], ""]
@@ -1358,12 +1287,8 @@ def build_dashboard(records, model, incoming, cfg):
             if req in claimed:
                 continue
             # implements: FR-GND-220
-            # Filtered here rather than in the model: the viewer owes every
-            # incoming link to whoever asks it, and the procedure for
-            # withdrawing a requirement reads exactly the links from
-            # cancelled ones to settle what breaks. What does not follow is
-            # that such a link still holds weight — a requirement nobody
-            # kept stands on nothing.
+            # Filtered here, not in the model: the viewer owes every incoming link to whoever
+            # asks, but a requirement nobody kept stands on nothing.
             links = len([1 for _field, other in incoming.get(req, [])
                          if other in model and live(model[other])])
             files = len(model[req].get("code", []))
@@ -1385,20 +1310,10 @@ def build_dashboard(records, model, incoming, cfg):
 
 # implements: FR-GND-310
 def blast(records, model, paths):
-    """What the requirements these files belong to are staked on.
-
-    A file belongs to a requirement two ways and both count: the
-    specification file the requirement is written in, and the `code` or
-    `tests` entries naming it. The second is the one a commit usually
-    touches, and it is the one this exists for — the moment somebody is
-    changing the code is the moment what it rests on is worth knowing.
-    Matching only the first made this silent on every commit that
-    changed no specification, which is most of them.
-
-    Quiet where nothing is staked: a report that speaks on every commit
-    is a report nobody reads, and the hook this feeds runs on all of
-    them.
-    """
+    """What the requirements these files belong to are staked on, by the specification file
+    they are written in and by their `code` and `tests` entries — the second being what a
+    commit usually touches. Quiet where nothing is staked, since the hook runs on every
+    commit."""
     if model is None:
         return 0
     wanted = {os.path.normpath(p) for p in paths}
@@ -1436,9 +1351,8 @@ def blast(records, model, paths):
 
 # implements: FR-GND-540
 def citation(rec):
-    """The form a record is named in to a person — the one the viewer
-    prints for a requirement, over the register's own records: identifier,
-    title, file, status."""
+    """The form a record is named in to a person: identifier, title, file, status, as the
+    viewer prints it for a requirement."""
     return "%s — %s (%s, %s)" % (rec.id, rec.title, rec.path,
                                   rec.fields.get("status") or "?")
 # srs-end: FR-GND-540
@@ -1446,10 +1360,8 @@ def citation(rec):
 
 # implements: FR-GND-540
 def cite(records, wanted):
-    """Print each record asked for, ready to paste, in the order asked; an
-    identifier no record carries is named on stderr and fails the run, in
-    the same run as the rest. `records` is the register keyed by identifier,
-    as read_records returns it."""
+    """Each record asked for, ready to paste, in the order asked; an identifier no record
+    carries is named on stderr and fails the run."""
     missing = [rid for rid in wanted if rid not in records]
     for rid in wanted:
         if rid in records:

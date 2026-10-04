@@ -9,17 +9,10 @@
     python3 srs-dd/tools/srs_baseline.py 1.2.0 --dry-run
     python3 srs-dd/tools/srs_baseline.py 1.2.0
 
-It writes the row into `specs/92-baselines.md` — version, date, and what
-changed since the previous baseline — and stops. Committing is yours, with
-whatever git client the project uses; a `spec/vX.Y.Z` tag is a bookmark you
-may add afterwards or never, because the row is what makes the baseline.
-
-Where such a tag was made first, the row describes that revision rather than
-the working tree, so writing it late costs nothing in accuracy.
-
-A baseline is not a release. It freezes what the system must do; a release
-ships what it does. Neither implies the other, and the same number in both
-places means nothing.
+It writes version, date and what changed into `specs/92-baselines.md` and stops:
+committing and any `spec/vX.Y.Z` tag are yours, and the row is what makes the
+baseline. Where the tag came first, the row describes that revision. A baseline is
+not a release.
 
 Exit codes: 0 written · 2 refused, the log untouched — outside a dry run the
 checker it ran may have regenerated the matrix first.
@@ -90,15 +83,9 @@ def main():
         return fail("%s is already in %s; there is nothing to write"
                     % (version, relative(BASELINES)))
 
-    # The checker also regenerates the matrix, which is why it runs before
-    # the row is written: both files then go into the same commit. Its
-    # output is captured so the refusal carries the reasons: the verdict
-    # goes to stderr and the findings to stdout, and whoever redirects one
-    # of the two is otherwise told that something is wrong without being
-    # told what.
-    # A dry run reads the specification and writes nothing, the matrix
-    # included: the checker's side effect is the one a dry run promised
-    # away and kept.
+    # The checker runs first because it also regenerates the matrix, so both files go
+    # into one commit; its output is captured so a refusal carries the reasons. A dry
+    # run writes nothing, the matrix included.
     # implements: FR-SPEC-060
     command = [sys.executable, CHECKER] + (["--no-write"] if args.dry_run else [])
     probe = subprocess.Popen(command, cwd=ROOT,

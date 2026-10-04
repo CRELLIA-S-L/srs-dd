@@ -6,19 +6,13 @@
 # srs-end: FR-INIT-280
 """Specification integrity checker and traceability matrix generator.
 
-Standard library only, compatible with Python 3.9. The specification
-markup rules are described in srs-dd/standard.md — that file is the single
-normative document; this script only enforces it.
-
     python3 srs-dd/tools/srs_check.py             check and rewrite 90-traceability.md
     python3 srs-dd/tools/srs_check.py --no-write  check only
     python3 srs-dd/tools/srs_check.py --strict    treat warnings as errors (CI)
 
-Project-specific settings (requirement areas, code roots, source file
-extensions, statement lexicon) live in specs/srs-config.json. The
-defaults below apply for any key absent from that file. The script knows
-no natural language: the modal verbs, negation words, and rationale
-markers it matches all come from the lexicon in the config.
+The rules are srs-dd/standard.md's; this script only enforces them, and knows no
+natural language — verbs, negations and markers come from specs/srs-config.json.
+Standard library only, compatible with Python 3.9.
 """
 
 # file implements: NFR-SPEC-010, NFR-CHK-010, CON-SPEC-030
@@ -29,20 +23,16 @@ import re
 import subprocess
 import sys
 
-# The record shape is read by srs-dd/tools/srs_parse.py, which ships beside
-# this file; what stays here is the judgement (ADR-0019). Bytecode is
-# disabled first: this tool runs inside other people's repositories,
-# and a __pycache__ they did not ask for is litter.
+# The shape is read by srs_parse beside this file; the judgement stays here
+# (ADR-0019). No bytecode: this runs in other people's repositories.
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     import srs_parse                                        # noqa: E402
 except ImportError:
-    # Exit 2, not a traceback: 2 is reserved for "could not run at
-    # all", and a checker that dies on its own import has not read
-    # anybody's specification. The case is reachable — the tooling can
-    # be copied by hand, one file at a time (docs/install.md).
+    # Exit 2, not a traceback: it has read nobody's specification. Reachable, since
+    # the tooling can be copied by hand (docs/install.md).
     sys.stderr.write(
         "srs-dd/tools/srs_parse.py: missing — the checker reads the record shape "
         "through it, and the two travel together. Copy it beside this file "
@@ -84,11 +74,8 @@ RE_AREA_NAME = re.compile(r"^%s$" % srs_parse.AREA)
 # srs-end: IF-SPEC-040
 
 
-# Every rule that reports something short of an error carries a name, so a
-# project can say what it costs — in `rules` in its configuration, or in a
-# requirement's `exempt` field. The names are a published contract with the
-# same one-way property as a metadata key: adding one is compatible,
-# renaming one is not (ADR-0009).
+# Every rule short of an error carries a name the project prices, in `rules` or in
+# a requirement's `exempt`. Adding a name is compatible, renaming is not (ADR-0009).
 # implements: IF-SPEC-020
 RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "rests-on-withdrawn", "test-missing", "unlinked",
@@ -98,10 +85,8 @@ RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "annotation-unended", "annotation-empty")
 # srs-end: IF-SPEC-020
 
-# What a rule costs where the project has not said: `warn`, but for the
-# rules named here. A rule added at `warn` fails `--strict` in every project
-# on the upgrade that brings it, so one whose harm is in some cases and whose
-# cure is a line in every file arrives at `report`.
+# What a rule costs unpriced: `warn`, except these. A rule added at `warn` fails
+# `--strict` in every project on the upgrade that brings it.
 DEFAULT_SEVERITY = {"annotation-unended": "report"}
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off`
@@ -144,16 +129,12 @@ def load_config():
             _config_fail("area %r must be uppercase letters and digits, beginning with a "
                          "letter, its words joined by single underscores" % area)
         # implements: FR-CHK-300
-        # An area may be grouped into the folder of its lowercase name, and
-        # a folder of these names is one this checker skips: the area would
-        # vanish whole, and nothing would say so.
+        # An area grouped into a folder this checker skips would vanish whole.
         if area.lower() in SKIP_DIRS:
             _config_fail("area %r is named like a directory the checker skips under specs/ — "
                          "specs/%s/ — and grouped there it would vanish" % (area, area.lower()))
         # srs-end: FR-CHK-300
-    # `rules` is a mapping rather than a list, so it is validated apart from
-    # the loop above — and by name, because a silently ignored typo here
-    # would look exactly like a rule that never fires.
+    # Validated by name: a silently ignored typo looks like a rule that never fires.
     rules = data.get("rules", {})
     if not isinstance(rules, dict):
         _config_fail("rules must be an object of rule name to severity")
@@ -179,12 +160,8 @@ RULE_SEVERITY = CFG["rules"]
 
 # implements: FR-CHK-160
 def rule_finding(warnings, reports, rule, text, req=None):
-    """Route one rule's finding by what the project decided it costs.
-
-    A requirement may excuse itself from a rule in its own block; the
-    project may lower or silence the rule everywhere. Anything not spoken
-    for is a warning, which is what a --strict gate fails on.
-    """
+    """Route one rule's finding by what the project decided it costs: a requirement's
+    own `exempt`, the project's `rules`, else a warning."""
     if req is not None and rule in (req.meta.get("exempt") or []):
         return
     severity = RULE_SEVERITY.get(rule, DEFAULT_SEVERITY.get(rule, "warn"))
@@ -199,11 +176,8 @@ TYPES = ("FR", "NFR", "IF", "INV", "CON")
 STATUSES = ("draft", "deferred", "partial", "implemented", "superseded",
             "withdrawn")
 # implements: INV-SPEC-010
-# A cancelled requirement is retained under one of these rather than
-# deleted, which is what keeps its number from ever being free again.
-# The two terminal states, told apart from the rest wherever a rule has
-# nothing to say about a requirement that is over: it has no link left to
-# forget and no ground left to rest on.
+# The two terminal states: a cancelled requirement is kept, not deleted, so its
+# number is never free again, and the rules have nothing to say about it.
 CANCELLED = ("superseded", "withdrawn")
 # srs-end: INV-SPEC-010
 VERIFICATIONS = ("T", "D", "I", "A")
@@ -213,17 +187,13 @@ LIST_FIELDS = LINK_FIELDS + ("code", "tests", "exempt")
 SCALAR_FIELDS = ("status", "verification", "superseded_by", "created")
 KNOWN_FIELDS = set(LIST_FIELDS) | set(SCALAR_FIELDS)
 
-# Of the known keys, the ones a requirement must carry. Everything else is
-# optional, and a key that is neither is not an error: that is what
-# lets a later version of the format add one without breaking a
-# specification written against an earlier version.
+# The keys a requirement must carry; one that is neither required nor optional is
+# not an error, which is how a later version adds a key.
 REQUIRED_FIELDS = ("status", "verification")
 
 
-# Keys a later version of the format renamed or withdrew, as
-# {old: (replacement or None, version)}. Empty until the format first
-# moves. The checker reports them; it never rewrites a specification —
-# that belongs to the project (ADR-0009).
+# Keys a later format renamed or withdrew, as {old: (replacement or None, version)}.
+# Reported, never rewritten (ADR-0009).
 RETIRED_FIELDS = {}
 
 
@@ -231,15 +201,8 @@ def _alternation(words):
     return "|".join(re.escape(w) for w in words)
 
 
-# Capture, then judgement, deliberately far apart in strictness.
-# RE_HEADING is a broad net: anything ID-shaped is taken, junk like
-# FR-CORE-010-B included, and RE_ID judges it loudly afterwards — a
-# malformed identifier must never be skipped silently. The net lives
-# here rather than in srs_parse because how a format numbers its
-# entries is the format's own business, and the register beside specs/
-# numbers its entries in two parts (ADR-0019). The area takes an
-# underscore, so that one the configuration does not declare is refused
-# by name rather than read past as prose.
+# Capture broadly, judge strictly: RE_HEADING takes anything ID-shaped, junk
+# included, and RE_ID refuses it loudly — one is never skipped in silence.
 # implements: IF-SPEC-040
 RE_HEADING = re.compile(
     r"^###\s+([A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9_]*-\d+"
@@ -250,11 +213,8 @@ RE_ID = re.compile(r"^(%s)-(%s)-(%s)$" % ("|".join(TYPES), "|".join(AREAS), srs_
 # srs-end: INV-SPEC-080
 
 
-# The statement lexicon comes from the config; the patterns are
-# language-neutral. Exactly one bolded modal verb per statement; the
-# negation word may precede or follow the verb inside the bold markers
-# ("**shall not**", "**не должна**"). The bold markers themselves are
-# the word boundary, so no \b is needed.
+# Language-neutral: one bolded modal verb per statement, the negation word either
+# side of it inside the bold markers, which are the word boundary.
 def _modal_pattern(verbs, negations):
     verb_alt = _alternation(verbs)
     if not negations:
@@ -270,10 +230,8 @@ RE_MODAL = re.compile(
 RE_RATIONALE = re.compile(
     r"^\s*\*\*(?:%s)\.?\*\*" % _alternation(CFG["rationale_markers"]))
 
-# Optional traceability annotations in source and test files. The two
-# examples end in "srs-ignore" because this file is copied into every
-# target, where they would otherwise be read as real annotations naming
-# requirements that project never had.
+# Traceability annotations. The examples end in "srs-ignore": copied into a target,
+# they would otherwise read as real annotations.
 #   implements: FR-CORE-010          -> the `code` field    srs-ignore
 #   verifies: FR-CORE-010, FR-UI-020 -> the `tests` field   srs-ignore
 # A line containing "srs-ignore" is exempt from annotation checking.
@@ -303,15 +261,9 @@ class Requirement(object):
 
 
 def _split_body(lines):
-    """Statement and rationale, split at the first rationale marker.
-
-    The split is the caller's and not the parser's: the marker comes
-    from the project lexicon, so where a body divides is a question
-    about language and not about shape. Fenced blocks are passed over
-    while looking for the marker, and dropped from the statement —
-    modal verbs are counted in prose only. The rationale keeps its
-    blocks whole, because readers render them.
-    """
+    """Statement and rationale, split at the first lexicon marker — a question about
+    language, not shape. Fenced blocks are dropped from the statement and kept whole in
+    the rationale."""
     statement = []
     index = 0
     total = len(lines)
@@ -329,15 +281,8 @@ def _split_body(lines):
 
 # implements: IF-SPEC-010, FR-CHK-110
 def parse_text(text, rel, errors):
-    """Parses one specification file already held in memory.
-
-    Split out of parse_file so a caller that has the text but not the
-    file — srs-dd/tools/srs_view.py reading a past revision through `git
-    show` — goes through the same parser. The parser is
-    language-neutral: the lexicon is consulted by validate(), never
-    here, and the one lexical question this function does ask — where
-    the rationale begins — it asks of a body srs_parse already found.
-    """
+    """One specification file already held in memory, so a caller with a past revision
+    and no file goes through the same parser."""
     requirements = []
     for entry in srs_parse.parse_entries(text, rel, errors, RE_HEADING):
         req = Requirement(entry.id, entry.title, entry.path, entry.line)
@@ -355,11 +300,8 @@ def parse_file(path, rel, errors):
 
 # implements: FR-CHK-250
 def collect_spec_files():
-    # Every markdown file under specs/ at any depth, except the decision
-    # log, the archive and the reserved names — reserved at any depth, so
-    # that a README.md inside an area's directory is for people. An area
-    # written as one file and one written as a directory of files are the
-    # same specification to this walk (ADR-0028).
+    # Every markdown file under specs/ at any depth, bar the decisions, the archive and
+    # the reserved names; one file or a directory of them read alike (ADR-0028).
     result = []
     for current, dirs, files in os.walk(SPECS):
         dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
@@ -375,10 +317,8 @@ def collect_spec_files():
 CYCLE_FIELDS = ("derives_from", "refines")
 
 # implements: FR-CHK-240
-# Walked on its own, not added to the pair above. Those two answer one
-# question — why does this exist — which is why they share a graph. This
-# one answers another, what is this meaningless without, and a path
-# alternating between the two is a circle in neither sense.
+# Walked on its own: the pair above answers why a requirement exists, this answers
+# what it is meaningless without, and a path alternating them is no circle.
 DEPENDENCY_FIELDS = ("depends_on",)
 # srs-end: FR-CHK-240
 
@@ -387,19 +327,8 @@ DEPENDENCY_FIELDS = ("depends_on",)
 def find_cycles(requirements, fields):
     """Loops in one link graph, as (cycle path, fields on it).
 
-    The fields to walk are given, because the specification holds two
-    graphs and not one: the derivation fields, which the caller passes
-    together for the reason below, and the dependency field, which is
-    walked by itself.
-
-    One graph over both kinds of derivation link rather than one per kind.
-    A cycle that alternates them — A derives from B, B refines A — is
-    circular in exactly the way the rationale describes, and two separate
-    walks see neither half of it.
-
-    The fields are carried along so the message can still name them: a
-    cycle drawn in one kind reads exactly as it did when there was a walk
-    per kind.
+    One graph over both derivation fields, since a cycle alternating them is a cycle and
+    two walks would see neither half; the fields travel so the message names them.
     """
     graph = dict((r.id, [(t, field) for field in fields
                          for t in r.links(field)])
@@ -407,8 +336,7 @@ def find_cycles(requirements, fields):
     cycles = []
     state = {}   # 0 untouched, 1 in progress, 2 done
     stack = []
-    # The field each step of `stack` was entered by: via[i] joins stack[i]
-    # to stack[i + 1], so a cycle opening at `start` was drawn with
+    # via[i] joins stack[i] to stack[i + 1], so a cycle at `start` was drawn with
     # via[start:] and the back-edge that closed it.
     via = []
 
@@ -437,9 +365,8 @@ def find_cycles(requirements, fields):
 
 
 def normalize_meta(req, errors):
-    """List fields must be bracketed lists; scalar fields single values.
-    Coerces wrong shapes so later checks do not iterate a string
-    character by character or crash on a list."""
+    """List fields must be bracketed, scalars single, coerced so later checks neither
+    iterate a string nor crash on a list."""
     for field in LIST_FIELDS:
         value = req.meta.get(field)
         if value is not None and not isinstance(value, list):
@@ -468,11 +395,9 @@ RE_MAP_NAME = re.compile(r"^\d{2}-.+\.md$")
 
 # implements: FR-CHK-260
 def file_range_of(rel):
-    """(low, high, kind) of the numbers a requirements file's name holds:
-    a file directly under specs/, or named as the map names one in a
-    folder that groups areas for a reader, holds 000-999 ("plain"); a file
-    named `NNN-NNN.md` in a subdirectory holds that range ("named"); any
-    other file in a subdirectory holds anything (None, None, None)."""
+    """(low, high, kind) of the numbers a file's name holds: 000-999 ("plain") for a file
+    under specs/ or named as the map names one, the stated range for `NNN-NNN.md` in a
+    subdirectory, anything for the rest."""
     parts = rel.replace(os.sep, "/").split("/")
     if len(parts) == 2:
         return 0, 999, "plain"
@@ -532,9 +457,7 @@ def validate(requirements):
                               "rules are %s"
                               % (req.where, name, ", ".join(RULES)))
 
-        # A key that is absent is named as absent. Reporting it through the
-        # value check instead — "status '' is not one of" — describes the
-        # symptom and hides the cause.
+        # A key absent is named absent: the value check would describe the symptom.
         # implements: FR-CHK-170
         missing = set(key for key in REQUIRED_FIELDS if key not in req.meta)
         for key in sorted(missing):
@@ -556,11 +479,8 @@ def validate(requirements):
             errors.append("%s — no statement" % req.where)
         else:
             # implements: FR-CHK-020
-            # The mechanical half of the rule against a compound
-            # statement: two verbs are two requirements, and a script can
-            # say so. One verb carrying a list of objects is as compound
-            # and is out of reach here, which is why the invariant is
-            # inspected rather than tested and does not name this file.
+            # The mechanical half of the rule against a compound statement; one verb carrying a
+            # list of objects is as compound and out of reach here, so the invariant is inspected.
             found = len(RE_MODAL.findall(req.statement))
             if found == 0:
                 errors.append("%s — no bolded modal verb from the lexicon (%s)"
@@ -571,9 +491,7 @@ def validate(requirements):
                               % (req.where, found))
             # srs-end: FR-CHK-020
 
-        # Both statuses the standard defines as being realized oblige the
-        # code field: they differ by how much is built, not by whether
-        # anything is — `deferred` is the state for approved and not begun.
+        # Both realized statuses oblige the code field: they differ by how much is built.
         # implements: FR-CHK-050
         code = req.meta.get("code", [])
         if status in ("implemented", "partial") and not code:
@@ -636,17 +554,10 @@ def validate(requirements):
                                  "(%s): re-point it, promote it, or withdraw "
                                  "it too" % (req.where, req.id, status,
                                              target, field), req)
-                # Every live status, not just the built ones: a deferred
-                # requirement whose ground was withdrawn is approved work
-                # with nothing under it, and whoever builds it will not read
-                # the parent. `conflicts_with` is out — a divergence from a
-                # withdrawn requirement has lost nothing it stood on.
-        # Only where the method is `T`: a requirement verified by
-        # inspection or analysis has no test by design, and reporting those
-        # would bury the ones that mean something. Read from this
-        # requirement — this loop rebinds `req` and `status`, and reusing
-        # the first loop's `verification` would judge all of them by the
-        # last one's method.
+                # Every live status: a deferred requirement whose ground was withdrawn is approved
+                # work with nothing under it. `conflicts_with` is out — it stood on nothing.
+        # Only where the method is `T`, and read from this requirement: the loop rebinds
+        # `req`, and the first loop's `verification` would judge all by the last one's.
         # implements: FR-CHK-140
         if status in ("implemented", "partial") \
                 and req.meta.get("verification") == "T" \
@@ -665,9 +576,8 @@ def validate(requirements):
                 errors.append("%s — requirement links to itself" % req.where)
     # srs-end: FR-CHK-030, FR-CHK-075, FR-CHK-190
 
-    # Total isolation is the one case where a missing link shows: the
-    # checker can prove that what is written resolves, never that something
-    # was left out.
+    # Total isolation is the one case a missing link shows: what is written can be proved
+    # to resolve, never to be complete.
     # implements: FR-CHK-150
     touched = set()
     for req in requirements:
@@ -693,12 +603,8 @@ def validate(requirements):
                       % ("/".join(fields), " → ".join(cycle)))
 
     # implements: FR-CHK-260
-    # A file's name may state the thousand it holds — `1000-1999.md` under
-    # an area's directory — and a file directly under specs/ holds the
-    # first thousand by the standard's convention, so a number filed in
-    # the wrong file is a name that lies to whoever opens the file by eye.
-    # A warning with the move in it: the plain file's first number past
-    # 999 is the moment the area becomes a directory (ADR-0028).
+    # A number filed in the wrong file is a name that lies to whoever opens it by eye; the
+    # warning carries the move, since past 999 the area becomes a directory (ADR-0028).
     for req in requirements:
         low, high, kind = file_range_of(req.path)
         if low is None:
@@ -722,9 +628,8 @@ def validate(requirements):
     # srs-end: FR-CHK-260
 
     # implements: FR-CHK-240
-    # A separate walk, so a path that alternates between the two graphs is
-    # reported by neither. The message names the field it was drawn in, so
-    # the two read apart without any wording of their own.
+    # A separate walk, so a path alternating the two graphs is reported by neither; the
+    # message names the field it was drawn in.
     for cycle, fields in find_cycles(requirements, DEPENDENCY_FIELDS):
         errors.append("cycle in %s links: %s"
                       % ("/".join(fields), " → ".join(cycle)))
@@ -760,16 +665,9 @@ def iter_source_files():
 def read_annotations(path):
     """Every annotation one file carries, as (line number, keyword, id).
 
-    The whole of the annotation grammar lives here — which lines are
-    exempt, what an annotation looks like, how several identifiers share
-    one. Both readers of it are downstream: this module's rules, and the
-    viewer answering which requirements describe a path. Written twice it
-    would one day be two grammars, and the copy a reader happened to reach
-    would win.
-
-    Triples rather than a set of identifiers, because a finding has to say
-    where: the rules below quote `path:line`, and an identifier alone
-    cannot be pointed at.
+    The whole annotation grammar lives here, read by this module's rules and by the
+    viewer; written twice it would one day be two grammars. Triples, because a finding
+    has to say where.
     """
     result = []
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
@@ -786,10 +684,8 @@ def read_annotations(path):
 
 
 def read_lines(path):
-    """A file's lines as every reader of annotations numbers them: split on
-    newlines alone, as iterating the file does in read_annotations. Not
-    str.splitlines(), which also breaks on a form feed or U+2028 and would
-    put an annotation on a line the other readers do not."""
+    """A file's lines split on newlines alone, as read_annotations iterates them — not
+    str.splitlines(), which also breaks on a form feed."""
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
         lines = handle.read().split("\n")
     if lines and lines[-1] == "":
@@ -800,35 +696,19 @@ def read_lines(path):
 RE_END = re.compile(r"\bsrs-end:\s*(%s(?:\s*,\s*%s)*)" % (_ANNOT_ID, _ANNOT_ID))
 RE_FILE_SCOPE = re.compile(r"\bfile\s+(?:implements|verifies):")
 RE_CODE_BEFORE = re.compile(r"[A-Za-z0-9]")
-# How far a region no end marker ends runs at most: far enough for a long
-# function, short enough that a file with one annotation at its top does
-# not print itself whole.
+# How far a region no end marker ends runs at most: long enough for a long function,
+# short enough that one annotation does not print a file whole.
 REGION_BOUND = 60
 
 
 # implements: FR-CHK-270, FR-CHK-280, FR-VIEW-380
 def annotation_regions(path, bound=REGION_BOUND):
-    """What each annotation in one file marks, and the end markers that
-    end nothing. Returns (marks, unmatched).
+    """What each annotation in one file marks, and the end markers that end nothing, as
+    (marks, unmatched). Nothing is parsed, so the reading holds in any language.
 
-    Nothing is parsed: the same reading holds whatever language the file
-    is written in. A line whose annotation has code before it marks that
-    line; one with `file` before the keyword marks the file; any other is a
-    block, consecutive lines one block, marking the lines down to the first
-    `srs-end:` naming one of its requirements. Markers are matched top
-    down to the nearest block above still open, so a block inside another
-    closes first and belongs to it. A block no marker ends runs to the next
-    block, or `bound` lines, or the end of the file, and says which: that
-    is a guess, and the reader is told so.
-
-    Each mark is a dict: kind ("block", "line", "file"), lines (the lines
-    carrying it), ids, first and last (the region, 1-based, inclusive),
-    how ("end", "next", "bound", "eof", "line", "file") and stop (the line
-    of the next block, where `how` is "next") and empty (a block whose
-    region holds no line but blank ones, annotations and end markers).
-    `unmatched` is (line, id, why)
-    for each identifier an `srs-end:` names that no open block above it
-    does, or that stands on a line with an annotation.
+    A mark is a dict: kind ("block", "line", "file"), lines, ids, first, last, how
+    ("end", "next", "bound", "eof", "line", "file"), stop, empty. `unmatched` is
+    (line, id, why) per identifier an `srs-end:` names that no open block above it does.
     """
     lines = read_lines(path)
     marks, ends, unmatched = [], [], []
@@ -837,9 +717,8 @@ def annotation_regions(path, bound=REGION_BOUND):
             continue
         found = list(RE_ANNOTATION.finditer(line))
         if found and RE_END.search(line):
-            # An end marker shares no line with an annotation: which of the
-            # two the line is would be a guess, so it is neither — the
-            # annotation stands, and the marker is reported as ending nothing.
+            # An end marker shares no line with an annotation: the annotation stands and the
+            # marker is reported as ending nothing.
             for rid in RE_END.search(line).group(1).split(","):
                 unmatched.append((lineno, rid.strip(), "shares its line with an annotation"))
         if found:
@@ -872,9 +751,8 @@ def annotation_regions(path, bound=REGION_BOUND):
             continue
         closed = []
         for rid in item:
-            # One marker ends a block whole: a number the block it already
-            # ended names is spoken for, and must not reach past it to a
-            # block around it that names the same number.
+            # One marker ends a block whole, so a number it spoke for never reaches a block
+            # around it naming the same number.
             if any(rid in b["ids"] for b in closed):
                 continue
             block = next((b for b in reversed(open_blocks) if rid in b["ids"]), None)
@@ -919,17 +797,11 @@ def annotation_regions(path, bound=REGION_BOUND):
 
 
 def scan_annotations(by_id, errors, warnings, reports):
-    """Cross-checks implements:/verifies: annotations against the spec.
+    """Cross-checks implements:/verifies: annotations against the spec, the fields being
+    the truth and the annotation the mirror (ADR-0014).
 
-    The code/tests fields remain the source of truth and the annotation is
-    the mirror (ADR-0014); a mismatch is reported against the mirror.
-    Returns what each scanned file claims, as {field: {path: {id, …}}},
-    which is what the two pairing rules are computed from. An annotation
-    naming a cancelled requirement is dead and claims nothing, so it never
-    reaches `claims`. "annotated" holds every file that carried an
-    annotation at all, resolving or not: that is how the unclaimed rule
-    knows the file has already been spoken about, and by a report that
-    names the line and the requirement rather than only the file.
+    Returns {field: {path: {id, …}}} plus "annotated", every file that carried an
+    annotation at all; one naming a cancelled requirement claims nothing.
     """
     claims = {"code": {}, "tests": {}, "annotated": set()}
     field_by_keyword = {"implements": "code", "verifies": "tests"}
@@ -998,14 +870,8 @@ def scan_annotations(by_id, errors, warnings, reports):
 
 # implements: FR-CHK-200
 def check_pairing(requirements, claims, warnings, reports):
-    """Every file a requirement names says so.
-
-    The forward half of the link has always been checked; this is the half
-    that decays, because only somebody at the file notices when it stops
-    deserving the entry still pointing at it (ADR-0014). Silent for a file
-    the checker does not read: a `code` field names the standard, the
-    skills and the CI templates too, and none of those is annotated.
-    """
+    """Every file a requirement names says so — the half that decays, since only somebody
+    at the file notices (ADR-0014). Silent for a file the checker does not read."""
     for req in requirements:
         if req.meta.get("status") not in ("implemented", "partial"):
             continue
@@ -1025,16 +891,11 @@ def check_pairing(requirements, claims, warnings, reports):
 
 # implements: FR-CHK-210
 def check_unclaimed(requirements, claims, warnings, reports):
-    """A file neither live end claims: no requirement still standing names
-    it and it names none itself. Either behaviour with no requirement
-    behind it, or a helper that will never have one — and the project says
-    which by tuning the rule.
+    """A file neither live end claims: behaviour with no requirement behind it, or a helper
+    that will never have one, and the project says which by pricing the rule.
 
-    A cancelled requirement counts for neither side. Its `code` field is
-    the record of what it once pointed at and not a claim on the file now,
-    and an annotation naming it is reported as dead by scan_annotations,
-    which is why that side never reaches `claims` at all. Left in, a
-    withdrawal would quietly take its files out of sight along with itself.
+    A cancelled requirement counts for neither side, or a withdrawal would take its files
+    out of sight with it.
     """
     named = set()
     for req in requirements:
@@ -1046,11 +907,8 @@ def check_unclaimed(requirements, claims, warnings, reports):
         if rel in named:
             continue
         if rel in claims["annotated"]:
-            # The file said something about itself. If what it said does
-            # not resolve — an unknown requirement, a cancelled one —
-            # the annotation check has already reported it with the line
-            # and the identifier. Adding "and it claims none" would
-            # contradict that report on the same file in the same run.
+            # What the file said about itself did not resolve, and the annotation check has
+            # already reported that with the line and the identifier.
             continue
         rule_finding(warnings, reports, "annotation-absent",
                      "%s — no requirement names this file and it claims "
@@ -1060,33 +918,21 @@ def check_unclaimed(requirements, claims, warnings, reports):
 
 # implements: FR-CHK-130
 def check_baselines(warnings, reports):
-    """A `spec/v*` tag the baseline log has no row for.
-
-    The row is what makes a baseline; a tag is a bookmark on it. One
-    without the other is a claim to freeze something no reader can look
-    up. Silent where the tags are absent — a project that never tags is
-    keeping a perfectly good log — and not silent where git could not be
-    asked at all, which is a different thing: the first answers the
-    question, the second leaves it unasked.
-    """
+    """A `spec/v*` tag the baseline log has no row for: a bookmark on nothing a reader can
+    look up. Silent where there are no tags, loud where git could not be asked."""
     rel = os.path.join("specs", "92-baselines.md")
     try:
         with open(os.path.join(ROOT, rel), "r", encoding="utf-8") as handle:
             logged = set(re.findall(r"`(spec/v[^`]+)`", handle.read()))
     except OSError:
         # implements: FR-CHK-130
-        # A log that is not there has a row for nothing, which is the
-        # condition this rule reports satisfied for every tag at once.
-        # Returning here answered the most complete form of the defect with
-        # silence — and the rule's whole subject is a tag freezing a state
-        # the log does not describe.
+        # A log that is not there has a row for nothing — the most complete form of this
+        # defect, once answered with silence.
         logged = set()
         # srs-end: FR-CHK-130
     # implements: FR-CHK-220
-    # An empty list and an unanswerable question are told apart by how git
-    # exits: no tags is a successful run returning nothing, no repository
-    # is a failure. Reporting the second keeps a green run from meaning
-    # "checked" when the rule never ran.
+    # No tags is a successful run returning nothing, no repository a failure; reporting
+    # the second keeps a green run from meaning "checked".
     try:
         listed = subprocess.check_output(
             ["git", "-C", ROOT, "tag", "-l", "spec/v*"],
@@ -1130,9 +976,8 @@ def _cell(text):
 
 # implements: CON-SPEC-010
 def build_traceability(requirements):
-    # The matrix is compared byte-for-byte by the CI freshness gate.
-    # Everything here must stay deterministic: files and IDs are sorted,
-    # link fields iterate in the fixed LINK_FIELDS order.
+    # The matrix is compared byte-for-byte by the gate, so everything here stays
+    # deterministic: sorted files and ids, LINK_FIELDS in its fixed order.
     by_id = dict((r.id, r) for r in requirements)
 
     # implements: INV-SPEC-020
@@ -1215,11 +1060,8 @@ def build_traceability(requirements):
     lines.append("## Code files outside the specification")
     lines.append("")
     # implements: FR-CHK-230
-    # A cancelled requirement's `code` field records what it once pointed at,
-    # not a claim on the file now. Counted in, a withdrawal would be the
-    # quietest way to take a file out of this list — the same reading the
-    # unclaimed-file rule takes above and the viewer's gap list takes in
-    # srs-dd/tools/srs_view.py, so that all three answer one question the same way.
+    # A cancelled requirement's `code` records what it pointed at, not a claim now:
+    # counted in, a withdrawal would be the quietest way to drop a file from this list.
     covered = set()
     for req in requirements:
         if req.meta.get("status") in CANCELLED:

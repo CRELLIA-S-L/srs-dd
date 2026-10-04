@@ -6,23 +6,14 @@
     python3 tools/srs_release.py 1.2.0 --dry-run
     python3 tools/srs_release.py 1.2.0
 
-It dates the changelog section, bumps the framework's version in
-srs-dd/tools/srs_parse.py, regenerates
-the matrix, and stops. Committing is yours, with whatever git client this
-repository is driven by, and so is the `vX.Y.Z` tag.
+It dates the changelog section, bumps the version in srs-dd/tools/srs_parse.py,
+regenerates the matrix, and stops: committing and the `vX.Y.Z` tag are yours.
+It cuts no baseline and writes no prose — the `## [X.Y.Z]` section belongs to
+whoever made the change, and a section already dated says the release was cut.
+Framework-only.
 
-It cuts no baseline. A release ships what the system does; a baseline
-freezes what it must do, and `srs-dd/tools/srs_baseline.py` is the command for
-that. Cut both when both are true, in either order.
-
-It writes no prose: the `## [X.Y.Z]` section belongs to whoever made the
-change, and its absence is what this refuses on. A section that already
-carries a date is what tells it the release was cut already.
-
-Framework-only — a target project releases nothing of ours.
-
-Exit codes: 0 prepared · 2 refused, having changed nothing — except where
-the checker fails on the edited files, which it says, naming them.
+Exit codes: 0 prepared · 2 refused, having changed nothing — except where the
+checker fails on the edited files, which it says, naming them.
 """
 
 # file implements: FR-CI-070, INV-SPEC-030, CON-SPEC-030, NFR-SPEC-010
@@ -58,14 +49,8 @@ def fail(message):
 
 
 def run_checker(*flags):
-    """Runs the checker; returns None when it passes and its own output
-    when it does not.
-
-    Captured rather than inherited so a refusal carries the reasons with
-    it: the verdict goes to stderr and the checker's findings to stdout,
-    and whoever redirects one of the two is otherwise told that something
-    is wrong without being told what.
-    """
+    """Runs the checker; returns None when it passes and its output when it does not,
+    captured so a refusal carries the reasons."""
     probe = subprocess.Popen([sys.executable, CHECKER] + list(flags),
                              cwd=ROOT, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)

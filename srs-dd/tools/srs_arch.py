@@ -154,12 +154,10 @@ def load_config():
 
 # implements: IF-ARCH-040
 def load_edges():
-    """The edges the project computed, as [(from, to, via)]. No file means no edges.
+    """The edges the project computed, as [(from, to, via)]; no file means no edges.
 
-    Two ends and a note, read as the interface publishes them and no further: a shape the
-    checker cannot read is a setup fault (exit 2), not a finding, because nothing about the
-    layer is wrong when the file is. An end that is an element identifier is refused with the
-    reason — the file names files, and a list of parts depending on parts is `depends_on`.
+    A shape this cannot read is a setup fault, not a finding, and an end that is an element
+    identifier is refused — the file names files.
     """
     if not os.path.exists(EDGES):
         return [], None
@@ -205,11 +203,8 @@ def rule_finding(warnings, reports, cfg, rule, text):
 
 # implements: FR-ARCH-010
 def read_model():
-    """The requirement model, through the viewer's published JSON.
-
-    A subprocess rather than an import: the viewer is a command with a promised output, and
-    borrowing its internals would tie this checker to a shape nothing guarantees.
-    """
+    """The requirement model, through the viewer's published JSON — a subprocess, since the
+    viewer is a command with a promised output and its internals are not."""
     if not os.path.exists(VIEWER):
         return None, "srs-dd/tools/srs_view.py is not here — the architecture checker reads the " \
                      "requirement model through it"
@@ -417,11 +412,8 @@ def check_records(records, model, errors, warnings, reports, cfg):
                 rule_finding(warnings, reports, cfg, "element-cancelled",
                              "%s — %s carries %s, which is %s"
                              % (record.where, record.id, rid, requirement["status"]))
-        # A dissolved part has nothing left to answer for, and saying so
-        # every run is how a report teaches its reader to skim it.
         # Over what the element carries, not what it names: under `derived` a record naming
-        # nothing may carry a dozen, and one naming nothing and owning nothing is empty even
-        # though no key is missing.
+        # nothing may carry a dozen, and a dissolved part answers for nothing.
         carried = named or computed.get(record.id)
         if not carried and not cancelled and ("requirements" in record.fields or derived):
             rule_finding(warnings, reports, cfg, "element-empty",
@@ -501,10 +493,9 @@ def check_designed_built(records, model, warnings, reports, cfg):
 
 def where_git_put(path):
     """Where git says a path went, as a clause for the finding, or "" where it cannot tell:
-    a rename in the working tree, a rename in the history, a deletion in the history — asked
-    in that order, since the first is what the reader is in the middle of. Read-only, and
-    silent where there is no git, no history or no answer: a finding must not depend on a
-    tool that may be absent."""
+    a rename in the tree, then in the history, then a deletion. Read-only, and silent
+    without git — a finding must not depend on a tool that may be absent.
+    """
     def git(*args):
         try:
             # quotePath off: a path outside ASCII would otherwise come back quoted and
@@ -520,9 +511,8 @@ def where_git_put(path):
             parts = line.split("\t")
             if len(parts) == 3 and parts[0].startswith("R") and parts[1] == path:
                 return "; renamed to %s in the working tree" % parts[2]
-    # Committed: the newest commit that touched the path, then that commit's whole diff with
-    # rename detection — a pathspec on the log would hide the other end of a rename and report
-    # every rename as a deletion (git-log(1): rename detection needs both sides in the diff).
+    # The newest commit that touched the path, then its whole diff: a pathspec on the log
+    # would report every rename as a deletion (git-log(1)).
     commit = git("log", "-1", "--format=%h", "--", path).strip()
     if commit:
         for line in git("show", "--name-status", "-M", "--format=", commit).splitlines():
@@ -571,14 +561,10 @@ def live_carriers(records):
 
 # implements: FR-ARCH-240
 def carried_by(records, model, cfg):
-    """What each element carries, as ({id: written}, {id: derived}) — two sets per element,
-    kept apart because they are two claims: the record's, that the part answers for the
-    obligation; the derivation's, that the part owns a file the obligation names.
+    """What each element carries, as ({id: written}, {id: derived}): the record's claim and the
+    derivation's, kept apart because they are two claims (ADR-0025).
 
-    The derived set is empty under `written`, and empty for a cancelled element under either
-    mode: a dissolved part owns nothing the way it depends on nothing. Ownership is decided by
-    owner_of over every live carrier, so the file a requirement names lands in the element
-    whose carrier is nearest — by the rule that decides whether a carrier is unclaimed at all.
+    The derived set is empty under `written`, and for an element that owns nothing.
     """
     written, derived = {}, {}
     for record in records:
@@ -616,11 +602,8 @@ def spec_order(model):
 
 # implements: FR-ARCH-060
 def owner_of(path, carried):
-    """The carrier that covers a path: the path itself, or a directory above it.
-
-    A directory in `carries` owns what is under it, so a part is described once rather than
-    re-listed every time a file is added beside its siblings.
-    """
+    """The carrier that covers a path: the path itself, or a directory above it, which owns
+    what is under it."""
     if path in carried:
         return path
     parts = path.split("/")
@@ -636,10 +619,8 @@ def owner_of(path, carried):
 def python_modules(records):
     """Every Python file the layer carries, as path -> element, plus the names that resolve.
 
-    Two maps rather than one, because a bare module name is not unique: `a/util.py` and
-    `b/util.py` both answer to `util`, and a dictionary keyed by the name would report the import
-    against whichever file was read last. A name only one carried file answers to resolves; the
-    rest are left alone, which is the same rule the unresolvable import gets.
+    Two maps, because a bare module name is not unique: a name two carried files answer to
+    resolves to neither.
     """
     by_path = {}
     for record in records:
@@ -686,13 +667,8 @@ def imports_of(path):
 
 # implements: FR-ARCH-200, FR-ARCH-220
 def declared_dependencies(records):
-    """The graph the elements declare, live elements only.
-
-    One place, read by the reflexion check and by the cycle walk: two readings of `depends_on`
-    would one day disagree about which elements are in the graph. A cancelled element is out of
-    it — it keeps its field for the record, and a circle surviving through it would be one
-    nothing live can break. Targets are kept as written, resolving or not: nothing here checks
-    that a dependency names an element, and the walk has to tolerate one that does not.
+    """The graph the elements declare, live elements only, in one place — two readings of
+    `depends_on` would disagree about who is in the graph. Targets are kept as written.
     """
     declared = {}
     for record in records:
@@ -704,13 +680,8 @@ def declared_dependencies(records):
 
 # implements: FR-ARCH-230
 def check_dependencies_resolve(records, errors):
-    """A dependency names an element the layer carries.
-
-    Its own walk after every record is read, not a clause of check_records: that one reads
-    records one at a time, and an element declared further down the file would be reported as
-    absent. A cancelled element is present — it has a status that says it left — and a
-    dependency on it is not this rule's finding.
-    """
+    """A dependency names an element the layer carries; its own walk after every record is
+    read, since one declared further down the file would otherwise be reported absent."""
     present = set(record.id for record in records if RE_ID.match(record.id))
     for record in records:
         if record.id not in present:
@@ -726,10 +697,8 @@ def check_dependencies_resolve(records, errors):
 def check_cycles(records, warnings, reports, cfg):
     """Elements that depend on each other in a circle, each circle named once.
 
-    A warning with a name where the same finding between requirements is an error with none:
-    nothing here is broken by a circle — the map renders, the reflexion check runs — and two
-    parts that need each other are a fact about the code the project may choose to live with.
-    A dependency naming no element ends the path rather than the walk.
+    A warning, where the same finding between requirements is an error: nothing here is
+    broken by a circle. A dependency naming no element ends the path, not the walk.
     """
     declared = declared_dependencies(records)
     where = dict((record.id, record.where) for record in records)
@@ -746,10 +715,8 @@ def check_cycles(records, warnings, reports, cfg):
                 continue
             if colour.get(target) == "grey":
                 circle = stack[stack.index(target):]
-                # The degenerate circle has no "each other" in it, and the layer has no rule
-                # of its own for a self-reference the way the specification checker does.
-                # Located at the element the circle is named from, since a circle has no
-                # single line of its own and the other findings all start with a place.
+                # The degenerate circle has no "each other" in it, and is located at the element it is
+                # named from, since a circle has no line of its own.
                 if len(circle) == 1:
                     text = "%s — %s depends on itself" % (where[node], node)
                 else:
@@ -779,15 +746,11 @@ def element_of(path, owners):
 
 # implements: FR-ARCH-200, FR-ARCH-260
 def check_conformance(records, edges, warnings, reports, cfg):
-    """The declared model against the one the code has.
+    """The declared model against the one the code has, one direction only: an edge the code
+    has and the model does not.
 
-    One direction only, as the requirement states it: an edge the code has and the model does not.
-    The other direction — a declared edge nothing in the code walks — is a different reading and
-    has no rule here.
-
-    Two suppliers of edges and one comparison: the imports this checker reads from the Python it
-    carries, and the edges the project put in arch/edges.json for the languages it does not read.
-    Both land in the same `seen` set, so a pair is reported once whichever said it first.
+    Two suppliers, the imports read here and the edges the project supplies, into one `seen`
+    set, so a pair is reported once.
     """
     by_path, unique = python_modules(records)
     declared = declared_dependencies(records)
