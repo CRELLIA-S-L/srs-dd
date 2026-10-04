@@ -127,10 +127,84 @@ The records stay the author's, the map is where the projection lives, and the ga
 The default is `written`: every entry is the author's claim, and a layer written before this key existed reads exactly as it did.
 This is not the derivation measured and rejected above — `depends_on` is still written by a person — and the projection lives in the map rather than in the record, because a tool writing it back into the record would be editing what a person authored.
 
+## Designing a cut
+
+A part is `proposed` while it is designed and not yet built, and that status is read three ways.
+
+Its carriers need not exist: a designed part names where its files will be, so the warning about a path nobody has stays silent for it (`carrier-missing`).
+It owns none of those files: until it is built, whatever part answers for them today still does, so a file a design names and no built part owns is still reported as unclaimed.
+It does answer for the obligations it names, because that is what designing is — a cut nobody could assign a requirement to could never be finished.
+
+From those three the completeness of a design is computable, and it is the one reading this layer makes before any code exists: a requirement that is approved and awaiting implementation, which no part answers for, is reported under `requirement-unassigned`.
+While that list is not empty the design has a hole in it; empty, the cut covers every obligation the specification has approved.
+It is a note rather than a warning unless the project says otherwise: a backlog is not a defect.
+A `draft` requirement is not in the list — it is recorded and not approved, and designing structure against it is structure ahead of approval.
+
+The other direction closes the loop.
+A designed part whose files are all in the repository and whose every obligation is realized is a built part with the wrong status on it, and is reported under `element-built`.
+Both halves are required: a part whose files exist while its obligations are unbuilt is being built rather than built.
+The status is changed by a person — nothing here edits a record.
+
+What moving to a designed cut requires is computed on request:
+
+```
+python3 srs-dd/tools/srs_arch.py --plan
+```
+
+It prints the files that change hands with both ends named, the obligations that change part, the dependencies the designed parts add, and the built parts the design empties, whose declared dependencies go with them.
+It reports no finding and fails nothing: a designed cut differing from the built one is the normal state of a project that designs before it builds, and a warning for it would fire for as long as the design lives.
+
+## The move record
+
+A redraw outlives the commit that starts it: it is agreed once, carried out over several changes, and read by whoever arrives in the middle of it.
+That is what a move record is for, and it is the second kind of record this layer holds.
+
+````markdown
+### M-010 — The parser leaves the checker
+
+```yaml
+status: moving
+from: [E-010]
+to: [E-110]
+moves: [srs-dd/tools/srs_parse.py]
+adr: ADR-NNNN
+```
+
+Hands the shared reader to a part of its own, so that neither checker owns the other's parser.
+````
+
+`adr` holds the number of the decision itself — written out, as `specs/adr/` spells it.
+The shape is the element's, down to the promise that keys are added and never renamed.
+The kind is told by the identifier's prefix — `M-<NNN>`, numbered and immutable exactly as `E-<NNN>` is — so the records live wherever the project puts them; `arch/10-moves.md` is the obvious place and no rule requires it.
+
+| Key | | |
+|---|---|---|
+| `status` | required | `planned`, `moving`, `done`, `abandoned` |
+| `from` | required | the elements losing the responsibility |
+| `to` | required | the elements taking it |
+| `moves` | required | the paths that change hands |
+| `adr` | required | the decision the redraw stands on |
+
+A move is **in force** while its status is `planned` or `moving`; `done` and `abandoned` have left the model the way a cancelled element has, and nothing is reported about them again.
+
+An identifier used twice, a required key absent and a status outside the four are errors, as they are for an element.
+So is a name that leads nowhere: an element no record defines in `from` or `to`, or an `adr` the specification holds no document named after — a move between parts one of which does not exist can be neither planned against nor completed.
+Whether the decision says what the move does is a reading a person makes, and nothing here tries.
+
+Two findings are about where a move has got to, read off what the elements at its ends claim rather than off who owns what, because a redraw is carried out by editing the records:
+
+- a move in force whose every path is claimed by an element in `to` and by none in `from` is finished, and is reported under `move-complete` so the record gets closed;
+- a path at neither end cannot be moved as written — the file was renamed, or it belongs to a part the move never named — and is reported under `move-orphan`.
+
+**The plan is computed and the move is authored.**
+`--plan` says what the difference between the two cuts is; a move record says what somebody agreed to do about it, and survives the commits that carry it out.
+Neither replaces the decision: the layer records that the cut is changing, and `specs/adr/` records why.
+
 ## The map
 
 `arch/90-map.md` is generated from the records and never edited by hand.
 It states, for every element, what it carries, which requirements it holds and what state it is in; where the requirements are derived, it marks which of them the record names and which were computed.
+Where the layer holds moves in force, it says of each what it moves, between which parts and in what state: a system mid-redraw is not described by its parts alone, since a part may still carry files it is losing.
 A committed map that no longer matches what the records produce is a change somebody made without looking at the parts, which is why the map is compared rather than trusted.
 
 ## Checking
@@ -141,6 +215,7 @@ python3 srs-dd/tools/srs_arch.py --no-write   report only
 python3 srs-dd/tools/srs_arch.py --strict     treat warnings as errors
 python3 srs-dd/tools/srs_arch.py --cite ID…   name elements to a person: identifier, title, file, status
 python3 srs-dd/tools/srs_arch.py --drivers    the ten requirements that drive the cut, most constrained first
+python3 srs-dd/tools/srs_arch.py --plan       what moving to the designed parts requires
 ```
 
 Errors are the readings that make the rest meaningless: a file that cannot be read, an identifier that is malformed or repeated, a missing required key, a status outside the four, a requirement that does not exist, and a dependency on an element no record defines.
@@ -155,6 +230,8 @@ What a rule costs is the project's to set, in `arch/arch-config.json`, beside th
 ```
 
 `warn` is the default and what `--strict` fails on, `report` is said and fails nothing, `off` is not said at all.
+One rule costs less by default: `requirement-unassigned` is a note, because an approved obligation nobody has designed for is a backlog, which every project has and no gate should refuse — a fresh layer carries one of those before it carries an element.
+A project that wants its cut closed before any code is written prices it up.
 
 | Rule | What it reports |
 |---|---|
@@ -165,6 +242,10 @@ What a rule costs is the project's to set, in `arch/arch-config.json`, beside th
 | `dependency-undeclared` | A dependency the code has — an import the checker reads, or an edge in `arch/edges.json` — that the element does not declare |
 | `element-cycle` | Elements that depend on each other in a circle |
 | `carrier-missing` | A path an element carries that does not exist |
+| `requirement-unassigned` | A `deferred` requirement no element answers for — a note unless the project prices it up |
+| `element-built` | A `proposed` element whose files all exist and whose requirements are all realized |
+| `move-complete` | A move in force whose every path is at the receiving end and none at the leaving one |
+| `move-orphan` | A path a move names that no element at either end carries |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do
@@ -173,7 +254,9 @@ A rule name the checker has published keeps its meaning: names are never renamed
   The join lives here, in one direction.
 - Do not edit `90-map.md`.
   It is generated; the next run overwrites it.
-- Do not describe a part that does not exist yet.
-  An element is a record of how the system is cut today, and a plan for cutting it differently is an ADR.
+- Do not describe a part that does not exist yet without saying so in its status.
+  A part being designed is `proposed` and is read as a design (see *Designing a cut*); `built` is a claim about today, and a plan written as one makes the layer describe a system nobody has.
+- Do not use a move record in place of a decision.
+  It says what changes hands; why the cut changes belongs in `specs/adr/`, which is what its `adr` points at.
 - Do not cut the parts as finely as the file tree.
   If every module is an element, the layer says nothing the directory listing did not.

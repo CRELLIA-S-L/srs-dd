@@ -7,6 +7,8 @@
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
 # verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
 # verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, IF-ARCH-040
+# verifies: FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350
+# verifies: FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -1462,6 +1464,647 @@ grep -q "E-010 carries src/файл.py, which does not exist; git renamed it to 
 grep -q "src/a.py, which does not exist\|src/b.py, which does not exist" /tmp/srs-arch-git.log \
     && { echo "FAIL FR-ARCH-280 — a file that exists was reported"; cat /tmp/srs-arch-git.log; exit 1; }
 passes=$((passes + 1))
+
+# --- verifies: FR-ARCH-310, FR-ARCH-320 — design mode: a part designed and
+# --- not yet built. Appended last: the approved requirement it needs would
+# --- otherwise be unanswered for in every fixture above.
+cat >> "$LAB/specs/10-fr-core.md" <<'MD'
+
+### FR-CORE-070 — The approved one
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-04
+```
+
+The system **shall** act once somebody builds it.
+MD
+
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries what exists.
+MD
+rule "FR-ARCH-320 an approved requirement nobody answers for" 0 \
+    "FR-CORE-070 is deferred and no element answers for it"
+
+# A backlog is not a defect: a note by default, a warning once priced up. The
+# layer below is otherwise silent, so the exit code is about the note alone.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060]
+depends_on: []
+```
+
+Carries every file and every realized obligation.
+MD
+rule "FR-ARCH-320 a note by default" 0 "note: specs/10-fr-core.md — FR-CORE-070 is deferred"
+silent "FR-ARCH-320 a strict run passes over the note" 0 "treated as errors" --strict
+printf '{"rules": {"requirement-unassigned": "warn"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-320 priced up, it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries what exists.
+
+### E-020 — The part that will carry the third
+
+```yaml
+status: proposed
+carries: [src/later]
+requirements: [FR-CORE-070]
+depends_on: [E-010]
+```
+
+Will carry it once somebody builds it.
+MD
+silent "FR-ARCH-320 a design answers for an approved requirement" 0 \
+    "FR-CORE-070 is deferred and no element answers"
+silent "FR-ARCH-310 a designed part's carriers need not exist" 0 \
+    "src/later, which does not exist"
+silent "FR-ARCH-330 a design whose files are absent is not called built" 0 \
+    "every file it carries exists"
+
+# srs-end: FR-ARCH-310, FR-ARCH-320
+# --- verifies: FR-ARCH-340 — a design claims a file a built part does not own:
+# --- the file is still unclaimed, the obligation still answered for.
+elements <<'MD'
+# Elements
+
+### E-010 — Half of it
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Carries half.
+
+### E-020 — The part that will take the other half
+
+```yaml
+status: proposed
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-070]
+depends_on: []
+```
+
+Will take the first file.
+MD
+rule "FR-ARCH-340 a designed part does not own its files yet" 0 \
+    "src/a.py — named by FR-CORE-010 and carried by no element"
+silent "FR-ARCH-340 and it does carry the obligation" 0 \
+    "FR-CORE-010 is implemented and no element carries it"
+silent "FR-ARCH-330 a design with an unbuilt obligation is not called built" 0 \
+    "every requirement it carries is realized"
+
+# srs-end: FR-ARCH-340
+# --- verifies: FR-ARCH-330 — a design whose files are all here and whose
+# --- obligations are all built is a built part with the wrong status on it.
+elements <<'MD'
+# Elements
+
+### E-010 — The design that shipped
+
+```yaml
+status: proposed
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Everything it names is already here.
+MD
+rule "FR-ARCH-330 a design that is already built" 0 \
+    "E-010 is proposed, and every file it carries exists and every requirement it carries is realized"
+
+elements <<'MD'
+# Elements
+
+### E-010 — A part designed and empty
+
+```yaml
+status: proposed
+carries: []
+requirements: []
+depends_on: []
+```
+
+Answers to nothing yet.
+MD
+rule "FR-ARCH-330 an empty design is reported as empty" 0 "carries no requirement"
+silent "FR-ARCH-330 and not as built" 0 "every requirement it carries is realized"
+
+# srs-end: FR-ARCH-330
+
+# --- verifies: FR-ARCH-350 — what moving to the designed parts requires.
+elements <<'MD'
+# Elements
+
+### E-010 — The old whole
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-020]
+```
+
+Carries both files today.
+
+### E-020 — What the old whole leans on
+
+```yaml
+status: built
+carries: [t]
+requirements: []
+depends_on: []
+```
+
+Carries the suites.
+
+### E-030 — The design
+
+```yaml
+status: proposed
+carries: [src/a.py, src/later]
+requirements: [FR-CORE-010, FR-CORE-070]
+depends_on: [E-020]
+```
+
+Takes one file that exists and one that does not.
+MD
+rule "FR-ARCH-350 a file changes hands, both ends named" 0 \
+    "file  src/a.py — from E-010" --plan
+rule "FR-ARCH-350 a file no part owns today" 0 \
+    "file  src/later — no part owns it today" --plan
+rule "FR-ARCH-350 an obligation changes part" 0 \
+    "holds FR-CORE-010 — from E-010" --plan
+rule "FR-ARCH-350 an obligation no part carries today" 0 \
+    "holds FR-CORE-070 — no part carries it today" --plan
+rule "FR-ARCH-350 a dependency the design adds" 0 \
+    "needs E-020 — a dependency the built parts do not have" --plan
+silent "FR-ARCH-350 a part keeping a file of its own does not fall away" 0 \
+    "Falls away" --plan
+silent "FR-ARCH-350 the plan reports no finding" 0 "warning:" --plan
+
+# --- A design that claims every file of a built part dissolves it, and the
+# --- dependencies it declared go with it.
+elements <<'MD'
+# Elements
+
+### E-010 — The old whole
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-020]
+```
+
+Carries both files today.
+
+### E-020 — What the old whole leans on
+
+```yaml
+status: built
+carries: [t]
+requirements: []
+depends_on: []
+```
+
+Carries the suites.
+
+### E-030 — The design
+
+```yaml
+status: proposed
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: [E-020]
+```
+
+Takes the whole directory, and with it everything E-010 had.
+MD
+rule "FR-ARCH-350 a part the design empties falls away" 0 \
+    "E-010 — The old whole keeps no file of its own under the design" --plan
+rule "FR-ARCH-350 and its dependency goes with it" 0 \
+    "E-010 → E-020 — the dependency goes with it" --plan
+
+# --- Nothing designed: the command says so rather than printing an empty plan.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Carries all of it.
+MD
+rule "FR-ARCH-350 nothing designed" 0 \
+    "No part is designed and unbuilt, so there is nothing to move." --plan
+
+# srs-end: FR-ARCH-350
+
+# --- verifies: IF-ARCH-050, FR-ARCH-360 — the move record: the second kind
+# --- of record this layer holds, in a file of its own.
+mkdir -p "$LAB/specs/adr"
+cat > "$LAB/specs/adr/ADR-0001-the-cut-changes.md" <<'MD'
+# ADR-0001 — The cut changes
+
+- **Status:** accepted
+MD
+
+# moves <<'MD' — the redraws under test, replaced by every fixture.
+moves() { cat > "$LAB/arch/10-moves.md"; }
+
+elements <<'MD'
+# Elements
+
+### E-010 — The part losing a file
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Carries the file today.
+
+### E-020 — The part taking it
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Will carry it.
+MD
+
+moves <<'MD'
+# Moves
+
+### M-01 — Two digits short
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+rule "FR-ARCH-360 malformed identifier" 1 "identifier does not match E-<NNN> or M-<NNN>"
+
+moves <<'MD'
+# Moves
+
+### M-010 — The first
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+
+### M-010 — The same number again
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/b.py]
+adr: ADR-0001
+```
+
+Hands another over.
+MD
+rule "FR-ARCH-360 duplicate identifier" 1 "M-010 is already used at"
+
+moves <<'MD'
+# Moves
+
+### M-010 — No list of what moves
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+adr: ADR-0001
+```
+
+Says nothing about what changes hands.
+MD
+rule "FR-ARCH-360 missing key" 1 "required key 'moves' is missing"
+
+moves <<'MD'
+# Moves
+
+### M-010 — A state of its own invention
+
+```yaml
+status: started
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+rule "FR-ARCH-360 status outside the four" 1 \
+    "status 'started' is not one of planned, moving, done, abandoned"
+
+# srs-end: FR-ARCH-360, IF-ARCH-050
+# --- verifies: FR-ARCH-370 — a move names parts and a decision that exist.
+moves <<'MD'
+# Moves
+
+### M-010 — Into a part nobody wrote down
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-990]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file to a part that does not exist.
+MD
+rule "FR-ARCH-370 an end no element carries" 1 \
+    'M-010 names E-990 in `to`, which no element carries'
+
+moves <<'MD'
+# Moves
+
+### M-010 — Behind a decision nobody wrote
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0099
+```
+
+Hands the file over for reasons recorded nowhere.
+MD
+rule "FR-ARCH-370 a decision the specification does not hold" 1 \
+    "M-010 names ADR-0099, and the specification holds no document named after it"
+
+# srs-end: FR-ARCH-370
+# --- verifies: FR-ARCH-380 — a move in force whose paths are all at the
+# --- receiving end is finished, and only its status still says otherwise.
+elements <<'MD'
+# Elements
+
+### E-010 — The part that lost the file
+
+```yaml
+status: built
+carries: []
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Carries nothing any more.
+
+### E-020 — The part that took it
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Carries both now.
+MD
+moves <<'MD'
+# Moves
+
+### M-010 — The file changes hands
+
+```yaml
+status: moving
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+rule "FR-ARCH-380 a finished move is reported as finished" 0 \
+    "M-010 has every path it moves at E-020 and none at E-010, and its status still says moving"
+
+moves <<'MD'
+# Moves
+
+### M-010 — The file changed hands and the record was closed
+
+```yaml
+status: done
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Handed the file over.
+MD
+silent "FR-ARCH-380 a closed move is not reported" 0 "has every path it moves"
+
+# --- A path still at the leaving end has not arrived.
+elements <<'MD'
+# Elements
+
+### E-010 — The part still holding it
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Has not handed it over yet.
+
+### E-020 — The part waiting for it
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Claims it too, for now.
+MD
+moves <<'MD'
+# Moves
+
+### M-010 — Half handed over
+
+```yaml
+status: moving
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+silent "FR-ARCH-380 a path at both ends has not arrived" 0 "has every path it moves"
+
+# srs-end: FR-ARCH-380
+# --- verifies: FR-ARCH-390 — a path at neither end cannot be moved as written.
+elements <<'MD'
+# Elements
+
+### E-010 — The leaving part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Carries one file.
+
+### E-020 — The receiving part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Carries the other.
+MD
+moves <<'MD'
+# Moves
+
+### M-010 — A file neither part has
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/ghost.py]
+adr: ADR-0001
+```
+
+Hands over something nobody carries.
+MD
+rule "FR-ARCH-390 a path at neither end" 0 \
+    "M-010 moves src/ghost.py, which no element at either end carries"
+
+moves <<'MD'
+# Moves
+
+### M-010 — A file the leaving part has
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands over what E-010 carries today.
+MD
+silent "FR-ARCH-390 a path one end carries is not an orphan" 0 "which no element at either end carries"
+
+# srs-end: FR-ARCH-390
+# --- verifies: FR-ARCH-400 — the map says what is moving, and says nothing of
+# --- a move that is over.
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-400 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "## What is moving" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-400 — the map holds no section for what is moving"; exit 1; }
+grep -qF "| **M-010** A file the leaving part has | \`planned\` | E-010 | E-020 | \`src/a.py\` |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-400 — the map does not say what the move moves, between which parts, in what state"
+         sed -n '/What is moving/,$p' "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+
+moves <<'MD'
+# Moves
+
+### M-010 — A move that is over
+
+```yaml
+status: done
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Handed over long ago.
+MD
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-400 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "## What is moving" "$LAB/arch/90-map.md" \
+    && { echo "FAIL FR-ARCH-400 — a closed move is in the map"; exit 1; }
+passes=$((passes + 1))
+
+rm -f "$LAB/arch/10-moves.md"
+# srs-end: FR-ARCH-400
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

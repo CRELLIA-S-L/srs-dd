@@ -14,6 +14,7 @@ cd "$(dirname "$0")/.."
 
 # file implements: INV-SPEC-110
 # file verifies: FR-SPEC-070, FR-VIEW-390, FR-VIEW-050, INV-SPEC-110, FR-SKILL-450
+# file verifies: IF-ARCH-050
 python3 - <<'PY'
 import re, sys
 
@@ -101,13 +102,30 @@ config = section(grounds, "Configuration")
 config = config[:config.find("**Rules.**")] if "**Rules.**" in config else config
 found += both_ways("srs-dd/grounds.md, the configuration table", table_keys(config), srs_grounds.DEFAULTS)
 
-# The layer: its statuses on the status row, and a row for each required key.
+# The layer: its statuses on the status row, and a row for each required key —
+# per kind of record, since the layer holds two and each table is read inside
+# the section that owns it. Read over the whole file, the move's keys would
+# arrive as the element's and every one of them would read as invented.
 arch = read("srs-dd/arch.md")
-status_row = next((line for line in arch.splitlines() if line.startswith("| `status` |")), "")
-found += both_ways("srs-dd/arch.md, the status row", backticked(status_row)[1:], srs_arch.STATUSES)
-required = [key for key in table_keys(arch)
-            if re.search(r"^\| `%s` \| required" % re.escape(key), arch, re.M)]
-found += both_ways("srs-dd/arch.md, the required keys", required, srs_arch.REQUIRED_KEYS)
+
+
+def keys_of(text):
+    return [key for key in table_keys(text)
+            if re.search(r"^\| `%s` \| required" % re.escape(key), text, re.M)]
+
+
+def status_values(text):
+    row = next((line for line in text.splitlines() if line.startswith("| `status` |")), "")
+    return backticked(row)[1:]
+
+
+element = section(arch, "The record")
+found += both_ways("srs-dd/arch.md, the status row", status_values(element), srs_arch.STATUSES)
+found += both_ways("srs-dd/arch.md, the required keys", keys_of(element), srs_arch.REQUIRED_KEYS)
+move = section(arch, "The move record")
+found += both_ways("srs-dd/arch.md, the move status row", status_values(move),
+                   srs_arch.MOVE_STATUSES)
+found += both_ways("srs-dd/arch.md, the move keys", keys_of(move), srs_arch.MOVE_KEYS)
 
 # The viewer keeps its own tables of the checker's vocabulary: a method it
 # cannot name, a link it cannot label backwards, a status with no colour,

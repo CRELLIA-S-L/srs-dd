@@ -7,6 +7,8 @@
 srs-dd/tools/srs_arch.py
 srs-dd/tools/srs_arch.py --cite
 srs-dd/tools/srs_arch.py --no-write
+srs-dd/tools/srs_arch.py --drivers
+srs-dd/tools/srs_arch.py --plan
 srs-dd/tools/srs_view.py
 srs-dd/tools/srs_view.py --code
 
@@ -20,4 +22,5 @@ AGENTS.md
 arch/90-map.md
 srs-dd/arch.md
 arch/edges.json
+arch/10-moves.md
 specs/adr/

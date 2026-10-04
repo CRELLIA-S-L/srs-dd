@@ -11,6 +11,7 @@
     python3 srs-dd/tools/srs_arch.py --strict     treat warnings as errors
     python3 srs-dd/tools/srs_arch.py --cite E-NNN… name elements to a person
     python3 srs-dd/tools/srs_arch.py --drivers    the requirements that drive the cut
+    python3 srs-dd/tools/srs_arch.py --plan       what moving to the designed parts requires
 
 The requirement model is read by running srs-dd/tools/srs_view.py as a subprocess and parsing what it
 publishes, which the framework promises to keep stable, so this file never learns the requirement
@@ -59,21 +60,48 @@ SKIP_FILES = {"README.md", "90-map.md"}
 # the identifier rule can say so instead of passing it over in silence.
 RE_HEADING = re.compile(r"^###\s+([A-Za-z][A-Za-z0-9]*-\d+(?:-[A-Za-z0-9]+)*)\s*(?:[—–-]\s*)?(.*)$")
 RE_ID = re.compile(r"^E-%s$" % srs_parse.NUMBER)   # implements: INV-SPEC-080
+# implements: IF-ARCH-050
+RE_MOVE = re.compile(r"^M-%s$" % srs_parse.NUMBER)
+# srs-end: IF-ARCH-050
 
 REQUIRED_KEYS = ("status", "carries", "requirements")
 STATUSES = ("proposed", "built", "superseded", "withdrawn")
 CANCELLED = ("superseded", "withdrawn")
 REALIZED = ("implemented", "partial")
 
+# implements: FR-ARCH-310, FR-ARCH-340
+# Designed and not built: it names where its files will be and owns none of them (ADR-0042).
+DESIGNED = ("proposed",)
+NOT_OWNING = CANCELLED + DESIGNED
+# srs-end: FR-ARCH-310, FR-ARCH-340
+
+# implements: FR-ARCH-320
+# Approved and unbuilt: what a cut is designed against.
+APPROVED = ("deferred",)
+# srs-end: FR-ARCH-320
+
+# implements: IF-ARCH-050
+# A move's keys and statuses; the two closed ones have left the model (ADR-0043).
+MOVE_KEYS = ("status", "from", "to", "moves", "adr")
+MOVE_STATUSES = ("planned", "moving", "done", "abandoned")
+MOVE_CLOSED = ("done", "abandoned")
+# srs-end: IF-ARCH-050
+
 # implements: IF-ARCH-030
 # Published names: a project writes them into arch/arch-config.json, so one is never renamed and
 # never given to a different rule.
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
-         "dependency-undeclared", "element-cycle", "carrier-missing")
+         "dependency-undeclared", "element-cycle", "carrier-missing",
+         "requirement-unassigned", "element-built", "move-complete", "move-orphan")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
 SEVERITIES = ("warn", "report", "off")
+
+# implements: FR-ARCH-320
+# What a rule costs where the project has not said: a backlog is a note, not a warning.
+DEFAULT_SEVERITY = {"requirement-unassigned": "report"}
+# srs-end: FR-ARCH-320
 
 # implements: FR-ARCH-240
 # How the `requirements` field is kept. `written` is the author's claim and the default;
@@ -166,8 +194,9 @@ def load_edges():
 
 # implements: FR-ARCH-090
 def rule_finding(warnings, reports, cfg, rule, text):
-    """Route one rule's finding by what the project decided it costs."""
-    severity = cfg["rules"].get(rule, "warn")
+    """Route one rule's finding by what the project decided it costs, or by what the rule costs
+    where the project has not said."""
+    severity = cfg["rules"].get(rule, DEFAULT_SEVERITY.get(rule, "warn"))
     if severity == "off":
         return
     (warnings if severity == "warn" else reports).append(text)
@@ -242,7 +271,114 @@ def as_list(value):
     return [value]
 
 
-# implements: FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
+# implements: FR-ARCH-020, FR-ARCH-360
+def partition(records, errors):
+    """The layer's records by kind, told apart by the prefix of the identifier.
+
+    A heading that is neither is reported here and reaches no check.
+    """
+    elements, moves = [], []
+    for record in records:
+        if RE_ID.match(record.id):
+            elements.append(record)
+        elif RE_MOVE.match(record.id):
+            moves.append(record)
+        else:
+            errors.append("%s — identifier does not match E-<NNN> or M-<NNN>" % record.where)
+    return elements, moves
+# srs-end: FR-ARCH-020, FR-ARCH-360
+
+
+# implements: FR-ARCH-360, IF-ARCH-050
+def check_moves(moves, errors):
+    """An identifier used twice, a required key absent, a status outside the four — the readings
+    an element's record gets, and errors for the same reason (ADR-0043)."""
+    seen = {}
+    for record in moves:
+        if record.id in seen:
+            errors.append("%s — %s is already used at %s"
+                          % (record.where, record.id, seen[record.id]))
+            continue
+        seen[record.id] = record.where
+        for key in MOVE_KEYS:
+            if key not in record.fields:
+                errors.append("%s — required key %r is missing" % (record.where, key))
+        status = record.fields.get("status")
+        if status is not None and status not in MOVE_STATUSES:
+            errors.append("%s — status %r is not one of %s"
+                          % (record.where, status, ", ".join(MOVE_STATUSES)))
+# srs-end: FR-ARCH-360, IF-ARCH-050
+
+
+# implements: FR-ARCH-370
+def check_moves_resolve(moves, elements, model, errors):
+    """A move names parts and a decision that exist.
+
+    The decision is resolved against the documents the viewer publishes, so the layer never learns
+    where a project keeps them; that one is named after the record's value is the whole question.
+    """
+    present = set(record.id for record in elements)
+    documents = [os.path.basename(path) for path in (model.get("documents") or ())]
+    for record in moves:
+        if not RE_MOVE.match(record.id):
+            continue
+        for key in ("from", "to"):
+            for target in as_list(record.fields.get(key)):
+                if target not in present:
+                    errors.append("%s — %s names %s in `%s`, which no element carries"
+                                  % (record.where, record.id, target, key))
+        adr = record.fields.get("adr")
+        if adr and not any(name == "%s.md" % adr or name.startswith("%s-" % adr)
+                           for name in documents):
+            errors.append("%s — %s names %s, and the specification holds no document named "
+                          "after it" % (record.where, record.id, adr))
+# srs-end: FR-ARCH-370
+
+
+# implements: FR-ARCH-380, FR-ARCH-390
+def check_move_state(moves, elements, warnings, reports, cfg):
+    """Where a move in force has got to, read off what the elements at its ends claim.
+
+    Claims and not ownership, since a move is carried out by editing records (ADR-0043). A path at
+    both ends has not arrived; one at neither cannot be moved as written.
+    """
+    by_id = dict((record.id, record) for record in elements)
+
+    def claims(key, record):
+        carriers = {}
+        for eid in as_list(record.fields.get(key)):
+            element = by_id.get(eid)
+            if element is None:
+                continue
+            for path in as_list(element.fields.get("carries")):
+                carriers.setdefault(path.rstrip("/"), []).append(eid)
+        return carriers
+
+    for record in moves:
+        if not RE_MOVE.match(record.id) or record.fields.get("status") in MOVE_CLOSED:
+            continue
+        leaving, arriving = claims("from", record), claims("to", record)
+        paths = [path.rstrip("/") for path in as_list(record.fields.get("moves"))]
+        arrived = []
+        for path in paths:
+            at_to = owner_of(path, arriving) is not None
+            at_from = owner_of(path, leaving) is not None
+            if not at_to and not at_from:
+                rule_finding(warnings, reports, cfg, "move-orphan",
+                             "%s — %s moves %s, which no element at either end carries"
+                             % (record.where, record.id, path))
+            arrived.append(at_to and not at_from)
+        if paths and all(arrived):
+            rule_finding(warnings, reports, cfg, "move-complete",
+                         "%s — %s has every path it moves at %s and none at %s, and its status "
+                         "still says %s" % (record.where, record.id,
+                                            ", ".join(as_list(record.fields.get("to"))) or "nothing",
+                                            ", ".join(as_list(record.fields.get("from"))) or "nothing",
+                                            record.fields.get("status")))
+# srs-end: FR-ARCH-380, FR-ARCH-390
+
+
+# implements: FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
 def check_records(records, model, errors, warnings, reports, cfg):
     """Everything decidable from one element and the requirement model."""
     seen = {}
@@ -251,7 +387,6 @@ def check_records(records, model, errors, warnings, reports, cfg):
     computed = carried_by(records, model, cfg)[1]
     for record in records:
         if not RE_ID.match(record.id):
-            errors.append("%s — identifier does not match E-<NNN>" % record.where)
             continue
         if record.id in seen:
             errors.append("%s — %s is already used at %s" % (record.where, record.id,
@@ -292,15 +427,16 @@ def check_records(records, model, errors, warnings, reports, cfg):
             rule_finding(warnings, reports, cfg, "element-empty",
                          "%s — %s carries no requirement, so nothing says what it is for"
                          % (record.where, record.id))
-# srs-end: FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
+# srs-end: FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-080
 
 
-# implements: FR-ARCH-060, FR-ARCH-070
+# implements: FR-ARCH-060, FR-ARCH-070, FR-ARCH-320, FR-ARCH-340
 def check_ownership(records, model, warnings, reports, cfg):
-    """The two directions of the same decay: a file no part owns, a requirement no part carries.
+    """Three directions of the same decay: a file no part owns, a realized requirement no part
+    carries, and an approved one no part has been designed for.
 
-    Both are computed from what the specification already publishes, so neither needs the language
-    of a file read.
+    `carried` is ownership of files, which a design has not got; `claimed` is which obligations a
+    part answers for, which a design has (ADR-0042).
     """
     carried = set()
     claimed = set()
@@ -310,12 +446,20 @@ def check_ownership(records, model, warnings, reports, cfg):
             continue
         if record.fields.get("status") in CANCELLED:
             continue
-        for path in as_list(record.fields.get("carries")):
-            carried.add(path.rstrip("/"))
+        if record.fields.get("status") not in DESIGNED:
+            for path in as_list(record.fields.get("carries")):
+                carried.add(path.rstrip("/"))
         claimed.update(written[record.id])
         claimed.update(computed[record.id])
 
     for requirement in model["requirements"]:
+        # implements: FR-ARCH-320
+        # The only reading that says a design is unfinished before any code exists.
+        if requirement.get("status") in APPROVED and requirement["id"] not in claimed:
+            rule_finding(warnings, reports, cfg, "requirement-unassigned",
+                         "%s — %s is %s and no element answers for it"
+                         % (requirement["path"], requirement["id"], requirement["status"]))
+        # srs-end: FR-ARCH-320
         if requirement.get("status") not in REALIZED:
             continue
         if requirement["id"] not in claimed:
@@ -327,7 +471,32 @@ def check_ownership(records, model, warnings, reports, cfg):
                 rule_finding(warnings, reports, cfg, "carrier-unclaimed",
                              "%s — named by %s and carried by no element"
                              % (path, requirement["id"]))
-# srs-end: FR-ARCH-060, FR-ARCH-070
+# srs-end: FR-ARCH-060, FR-ARCH-070, FR-ARCH-320, FR-ARCH-340
+
+
+# implements: FR-ARCH-330
+def check_designed_built(records, model, warnings, reports, cfg):
+    """A designed part whose files all exist and whose obligations are all realized: built, with
+    only its status still saying otherwise (ADR-0042)."""
+    by_id = {r["id"]: r for r in model["requirements"]}
+    written, computed = carried_by(records, model, cfg)
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") not in DESIGNED:
+            continue
+        carries = written[record.id] | computed[record.id]
+        # A record carrying nothing is the empty-element finding, not this one.
+        if not carries:
+            continue
+        if any(by_id.get(rid, {}).get("status") not in REALIZED for rid in carries):
+            continue
+        if not all(os.path.exists(os.path.join(ROOT, path.rstrip("/")))
+                   for path in as_list(record.fields.get("carries"))):
+            continue
+        rule_finding(warnings, reports, cfg, "element-built",
+                     "%s — %s is %s, and every file it carries exists and every requirement it "
+                     "carries is realized" % (record.where, record.id,
+                                              record.fields.get("status")))
+# srs-end: FR-ARCH-330
 
 
 def where_git_put(path):
@@ -365,12 +534,14 @@ def where_git_put(path):
     return ""
 
 
-# implements: FR-ARCH-280
+# implements: FR-ARCH-280, FR-ARCH-310
 def check_carriers_exist(records, warnings, reports, cfg):
-    """A path an element carries that nobody has: the record still reads, and it lies in the
-    commonest way a map goes stale, so a named warning with where git says the file went."""
+    """A path an element carries that nobody has, with where git says the file went.
+
+    A designed part is exempt: its files are missing by construction (ADR-0042).
+    """
     for record in records:
-        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED + DESIGNED:
             continue
         for path in as_list(record.fields.get("carries")):
             clean = path.rstrip("/")
@@ -379,22 +550,23 @@ def check_carriers_exist(records, warnings, reports, cfg):
             rule_finding(warnings, reports, cfg, "carrier-missing",
                          "%s — %s carries %s, which does not exist%s"
                          % (record.where, record.id, clean, where_git_put(clean)))
-# srs-end: FR-ARCH-280
+# srs-end: FR-ARCH-280, FR-ARCH-310
 
 
-# implements: FR-ARCH-240, FR-ARCH-260
+# implements: FR-ARCH-240, FR-ARCH-260, FR-ARCH-340
 def live_carriers(records):
-    """Every carrier a live element claims, as carrier -> [elements]: the map owner_of resolves
-    a file against, read by the derivation and by the edges the project supplies. A cancelled
-    element owns nothing the way it depends on nothing."""
+    """Every carrier an element owns, as carrier -> [elements], for owner_of to resolve against.
+
+    A cancelled element owns nothing, and a designed one does not own it yet (ADR-0042).
+    """
     owners = {}
     for record in records:
-        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+        if not RE_ID.match(record.id) or record.fields.get("status") in NOT_OWNING:
             continue
         for path in as_list(record.fields.get("carries")):
             owners.setdefault(path.rstrip("/"), []).append(record.id)
     return owners
-# srs-end: FR-ARCH-240, FR-ARCH-260
+# srs-end: FR-ARCH-240, FR-ARCH-260, FR-ARCH-340
 
 
 # implements: FR-ARCH-240
@@ -471,7 +643,7 @@ def python_modules(records):
     """
     by_path = {}
     for record in records:
-        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+        if not RE_ID.match(record.id) or record.fields.get("status") in NOT_OWNING:
             continue
         for path in as_list(record.fields.get("carries")):
             full = os.path.join(ROOT, path)
@@ -658,6 +830,76 @@ def check_conformance(records, edges, warnings, reports, cfg):
 # srs-end: FR-ARCH-200, FR-ARCH-260
 
 
+# implements: FR-ARCH-350
+def print_plan(records, model, cfg):
+    """What moving to the designed parts requires: files changing hands with both ends named,
+    obligations changing part, and the dependencies the design adds and drops.
+
+    Printed and reported as nothing: the difference is the normal state of designing (ADR-0043).
+    """
+    designed = [r for r in records
+                if RE_ID.match(r.id) and r.fields.get("status") in DESIGNED]
+    out = sys.stdout
+    if not designed:
+        out.write("No part is designed and unbuilt, so there is nothing to move.\n")
+        return 0
+
+    owners = live_carriers(records)          # built parts only: a design owns nothing yet
+    written, computed = carried_by(records, model, cfg)
+    titles = dict((r.id, r.title) for r in records if RE_ID.match(r.id))
+    holders = {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED + DESIGNED:
+            continue
+        for rid in written[record.id] | computed[record.id]:
+            holders.setdefault(rid, []).append(record.id)
+    declared = declared_dependencies(records)
+    designed_carriers = {}
+    for record in designed:
+        for path in as_list(record.fields.get("carries")):
+            designed_carriers.setdefault(path.rstrip("/"), []).append(record.id)
+
+    out.write("What moving to the designed parts requires. Printed, never decided: the records "
+              "stay the author's.\n")
+    order = spec_order(model)
+    for record in sorted(designed, key=lambda r: srs_parse.id_key(r.id)):
+        out.write("\n%s — %s\n" % (record.id, record.title))
+        for path in as_list(record.fields.get("carries")):
+            clean = path.rstrip("/")
+            carrier = owner_of(clean, owners)
+            where = (", ".join(sorted(owners[carrier], key=srs_parse.id_key))
+                     if carrier is not None else None)
+            out.write("    file  %s — %s\n"
+                      % (clean, "from %s" % where if where
+                         else "no part owns it today"))
+        for rid in sorted(written[record.id] | computed[record.id], key=order):
+            where = ", ".join(sorted(holders.get(rid, ()), key=srs_parse.id_key))
+            out.write("    holds %s — %s\n"
+                      % (rid, "from %s" % where if where else "no part carries it today"))
+        for target in sorted(declared.get(record.id, ()), key=srs_parse.id_key):
+            out.write("    needs %s — a dependency the built parts do not have\n" % target)
+
+    # A built part the design claims every file of is being dissolved, and its edges go with it.
+    dissolving = []
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED + DESIGNED:
+            continue
+        paths = [p.rstrip("/") for p in as_list(record.fields.get("carries"))]
+        if not paths or not all(owner_of(path, designed_carriers) is not None
+                                for path in paths):
+            continue
+        dissolving.append(record.id)
+    if dissolving:
+        out.write("\nFalls away:\n")
+        for eid in sorted(dissolving, key=srs_parse.id_key):
+            out.write("    %s — %s keeps no file of its own under the design\n"
+                      % (eid, titles.get(eid, eid)))
+            for target in sorted(declared.get(eid, ()), key=srs_parse.id_key):
+                out.write("    %s → %s — the dependency goes with it\n" % (eid, target))
+    return 0
+# srs-end: FR-ARCH-350
+
+
 # implements: FR-ARCH-210
 def print_drivers(model, limit=10):
     """The requirements that lead, by what makes a requirement drive structure.
@@ -683,7 +925,7 @@ def print_drivers(model, limit=10):
 
 
 # implements: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
-def render_map(records, model, cfg):
+def render_map(records, model, cfg, moves=()):
     """The map, generated from the records and never edited by hand.
 
     Under `derived` an entry the record names is bold and one computed from what the element
@@ -721,6 +963,23 @@ def render_map(records, model, cfg):
                % (len([r for r in records if RE_ID.match(r.id)]),
                   len(carrying), len(model["requirements"])))
     out.append("")
+
+    # implements: FR-ARCH-400
+    # Only the moves in force; no section where there are none (ADR-0043).
+    live = [record for record in sorted(moves, key=lambda r: srs_parse.id_key(r.id))
+            if RE_MOVE.match(record.id) and record.fields.get("status") not in MOVE_CLOSED]
+    if live:
+        out += ["## What is moving", "",
+                "| Move | Status | From | To | What moves |", "|---|---|---|---|---|"]
+        for record in live:
+            out.append("| **%s** %s | `%s` | %s | %s | %s |"
+                       % (record.id, record.title, record.fields.get("status") or "?",
+                          ", ".join(as_list(record.fields.get("from"))) or "—",
+                          ", ".join(as_list(record.fields.get("to"))) or "—",
+                          ", ".join("`%s`" % path
+                                    for path in as_list(record.fields.get("moves"))) or "—"))
+        out.append("")
+    # srs-end: FR-ARCH-400
     return "\n".join(out)
 # srs-end: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
 
@@ -761,10 +1020,10 @@ def main(argv=None):
         if not wanted:
             return fail_setup("--cite needs at least one element identifier\n"
                               "usage: srs_arch.py --cite E-NNN…")
-    unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers"})
+    unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers", "--plan"})
     if unknown:
         return fail_setup("unknown flag(s): %s\n"
-                          "usage: srs_arch.py [--no-write] [--strict] [--drivers] "
+                          "usage: srs_arch.py [--no-write] [--strict] [--drivers] [--plan] "
                           "[--cite E-NNN…]"
                           % " ".join(unknown))
     strict = "--strict" in args
@@ -789,14 +1048,23 @@ def main(argv=None):
     if "--drivers" in args:
         return print_drivers(model)
 
+    # A reading and not a check: nothing about the layer is held to anything here.
+    if "--plan" in args:
+        return print_plan(partition(read_records([]), [])[0], model, cfg)
+
     errors, warnings, reports = [], [], []
     records = read_records(errors)
-    check_records(records, model, errors, warnings, reports, cfg)
-    check_dependencies_resolve(records, errors)
-    check_ownership(records, model, warnings, reports, cfg)
-    check_carriers_exist(records, warnings, reports, cfg)
-    check_conformance(records, edges, warnings, reports, cfg)
-    check_cycles(records, warnings, reports, cfg)
+    elements, moves = partition(records, errors)
+    check_records(elements, model, errors, warnings, reports, cfg)
+    check_dependencies_resolve(elements, errors)
+    check_ownership(elements, model, warnings, reports, cfg)
+    check_designed_built(elements, model, warnings, reports, cfg)
+    check_carriers_exist(elements, warnings, reports, cfg)
+    check_conformance(elements, edges, warnings, reports, cfg)
+    check_cycles(elements, warnings, reports, cfg)
+    check_moves(moves, errors)
+    check_moves_resolve(moves, elements, model, errors)
+    check_move_state(moves, elements, warnings, reports, cfg)
 
     for text in warnings:
         sys.stdout.write("warning: %s\n" % text)
@@ -805,17 +1073,18 @@ def main(argv=None):
     for text in errors:
         sys.stdout.write("error: %s\n" % text)
 
+    moved = " Moves: %d." % len(moves) if moves else ""
     if errors:
-        sys.stdout.write("\nElements: %d. Errors: %d. (srs_arch %s)\n"
-                         % (len(records), len(errors), __version__))
+        sys.stdout.write("\nElements: %d.%s Errors: %d. (srs_arch %s)\n"
+                         % (len(elements), moved, len(errors), __version__))
         return 1
 
     if write:
         with open(MAP, "w", encoding="utf-8") as handle:
-            handle.write(render_map(records, model, cfg))
+            handle.write(render_map(elements, model, cfg, moves))
 
-    sys.stdout.write("Elements: %d. Errors: 0. Warnings: %d.%s (srs_arch %s)\n"
-                     % (len(records), len(warnings),
+    sys.stdout.write("Elements: %d.%s Errors: 0. Warnings: %d.%s (srs_arch %s)\n"
+                     % (len(elements), moved, len(warnings),
                         " Map rewritten: %s." % MAP_REL if write else "", __version__))
     if strict and warnings:
         sys.stdout.write("strict mode: %d warning(s) treated as errors.\n" % len(warnings))

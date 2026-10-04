@@ -1,6 +1,6 @@
 ---
 name: srs-arch
-description: Working with the architecture layer — naming the parts a system is cut into, saying what each carries, and reading the disagreements the checker computes — three between that description and the specification, two about the dependencies the parts declare, two about a record falling behind. Invoke when the user asks what the system is made of, wants to add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
+description: Working with the architecture layer — naming the parts a system is cut into, designing a cut against the specification before the code exists, recording a redraw as a move, and reading the disagreements the checker computes between that description, the specification, the dependencies and the files. Invoke when the user asks what the system is made of, wants to design, add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
 ---
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
@@ -27,6 +27,24 @@ Two more are about the dependencies the parts declare, and the specification has
 - **elements that depend on each other in a circle** — the cut is wrong and two parts are one, or one edge is a dependency in name only. A warning, because nothing the checker computes is broken by a circle.
 
 Two more are about the record falling behind: an element still carrying a requirement that was superseded or withdrawn — drop it from the record, or carry the successor — and a path an element carries that is no longer in the repository — the record moves with the file.
+
+Four are about a design rather than a description, and are read in the two sections below: **an approved requirement no part answers for**, **a designed part that is already built**, and the two about a move — **one that is finished** and **a path at neither of its ends**.
+
+## Designing a cut
+
+A part designed and not yet built is `proposed`, and the layer reads that status three ways: its files need not exist, it owns none of them yet, and it does answer for the obligations it names.
+
+1. **Work against the drivers, not the whole specification.** `python3 srs-dd/tools/srs_arch.py --drivers`.
+2. **Name the parts** as *Naming a part* below says, with `status: proposed` and the paths the files will have.
+3. **Close the holes.** The checker lists every approved requirement no part answers for; while that list is not empty the design is unfinished, and each entry is a conversation, not a line to add. A `draft` requirement is not in it and is not designed against.
+4. **Read what the move would cost** before touching anything: `python3 srs-dd/tools/srs_arch.py --plan` prints the files that change hands with both ends, the obligations that change part, the dependencies the design adds, and the parts it empties.
+5. **Flip the status when it is built.** The checker says which designed part has all its files and all its obligations in place; changing `proposed` to `built` is a person's act, and the layer never does it.
+
+## Recording a move
+
+An agreed redraw is a record of its own — `M-<NNN>`, in `arch/10-moves.md` by convention — with `from`, `to`, `moves` and the `adr` it stands on; the format is in the standard. It is written when the redraw is agreed and closed when it is done, and the checker says when that is: a move whose every path is at the receiving end and none at the leaving one is finished. A path at neither end is a move that cannot be carried out as written — the file moved, or it belongs to a part the record never named.
+
+The plan is computed and the move is authored: `--plan` is the difference between the two cuts, the record is what somebody decided to do about it, and why the cut changes is in the ADR.
 
 ## Naming a part
 

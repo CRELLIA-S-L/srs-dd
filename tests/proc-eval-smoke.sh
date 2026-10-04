@@ -76,6 +76,9 @@ print(json.dumps({"scenario": "srs-arch", "run": 2, "trace": bad}))
 print(json.dumps({"scenario": "no-such-scenario", "run": 1, "trace": bad}))
 PY
 WORDS=$(wc -w < .claude/skills/srs-arch/SKILL.md | tr -d ' ')
+# The tool prints both sizes in ascending order, so the expectation sorts them
+# too: which of the two runs was taken under the larger procedure is not fixed.
+SIZES=$(printf '%s\n%s\n' "$WORDS" 999 | sort -n | paste -sd/ -)
 python3 tools/srs_proc_eval.py --score "$CANNED" --only srs-arch --json /tmp/srs-proc-eval.json > /tmp/srs-proc-eval.out
 # floor 20002; end 300 + 21500 + 2 = 21802; added 1800; out 250;
 # burned = 21800 created + 41500 read + 6 fresh + 250 out = 63556.
@@ -87,7 +90,7 @@ grep -q "failed: skill srs-arch" /tmp/srs-proc-eval.out && grep -q "failed: no_t
     && grep -q "failed: answer E-050 — The grounds layer" /tmp/srs-proc-eval.out \
     && grep -q "failed: ran python3 srs-dd/tools/srs_arch.py" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the bad run's failed checks are not the ones expected"; cat /tmp/srs-proc-eval.out; exit 1; }
-grep -q "^srs-arch       2 run(s)  procedure srs-arch $WORDS/999 words  added    900  burned    41809  checks met 6 of 10$" /tmp/srs-proc-eval.out \
+grep -q "^srs-arch       2 run(s)  procedure srs-arch $SIZES words  added    900  burned    41809  checks met 6 of 10$" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the per-scenario summary is not the mean of the two runs, naming both sizes the runs were taken under"; cat /tmp/srs-proc-eval.out; exit 1; }
 grep -q "no-such-scenario" /tmp/srs-proc-eval.out && { echo "proc-eval: a saved run of no scenario was scored"; exit 1; }
 python3 - "$WORDS" <<'PY' || { echo "proc-eval: the JSON report disagrees with the text"; exit 1; }

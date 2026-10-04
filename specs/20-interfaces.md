@@ -292,6 +292,29 @@ JSON because the standard library reads it and a line format with free text in i
 File paths because the checker resolves them and the extractor then knows nothing about elements; a value that is an element identifier is refused when the file is read, with the reason, since a list of parts depending on parts is the declared model and has a field of its own.
 `via` is where the extractor says what it saw — a symbol, a line — and it is printed, not parsed, so that no project has to agree with another about what evidence looks like.
 
+### IF-ARCH-050 — The move record is a stable format
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md, srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh, tests/standard-vocabulary.sh]
+created: 2026-10-04
+```
+
+A move record **shall** be written as a level-three heading carrying an `M-<NNN>` identifier, a fenced `yaml` metadata block whose keys are `status`, `from`, `to`, `moves` and `adr`, a statement and an optional rationale, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The second kind of record this layer holds, and the reason it is a record rather than a field on an element is that a redraw outlives the commit it starts in: it is agreed once, carried out over several changes, and read by whoever arrives in the middle of it.
+A field on the element could not say that — it would belong to one of the two parts, and a move belongs to the pair.
+The kind is told by the identifier's prefix, so a project keeps its moves in whatever file it likes, the way elements are not tied to a filename either.
+The shape deliberately repeats the element's (`IF-ARCH-010`), down to the promise that keys are added and never renamed, because whoever has read one record of this layer has read all of them.
+`adr` is a key and not a sentence of prose: the layer records that the cut is changing, the decision records why, and a move with nothing to point at is the redraw whose reasons were lost — the case this layer exists to prevent.
+Authored beside `FR-ARCH-350`, and on purpose the other half of it: the difference between the designed cut and the built one is computed, and what somebody agreed to do about it is written down.
+
 ### IF-SPEC-030 — A decision's head is a stable format
 
 ```yaml

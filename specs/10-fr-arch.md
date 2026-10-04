@@ -146,6 +146,7 @@ Where a requirement is `implemented` or `partial` and no element carries it, the
 
 **Rationale.** The other direction of the same decay, and the one that says the map has stopped describing the whole system.
 Scoped to the two statuses that claim realization for the reason `FR-CHK-200` is: a `draft` or `deferred` requirement has nothing built yet, so no part can be expected to carry it.
+Since `FR-ARCH-320` a `deferred` one is asked about from the other end — not which part carries it, but which part has been designed to answer for it — and the two keep their own names and their own costs, because one says the description decayed and the other that a design has a hole in it.
 
 Carries rather than names.
 Where the layer keeps the field written the two are the same set, and this said "names" for as long as that was the only mode; `FR-ARCH-240` says what an element carries where the requirements are derived, and this rule asks the question either way.
@@ -643,14 +644,14 @@ Whether the project carries the layer is read at every commit from `arch/arch-co
 ### FR-ARCH-310 — A designed part's carriers need not exist yet
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-ARCH-010]
 refines: [FR-ARCH-280]
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-03
 ```
 
@@ -664,37 +665,38 @@ What the exception costs is a design that shipped and never had its status flipp
 ### FR-ARCH-320 — An approved requirement no part answers for is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-03
 ```
 
-Where a requirement is `deferred` and no element carries it, the architecture checker **shall** report it as a warning named `requirement-unassigned`, naming the requirement.
+Where a requirement is `deferred` and no element carries it, the architecture checker **shall** report it under the name `requirement-unassigned`, naming the requirement, as a note where the project has not priced the rule.
 
 **Rationale.** Where a cut is designed against the specification rather than read off the repository, this is the finding that says the design is unfinished, and nothing else in the layer makes it.
 `FR-ARCH-070` asks the same question from the built end and therefore answers it too late: by the time a requirement is `implemented`, the part that carries it has been chosen in code, and choosing it is what designing is.
 `deferred` is the status the Lifecycle gives an approved and unbuilt obligation, which is exactly what a cut is designed against.
 `draft` stays out: a `draft` is recorded and not approved, which SRS-DD-ART-020 of the method makes non-negotiable for code, and the same reason holds for structure — a part designed to carry an obligation nobody has approved answers for one that may still be reworded or dropped.
-A warning the project prices (`FR-ARCH-090`), because a project adopting the layer with a backlog of approved work would otherwise be told to design all of it at once.
+A note rather than a warning where the project has not said otherwise, which is the one rule of this layer whose default is not `warn`: an approved obligation nobody has designed for is a backlog, which every project has and no gate should refuse — a fresh install carries one of those before it carries a single element, and a layer whose first act is to fail a stranger's commit teaches them to turn it off.
+A project that wants its cut closed before code is written prices it up, as `FR-ARCH-090` lets it price anything here.
 A name of its own beside `requirement-uncarried`, because the two findings are about different things — one says the description decayed, the other that the design has a hole — and a project may want one without the other.
 
 ### FR-ARCH-330 — A designed part that is already built is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-310]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-03
 ```
 
@@ -705,38 +707,39 @@ Both conditions and not either, because a part whose files exist while its oblig
 At least one requirement, because a record naming none carries none, and that part is already reported by `FR-ARCH-080` — a second voice from here would say the same thing about the same record.
 Reported and not corrected: the layer writes the map and nothing else (`CON-ARCH-010`), so the status is flipped by whoever knows the part is done.
 
-### FR-ARCH-340 — A designed part does not own what it names yet
+### FR-ARCH-340 — A designed part does not own the files it names yet
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-ARCH-010]
-refines: [FR-ARCH-060, FR-ARCH-070]
+refines: [FR-ARCH-060]
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-03
 ```
 
-While an element's status is `proposed`, the architecture checker **shall** read it as owning neither the paths it carries nor the requirements it names.
+While an element's status is `proposed`, the architecture checker **shall** read it as owning none of the paths it carries.
 
 **Rationale.** Owning what it names is what `built` says about a part, and a designed part has not reached that yet: until it does, the files it names are answered for by whatever part answers for them today.
-Counting the design's claim as ownership would silence `FR-ARCH-060` for every file a design mentions — the file would read as owned while no built part owns it — and would silence `FR-ARCH-070` for every requirement a design means to take over.
-It would also erase the one thing a design is read for: what moving to it requires, which is computed from the difference between what the designed parts claim and what the built ones own.
-One obligation and not two, because what is being defined is ownership rather than a rule apiece; both ownership findings read it, and a project whose layer holds only built elements sees no change at all.
+Counting the design's claim as ownership would silence `FR-ARCH-060` for every file a design mentions — the file would read as owned while no built part owns it — and it would erase the one thing a design is read for: what moving to it requires, which is computed from the difference between what the designed parts claim and what the built ones own.
+The files and not the obligations: answering for an approved obligation is exactly what a designed part is for, and `FR-ARCH-320` reads a requirement a design names as answered for, or no design could ever be complete.
+A realized requirement that only a design names is a part built and not yet declared built, which `FR-ARCH-330` reports as that rather than as an obligation nobody carries.
+A project whose layer holds only built elements sees no change at all.
 
 ### FR-ARCH-350 — What moving to the designed cut requires is computed
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-340]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-03
 ```
 
@@ -749,3 +752,104 @@ All three differences in one printing, for the reason a list of exit codes is on
 Both ends of a path, because a file that changes hands is only actionable with the part losing it and the part taking it named together.
 Computed and not written down, which is the split the layer already lives by (`ADR-0023`): the model is authored and the disagreement is computed, and a difference kept by hand is stale the first time an element is edited.
 Not called a difference against a revision: `FR-VIEW-050` compares the specification with what git holds, this compares two cuts recorded side by side in the same file, and one name over both acts would leave the reader guessing which they asked for.
+
+### FR-ARCH-360 — Moves are read and reported on
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, IF-ARCH-050]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where a project's architecture layer holds move records, the architecture checker **shall** read every one of them, reporting a malformed or repeated identifier, a missing required key and a status outside the four the standard names as it reports an element's.
+
+**Rationale.** The entry the rest of the moves hang from, and the same entry `FR-ARCH-010` is for elements: a record nothing reads is prose, and prose about a redraw in progress is the first thing to go stale.
+Held to the readings an element's record is held to rather than to readings of its own, because a reader of one record of this layer has read the other, and a project that has learned what a malformed identifier costs here should not learn it twice.
+These are errors for the reason `FR-ARCH-230` draws the line there: a record the checker cannot resolve leaves every later finding about it guessing, and the layer would be reporting on a record it never read.
+
+### FR-ARCH-370 — A move names parts and a decision that exist
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+If a move's `from` or `to` names an element no record defines, or its `adr` names a decision the repository does not hold, the architecture checker **shall** report it as an error naming the move and what did not resolve.
+
+**Rationale.** One act over two cases, since both are a name in the record leading nowhere, and both make the same nonsense of every reading that follows: a move between parts one of which does not exist cannot be complete, cannot be orphaned and cannot be planned against.
+An error rather than a warning, as `FR-ARCH-230` is for the same failure between elements.
+The decision is checked for existing and for nothing else: whether it says what the move does is a reading a person makes, and a checker that tried would be reviewing prose.
+
+### FR-ARCH-380 — A finished move is reported as finished
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where a move is in force and every path it moves is carried by an element in its `to` and by none in its `from`, the architecture checker **shall** report it as a warning named `move-complete`, naming the move.
+
+**Rationale.** The state of a redraw nobody notices is the finished one: the files are where they were meant to go, and the record still says the move is pending, so every plan read afterwards is read against a cut that no longer exists.
+This is the one state the checker can see exactly — the paths are all at the receiving end and none at the leaving one — which is why it says it rather than leaving the author to remember.
+Closing the record stays the author's act: the layer writes the map and nothing else (`CON-ARCH-010`), and a move may be finished in the files while the author knows a step is still missing.
+A warning the project prices (`FR-ARCH-090`), because a project that carries long redraws may want this as a report it reads and not as a thing that fails a run.
+
+### FR-ARCH-390 — A path a move names and no end carries is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where a move is in force and names a path that no element in its `from` or `to` carries, the architecture checker **shall** report it as a warning named `move-orphan`, naming the move and the path.
+
+**Rationale.** A path belonging to neither end is a move that cannot be carried out as written: the file was renamed, or it belongs to a part the move never named, and the two have different answers.
+Which of the two it is depends on what happened to the file, and `FR-ARCH-280` already says where git put a path an element lost, so the reader has the half the checker can supply.
+A warning and not an error, because the record still reads and the honest resolution differs case by case — the line this layer draws between what it cannot parse and what it disagrees with.
+
+### FR-ARCH-400 — The map says what is moving
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-110, FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where the layer holds moves in force, the map **shall** state for each of them what it moves, between which parts, and what state it is in.
+
+**Rationale.** A system mid-redraw is not described by its parts alone: a part may still carry files it is losing, and a reader of the map would see a cut that is already being abandoned with nothing saying so.
+`FR-ARCH-110` says what the map states for a part; this is what it states for a move, in the same generated file rather than a second one, because a reader looks in one place and a second generated file is one more thing to leave stale.
+Generated and compared like the rest of it (`CON-ARCH-020`, `FR-ARCH-170`), so a move written and never regenerated into the map fails the gate exactly as a part does.
