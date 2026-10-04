@@ -260,7 +260,8 @@ article = re.search(r"^## ART-\d{3} — Comments are minimal\n(.*?)(?=\n## |\Z)"
 if article is None:
     found.append(("skeleton/specs/constitution.md", "defines no article on minimal comments"))
 else:
-    for phrase in ("in a line or two", "specs/adr/", "A docstring is a comment"):
+    for phrase in ("a line or two", "the logic is what gets improved first", "specs/adr/",
+                   "may be as long as the shape it describes"):
         if phrase not in article.group(1):
             found.append(("skeleton/specs/constitution.md",
                           "its article on comments does not say %r" % phrase))

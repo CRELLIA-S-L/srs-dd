@@ -1199,11 +1199,12 @@ tests: [tests/guide-parity.sh]
 created: 2026-10-04
 ```
 
-The constitution the installer ships **shall** hold an article requiring a comment to carry what the code cannot in a line or two, and the reasoning a longer one would have held to be recorded as a decision instead.
+The constitution the installer ships **shall** hold an article holding a comment that explains how the code works to a line or two, asking for the logic to be improved where it needs more, and exempting a docstring that documents arguments, a returned shape or a format.
 
-**Rationale.** A comment is read by everyone who opens the file and is paid for in context by every agent that reads it, and an agent writing one has every incentive to explain itself at length — which is how this repository's own tooling came to hold 254 comment and docstring runs longer than two lines, 4 328 lines inside them, measured on 2026-10-04.
-The deeper reason is what a long comment means: an explanation that needs a paragraph says the decision under it is not obvious, and the honest response is to re-examine the decision rather than to document it better.
-Where the reasoning survives that, a project already has the place for it — the decision record its specification keeps — and a comment pointing there can be read by somebody deciding whether to keep the decision at all.
+**Rationale.** A comment is read by everyone who opens the file and is paid for in context by every agent that reads it, and an agent writing one has every incentive to explain itself at length — which is how this repository's own tooling came to hold 1 893 lines of comment and docstring longer than two lines, measured on 2026-10-04.
+The deeper reason is what a long explanation of logic means: logic that needs a paragraph is logic nobody will hold in their head, and the honest response is to improve it rather than to document it better.
+Where reasoning survives that, a project already has the place for it — the decision record its specification keeps — and a comment pointing there can be read by somebody deciding whether to keep the decision at all.
+What is exempt is documentation of a shape: arguments, a returned structure, a format the code reads. That is what the code cannot say more briefly than the shape itself, and holding it to two lines would delete the one kind of comment a caller needs.
 
 In the constitution rather than in a procedure, for the reason `FR-SKILL-390` puts the rule on sensitive data there: an article binds every task at all times, while a procedure is read when it is invoked.
 The framework's own article is not enough, since it binds this repository alone and the cost falls on every project where agents write code.

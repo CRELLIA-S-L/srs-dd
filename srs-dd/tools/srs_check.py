@@ -702,15 +702,12 @@ REGION_BOUND = 60
 
 
 # implements: FR-CHK-270, FR-CHK-280, FR-VIEW-380
-def annotation_regions(path, bound=REGION_BOUND):
-    """What each annotation in one file marks, and the end markers that end nothing, as
-    (marks, unmatched). Nothing is parsed, so the reading holds in any language.
+def _scan_marks(lines):
+    """One pass over the file: ([mark…], [(line, ids)…], [unmatched…]).
 
-    A mark is a dict: kind ("block", "line", "file"), lines, ids, first, last, how
-    ("end", "next", "bound", "eof", "line", "file"), stop, empty. `unmatched` is
-    (line, id, why) per identifier an `srs-end:` names that no open block above it does.
+    A mark here carries `kind`, `lines`, `ids` and `end` (None); the region is filled later.
+    Consecutive block annotations are one mark.
     """
-    lines = read_lines(path)
     marks, ends, unmatched = [], [], []
     for lineno, line in enumerate(lines, 1):
         if "srs-ignore" in line:
@@ -741,7 +738,11 @@ def annotation_regions(path, bound=REGION_BOUND):
         match = RE_END.search(line)
         if match:
             ends.append((lineno, [rid.strip() for rid in match.group(1).split(",")]))
+    return marks, ends, unmatched
 
+
+def _match_ends(marks, ends, unmatched):
+    """Sets `end` on each block its marker closes, top down, so a nested block closes first."""
     open_blocks = []
     events = sorted([(m["lines"][0], 0, m) for m in marks if m["kind"] == "block"]
                     + [(n, 1, ids) for n, ids in ends], key=lambda e: (e[0], e[1]))
@@ -763,6 +764,9 @@ def annotation_regions(path, bound=REGION_BOUND):
             open_blocks.remove(block)
             closed.append(block)
 
+
+def _fill_regions(marks, lines, bound):
+    """Fills `first`, `last`, `how`, `stop` and `empty` on every mark."""
     total = len(lines)
     starts = sorted(m["lines"][0] for m in marks if m["kind"] == "block")
     for mark in marks:
@@ -784,14 +788,37 @@ def annotation_regions(path, bound=REGION_BOUND):
             else:
                 last, how = total, "eof"
             mark.update(first=start, last=last, how=how)
-    # A line marked `srs-ignore` is an example, not an annotation: a
-    # comment, and so content.
     for mark in marks:
+        # A line marked `srs-ignore` is an example, not an annotation: a comment, and so content.
         mark["empty"] = mark["kind"] == "block" and not any(
             "srs-ignore" in lines[n - 1]
             or (lines[n - 1].strip() and not RE_ANNOTATION.search(lines[n - 1])
                 and not RE_END.search(lines[n - 1]))
             for n in range(mark["first"], mark["last"] + 1))
+
+
+def annotation_regions(path, bound=REGION_BOUND):
+    """What each annotation in one file marks, and the end markers that end nothing, as
+    (marks, unmatched). Nothing is parsed, so the reading holds in any language.
+
+    Each mark is a dict:
+
+        kind    "block", "line" or "file"
+        lines   the lines carrying the annotation
+        ids     the requirements it names
+        first   the first line of the region, 1-based, inclusive
+        last    the last line of the region, inclusive
+        how     what ended it: "end", "next", "bound", "eof", "line", "file"
+        stop    the line of the next block, where `how` is "next"
+        empty   the region holds nothing but blank lines, annotations and end markers
+
+    `unmatched` is (line, id, why) per identifier an `srs-end:` names that no open block
+    above it does, or that stands on a line with an annotation.
+    """
+    lines = read_lines(path)
+    marks, ends, unmatched = _scan_marks(lines)
+    _match_ends(marks, ends, unmatched)
+    _fill_regions(marks, lines, bound)
     return marks, unmatched
 # srs-end: FR-CHK-270, FR-CHK-280, FR-VIEW-380
 
