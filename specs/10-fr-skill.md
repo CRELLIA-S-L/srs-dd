@@ -1185,7 +1185,7 @@ The installation and upgrade procedures **shall** tell the agent to read the tar
 **Rationale.** The installer finds the region by its border and cannot tell the border of the region from a border shown as an example. `FR-INIT-370` narrowed the search to a line holding nothing but the marker, which settles a marker written into a sentence and not one displayed on a line of its own inside a fenced block: measured on 2026-10-01, a guide that showed the two markers in a fence before its real region had the whole guide written into the fence, the real region standing at byte 7 839 of 7 951 and keeping the text it had.
 What is left is a judgement about where the rules belong in a document, which is what an agent reading the document can make and a search over lines cannot. So the procedure that ran the installer looks, once, at the file it just changed.
 
-### FR-SKILL-470 — The shipped constitution asks for minimal comments
+### FR-SKILL-470 — The method asks for minimal comments
 
 ```yaml
 status: implemented
@@ -1194,18 +1194,18 @@ derives_from: []
 depends_on: [FR-SKILL-430]
 refines: []
 conflicts_with: []
-code: [skeleton/specs/constitution.md]
+code: [srs-dd/method.md]
 tests: [tests/guide-parity.sh]
 created: 2026-10-04
 ```
 
-The constitution the installer ships **shall** hold an article holding a comment that explains how the code works to a line or two, asking for the logic to be improved where it needs more, and exempting a docstring that documents arguments, a returned shape or a format.
+The articles of the method **shall** hold one holding a comment that explains how the code works to a line or two, asking for the logic to be improved where it needs more, and exempting a docstring that documents arguments, a returned shape or a format.
 
 **Rationale.** A comment is read by everyone who opens the file and is paid for in context by every agent that reads it, and an agent writing one has every incentive to explain itself at length — which is how this repository's own tooling came to hold 1 893 lines of comment and docstring longer than two lines, measured on 2026-10-04.
-The deeper reason is what a long explanation of logic means: logic that needs a paragraph is logic nobody will hold in their head, and the honest response is to improve it rather than to document it better.
-Where reasoning survives that, a project already has the place for it — the decision record its specification keeps — and a comment pointing there can be read by somebody deciding whether to keep the decision at all.
-What is exempt is documentation of a shape: arguments, a returned structure, a format the code reads. That is what the code cannot say more briefly than the shape itself, and holding it to two lines would delete the one kind of comment a caller needs.
+What a long explanation of logic means is the deeper reason: logic that needs a paragraph is logic nobody will hold in their head, and the honest response is to improve it rather than to document it better.
+What is exempt is documentation of a shape — arguments, a returned structure, a format the code reads — which is what the code cannot say more briefly than the shape itself.
 
-In the constitution rather than in a procedure, for the reason `FR-SKILL-390` puts the rule on sensitive data there: an article binds every task at all times, while a procedure is read when it is invoked.
-The framework's own article is not enough, since it binds this repository alone and the cost falls on every project where agents write code.
-A project installed before this ships does not receive it — the constitution is the project's own file, written once (`FR-INIT-360`) — so it reaches fresh installs, and an existing project adopts it by its own amendment.
+In the method and not in the constitution the installer ships, which is where it was first written.
+A rule the framework asserts of every project has to travel unchanged and take no number of the project's, and the constitution is the project's own document in the project's own number space: the first project to receive the article found `ART-030` taken, renumbered it to `ART-050`, and landed on a number the shipped log names as an article of the method's — the collision `FR-SKILL-430` and ADR-0039 exist to prevent.
+The method's articles are rewritten into every project by every upgrade (`FR-INIT-320`), so the rule arrives without a decision for anybody to make and without a number to choose.
+

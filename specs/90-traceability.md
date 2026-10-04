@@ -278,7 +278,7 @@ Total requirements: 348.
 | **FR-SKILL-440** The framework's guide is a region of the project's guide | `implemented` | T | `srs-dd/guide.md`<br>`AGENTS.md`<br>`skeleton/AGENTS.md`<br>`tools/srs_init.py` | `tests/guide-parity.sh`<br>`tests/installer-smoke.sh` |
 | **FR-SKILL-450** The standard says what of the framework's lives outside the directory | `implemented` | T | `srs-dd/standard.md` | `tests/standard-vocabulary.sh` |
 | **FR-SKILL-460** The installing procedures confirm where the region landed | `implemented` | T | `.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/skill-instructions.sh` |
-| **FR-SKILL-470** The shipped constitution asks for minimal comments | `implemented` | T | `skeleton/specs/constitution.md` | `tests/guide-parity.sh` |
+| **FR-SKILL-470** The method asks for minimal comments | `implemented` | T | `srs-dd/method.md` | `tests/guide-parity.sh` |
 | **FR-SPEC-010** Freezing a baseline is one command | `implemented` | T | `srs-dd/tools/srs_baseline.py` | `tests/baseline-smoke.sh` |
 | **FR-SPEC-020** A specification can be dated from its own history | `implemented` | T | `srs-dd/tools/srs_dates.py` | `tests/dates-smoke.sh` |
 | **FR-SPEC-030** A decision that chose a mechanism says how it works | `implemented` | I | `srs-dd/standard.md`<br>`specs/adr/template.md` | — |

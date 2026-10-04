@@ -31,6 +31,12 @@ Verification by `D`, `I`, or `A` is carried out as described in `50-verification
 
 A change merges only when `python3 srs-dd/tools/srs_check.py` passes and, if the change alters behavior, the commit or PR description names the requirement identifiers it implements.
 
+## SRS-DD-ART-110 — Comments are minimal
+
+A comment explaining how the code works earns a line or two.
+One that needs a paragraph says the logic is not obvious, and the logic is what gets improved first; whatever reasoning survives that goes to the project's decision records, with the comment pointing at it in a clause.
+A docstring documenting arguments, a returned shape or a format it reads may be as long as the shape it describes.
+
 ## SRS-DD-ART-100 — Nothing sensitive in the repository
 
 What the repository holds is read by everyone who can clone it, for as long as its history lives, and a commit that deletes a file does not remove it from that history.

@@ -253,18 +253,21 @@ print("guide-parity: an article of the method's, a missing starting article, a n
 found += constitution_gaps(shipped_constitution)
 
 # verifies: FR-SKILL-470
-# The shipped constitution asks for minimal comments, and says where the
-# reasoning a long one would have held belongs.
-article = re.search(r"^## ART-\d{3} — Comments are minimal\n(.*?)(?=\n## |\Z)",
-                    shipped_constitution, re.M | re.S)
-if article is None:
-    found.append(("skeleton/specs/constitution.md", "defines no article on minimal comments"))
+# The method asks for minimal comments: in its own number space, so the rule
+# travels into a project unchanged and takes no number of the project's.
+comments = re.search(r"^## SRS-DD-ART-\d{3} — Comments are minimal\n(.*?)(?=\n## |\Z)",
+                     method_text, re.M | re.S)
+if comments is None:
+    found.append(("srs-dd/method.md", "carries no article on minimal comments"))
 else:
-    for phrase in ("a line or two", "the logic is what gets improved first", "specs/adr/",
+    for phrase in ("a line or two", "the logic is what gets improved first",
                    "may be as long as the shape it describes"):
-        if phrase not in article.group(1):
-            found.append(("skeleton/specs/constitution.md",
+        if phrase not in comments.group(1):
+            found.append(("srs-dd/method.md",
                           "its article on comments does not say %r" % phrase))
+if re.search(r"^## ART-\d{3} — Comments are minimal", shipped_constitution, re.M):
+    found.append(("skeleton/specs/constitution.md",
+                  "holds an article of the method's in the project's number space"))
 # srs-end: FR-SKILL-470
 
 # A starter that points at `README.md` pointed at the standard until it moved
