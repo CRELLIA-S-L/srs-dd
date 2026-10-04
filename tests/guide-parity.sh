@@ -252,6 +252,20 @@ print("guide-parity: an article of the method's, a missing starting article, a n
       "not defined, and a rule only ours are each red in the shipped constitution")
 found += constitution_gaps(shipped_constitution)
 
+# verifies: FR-SKILL-470
+# The shipped constitution asks for minimal comments, and says where the
+# reasoning a long one would have held belongs.
+article = re.search(r"^## ART-\d{3} — Comments are minimal\n(.*?)(?=\n## |\Z)",
+                    shipped_constitution, re.M | re.S)
+if article is None:
+    found.append(("skeleton/specs/constitution.md", "defines no article on minimal comments"))
+else:
+    for phrase in ("in a line or two", "specs/adr/", "A docstring is a comment"):
+        if phrase not in article.group(1):
+            found.append(("skeleton/specs/constitution.md",
+                          "its article on comments does not say %r" % phrase))
+# srs-end: FR-SKILL-470
+
 # A starter that points at `README.md` pointed at the standard until it moved
 # to srs-dd/ in 0.22.0; the path then resolved to nothing a target has, and
 # no link check reaches the payload — FR-DOC-190 covers the landing page and

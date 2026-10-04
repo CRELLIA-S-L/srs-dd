@@ -5,8 +5,9 @@ Every plan and every diff is checked against them.
 Unlike requirements (what the system does) and ADRs (single decisions with their context), articles apply to all work at all times and change only through the amendment procedure in ART-020.
 The articles of the method — the hierarchy of truth, requirement before code, the boundaries of an agent's autonomy, testing discipline, quality gates, nothing sensitive in the repository — are the framework's and stand in `srs-dd/method.md` as `SRS-DD-ART-*`; this file holds what the project decides for itself.
 
-- **Version:** 3.0.0
+- **Version:** 3.1.0
 - **Ratified:** 2026-08-05
+- **Amended:** 2026-10-04 — v3.1.0: ART-030 added, so that a comment stays a line or two and the reasoning behind a decision goes where it can be found and revised rather than into a paragraph above the code (adding an article is MINOR per ART-020)
 - **Amended:** 2026-10-02 — v3.0.0: the two remaining articles renumbered from ART-040 and ART-090 to ART-010 and ART-020, so that a project's set starts at the first number instead of at the gap the method's articles left; no article's text changed, but neither old number resolves here any more, which this log has called a removal before (MAJOR per ART-020)
 - **Amended:** 2026-10-01 — v2.0.0: the six articles of the method — then ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 — moved to `srs-dd/method.md` as the framework's `SRS-DD-ART-*`, and the numbers they held became the project's again (removing an article is MAJOR per ART-020)
 - **Amended:** 2026-09-25 — v1.2.0: an article on keeping nothing sensitive in the repository added, then one of the six that moved (adding an article is MINOR per ART-020)
@@ -20,6 +21,12 @@ The set below is a starting point — adapt the articles to your project, but ke
 The boring solution wins by default; a clever one must earn its place in an ADR.
 A new dependency requires an ADR.
 Nothing is built for a requirement that does not exist yet.
+
+## ART-030 — Comments are minimal
+
+A comment carries what the code cannot, in a line or two.
+A comment that needs a paragraph says the decision under it is not obvious: the decision is re-examined first, and whatever reasoning survives goes to `specs/adr/`, with the comment pointing at it in a clause.
+A docstring is a comment.
 
 ## ART-020 — Amendments
 
