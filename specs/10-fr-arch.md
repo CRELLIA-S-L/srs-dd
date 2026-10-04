@@ -743,13 +743,14 @@ tests: [tests/arch-rules.sh]
 created: 2026-10-03
 ```
 
-When asked what moving to the designed parts requires, the architecture command **shall** print the difference between them and the built parts: the paths that change hands and between which parts, the requirements that change part, and the dependencies the designed parts add and drop.
+When asked what moving to the designed parts requires, the architecture command **shall** print the difference between them and the built parts: the paths the designed parts claim, each with the part losing it or with the fact that nobody holds it yet, the requirements that change part, and the dependencies the designed parts add and drop.
 
 **Rationale.** A design is read for one thing — what it would cost to get there — and that question is answered today by comparing two records in a text editor, which is where a redraw starts going wrong: the files are moved, and the obligations and the edges are discovered afterwards.
 Printed when asked and not reported as a finding, because a designed cut differing from the built one is the normal state of a project that designs before it builds, and a warning for it would fire for as long as the design lives.
 It fails nothing either, so the three exit codes of `IF-ARCH-020` keep describing a checking run rather than a reading.
 All three differences in one printing, for the reason a list of exit codes is one requirement: what the reader relies on is that this is the whole difference, and a plan that named only the files would lie by omission in exactly the way the editor does today.
 Both ends of a path, because a file that changes hands is only actionable with the part losing it and the part taking it named together.
+And absence before ownership: a design is commonly a part split out of a directory another part carries, so the paths it names for files not written yet resolve through that directory, and a plan reading them as changing hands would send the reader looking for a file nobody has.
 Computed and not written down, which is the split the layer already lives by (`ADR-0023`): the model is authored and the disagreement is computed, and a difference kept by hand is stale the first time an element is edited.
 Not called a difference against a revision: `FR-VIEW-050` compares the specification with what git holds, this compares two cuts recorded side by side in the same file, and one name over both acts would leave the reader guessing which they asked for.
 

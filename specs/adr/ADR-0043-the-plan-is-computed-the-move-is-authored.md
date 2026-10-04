@@ -35,7 +35,7 @@ So the split is the one the layer already lives by (`ADR-0023`): what a person k
 
 ### How it works
 
-`--plan` prints, for every designed part, the files it takes with the part losing each one named, the obligations it takes with their present holder, the dependencies it declares that the built parts do not have, and then the built parts the design empties, whose declared dependencies go with them.
+`--plan` prints, for every designed part, the paths it claims — each with the part losing it, or with the fact that the repository does not have it yet, which is the commonest case when a part is split out of a directory another part carries — the obligations it takes with their present holder, the dependencies it declares that the built parts do not have, and then the built parts the design empties, whose declared dependencies go with them.
 It reports no finding and fails nothing, so the three exit codes of `IF-ARCH-020` stay the codes of a checking run: a designed cut differing from the built one is the normal state of designing, not a defect.
 
 A move is a record with an identifier of its own — `M-<NNN>`, numbered and immutable as `E-<NNN>` is — and the kind is told by the prefix, so both kinds live in whatever files the project keeps them in.

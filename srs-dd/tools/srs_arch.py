@@ -794,7 +794,7 @@ def check_conformance(records, edges, warnings, reports, cfg):
 
 
 # implements: FR-ARCH-350
-def print_plan(records, model, cfg):
+def print_plan(records, model, cfg, unread=()):
     """What moving to the designed parts requires: files changing hands with both ends named,
     obligations changing part, and the dependencies the design adds and drops.
 
@@ -803,6 +803,9 @@ def print_plan(records, model, cfg):
     designed = [r for r in records
                 if RE_ID.match(r.id) and r.fields.get("status") in DESIGNED]
     out = sys.stdout
+    if unread:
+        out.write("%d record(s) could not be read and are not in this plan; the checker names "
+                  "them.\n" % len(unread))
     if not designed:
         out.write("No part is designed and unbuilt, so there is nothing to move.\n")
         return 0
@@ -829,12 +832,15 @@ def print_plan(records, model, cfg):
         out.write("\n%s — %s\n" % (record.id, record.title))
         for path in as_list(record.fields.get("carries")):
             clean = path.rstrip("/")
-            carrier = owner_of(clean, owners)
-            where = (", ".join(sorted(owners[carrier], key=srs_parse.id_key))
-                     if carrier is not None else None)
-            out.write("    file  %s — %s\n"
-                      % (clean, "from %s" % where if where
-                         else "no part owns it today"))
+            # Absent before owned: a path nobody has changes no hands, and resolving it would
+            # name the part carrying the directory above it as losing a file it never held.
+            if not os.path.exists(os.path.join(ROOT, clean)):
+                note = "not in the repository yet"
+            else:
+                carrier = owner_of(clean, owners)
+                note = ("from %s" % ", ".join(sorted(owners[carrier], key=srs_parse.id_key))
+                        if carrier is not None else "no part owns it today")
+            out.write("    file  %s — %s\n" % (clean, note))
         for rid in sorted(written[record.id] | computed[record.id], key=order):
             where = ", ".join(sorted(holders.get(rid, ()), key=srs_parse.id_key))
             out.write("    holds %s — %s\n"
@@ -1013,7 +1019,9 @@ def main(argv=None):
 
     # A reading and not a check: nothing about the layer is held to anything here.
     if "--plan" in args:
-        return print_plan(partition(read_records([]), [])[0], model, cfg)
+        unread = []
+        elements = partition(read_records(unread), unread)[0]
+        return print_plan(elements, model, cfg, unread)
 
     errors, warnings, reports = [], [], []
     records = read_records(errors)

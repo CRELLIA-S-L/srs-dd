@@ -151,7 +151,8 @@ What moving to a designed cut requires is computed on request:
 python3 srs-dd/tools/srs_arch.py --plan
 ```
 
-It prints the files that change hands with both ends named, the obligations that change part, the dependencies the designed parts add, and the built parts the design empties, whose declared dependencies go with them.
+It prints every path the designed parts claim — with the part losing it, or with the fact that the repository does not have it yet — the obligations that change part, the dependencies the designed parts add, and the built parts the design empties, whose declared dependencies go with them.
+A record it could not read is said and left out, since the checker is what names it.
 It reports no finding and fails nothing: a designed cut differing from the built one is the normal state of a project that designs before it builds, and a warning for it would fire for as long as the design lives.
 
 ## The move record

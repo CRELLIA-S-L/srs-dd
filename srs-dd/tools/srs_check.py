@@ -85,8 +85,9 @@ RULES = ("unknown-key", "draft-with-code", "rests-on-draft",
          "annotation-unended", "annotation-empty")
 # srs-end: IF-SPEC-020
 
-# What a rule costs unpriced: `warn`, except these. A rule added at `warn` fails
-# `--strict` in every project on the upgrade that brings it.
+# What a rule costs unpriced: `warn`, except these. A rule added at `warn` fails `--strict`
+# in every project on the upgrade that brings it, so one whose harm is in some cases and
+# whose cure is a line in every file arrives at `report`.
 DEFAULT_SEVERITY = {"annotation-unended": "report"}
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off`

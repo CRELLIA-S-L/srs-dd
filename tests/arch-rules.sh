@@ -1671,8 +1671,8 @@ Takes one file that exists and one that does not.
 MD
 rule "FR-ARCH-350 a file changes hands, both ends named" 0 \
     "file  src/a.py — from E-010" --plan
-rule "FR-ARCH-350 a file no part owns today" 0 \
-    "file  src/later — no part owns it today" --plan
+rule "FR-ARCH-350 a file the repository does not have yet" 0 \
+    "file  src/later — not in the repository yet" --plan
 rule "FR-ARCH-350 an obligation changes part" 0 \
     "holds FR-CORE-010 — from E-010" --plan
 rule "FR-ARCH-350 an obligation no part carries today" 0 \
@@ -1682,6 +1682,67 @@ rule "FR-ARCH-350 a dependency the design adds" 0 \
 silent "FR-ARCH-350 a part keeping a file of its own does not fall away" 0 \
     "Falls away" --plan
 silent "FR-ARCH-350 the plan reports no finding" 0 "warning:" --plan
+silent "FR-ARCH-350 an absent path names no part as losing it" 0 \
+    "file  src/later — from" --plan
+
+# --- A path that exists and no built part owns is the other reading, and the
+# --- two must not be told as one.
+elements <<'MD'
+# Elements
+
+### E-010 — Half of it
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: []
+```
+
+Carries one file.
+
+### E-030 — The design
+
+```yaml
+status: proposed
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Takes a file nobody owns today.
+MD
+rule "FR-ARCH-350 a file that exists and no part owns" 0 \
+    "file  src/b.py — no part owns it today" --plan
+
+# --- A record the reading could not take is said, not dropped in silence.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries all of it.
+
+### E-03 — Two digits short
+
+```yaml
+status: proposed
+carries: [src/later]
+requirements: [FR-CORE-070]
+depends_on: []
+```
+
+A typo in the identifier.
+MD
+rule "FR-ARCH-350 a record it could not read is said" 0 \
+    "1 record(s) could not be read and are not in this plan" --plan
 
 # --- A design that claims every file of a built part dissolves it, and the
 # --- dependencies it declared go with it.

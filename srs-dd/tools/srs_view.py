@@ -2293,8 +2293,9 @@ def render_diff_section(diff):
 # --------------------------------------------------------------------
 
 NODE_W, NODE_H, GAP_X, GAP_Y = 118, 28, 18, 22
-# Room above the first row for the lane's name, which is also the control that folds
-# the column, and the stride that holds the widest bow (ADR-0012).
+# Room above the first row for the lane's name, which is also the control that folds the
+# column — a click target, and 26 measured too small in a panel — and the stride that holds
+# the widest bow (ADR-0012).
 HEADER_H, BOW_MAX = 34, 34
 # What a collapsed lane shrinks to, and where folded edges land: at the bottom of that
 # block, clear of the name. The page's script carries the height too.
