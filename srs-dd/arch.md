@@ -80,6 +80,17 @@ A key that is neither required nor optional here is not an error — that tolera
 `carries` is not limited to source files.
 A requirement's `code` field names whatever realizes it — a standard, a procedure, a CI template, a template shipped to somebody else — and the part that owns those files is a part like any other.
 
+**A dependency can be forbidden.** `depends_on` says what a part leans on; what no part may lean on is policy about the cut, and it lives in the layer's configuration:
+
+```json
+{"forbidden": [{"from": "*", "to": "E-030", "why": "nothing leans on the installer"},
+               {"from": "E-080", "to": "*", "why": "the standard depends on nothing"}]}
+```
+
+Each entry names two ends — an element, or `*` for any — and the sentence its failure prints, which is required: a prohibition whose failure cannot say what it protected is one somebody deletes.
+It is reported under `dependency-forbidden` where an element declares such an edge and where the code has one, since the two differ: a model contradicting the project's own policy, and the policy broken in silence.
+An entry naming an element no record defines, missing a side or its reason, or carrying `*` on both sides is refused rather than reported — it resolves to nothing and would read as enforced.
+
 `depends_on` is the declared model, and it is written by a person.
 It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected: on the framework's own nine Python modules it gave twenty-five edges against the seven their imports have.
 
@@ -247,6 +258,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `element-built` | A `proposed` element whose files all exist and whose requirements are all realized |
 | `move-complete` | A move in force whose every path is at the receiving end and none at the leaving one |
 | `move-orphan` | A path a move names that no element at either end carries |
+| `dependency-forbidden` | A dependency the project forbade, declared by an element or had by the code |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

@@ -977,3 +977,45 @@ Where a section of the architecture document has nothing to state, the document 
 The last of those is the trap this layer's own standard names about `Warnings: 0`: the absence of a verdict read as a verdict.
 `code-map` makes the same rule for its output and spells the empty case out rather than leaving the heading bare.
 A generated document reads as complete whatever is in it, so the empty case is not a cosmetic question: a reader cannot tell a layer nobody has filled in from a generator that failed.
+
+### FR-ARCH-470 — A dependency the project forbade is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-060]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+Where a dependency the configuration forbids is declared by an element or is one the code has, the architecture checker **shall** report it as a warning named `dependency-forbidden`, naming both parts, which of the two it read it from, and the sentence the project gave for the prohibition.
+
+**Rationale.** The layer could say what a part leans on and could catch an edge the code has and the model does not (`FR-ARCH-200`), and had no way to say that an edge must not exist at all: a cut whose intent is "nothing leans on the installer" was kept by nobody noticing.
+This is the commonest static fitness function in the literature — ArchUnit, ts-arch and dependency-cruiser exist for it — and `ADR-0045` took that vocabulary without the capability.
+Both sources, because the two failures differ: a declared forbidden edge is a model that contradicts the project's own policy, and an undeclared one the code has is the policy broken in silence.
+The project's own sentence is printed with the finding, since the taxonomy's one demand of a fitness function is that its failure says what was being protected.
+A warning the project prices (`FR-ARCH-090`), which in a pipeline running `--strict` fails the build, as that literature asks.
+
+### FR-ARCH-480 — A forbidden dependency that names no part is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-060]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+If an entry under `forbidden` names an element no record defines, omits `from`, `to` or `why`, or puts `*` on both sides, the architecture checker **shall** refuse to run and say which entry and why.
+
+**Rationale.** A prohibition that resolves to nothing is worse than none: it reads as enforced and enforces nothing, and the project that wrote it will not look again.
+Refused rather than reported, as a configuration the checker cannot read is refused (`FR-ARCH-090`): this is the setup, not a finding about the layer.
+`*` on both sides forbids every dependency including the ones the project has declared, which is not a policy anybody holds; it is a typo for one side or the other.

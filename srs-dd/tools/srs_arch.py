@@ -92,7 +92,8 @@ MOVE_CLOSED = ("done", "abandoned")
 # never given to a different rule.
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
          "dependency-undeclared", "element-cycle", "carrier-missing",
-         "requirement-unassigned", "element-built", "move-complete", "move-orphan")
+         "requirement-unassigned", "element-built", "move-complete", "move-orphan",
+         "dependency-forbidden")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -120,7 +121,7 @@ def fail_setup(message):
 def load_config():
     """What each rule costs, as the project set it, and how the requirements are kept. A
     missing file means every default."""
-    cfg = {"rules": {}, "requirements": "written"}
+    cfg = {"rules": {}, "requirements": "written", "forbidden": []}
     if not os.path.exists(CONFIG):
         return cfg, None
     try:
@@ -147,6 +148,29 @@ def load_config():
         return None, ("arch/arch-config.json: `requirements` is %r, expected %s"
                       % (mode, "/".join(MODES)))
     cfg["requirements"] = mode
+    # implements: IF-ARCH-060, FR-ARCH-480
+    # What the project forbids: two ends and the sentence its failure prints. An entry that
+    # resolves to nothing reads as enforced and enforces nothing, so it is refused here.
+    forbidden = raw.get("forbidden", [])
+    if not isinstance(forbidden, list):
+        return None, "arch/arch-config.json: `forbidden` must be a JSON list"
+    for index, entry in enumerate(forbidden):
+        where = "arch/arch-config.json: forbidden entry %d" % index
+        if not isinstance(entry, dict):
+            return None, "%s must be an object with `from`, `to` and `why`" % where
+        for key in ("from", "to", "why"):
+            value = entry.get(key)
+            if not isinstance(value, str) or not value.strip():
+                return None, "%s: `%s` must be text" % (where, key)
+        if entry["from"] == "*" and entry["to"] == "*":
+            return None, ("%s forbids every dependency, which is a typo for one side or the "
+                          "other" % where)
+        for key in ("from", "to"):
+            if entry[key] != "*" and not RE_ID.match(entry[key]):
+                return None, "%s: `%s` is %r, expected an element identifier or *" % (
+                    where, key, entry[key])
+    cfg["forbidden"] = forbidden
+    # srs-end: IF-ARCH-060, FR-ARCH-480
     return cfg, None
     # srs-end: FR-ARCH-240
 # srs-end: FR-ARCH-090
@@ -744,6 +768,54 @@ def element_of(path, owners):
 # srs-end: FR-ARCH-260
 
 
+# implements: FR-ARCH-470, FR-ARCH-480
+def check_forbidden(records, edges, errors, warnings, reports, cfg):
+    """Dependencies the project said must not exist, in the model and in the code alike.
+
+    A prohibition naming an element no record defines is refused here rather than reported: the
+    entry resolves to nothing, and the layer would be enforcing a policy about a part nobody has.
+    """
+    present = set(record.id for record in records if RE_ID.match(record.id))
+    for index, entry in enumerate(cfg["forbidden"]):
+        for key in ("from", "to"):
+            if entry[key] != "*" and entry[key] not in present:
+                errors.append("arch/arch-config.json: forbidden entry %d names %s in `%s`, "
+                              "which no element carries" % (index, entry[key], key))
+    if errors:
+        return
+
+    def forbids(entry, source, target):
+        return ((entry["from"] == "*" or entry["from"] == source)
+                and (entry["to"] == "*" or entry["to"] == target))
+
+    declared = declared_dependencies(records)
+    pairs = [(source, target, "the model declares it")
+             for source in sorted(declared, key=srs_parse.id_key)
+             for target in sorted(declared[source], key=srs_parse.id_key)]
+    by_path, unique = python_modules(records)
+    for path in sorted(by_path):
+        for name in imports_of(os.path.join(ROOT, path)):
+            target_path = unique.get(name)
+            if target_path is not None and by_path[target_path] != by_path[path]:
+                pairs.append((by_path[path], by_path[target_path], "%s imports %s" % (path, name)))
+    owners = live_carriers(records)
+    for source, target_path, via in edges:
+        element, target = element_of(source, owners), element_of(target_path, owners)
+        if element is not None and target is not None and element != target:
+            pairs.append((element, target, "%s uses %s" % (source, target_path)))
+
+    said = set()
+    for source, target, how in pairs:
+        for entry in cfg["forbidden"]:
+            if not forbids(entry, source, target) or (source, target, how) in said:
+                continue
+            said.add((source, target, how))
+            rule_finding(warnings, reports, cfg, "dependency-forbidden",
+                         "%s depends on %s and the project forbids it (%s): %s"
+                         % (source, target, how, entry["why"]))
+# srs-end: FR-ARCH-470, FR-ARCH-480
+
+
 # implements: FR-ARCH-200, FR-ARCH-260
 def check_conformance(records, edges, warnings, reports, cfg):
     """The declared model against the one the code has, one direction only: an edge the code
@@ -1033,6 +1105,7 @@ def main(argv=None):
     check_carriers_exist(elements, warnings, reports, cfg)
     check_conformance(elements, edges, warnings, reports, cfg)
     check_cycles(elements, warnings, reports, cfg)
+    check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_moves(moves, errors)
     check_moves_resolve(moves, elements, model, errors)
     check_move_state(moves, elements, warnings, reports, cfg)

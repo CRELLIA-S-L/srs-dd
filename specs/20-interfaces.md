@@ -359,3 +359,23 @@ The underscore is single and stands between words, so that `MAP_`, `_MAP` and `M
 One grammar, because it was written out seven times across four tools, and a name one of them refused was a requirement gone quiet: the heading net read `### FR-MAP_ILAND-010` as prose and the annotation grammar read an annotation naming it as nothing, with no error from either.
 A name says nothing of a hierarchy.
 An area grouped under another for a reader goes into a folder (`FR-CHK-260`), because the name is inside every identifier and an identifier is never renamed (`INV-SPEC-010`): a parent written into the name is a regrouping nobody can make afterwards.
+
+### IF-ARCH-060 — The forbidden-dependency list is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+A forbidden dependency **shall** be written in the layer's configuration under `forbidden` as a JSON list of objects whose `from` and `to` each name an element or `*`, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+In the configuration and not in a record, because a forbidden edge is policy about two parts and a key on one of them would be the link written twice that `INV-ARCH-010` exists to prevent.
+`*` on one side is what makes the common intents sayable — nothing may lean on this part, this part may lean on nothing — and `why` is required because a rule whose failure cannot say what it protects is a rule somebody deletes.

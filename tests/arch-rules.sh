@@ -9,6 +9,7 @@
 # verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, IF-ARCH-040
 # verifies: FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350
 # verifies: FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050
+# verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2166,6 +2167,69 @@ passes=$((passes + 1))
 
 rm -f "$LAB/arch/10-moves.md"
 # srs-end: FR-ARCH-400
+
+# --- verifies: IF-ARCH-060, FR-ARCH-470, FR-ARCH-480 — a dependency the
+# --- project said must not exist, in the model and in the code alike.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+printf 'import b\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "forbidden": [{"from": "E-010", "to": "E-020", "why": "the engine must not reach the store"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-470 a declared edge the project forbids" 0 \
+    "E-010 depends on E-020 and the project forbids it (the model declares it): the engine must not reach the store"
+rule "FR-ARCH-470 and the same edge in the code" 0 \
+    "E-010 depends on E-020 and the project forbids it (src/a.py imports b): the engine must not reach the store"
+
+# --- The wildcard says the common intents: nothing leans on this part.
+printf '{"rules": {}, "forbidden": [{"from": "*", "to": "E-020", "why": "nothing leans on the store"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-470 the wildcard on the receiving side" 0 \
+    "E-010 depends on E-020 and the project forbids it (the model declares it): nothing leans on the store"
+
+# --- An edge nobody forbade is not reported, which is the half that fails
+# --- quietly if the matching is wrong.
+printf '{"rules": {}, "forbidden": [{"from": "E-020", "to": "E-010", "why": "the store must not reach the engine"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-470 an edge the other way round is not forbidden" 0 "the project forbids it"
+
+# --- A prohibition about a part nobody has is an error: it reads as enforced
+# --- and enforces nothing.
+printf '{"rules": {}, "forbidden": [{"from": "E-990", "to": "E-020", "why": "nope"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 a prohibition naming no part" 1 \
+    "forbidden entry 0 names E-990 in \`from\`, which no element carries"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "forbidden": [{"from": "*", "to": "*", "why": "nothing at all"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 the wildcard on both sides" 2 \
+    "forbids every dependency, which is a typo for one side or the other"
+printf '{"rules": {}, "forbidden": [{"from": "E-010", "why": "half an entry"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 an entry missing a side" 2 "forbidden entry 0: \`to\` must be text"
+printf '{"rules": {}, "forbidden": [{"from": "E-010", "to": "E-020"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 an entry with no reason" 2 "forbidden entry 0: \`why\` must be text"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280
