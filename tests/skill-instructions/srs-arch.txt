@@ -20,6 +20,7 @@ twenty-five edges against seven real ones
 
 # readings and acts the procedure must carry
 renamed, split or merged
+protecting nothing in particular is the answer
 write the new file, verify it, and only then delete the old
 
 # files

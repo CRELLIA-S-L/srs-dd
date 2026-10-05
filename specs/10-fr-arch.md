@@ -1041,3 +1041,45 @@ This is what the published skills' five readings call abstraction and what `FR-S
 The name and not the file, because what crosses a boundary is what the other side writes down: a module it imports, a path it was given in `arch/edges.json`.
 Where the checker reads no language it has nothing to compare and says nothing, as `FR-ARCH-200` does — the finding is about what can be proved, not about what a reader suspects.
 A part that declares no interface is not reported here: that silence is `FR-ARCH-450`'s to name, and reporting it twice would make a project price away both.
+
+### FR-ARCH-500 — A part says what it exists to protect
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+Where an element names requirements under `protects`, the architecture checker **shall** report as an error any that the specification does not carry, and as a warning named `protects-uncarried` any the element does not itself carry.
+
+**Rationale.** `requirements` is flat: everything a part answers for, the behaviour it happens to hold and the property it was cut to keep, in one list of forty identifiers.
+What a cut is judged against is the second kind — the quality attribute that would be lost if the boundary moved — and until this there was nowhere to write it, so "is this the right cut" had no recorded criterion and the readings `FR-SKILL-480` asks for were a judgement nobody could check.
+A subset and not a second list: a part protects what it carries, so an identifier here that the part does not carry is a claim about somebody else's boundary, which is the `protects-uncarried` warning.
+An identifier the specification does not carry at all is an error for the reason `FR-ARCH-040` gives: a record pointing at nothing makes every reading of it guesswork.
+Empty is ordinary and silent — most parts hold behaviour and protect nothing in particular, and a key demanded of every record is the ceremony this layer refuses.
+
+### FR-ARCH-510 — The document says what each part protects
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-500]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** state, for every element that names one, the requirements it exists to protect, with their titles.
+
+**Rationale.** The obligations a part carries are already in the document, forty identifiers deep for the larger parts, and the two or three it was cut to keep are invisible among them.
+A reader deciding whether a boundary may move needs that short list first: it is the answer to what breaks if the part is merged into its neighbour.
+Where a part names none the section is absent rather than empty, as `FR-ARCH-460` asks of every section.

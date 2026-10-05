@@ -93,7 +93,7 @@ MOVE_CLOSED = ("done", "abandoned")
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
          "dependency-undeclared", "element-cycle", "carrier-missing",
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
-         "dependency-forbidden", "interface-bypassed")
+         "dependency-forbidden", "interface-bypassed", "protects-uncarried")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -768,6 +768,31 @@ def element_of(path, owners):
 # srs-end: FR-ARCH-260
 
 
+# implements: FR-ARCH-500
+def check_protects(records, model, errors, warnings, reports, cfg):
+    """What a part was cut to keep: a subset of what it carries, and an existing requirement.
+
+    Empty is ordinary and silent. An identifier the specification does not carry is an error for
+    the reason an unresolvable name always is here; one the part does not itself carry is a claim
+    about somebody else's boundary.
+    """
+    known = set(r["id"] for r in model["requirements"])
+    written, computed = carried_by(records, model, cfg)
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        held = written[record.id] | computed[record.id]
+        for rid in as_list(record.fields.get("protects")):
+            if rid not in known:
+                errors.append("%s — %s protects %s, which the specification does not carry"
+                              % (record.where, record.id, rid))
+            elif rid not in held:
+                rule_finding(warnings, reports, cfg, "protects-uncarried",
+                             "%s — %s protects %s and does not carry it"
+                             % (record.where, record.id, rid))
+# srs-end: FR-ARCH-500
+
+
 # implements: FR-ARCH-490
 def check_interfaces(records, edges, warnings, reports, cfg):
     """A part entered by a name its own `interface` does not state.
@@ -1153,6 +1178,7 @@ def main(argv=None):
     check_cycles(elements, warnings, reports, cfg)
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_interfaces(elements, edges, warnings, reports, cfg)
+    check_protects(elements, model, errors, warnings, reports, cfg)
     check_moves(moves, errors)
     check_moves_resolve(moves, elements, model, errors)
     check_move_state(moves, elements, warnings, reports, cfg)

@@ -6,7 +6,7 @@
 # generated document reads as complete either way.
 #
 # file verifies: FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450
-# file verifies: FR-ARCH-460
+# file verifies: FR-ARCH-460, FR-ARCH-510
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -295,5 +295,47 @@ says "FR-ARCH-460 nothing to compare" "_Nothing to compare: no part is written d
 silent "FR-ARCH-460 and no verdict where there was nothing to read" "every dependency the checker can read is declared"
 
 # srs-end: FR-ARCH-460
+
+# --- verifies: FR-ARCH-510 — the two or three a part was cut to keep, before
+# --- the forty it merely carries; absent where the record names none.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+protects: [FR-CORE-010]
+depends_on: []
+interface: one call, run()
+```
+
+Answers a question.
+MD
+doc
+says "FR-ARCH-510 what the part protects, with its title" "  - FR-CORE-010 — The engine answers"
+says "FR-ARCH-510 under its own heading" "- **Exists to protect:**"
+
+elements <<'MD'
+# Elements
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/store.py]
+requirements: [FR-CORE-020]
+depends_on: []
+interface: one call, read()
+```
+
+Keeps what the engine reads.
+MD
+doc
+silent "FR-ARCH-510 absent where the record names none" "Exists to protect"
+
+# srs-end: FR-ARCH-510
 
 echo "arch-doc: $passes fixtures pass"

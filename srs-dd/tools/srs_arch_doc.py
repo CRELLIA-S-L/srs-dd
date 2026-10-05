@@ -73,6 +73,15 @@ def parts_section(elements, moves, model, cfg):
         out.append("- **Carries:** %s" % (", ".join("`%s`" % p for p in carries) or "_nothing_"))
         interface = record.fields.get("interface")
         out.append("- **Interface:** %s" % (interface or "_Not determined._"))
+        # implements: FR-ARCH-510
+        # The two or three a part was cut to keep, before the forty it merely carries: this is
+        # the answer to what breaks if the boundary moves. Absent where the record names none.
+        protects = srs_arch.as_list(record.fields.get("protects"))
+        if protects:
+            out.append("- **Exists to protect:**")
+            for rid in sorted(protects, key=order):
+                out.append("  - %s — %s" % (rid, titles.get(rid, "_unknown to the specification_")))
+        # srs-end: FR-ARCH-510
         held = sorted(written[record.id] | computed[record.id], key=order)
         out.append("- **Answers for %d requirement(s):**" % len(held))
         for rid in held:

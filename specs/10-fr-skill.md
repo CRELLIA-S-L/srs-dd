@@ -1271,3 +1271,23 @@ When asked for a baseline, the procedure measurement **shall** run each scenario
 The published architecture skills are measured exactly this way — `claude-architecture-skills` reports each skill against an unskilled baseline over the same scenarios, and the pair is what makes its numbers readable; one of its seven comes out at 90% against a baseline of 70%, which is a different thing from the one at 100% against 35%.
 Out of reach rather than deleted: the run is asked without the tool that loads a procedure, so the repository the instance reads is the same one in both halves and the difference is the procedure alone.
 The check that the procedure was invoked fails in the baseline half by construction; it is counted as a failure and said, because hiding it would make the two halves look more alike than they are.
+
+### FR-SKILL-510 — The architecture procedure asks what a part protects
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-480]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-arch/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-05
+```
+
+The architecture procedure **shall** ask, of every part being designed or redrawn, which obligations it exists to protect, and say that protecting nothing in particular is an answer.
+
+**Rationale.** The five readings judge a part by its shape — one responsibility, what it carries, what it leans on, how much it answers for, what crosses into it — and none of them asks what would be lost if the boundary moved, which is the question a cut is defended with.
+Asked at design time, because afterwards the answer is reconstructed from the code rather than remembered.
+The permission to answer "nothing in particular" is what keeps the field honest: a part that holds behaviour and protects no property of its own is the common case, and a procedure that demanded a quality attribute for each would be answered with invented ones.

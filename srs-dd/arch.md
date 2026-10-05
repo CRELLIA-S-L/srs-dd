@@ -75,6 +75,7 @@ A key that is neither required nor optional here is not an error — that tolera
 | `requirements` | required, unless derived | the requirements this part realizes — see *Derived requirements* |
 | `depends_on` | optional | other elements this part leans on — the declared model |
 | `interface` | optional | how the part is reached from outside — a name stated here is what another part may enter by, and one it enters by and this does not state is reported |
+| `protects` | optional | the requirements the part was cut to keep, a subset of what it carries |
 | `superseded_by` | by status | the successor, where the status is `superseded`; read by a person, not checked |
 
 `carries` is not limited to source files.
@@ -212,6 +213,21 @@ Two findings are about where a move has got to, read off what the elements at it
 `--plan` says what the difference between the two cuts is; a move record says what somebody agreed to do about it, and survives the commits that carry it out.
 Neither replaces the decision: the layer records that the cut is changing, and `specs/adr/` records why.
 
+## What a part was cut to keep
+
+`requirements` is flat: everything a part answers for, the behaviour it happens to hold and the property that would be lost if its boundary moved, in one list.
+The second kind is what a cut is defended with, and `protects` is where it is written — a subset of what the part carries, usually an invariant, a constraint or a quality the specification already states.
+
+```yaml
+protects: [CON-CORE-010, INV-CORE-020]
+```
+
+Empty is ordinary and silent: most parts hold behaviour and protect nothing in particular, and a key demanded of every record is ceremony.
+A requirement here the part does not carry is a claim about somebody else's boundary (`protects-uncarried`); one the specification does not carry at all is an error.
+
+**A quality scenario is a requirement, not a record of this layer.**
+What a part must keep true under some stimulus is a falsifiable property, and a specification is where those live, with a verification method and tests; a second place to write them would be a second model of the same system. So the scenario is stated as an `NFR` or an `INV` and this key points at it.
+
 ## The map
 
 `arch/90-map.md` is generated from the records and never edited by hand.
@@ -260,6 +276,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `move-orphan` | A path a move names that no element at either end carries |
 | `dependency-forbidden` | A dependency the project forbade, declared by an element or had by the code |
 | `interface-bypassed` | A part entered by a name its own `interface` does not state |
+| `protects-uncarried` | A requirement an element protects and does not carry |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do
