@@ -54,8 +54,8 @@ git commit -qm "baseline 1.0.0"
 frozen=$(git rev-parse HEAD)
 test "$(python3 -c "
 import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
-import srs_view
-print(srs_view.baseline_revision('1.0.0'))")" = "$frozen"
+import srs_view_model
+print(srs_view_model.baseline_revision('1.0.0'))")" = "$frozen"
 python3 srs-dd/tools/srs_view.py --html /tmp/srs-base-target/.srs-site/index.html \
     >/dev/null
 grep -q '1.0.0' /tmp/srs-base-target/.srs-site/index.html
@@ -70,8 +70,8 @@ git commit -qm "a hand-written baseline row"
 byhand=$(git rev-parse HEAD)
 test "$(python3 -c "
 import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
-import srs_view
-print(srs_view.baseline_revision('2.0.0'))")" = "$byhand"
+import srs_view_model
+print(srs_view_model.baseline_revision('2.0.0'))")" = "$byhand"
 
 # Asked again for a baseline the log already records: refused, nothing done.
 rc=0; python3 srs-dd/tools/srs_baseline.py 1.0.0 > /tmp/base-again.log 2>&1 || rc=$?
@@ -96,11 +96,11 @@ git clone --quiet "file:///tmp/srs-base-target" /tmp/srs-base-squashed
 import subprocess, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
-import srs_view
+import srs_view_model
 head = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()
-assert srs_view.logged_baselines() == ['1.0.0', '2.0.0'], 'the log still reads'
-assert srs_view.baseline_revision('2.0.0') == head, 'the newest is that tree'
-assert srs_view.baseline_revision('1.0.0') is None, \
+assert srs_view_model.logged_baselines() == ['1.0.0', '2.0.0'], 'the log still reads'
+assert srs_view_model.baseline_revision('2.0.0') == head, 'the newest is that tree'
+assert srs_view_model.baseline_revision('1.0.0') is None, \
     'the state 1.0.0 froze is not in this repository, and must not be faked'
 PY1
 )

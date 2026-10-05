@@ -1,6 +1,6 @@
 # ADR-0047 — The viewer is cut into the model, the command and the page
 
-- **Status:** proposed
+- **Status:** accepted
 - **Date:** 2026-10-05
 - **Related requirements:** IF-VIEW-010, FR-VIEW-060, FR-VIEW-080, NFR-VIEW-010
 
@@ -40,5 +40,8 @@ The act is the design-mode loop instead: `E-110` and `E-120` stand `proposed`, t
 
 The `code` field of 42 `VIEW` requirements has to be re-pointed as the lines move, one file at a time with the project's own checks between, as `FR-SKILL-490` asks.
 `E-020`'s interface loses the module names the baseline command imports and `E-110`'s gains them, which `FR-ARCH-490` will report until it is done.
+Both halves were carried out on 2026-10-05, the model first and the page second, each verified by rendering the same specification through the file before the cut and the files after it: the command's answers and the page came back byte for byte the same.
+Two things the design did not foresee came out of reading the code. `print_diff` prints to the terminal, so it stayed with the command although `FR-VIEW-050` is computed in the model, and the three tables `FR-VIEW-390` asks for do not sit together: the methods and the status colours are the page's, and the backward label of an incoming link is read by both projections, so it lives in the model.
+The renderer is imported where `--html` and `--svg` are served rather than at the top of the command, so a terminal answer is not stopped by its absence — a hand install that copies the files one by one is the case that makes the difference visible.
 The published command and every call of it stay exactly as they are; a project upgrading sees two new files under `srs-dd/tools/` and nothing else.
-What the layer does not yet say is that an extraction is not a move; until it does, the next person may write one as two move records and be told, as this draft was, that the redraw is already finished.
+That an extraction is not a move was missing from the layer's standard when this was drafted, which is why the first draft was written as two move records and reported finished the moment it was saved; the standard says it now, under *Recording a move*.

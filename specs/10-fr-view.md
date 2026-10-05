@@ -29,7 +29,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -65,7 +65,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -89,7 +89,7 @@ derives_from: []
 depends_on: [INV-SPEC-040]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh, tests/standard-vocabulary.sh]
 created: 2026-08-07
 ```
@@ -111,7 +111,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -147,7 +147,7 @@ derives_from: []
 depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -165,7 +165,7 @@ derives_from: []
 depends_on: [FR-VIEW-060, INV-SPEC-040]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-08
 ```
@@ -184,7 +184,7 @@ derives_from: [FR-VIEW-050]
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-08
 ```
@@ -204,7 +204,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-08
 ```
@@ -229,7 +229,7 @@ derives_from: [FR-VIEW-050]
 depends_on: [FR-VIEW-080]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/baseline-smoke.sh]
 created: 2026-08-08
 ```
@@ -250,7 +250,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -288,7 +288,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -308,7 +308,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -334,7 +334,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-11
 ```
@@ -357,7 +357,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-12
 ```
@@ -380,7 +380,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: [FR-VIEW-040]
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-12
 ```
@@ -402,7 +402,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -426,7 +426,7 @@ derives_from: []
 depends_on: [FR-VIEW-060, INV-SPEC-050]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -455,7 +455,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-20
 ```
@@ -544,7 +544,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -573,7 +573,7 @@ derives_from: []
 depends_on: [IF-SPEC-010, INV-SPEC-070]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -607,7 +607,7 @@ derives_from: []
 depends_on: [FR-VIEW-270]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -654,7 +654,7 @@ derives_from: []
 depends_on: [FR-VIEW-020, FR-CHK-080]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-16
 ```
@@ -687,7 +687,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-16
 ```
@@ -732,7 +732,7 @@ derives_from: []
 depends_on: [FR-VIEW-240, FR-SKILL-200, IF-SPEC-030]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-17
 ```
@@ -754,7 +754,7 @@ derives_from: [FR-VIEW-110]
 depends_on: [FR-VIEW-220, FR-VIEW-070]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-18
 ```
@@ -897,7 +897,7 @@ derives_from: [FR-VIEW-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/standard-vocabulary.sh]
 created: 2026-09-25
 ```
@@ -916,7 +916,7 @@ derives_from: []
 depends_on: []
 refines: [FR-VIEW-060]
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-29
 ```

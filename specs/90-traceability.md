@@ -25,7 +25,7 @@ Total requirements: 365.
 | **CON-GND-030** Records are authored, never written | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-check.sh` |
 | **CON-SPEC-010** The traceability matrix is generated | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`specs/90-traceability.md` | `tests/spec-check.sh` |
 | **CON-SPEC-020** Nothing of the framework travels into a target | `implemented` | T | `tools/srs_init.py`<br>`skeleton` | `tests/installer-smoke.sh` |
-| **CON-SPEC-030** The tooling does not write git history | `implemented` | T | `srs-dd/tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_dates.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_arch.py`<br>`tools/srs_cite_eval.py`<br>`tools/srs_proc_eval.py`<br>`tools/ci_selftest.sh`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_arch_doc.py` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
+| **CON-SPEC-030** The tooling does not write git history | `implemented` | T | `srs-dd/tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_dates.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_arch.py`<br>`tools/srs_cite_eval.py`<br>`tools/srs_proc_eval.py`<br>`tools/ci_selftest.sh`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_arch_doc.py` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
 | **CON-SPEC-040** What the framework asks of a project's files means the same for every kind of them | `implemented` | I | `srs-dd/standard.md` | — |
 | **FR-ARCH-010** The layer is read and reported on | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh`<br>`tests/arch-check.sh` |
 | **FR-ARCH-020** Well-formed and unique identifiers | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
@@ -93,7 +93,7 @@ Total requirements: 365.
 | **FR-CHK-130** A baseline tag without a log entry is reported | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/installer-smoke.sh`<br>`tests/checker-rules.sh` |
 | **FR-CHK-140** A requirement verified by test and carrying none is reported | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-150** A requirement no link touches is reported | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
-| **FR-CHK-160** What a rule costs is the project's to set | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/standard.md` | `tests/checker-rules.sh` |
+| **FR-CHK-160** What a rule costs is the project's to set | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/standard.md` | `tests/checker-rules.sh` |
 | **FR-CHK-170** A missing required key is named as missing | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-180** A retired key is reported with what replaced it | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-190** A requirement resting on a withdrawn one is reported | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -232,7 +232,7 @@ Total requirements: 365.
 | **FR-INIT-250** Every account of what an upgrade leaves alone names each kind | `superseded` | T | `docs/install.md`<br>`docs/upgrade.md`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/standard-vocabulary.sh` |
 | **FR-INIT-260** The tooling arrives without this framework's decision numbers | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-270** An upgrade refreshes the tooling and the skills without a flag | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-INIT-280** What stays the framework's says whose it is | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_baseline.py`<br>`srs-dd/tools/srs_dates.py`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`.claude/skills`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md`<br>`srs-dd/method.md`<br>`srs-dd/README.md`<br>`srs-dd/LICENSE` | `tests/installer-smoke.sh` |
+| **FR-INIT-280** What stays the framework's says whose it is | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_baseline.py`<br>`srs-dd/tools/srs_dates.py`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`.claude/skills`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md`<br>`srs-dd/method.md`<br>`srs-dd/README.md`<br>`srs-dd/LICENSE` | `tests/installer-smoke.sh` |
 | **FR-INIT-290** The hook and the pipelines are the project's files | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-300** The installer says whether the hook runs the gate | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-310** The installer says whether a pipeline runs the gate | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
@@ -303,45 +303,45 @@ Total requirements: 365.
 | **FR-SPEC-060** A dry run of the baseline command writes nothing | `implemented` | T | `srs-dd/tools/srs_baseline.py` | `tests/baseline-smoke.sh` |
 | **FR-SPEC-070** The standards name every value their tools define | `implemented` | T | `srs-dd/standard.md`<br>`specs/50-verification.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md` | `tests/standard-vocabulary.sh` |
 | **FR-VIEW-010** One requirement with its links resolved | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-020** Which requirements describe a file | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-020** Which requirements describe a file | `implemented` | T | `srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-030** The derivation tree | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-040** Coverage gaps | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-050** Difference against a baseline | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh`<br>`tests/standard-vocabulary.sh` |
-| **FR-VIEW-060** A page that opens from the filesystem | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-040** Coverage gaps | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-050** Difference against a baseline | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh`<br>`tests/standard-vocabulary.sh` |
+| **FR-VIEW-060** A page that opens from the filesystem | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-070** Deterministic output | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-080** Reading never writes | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-090** The page says what it is showing | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-100** Any two baselines can be compared on the page | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-110** The graph can be explored | `implemented` | I | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-120** The baseline row is written by the tooling | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/baseline-smoke.sh` |
-| **FR-VIEW-130** A requirement is reachable from every view | `implemented` | I | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-080** Reading never writes | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-090** The page says what it is showing | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-100** Any two baselines can be compared on the page | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-110** The graph can be explored | `implemented` | I | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-120** The baseline row is written by the tooling | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/baseline-smoke.sh` |
+| **FR-VIEW-130** A requirement is reachable from every view | `implemented` | I | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-140** The rendered page can be opened where it is made | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-150** The graph can be narrowed to one requirement's surroundings | `implemented` | I | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-160** Every kind of link is drawn, and the reader chooses which | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-180** A node shows the status of its requirement | `implemented` | I | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-190** The dashboard counts every status | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-200** The coverage gaps are on the page, not only in the terminal | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-210** What outlived a cancelled requirement is on the page | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-220** The list can be narrowed to what is being looked for | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-230** The page explains its own notation | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-150** The graph can be narrowed to one requirement's surroundings | `implemented` | I | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-160** Every kind of link is drawn, and the reader chooses which | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-180** A node shows the status of its requirement | `implemented` | I | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-190** The dashboard counts every status | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-200** The coverage gaps are on the page, not only in the terminal | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-210** What outlived a cancelled requirement is on the page | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-220** The list can be narrowed to what is being looked for | `implemented` | T | `srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-230** The page explains its own notation | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-240** A citation is printed, not typed | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-250** What the specification is divided into | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-260** The page offers what carries no requirements | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-270** A search reaches the prose as well | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-280** A search says what it left out | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-260** The page offers what carries no requirements | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-270** A search reaches the prose as well | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-280** A search says what it left out | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-290** A path searched for is answered by the mode for paths | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-300** Which requirements are related to a line of a file | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-310** The page links to the repository when told where it is | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-300** Which requirements are related to a line of a file | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-310** The page links to the repository when told where it is | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-320** A listed requirement is named where it is written | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-330** A decision is cited like a requirement | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-340** The graph of a selection is written as an image of its own | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-330** A decision is cited like a requirement | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-340** The graph of a selection is written as an image of its own | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-350** A listing can carry the statement of each requirement | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-360** The vocabulary of the block is printed by the tool that enforces it | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-370** Where a requirement is realized, by line | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
 | **FR-VIEW-380** The source under an annotation is printed | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_check.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-390** The viewer's tables of the checker's vocabulary cover it | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/standard-vocabulary.sh` |
+| **FR-VIEW-390** The viewer's tables of the checker's vocabulary cover it | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/standard-vocabulary.sh` |
 | **FR-VIEW-400** A region with no end marker is said to be possibly incomplete | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
-| **FR-VIEW-410** The page's filter by file tells every file apart | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **FR-VIEW-410** The page's filter by file tells every file apart | `implemented` | T | `srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **IF-ARCH-010** The element record is a stable format | `implemented` | I | `srs-dd/arch.md` | — |
 | **IF-ARCH-020** Exit codes of the architecture checker | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **IF-ARCH-030** A published architecture rule name keeps its meaning | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
@@ -356,9 +356,9 @@ Total requirements: 365.
 | **IF-SKILL-010** The published entry point for an agent | `implemented` | I | `.claude/skills/srs-init/SKILL.md`<br>`README.md` | — |
 | **IF-SPEC-010** The requirement block is a stable format | `implemented` | I | `srs-dd/standard.md`<br>`srs-dd/tools/srs_check.py` | — |
 | **IF-SPEC-020** A published rule name keeps its meaning | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
-| **IF-SPEC-030** A decision's head is a stable format | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/standard.md` | `tests/view-smoke.sh` |
+| **IF-SPEC-030** A decision's head is a stable format | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/standard.md` | `tests/view-smoke.sh` |
 | **IF-SPEC-040** An area's name joins its words with an underscore | `implemented` | T | `srs-dd/standard.md`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_check.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_dates.py` | `tests/checker-rules.sh`<br>`tests/installer-smoke.sh`<br>`tests/view-smoke.sh`<br>`tests/dates-smoke.sh` |
-| **IF-VIEW-010** The model is published, not merely dumped | `implemented` | T | `srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **IF-VIEW-010** The model is published, not merely dumped | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
 | **INV-ARCH-010** An element is recorded in one direction only | `implemented` | I | `srs-dd/arch.md` | — |
 | **INV-GND-010** Hypothesis identifiers are immutable and never reused | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |
 | **INV-GND-020** A bet is recorded in one direction only | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |
@@ -368,21 +368,21 @@ Total requirements: 365.
 | **INV-SPEC-010** Identifiers are immutable and never reused | `implemented` | I | `srs-dd/standard.md`<br>`srs-dd/tools/srs_check.py` | — |
 | **INV-SPEC-020** Links are stored in one direction only | `implemented` | I | `srs-dd/standard.md`<br>`srs-dd/tools/srs_check.py` | — |
 | **INV-SPEC-030** A baseline and a release are separate acts | `implemented` | T | `srs-dd/tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`srs-dd/standard.md` | `tests/baseline-smoke.sh`<br>`tests/release-smoke.sh` |
-| **INV-SPEC-040** The log defines the baselines | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_baseline.py`<br>`srs-dd/standard.md` | `tests/baseline-smoke.sh` |
-| **INV-SPEC-050** A requirement can be withdrawn as well as replaced | `implemented` | I | `srs-dd/standard.md`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_view.py` | `tests/view-smoke.sh` |
+| **INV-SPEC-040** The log defines the baselines | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_baseline.py`<br>`srs-dd/standard.md` | `tests/baseline-smoke.sh` |
+| **INV-SPEC-050** A requirement can be withdrawn as well as replaced | `implemented` | I | `srs-dd/standard.md`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_view_page.py` | `tests/view-smoke.sh` |
 | **INV-SPEC-060** A requirement states one obligation | `implemented` | I | `srs-dd/standard.md` | — |
 | **INV-SPEC-070** A line in markdown breaks where the meaning breaks | `implemented` | I | `srs-dd/standard.md`<br>`CONTRIBUTING.md`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | — |
 | **INV-SPEC-080** A number widens, and nothing is renamed | `implemented` | T | `srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_view.py`<br>`tools/srs_cite_eval.py` | `tests/checker-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/arch-rules.sh`<br>`tests/adopt-smoke.sh` |
-| **INV-SPEC-090** Identifiers are ordered by their number wherever a tool orders them | `implemented` | T | `srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`srs-dd/tools/srs_dates.py`<br>`tools/srs_cite_eval.py`<br>`srs-dd/tools/srs_arch_doc.py` | `tests/checker-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/arch-rules.sh`<br>`tests/dates-smoke.sh` |
+| **INV-SPEC-090** Identifiers are ordered by their number wherever a tool orders them | `implemented` | T | `srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`srs-dd/tools/srs_dates.py`<br>`tools/srs_cite_eval.py`<br>`srs-dd/tools/srs_arch_doc.py` | `tests/checker-rules.sh`<br>`tests/grounds-rules.sh`<br>`tests/arch-rules.sh`<br>`tests/dates-smoke.sh` |
 | **INV-SPEC-100** A code field that claims a set names all of it | `implemented` | T | `tests/code-field-sets.sh` | `tests/code-field-sets.sh` |
 | **INV-SPEC-110** A copy of a list another file defines matches it | `implemented` | T | `tests/standard-vocabulary.sh` | `tests/standard-vocabulary.sh` |
 | **INV-SPEC-120** A path rewritten because a file moved still names that file | `deferred` | I | — | — |
 | **NFR-CHK-010** Validation stays under a second at 500 requirements | `implemented` | A | `srs-dd/tools/srs_check.py` | — |
 | **NFR-SKILL-010** A procedure needs no skill system | `implemented` | I | `.claude/skills`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | — |
 | **NFR-SKILL-020** A procedure fits a budget | `implemented` | T | `.claude/skills`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | `tests/skill-budget.sh` |
-| **NFR-SPEC-010** Nothing to install | `implemented` | I | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_dates.py`<br>`srs-dd/tools/srs_view.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_arch.py`<br>`tools/srs_cite_eval.py`<br>`tools/srs_proc_eval.py`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_arch_doc.py` | — |
+| **NFR-SPEC-010** Nothing to install | `implemented` | I | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_dates.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_baseline.py`<br>`tools/srs_release.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_arch.py`<br>`tools/srs_cite_eval.py`<br>`tools/srs_proc_eval.py`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_arch_doc.py` | — |
 | **NFR-SPEC-020** Plain text all the way down | `implemented` | I | `srs-dd/standard.md` | — |
-| **NFR-VIEW-010** The page stays readable at scale | `implemented` | I | `srs-dd/tools/srs_view.py` | — |
+| **NFR-VIEW-010** The page stays readable at scale | `implemented` | I | `srs-dd/tools/srs_view_page.py` | — |
 
 ## Incoming links
 

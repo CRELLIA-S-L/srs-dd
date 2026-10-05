@@ -739,8 +739,8 @@ config "{$BASE}"
 # --- used to be told that something was wrong and never what.
 LAB2=/tmp/srs-refusal
 rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools" "$LAB2/specs"
-cp srs-dd/tools/srs_baseline.py srs-dd/tools/srs_view.py srs-dd/tools/srs_check.py \
-   srs-dd/tools/srs_parse.py "$LAB2/srs-dd/tools/"
+cp srs-dd/tools/srs_baseline.py srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py \
+   srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py "$LAB2/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB2/specs/"
 printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
     > "$LAB2/specs/92-baselines.md"
@@ -1349,12 +1349,12 @@ grep -q "FR-CORE-030" "$LAB/specs/90-traceability.md" \
     && { echo "FAIL FR-CHK-250 — a README.md inside the area was read as requirements"; exit 1; }
 # The file each requirement is written in is the viewer's to print (FR-VIEW-320);
 # the viewer is copied in for this one fixture.
-cp srs-dd/tools/srs_view.py "$LAB/srs-dd/tools/"
+cp srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$LAB/srs-dd/tools/"
 ( cd "$LAB" && python3 srs-dd/tools/srs_view.py --list ) > /tmp/srs-rules-list.log 2>&1
 grep -q "FR-CORE-1000 .*specs/10-fr-core/1000-1999.md" /tmp/srs-rules-list.log \
     && grep -q "FR-CORE-020 .*specs/10-fr-core/deeper/notes.md" /tmp/srs-rules-list.log \
     || { echo "FAIL FR-CHK-250 — the listing does not name the files of a directory area"; cat /tmp/srs-rules-list.log; exit 1; }
-rm -f "$LAB/srs-dd/tools/srs_view.py"
+rm -f "$LAB/srs-dd/tools/srs_view.py" "$LAB/srs-dd/tools/srs_view_model.py"
 passes=$((passes + 1))
 
 # srs-end: FR-CHK-250

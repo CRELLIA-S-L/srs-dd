@@ -23,7 +23,8 @@ sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_arch
 import srs_check
 import srs_grounds
-import srs_view
+import srs_view_model
+import srs_view_page
 
 
 def read(path):
@@ -130,16 +131,18 @@ found += both_ways("srs-dd/arch.md, the move keys", keys_of(move), srs_arch.MOVE
 # The viewer keeps its own tables of the checker's vocabulary: a method it
 # cannot name, a link it cannot label backwards, a status with no colour,
 # or a field the comparison between two revisions skips is the viewer
-# falling behind the checker.
-found += both_ways("srs_view.py METHODS", [key for key, _label in srs_view.METHODS], srs_check.VERIFICATIONS)
-found += both_ways("srs_view.py INCOMING_LABEL", srs_view.INCOMING_LABEL,
+# falling behind the checker. The three tables sit where they are read —
+# the page's two on the page, the label both projections use in the model.
+found += both_ways("srs_view_page.py METHODS", [key for key, _label in srs_view_page.METHODS],
+                   srs_check.VERIFICATIONS)
+found += both_ways("srs_view_model.py INCOMING_LABEL", srs_view_model.INCOMING_LABEL,
                    srs_check.LINK_FIELDS + ("superseded_by",))
-page_css = read("srs-dd/tools/srs_view.py")
-found += ["srs_view.py has no colour for the status `%s`" % status for status in srs_check.STATUSES
+page_css = read("srs-dd/tools/srs_view_page.py")
+found += ["srs_view_page.py has no colour for the status `%s`" % status for status in srs_check.STATUSES
           if ".st-%s {" % status not in page_css]
 # The fields two revisions are compared on: every field but `created`,
 # which is written once and never changes, and the title.
-found += both_ways("srs_view.py DIFF_FIELDS", srs_view.DIFF_FIELDS,
+found += both_ways("srs_view_model.py DIFF_FIELDS", srs_view_model.DIFF_FIELDS,
                    (srs_check.KNOWN_FIELDS - {"created"}) | {"title"})
 
 # --- What of the framework's lives outside srs-dd/, said in the standard
@@ -152,7 +155,7 @@ for phrase in ("`srs-dd/`", "`.claude/skills/srs-*`", "<!-- srs-dd -->", "edited
 # --- The specification's configuration: the keys the tools read, both ways.
 # The checker's defaults name most; five more are read by one tool each, and
 # each is asked of the tool that reads it, so this is no list kept by hand.
-READ_ELSEWHERE = {"rules": "srs-dd/tools/srs_check.py", "repo_url": "srs-dd/tools/srs_view.py",
+READ_ELSEWHERE = {"rules": "srs-dd/tools/srs_check.py", "repo_url": "srs-dd/tools/srs_view_model.py",
                   "framework_url": "srs-dd/tools/srs_upgrade.py", "line_width": "tools/srs_init.py",
                   "project_name": "tools/srs_init.py"}
 for key, tool in sorted(READ_ELSEWHERE.items()):
@@ -226,10 +229,10 @@ generated = [os.path.relpath(p, os.getcwd()) for p in (srs_check.TRACE, srs_grou
 guide_generated = next((line for line in read("AGENTS.md").splitlines() if line.startswith("- **Generated files**")), "")
 found += ["AGENTS.md, Generated files, does not name %s" % path for path in generated if path not in guide_generated]
 map_rows = the_map
-found += ["srs_view.py expects %s as prose and the standard's map has no row for it" % name
-          for name in srs_view.PROSE_EXPECTED if "`%s`" % name not in map_rows]
-found += ["srs_view.py excludes %s from prose, and the checker reads requirements from it" % name
-          for name in srs_view.PROSE_EXCLUDED if name not in srs_check.SKIP_FILES]
+found += ["srs_view_model.py expects %s as prose and the standard's map has no row for it" % name
+          for name in srs_view_model.PROSE_EXPECTED if "`%s`" % name not in map_rows]
+found += ["srs_view_model.py excludes %s from prose, and the checker reads requirements from it" % name
+          for name in srs_view_model.PROSE_EXCLUDED if name not in srs_check.SKIP_FILES]
 for tool in ("tools/srs_init.py", "srs-dd/tools/srs_upgrade.py"):
     choices = re.search(r'"--period", choices=\(([^)]*)\)', read(tool))
     offered = re.findall(r'"([a-z]+)"', choices.group(1)) if choices else []

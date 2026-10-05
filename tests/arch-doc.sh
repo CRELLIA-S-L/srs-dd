@@ -16,7 +16,8 @@ LAB=/tmp/srs-arch-doc
 rm -rf "$LAB"
 mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/arch" "$LAB/src"
 cp srs-dd/tools/srs_arch_doc.py srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py \
-   srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py "$LAB/srs-dd/tools/"
+   srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py \
+   "$LAB/srs-dd/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {

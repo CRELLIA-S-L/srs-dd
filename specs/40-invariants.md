@@ -77,7 +77,7 @@ derives_from: [INV-SPEC-030]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_baseline.py, srs-dd/standard.md]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_baseline.py, srs-dd/standard.md]
 tests: [tests/baseline-smoke.sh]
 created: 2026-08-09
 ```
@@ -97,7 +97,7 @@ derives_from: []
 depends_on: [INV-SPEC-010]
 refines: []
 conflicts_with: []
-code: [srs-dd/standard.md, srs-dd/tools/srs_check.py, srs-dd/tools/srs_view.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_check.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-12
 ```
@@ -265,7 +265,7 @@ derives_from: [INV-SPEC-040]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_dates.py, tools/srs_init.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/ci_selftest.sh, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_arch_doc.py]
+code: [srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_dates.py, tools/srs_init.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/ci_selftest.sh, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_arch_doc.py]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
 created: 2026-08-09
 ```
@@ -549,7 +549,7 @@ derives_from: [INV-SPEC-080]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_parse.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, srs-dd/tools/srs_dates.py, tools/srs_cite_eval.py, srs-dd/tools/srs_arch_doc.py]
+code: [srs-dd/tools/srs_parse.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, srs-dd/tools/srs_dates.py, tools/srs_cite_eval.py, srs-dd/tools/srs_arch_doc.py]
 tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh, tests/dates-smoke.sh]
 created: 2026-09-20
 ```

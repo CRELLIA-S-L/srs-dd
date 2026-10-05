@@ -606,7 +606,7 @@ derives_from: []
 depends_on: [FR-INIT-270, FR-INIT-060]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md, srs-dd/method.md, srs-dd/README.md, srs-dd/LICENSE]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md, srs-dd/method.md, srs-dd/README.md, srs-dd/LICENSE]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```

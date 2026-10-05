@@ -1136,10 +1136,10 @@ git clone --quiet --depth 1 --no-tags "file:///tmp/srs-view" /tmp/srs-view-shall
   grep -q 'baseline 0.0.2' shallow/index.html
   python3 - <<'PY0'
 import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
-import srs_view
-assert srs_view.logged_baselines() == ['0.0.1', '0.0.2'], 'the log still reads'
-assert all(srs_view.baseline_revision(v) is None
-           for v in srs_view.logged_baselines()), \
+import srs_view_model
+assert srs_view_model.logged_baselines() == ['0.0.1', '0.0.2'], 'the log still reads'
+assert all(srs_view_model.baseline_revision(v) is None
+           for v in srs_view_model.logged_baselines()), \
     'a shallow checkout cannot locate a baseline, and must not claim to'
 PY0
 )
@@ -1385,7 +1385,8 @@ test -z "$(find . -name __pycache__)" \
 # --- through this and nothing else.
 UNK=/tmp/srs-view-unknown
 rm -rf "$UNK"; mkdir -p "$UNK/srs-dd/tools" "$UNK/specs"
-cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py "$UNK/srs-dd/tools/"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$UNK/srs-dd/tools/"
 printf '{"areas": ["CORE"], "rules": {"unknown-key": "off"}}\n' \
     > "$UNK/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — X\n\n'
@@ -1413,7 +1414,8 @@ echo "view-smoke: an unknown block key reaches the published model"
 # --- is in the citation for the plan that names one.
 CITE=/tmp/srs-view-cite
 rm -rf "$CITE"; mkdir -p "$CITE/srs-dd/tools" "$CITE/specs"
-cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py "$CITE/srs-dd/tools/"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$CITE/srs-dd/tools/"
 printf '{"areas": ["CORE"]}\n' > "$CITE/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — A live one\n\n'
   printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
@@ -1600,7 +1602,8 @@ echo "view-smoke: --vocabulary agrees with the Lifecycle section and the Fields 
 # --- annotation for the requirement in a source file no field names.
 WHERE=/tmp/srs-view-where
 rm -rf "$WHERE"; mkdir -p "$WHERE/srs-dd/tools" "$WHERE/specs" "$WHERE/src/pkg" "$WHERE/tests" "$WHERE/data"
-cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py "$WHERE/srs-dd/tools/"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$WHERE/srs-dd/tools/"
 printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["tests"], "code_extensions": [".py", ".sh"]}\n' > "$WHERE/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — Realized in places\n\n'
   printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
@@ -1698,7 +1701,8 @@ echo "view-smoke: an area of two words is read as one segment"
 ( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source.out
 REG=/tmp/srs-view-regions
 rm -rf "$REG"; mkdir -p "$REG/srs-dd/tools" "$REG/specs" "$REG/src" "$REG/t"
-cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py "$REG/srs-dd/tools/"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$REG/srs-dd/tools/"
 printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".swift", ".yaml", ".sh"]}\n' > "$REG/specs/srs-config.json"
 python3 - "$REG" <<'PY'
 import os, sys
@@ -1873,7 +1877,8 @@ echo "view-smoke: --cite prints a decision by the number in its heading"
 # and the graph is about links.
 GRAPH=/tmp/srs-view-graph
 rm -rf "$GRAPH"; mkdir -p "$GRAPH/srs-dd/tools" "$GRAPH/specs"
-cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py "$GRAPH/srs-dd/tools/"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py srs-dd/tools/srs_view_page.py "$GRAPH/srs-dd/tools/"
 printf '{"areas": ["CORE"]}\n' > "$GRAPH/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — The root\n\n'
   printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'

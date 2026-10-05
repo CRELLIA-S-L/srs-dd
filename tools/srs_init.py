@@ -133,8 +133,9 @@ RE_MARKER = re.compile(r"SRS-DD-\d+\.\d+\.\d+")
 # Tooling copied into every target, the gate among it, so a project's own hook calls a
 # tool that moves with the framework.
 # implements: FR-CI-180
-TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_upgrade.py",
-         "srs_baseline.py", "srs_dates.py", "srs_gate.py")
+TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_view_model.py",
+         "srs_view_page.py", "srs_upgrade.py", "srs_baseline.py", "srs_dates.py",
+         "srs_gate.py")
 # srs-end: FR-CI-180
 
 # Skills shipped to targets; srs-init and srs-release stay framework-only, and this

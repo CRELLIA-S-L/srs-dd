@@ -30,7 +30,8 @@ cd "$(dirname "$0")/.."
 LAB=/tmp/srs-arch
 rm -rf "$LAB"
 mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/arch" "$LAB/src"
-cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py "$LAB/srs-dd/tools/"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$LAB/srs-dd/tools/"
 printf 'x\n' > "$LAB/src/a.py"
 printf 'x\n' > "$LAB/src/b.py"
 
@@ -1218,7 +1219,7 @@ passes=$((passes + 1))
 LAB2=/tmp/srs-arch-write
 rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools" "$LAB2/specs" "$LAB2/arch" "$LAB2/src"
 cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
-   "$LAB2/srs-dd/tools/"
+   srs-dd/tools/srs_view_model.py "$LAB2/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB2/specs/"
 printf '{"rules": {}}\n' > "$LAB2/arch/arch-config.json"
 printf 'x\n' > "$LAB2/src/a.py"
@@ -1425,7 +1426,8 @@ silent "FR-ARCH-280 a directory that exists is not reported" 0 "does not exist"
 # file renamed in the working tree, and a file git never saw.
 GITLAB=/tmp/srs-arch-git
 rm -rf "$GITLAB"; mkdir -p "$GITLAB/srs-dd/tools" "$GITLAB/specs" "$GITLAB/arch" "$GITLAB/src"
-cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py "$GITLAB/srs-dd/tools/"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$GITLAB/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$GITLAB/specs/"
 cp "$LAB/specs/10-fr-core.md" "$GITLAB/specs/"
 printf '{"rules": {}}\n' > "$GITLAB/arch/arch-config.json"

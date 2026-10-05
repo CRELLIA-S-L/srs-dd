@@ -360,7 +360,8 @@ rm -rf "$PT" /tmp/srs-pristine
 python3 tools/srs_init.py "$PT" --defaults --name "Acme Widgets" \
     --line-width 100 --ci github --grounds yes --arch yes >/dev/null
 cp -R "$PT" /tmp/srs-pristine
-for f in tools/srs_check.py tools/srs_parse.py tools/srs_view.py tools/srs_upgrade.py tools/srs_baseline.py \
+for f in tools/srs_check.py tools/srs_parse.py tools/srs_view.py tools/srs_view_model.py \
+         tools/srs_view_page.py tools/srs_upgrade.py tools/srs_baseline.py \
          tools/srs_dates.py tools/srs_gate.py tools/srs_grounds.py tools/srs_arch.py \
          standard.md grounds.md arch.md method.md guide.md LICENSE README.md; do
     test -f "$PT/srs-dd/$f" || { echo "FAIL FR-INIT-320 — srs-dd/$f was not installed"; exit 1; }

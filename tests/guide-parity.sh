@@ -114,9 +114,11 @@ if os.path.exists(os.path.join("skeleton", template)):
 
 # The shipped guide names every command the installer ships: a layer or a
 # tool added later reaches a project's agents only through the guide they
-# read in every session. `srs_parse.py` is a module the checkers import,
-# not a command anybody runs, so it is not asked for.
-NOT_COMMANDS = {"srs_parse.py": "a module the checkers import, not a command"}
+# read in every session. Three of the shipped files are modules nobody runs,
+# and a guide that named them would send an agent to a file with no usage.
+NOT_COMMANDS = {"srs_parse.py": "a module the checkers import, not a command",
+                "srs_view_model.py": "a module the viewer imports, not a command",
+                "srs_view_page.py": "a module the viewer imports, not a command"}
 
 
 def unnamed(text, commands):

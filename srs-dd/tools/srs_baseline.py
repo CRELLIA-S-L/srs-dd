@@ -32,11 +32,13 @@ sys.dont_write_bytecode = True                              # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "srs-dd", "tools"))
 
-import srs_view                                             # noqa: E402
+# The model, not the viewer: the row and the log are what this command needs,
+# and the page it would otherwise drag in has nothing to do with a baseline.
+import srs_view_model                                       # noqa: E402
 
 CHECKER = os.path.join(ROOT, "srs-dd", "tools", "srs_check.py")
-BASELINES = os.path.join(srs_view.SPECS, "92-baselines.md")
-MATRIX = os.path.join(srs_view.SPECS, "90-traceability.md")
+BASELINES = os.path.join(srs_view_model.SPECS, "92-baselines.md")
+MATRIX = os.path.join(srs_view_model.SPECS, "90-traceability.md")
 
 EMPTY_NOTE = "*No baselines yet.*\n"
 
@@ -79,7 +81,7 @@ def main():
         baselines = read(BASELINES)
     except OSError as exc:
         return fail("there is no baseline log to write to: %s" % exc)
-    if version in srs_view.logged_baselines():
+    if version in srs_view_model.logged_baselines():
         return fail("%s is already in %s; there is nothing to write"
                     % (version, relative(BASELINES)))
 
@@ -99,8 +101,8 @@ def main():
     sys.stdout.write(output)
 
     try:
-        row = srs_view.baseline_row(version, args.date)
-    except srs_view.ViewError as exc:
+        row = srs_view_model.baseline_row(version, args.date)
+    except srs_view_model.ViewError as exc:
         return fail("%s" % exc)
     anchor = re.search(r"^\|---\|---\|---\|---\|$", baselines, re.M)
     if not anchor:

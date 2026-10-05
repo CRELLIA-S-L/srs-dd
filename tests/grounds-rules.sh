@@ -36,7 +36,7 @@ LAB=/tmp/srs-grounds
 rm -rf "$LAB"
 mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/grounds"
 cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
-   srs-dd/tools/srs_view.py "$LAB/srs-dd/tools/"
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$LAB/srs-dd/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {
@@ -1188,7 +1188,7 @@ cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md" 2>/dev/null || true
 LAB4=/tmp/srs-grounds-write
 rm -rf "$LAB4"; mkdir -p "$LAB4/srs-dd/tools" "$LAB4/specs" "$LAB4/grounds"
 cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
-   srs-dd/tools/srs_view.py "$LAB4/srs-dd/tools/"
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$LAB4/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB4/specs/"
 cp "$LAB/grounds/grounds-config.json" "$LAB4/grounds/"
 { printf '# g\n\n'; rec H-010 "Ground" "$HYP" 'Studios export weekly.'
@@ -1243,7 +1243,7 @@ rule "FR-GND-270 no history" 0 "did not run, which is not the same as passing"
 HLAB=/tmp/srs-grounds-history
 rm -rf "$HLAB"; mkdir -p "$HLAB/srs-dd/tools" "$HLAB/specs" "$HLAB/grounds"
 cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
-   srs-dd/tools/srs_view.py "$HLAB/srs-dd/tools/"
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$HLAB/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$HLAB/specs/"
 cp "$LAB/grounds/grounds-config.json" "$HLAB/grounds/"
 ( cd "$HLAB" && git init -q . && git config user.email t@t \

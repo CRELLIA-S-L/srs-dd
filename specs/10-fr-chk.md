@@ -379,7 +379,7 @@ derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_view.py, srs-dd/standard.md]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_view_page.py, srs-dd/standard.md]
 tests: [tests/checker-rules.sh]
 created: 2026-08-10
 ```

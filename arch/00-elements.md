@@ -24,15 +24,15 @@ The parser is here rather than beside it because both layers read the same recor
 ```yaml
 status: built
 carries: [srs-dd/tools/srs_view.py]
-requirements: [CON-SPEC-030, FR-CHK-160, FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-070, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-120, FR-VIEW-130, FR-VIEW-140, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-220, FR-VIEW-230, FR-VIEW-240, FR-VIEW-250, FR-VIEW-260, FR-VIEW-270, FR-VIEW-280, FR-VIEW-290, FR-VIEW-300, FR-VIEW-310, FR-VIEW-320, FR-VIEW-330, FR-VIEW-340, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380, IF-SPEC-030, IF-VIEW-010, INV-SPEC-040, INV-SPEC-050, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, NFR-VIEW-010, FR-VIEW-390, FR-VIEW-400, IF-SPEC-040, FR-VIEW-410]
-protects: [NFR-VIEW-010]
-depends_on: [E-010]
-interface: a command for a person — one requirement, a list, a search, a page — and `--json`, the model `IF-VIEW-010` publishes, which both layers read by running it rather than importing it; and the module `srs_view` itself — `SPECS`, `logged_baselines`, `baseline_row`, `ViewError` — imported by the baseline command, which must not reimplement the difference `FR-VIEW-050` computes
+requirements: [CON-SPEC-030, FR-INIT-280, FR-VIEW-010, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-070, FR-VIEW-080, FR-VIEW-120, FR-VIEW-140, FR-VIEW-240, FR-VIEW-250, FR-VIEW-270, FR-VIEW-280, FR-VIEW-290, FR-VIEW-300, FR-VIEW-320, FR-VIEW-330, FR-VIEW-340, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380, FR-VIEW-400, IF-SPEC-040, IF-VIEW-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010]
+protects: [IF-VIEW-010]
+depends_on: [E-010, E-110, E-120]
+interface: a command for a person — one requirement, a list, a search, a page — and `--json`, the model `IF-VIEW-010` publishes, which both layers read by running it rather than importing it
 ```
 
 Projects the same specification for reading: one requirement with its links, what describes a file, what the whole is divided into, the coverage gaps, a citation, and a self-contained page.
 
-**Rationale.** Depends on the checker for the parser and for nothing else.
+**Rationale.** Depends on the model for every reading of `specs/`, on the page for `--html` and `--svg` — imported where those two flags are served, so a terminal answer is owed nothing by the renderer — and on the checker for the parser behind both.
 It never writes to `specs/`, which is what lets a reader run it without asking anyone.
 
 ### E-030 — The installer
@@ -58,7 +58,7 @@ status: built
 carries: [srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_dates.py, CHANGELOG.md]
 requirements: [CON-SPEC-030, FR-CI-070, FR-INIT-110, FR-SPEC-010, FR-SPEC-020, INV-SPEC-030, INV-SPEC-040, NFR-SPEC-010, FR-SPEC-060, FR-CI-140, IF-SPEC-040]
 protects: [INV-SPEC-030, INV-SPEC-040]
-depends_on: [E-010, E-020]
+depends_on: [E-010, E-110]
 interface: three commands a maintainer runs by hand, each writing files and stopping before the commit (`CON-SPEC-030`); and the changelog's section format, which the installer reads to print a project's upgrade notes
 ```
 
@@ -128,12 +128,12 @@ What a person reads before they clone: the landing page, the contribution rules,
 ### E-110 — The specification's model
 
 ```yaml
-status: proposed
+status: built
 carries: [srs-dd/tools/srs_view_model.py]
-requirements: [IF-VIEW-010, FR-VIEW-050, FR-VIEW-080, FR-VIEW-120, FR-VIEW-390]
+requirements: [CON-SPEC-030, FR-INIT-280, FR-VIEW-020, FR-VIEW-040, FR-VIEW-050, FR-VIEW-080, FR-VIEW-100, FR-VIEW-120, FR-VIEW-210, FR-VIEW-220, FR-VIEW-260, FR-VIEW-270, FR-VIEW-280, FR-VIEW-300, FR-VIEW-310, FR-VIEW-330, FR-VIEW-390, IF-SPEC-030, IF-VIEW-010, INV-SPEC-040, INV-SPEC-090, NFR-SPEC-010]
 protects: [IF-VIEW-010]
 depends_on: [E-010]
-interface: the module `srs_view_model` — the model the viewer projects, the difference against a revision, the baseline row and the viewer's tables of the checker's vocabulary — imported by the two parts that project it and by the baseline command
+interface: the module `srs_view_model` — the model the viewer projects, what a query selects from it, the difference against a revision, the baseline row and the label an incoming link reads by — imported by the two parts that project it and by the baseline command
 ```
 
 Reads the specification through the checker's parser and answers what it holds: the model, the difference against a revision, the baseline row.
@@ -143,17 +143,19 @@ Reads the specification through the checker's parser and answers what it holds: 
 ### E-120 — The specification's page
 
 ```yaml
-status: proposed
+status: built
 carries: [srs-dd/tools/srs_view_page.py]
-requirements: [FR-VIEW-060, FR-VIEW-070, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-130, FR-VIEW-140, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-220, FR-VIEW-230, FR-VIEW-260, FR-VIEW-310, FR-VIEW-340, FR-VIEW-410, NFR-VIEW-010]
+requirements: [CON-SPEC-030, FR-CHK-160, FR-INIT-280, FR-VIEW-060, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-130, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-230, FR-VIEW-260, FR-VIEW-310, FR-VIEW-340, FR-VIEW-390, FR-VIEW-410, INV-SPEC-050, INV-SPEC-090, NFR-SPEC-010, NFR-VIEW-010]
 protects: [NFR-VIEW-010, FR-VIEW-060]
-depends_on: [E-110]
-interface: the module `srs_view_page` — one call that renders the whole page from the model, and one that draws the graph of a selection as an SVG — imported by the command that writes it out
+depends_on: [E-010, E-110]
+interface: the module `srs_view_page` — `render_site` for the whole page from the model, `graph_image` for the graph of a selection as an SVG and `neighbourhood` for the one step a drawing may be asked to include — imported by the command that writes them out
 ```
 
 Renders the specification as one self-contained page with its graph, and nothing else.
 
-**Rationale.** Half the viewer's lines and the most stretched requirement in the specification live here, and none of it is reached from the terminal except by one flag. Cut so that the page can be changed without touching how a requirement is answered, and so that the arithmetic the page's own script repeats has one home.
+**Rationale.** Half the viewer's lines and the most stretched requirement in the specification live here, and none of it is reached from the terminal except by two flags. Cut so that the page can be changed without touching how a requirement is answered, and so that the arithmetic the page's own script repeats has one home.
+Where a link points is the page's own business, which is why the command hands over a directory rather than building the links itself.
+It reads the parser for two things the drawing cannot invent — which words are modal and how identifiers order — which is why the checker is among its dependencies.
 
 ### E-080 — The standard and the payload
 

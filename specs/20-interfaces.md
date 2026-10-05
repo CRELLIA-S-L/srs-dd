@@ -70,7 +70,7 @@ derives_from: []
 depends_on: [IF-SPEC-010, INV-SPEC-020]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -324,7 +324,7 @@ derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_view.py, srs-dd/standard.md]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/standard.md]
 tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
