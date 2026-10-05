@@ -93,7 +93,7 @@ MOVE_CLOSED = ("done", "abandoned")
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
          "dependency-undeclared", "element-cycle", "carrier-missing",
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
-         "dependency-forbidden")
+         "dependency-forbidden", "interface-bypassed")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -768,6 +768,52 @@ def element_of(path, owners):
 # srs-end: FR-ARCH-260
 
 
+# implements: FR-ARCH-490
+def check_interfaces(records, edges, warnings, reports, cfg):
+    """A part entered by a name its own `interface` does not state.
+
+    What crosses a boundary is what the other side writes down — a module it imports, a path it
+    was given — so the comparison is against the names, not against the files. A part that
+    declares no interface is left to the rule that names what nobody has said: saying it twice
+    would have a project price both away.
+    """
+    def states(face, name):
+        # As a name and not as a substring: a one-letter module would otherwise be found
+        # inside any word of the sentence, and the rule would pass for the wrong reason.
+        return re.search(r"(?<![\w.])%s(?![\w.])" % re.escape(name), face) is not None
+
+    faces = {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        face = record.fields.get("interface")
+        if face:
+            faces[record.id] = face
+    by_path, unique = python_modules(records)
+    for path in sorted(by_path):
+        for name in imports_of(os.path.join(ROOT, path)):
+            target_path = unique.get(name)
+            if target_path is None:
+                continue
+            target = by_path[target_path]
+            if target == by_path[path] or target not in faces:
+                continue
+            if not states(faces[target], name):
+                rule_finding(warnings, reports, cfg, "interface-bypassed",
+                             "%s reaches %s by `%s`, which its interface does not state"
+                             % (path, target, name))
+    owners = live_carriers(records)
+    for source, target_path, via in edges:
+        element, target = element_of(source, owners), element_of(target_path, owners)
+        if element is None or target is None or element == target or target not in faces:
+            continue
+        if not states(faces[target], target_path):
+            rule_finding(warnings, reports, cfg, "interface-bypassed",
+                         "%s reaches %s by `%s`, which its interface does not state"
+                         % (source, target, target_path))
+# srs-end: FR-ARCH-490
+
+
 # implements: FR-ARCH-470, FR-ARCH-480
 def check_forbidden(records, edges, errors, warnings, reports, cfg):
     """Dependencies the project said must not exist, in the model and in the code alike.
@@ -1106,6 +1152,7 @@ def main(argv=None):
     check_conformance(elements, edges, warnings, reports, cfg)
     check_cycles(elements, warnings, reports, cfg)
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
+    check_interfaces(elements, edges, warnings, reports, cfg)
     check_moves(moves, errors)
     check_moves_resolve(moves, elements, model, errors)
     check_move_state(moves, elements, warnings, reports, cfg)

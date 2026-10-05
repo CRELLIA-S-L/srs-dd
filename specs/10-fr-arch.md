@@ -1019,3 +1019,25 @@ If an entry under `forbidden` names an element no record defines, omits `from`, 
 **Rationale.** A prohibition that resolves to nothing is worse than none: it reads as enforced and enforces nothing, and the project that wrote it will not look again.
 Refused rather than reported, as a configuration the checker cannot read is refused (`FR-ARCH-090`): this is the setup, not a finding about the layer.
 `*` on both sides forbids every dependency including the ones the project has declared, which is not a policy anybody holds; it is a typo for one side or the other.
+
+### FR-ARCH-490 — A part reached by a name its interface does not state is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-200]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+Where the code of one element reaches another by a name that element's `interface` does not state, the architecture checker **shall** report it as a warning named `interface-bypassed`, naming the file, the name it reached by and the element it belongs to.
+
+**Rationale.** The `interface` key has carried "how the part is reached from outside" since `IF-ARCH-010`, and until this it was prose nothing read: a part could declare one boundary and be entered through another, with every dependency rule satisfied — the edge was declared, so `FR-ARCH-200` was silent, and the field said something else entirely.
+This is what the published skills' five readings call abstraction and what `FR-SKILL-480` asks a designer to judge; a reading nothing checks is a reading that drifts.
+The name and not the file, because what crosses a boundary is what the other side writes down: a module it imports, a path it was given in `arch/edges.json`.
+Where the checker reads no language it has nothing to compare and says nothing, as `FR-ARCH-200` does — the finding is about what can be proved, not about what a reader suspects.
+A part that declares no interface is not reported here: that silence is `FR-ARCH-450`'s to name, and reporting it twice would make a project price away both.

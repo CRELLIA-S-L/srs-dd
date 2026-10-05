@@ -74,7 +74,7 @@ A key that is neither required nor optional here is not an error — that tolera
 | `carries` | required | the files and directories that are this part |
 | `requirements` | required, unless derived | the requirements this part realizes — see *Derived requirements* |
 | `depends_on` | optional | other elements this part leans on — the declared model |
-| `interface` | optional | how the part is reached from outside |
+| `interface` | optional | how the part is reached from outside — a name stated here is what another part may enter by, and one it enters by and this does not state is reported |
 | `superseded_by` | by status | the successor, where the status is `superseded`; read by a person, not checked |
 
 `carries` is not limited to source files.
@@ -259,6 +259,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `move-complete` | A move in force whose every path is at the receiving end and none at the leaving one |
 | `move-orphan` | A path a move names that no element at either end carries |
 | `dependency-forbidden` | A dependency the project forbade, declared by an element or had by the code |
+| `interface-bypassed` | A part entered by a name its own `interface` does not state |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

@@ -10,7 +10,7 @@ status: built
 carries: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, specs/90-traceability.md]
 requirements: [CON-SPEC-010, CON-SPEC-030, FR-CHK-010, FR-CHK-020, FR-CHK-030, FR-CHK-040, FR-CHK-050, FR-CHK-055, FR-CHK-060, FR-CHK-070, FR-CHK-075, FR-CHK-080, FR-CHK-090, FR-CHK-100, FR-CHK-110, FR-CHK-120, FR-CHK-130, FR-CHK-140, FR-CHK-150, FR-CHK-160, FR-CHK-170, FR-CHK-180, FR-CHK-190, FR-CHK-200, FR-CHK-210, FR-CHK-220, FR-CHK-230, FR-CHK-240, FR-CHK-250, FR-CHK-260, IF-CI-020, IF-SPEC-010, IF-SPEC-020, INV-SPEC-010, INV-SPEC-020, INV-SPEC-050, INV-SPEC-080, INV-SPEC-090, NFR-CHK-010, NFR-SPEC-010, FR-CHK-270, FR-CHK-280, FR-CHK-290, IF-SPEC-040, FR-CHK-300]
 depends_on: []
-interface: the command `srs_check.py [--no-write|--strict]` with the exit codes `IF-CI-020` publishes, writing `specs/90-traceability.md`; `srs_parse`, imported from beside it by every other tool that reads a record — both layers, the dating command, the installer, the viewer and the citation measurement; and the checker's own grammar, imported by the viewer and the dating command
+interface: the command `srs_check.py [--no-write|--strict]` with the exit codes `IF-CI-020` publishes, writing `specs/90-traceability.md`; `srs_parse`, imported from beside it by every other tool that reads a record — both layers, the dating command, the installer, the viewer and the citation measurement; and the module `srs_check` — its grammar, its vocabulary, its configuration and its readers of a file — imported by the viewer, which projects what it parses, by the dating command, which edits the blocks it finds, and by the installer, for the identifier grammar alone
 ```
 
 Reads the specification, validates every rule the standard states, and generates the traceability matrix.
@@ -25,7 +25,7 @@ status: built
 carries: [srs-dd/tools/srs_view.py]
 requirements: [CON-SPEC-030, FR-CHK-160, FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-070, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-120, FR-VIEW-130, FR-VIEW-140, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-220, FR-VIEW-230, FR-VIEW-240, FR-VIEW-250, FR-VIEW-260, FR-VIEW-270, FR-VIEW-280, FR-VIEW-290, FR-VIEW-300, FR-VIEW-310, FR-VIEW-320, FR-VIEW-330, FR-VIEW-340, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380, IF-SPEC-030, IF-VIEW-010, INV-SPEC-040, INV-SPEC-050, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, NFR-VIEW-010, FR-VIEW-390, FR-VIEW-400, IF-SPEC-040, FR-VIEW-410]
 depends_on: [E-010]
-interface: a command for a person — one requirement, a list, a search, a page — and `--json`, the model `IF-VIEW-010` publishes, which both layers read by running it rather than importing it
+interface: a command for a person — one requirement, a list, a search, a page — and `--json`, the model `IF-VIEW-010` publishes, which both layers read by running it rather than importing it; and the module `srs_view` itself — `SPECS`, `logged_baselines`, `baseline_row`, `ViewError` — imported by the baseline command, which must not reimplement the difference `FR-VIEW-050` computes
 ```
 
 Projects the same specification for reading: one requirement with its links, what describes a file, what the whole is divided into, the coverage gaps, a citation, and a self-contained page.
@@ -81,7 +81,7 @@ The optional register of what the requirements rest on: hypotheses, bets, measur
 ```yaml
 status: built
 carries: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py, srs-dd/arch.md]
-requirements: [CON-ARCH-010, CON-ARCH-020, CON-SPEC-030, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, FR-ARCH-270, FR-ARCH-280, FR-SKILL-020, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, IF-ARCH-040, INV-ARCH-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-ARCH-290, FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350, FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050, FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450, FR-ARCH-460, FR-ARCH-470, FR-ARCH-480, IF-ARCH-060]
+requirements: [CON-ARCH-010, CON-ARCH-020, CON-SPEC-030, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, FR-ARCH-270, FR-ARCH-280, FR-SKILL-020, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, IF-ARCH-040, INV-ARCH-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-ARCH-290, FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350, FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050, FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450, FR-ARCH-460, FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490]
 depends_on: [E-010, E-020]
 interface: two commands — `srs_arch.py [--no-write|--strict|--cite|--drivers|--plan]` with the exit codes `IF-ARCH-020` publishes, and `srs_arch_doc.py`, which prints and writes nothing; the record formats `IF-ARCH-010` and `IF-ARCH-050`, the edges file `IF-ARCH-040`, and the rule names `IF-ARCH-030` keeps
 ```

@@ -9,7 +9,7 @@
 # verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, IF-ARCH-040
 # verifies: FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350
 # verifies: FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050
-# verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060
+# verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2230,6 +2230,100 @@ printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 printf 'x\n' > "$LAB/src/a.py"
 
 # srs-end: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060
+
+# --- verifies: FR-ARCH-490 — a part entered by a name its interface does not
+# --- state: every dependency rule can be satisfied while the field says
+# --- something else entirely.
+printf 'import b\n' > "$LAB/src/a.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+interface: a command, and nothing importable
+```
+
+Keeps it.
+MD
+rule "FR-ARCH-490 a module the interface does not state" 0 \
+    "src/a.py reaches E-020 by \`b\`, which its interface does not state"
+
+# --- Named, and the finding goes: the boundary is what the other side writes.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+interface: the module `b`, imported by whoever reads the store
+```
+
+Keeps it.
+MD
+silent "FR-ARCH-490 a module the interface states" 0 "which its interface does not state"
+
+# --- A part with no interface is FR-ARCH-450's silence, not this rule's: said
+# --- twice, a project prices both away.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+silent "FR-ARCH-490 a part with no interface is not this rule's finding" 0 "its interface does not state"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: FR-ARCH-490
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280
