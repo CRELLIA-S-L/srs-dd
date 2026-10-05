@@ -163,6 +163,48 @@ spec_config = spec_config[:spec_config.find("**Rules.**")] if "**Rules.**" in sp
 found += both_ways("srs-dd/standard.md, the configuration table", table_keys(spec_config),
                    set(srs_check.DEFAULTS) | set(READ_ELSEWHERE))
 
+# --- A flag an element's `interface` names is a copy of what the tool it
+# --- carries defines (INV-SPEC-110): the field is prose a person reads, and a
+# --- flag that left the tool would otherwise stay in it for ever.
+import glob
+import os
+elements = "arch/00-elements.md"
+declared_ids = set()
+for spec_file in sorted(glob.glob("specs/**/*.md", recursive=True)):
+    declared_ids |= set(re.findall(r"(?m)^### ((?:FR|NFR|IF|INV|CON)-[A-Z0-9_]+-\d{3,}) — ",
+                                   read(spec_file)))
+if os.path.exists(elements):
+    text = read(elements)
+    for block in re.split(r"(?m)^### ", text)[1:]:
+        eid = block.split(" ", 1)[0]
+        face = re.search(r"^interface: (.*)$", block, re.M)
+        carries = re.search(r"^carries: \[(.*?)\]", block, re.M | re.S)
+        if not face or not carries:
+            continue
+        held = []
+        for path in (p.strip().rstrip("/") for p in carries.group(1).split(",") if p.strip()):
+            if os.path.isfile(path):
+                held.append(path)
+            elif os.path.isdir(path):
+                held += [p for p in glob.glob(os.path.join(path, "**", "*"), recursive=True)
+                         if os.path.isfile(p)]
+        carried_text = ""
+        for path in held:
+            try:
+                carried_text += read(path)
+            except (OSError, UnicodeDecodeError):
+                pass
+        for flag in sorted(set(re.findall(r"--[a-z][a-z-]+", face.group(1)))):
+            if flag not in carried_text:
+                found.append("arch/00-elements.md: %s names %s in its interface and carries "
+                             "no file that defines it" % (eid, flag))
+        # A requirement an interface points at is a copy of the specification's own list.
+        for rid in sorted(set(re.findall(r"\b(?:FR|NFR|IF|INV|CON)-[A-Z0-9_]+-\d{3,}\b",
+                                         face.group(1)))):
+            if rid not in declared_ids:
+                found.append("arch/00-elements.md: %s names %s in its interface and the "
+                             "specification does not carry it" % (eid, rid))
+
 # --- What a rule can cost, in each standard beside its checker.
 for path, module in (("srs-dd/standard.md", srs_check), ("srs-dd/grounds.md", srs_grounds), ("srs-dd/arch.md", srs_arch)):
     found += mentioned(path, read(path), module.SEVERITIES)
