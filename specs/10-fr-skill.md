@@ -1209,3 +1209,65 @@ In the method and not in the constitution the installer ships, which is where it
 A rule the framework asserts of every project has to travel unchanged and take no number of the project's, and the constitution is the project's own document in the project's own number space: the first project to receive the article found `ART-030` taken, renumbered it to `ART-050`, and landed on a number the shipped log names as an article of the method's — the collision `FR-SKILL-430` and ADR-0039 exist to prevent.
 The method's articles are rewritten into every project by every upgrade (`FR-INIT-320`), so the rule arrives without a decision for anybody to make and without a number to choose.
 
+
+### FR-SKILL-480 — The architecture procedure says what a part is judged against
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-150]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-arch/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-05
+```
+
+The architecture procedure **shall** name the readings a part is judged against before it is written down, and say that a part failing one is renamed, split or merged rather than documented.
+
+**Rationale.** The procedure said how to write a part — a sentence, its files, its requirements, its dependencies — and nothing about whether the part is any good, so the only judgement in it was the rule that an "and" in the name is two parts.
+The published architecture skills all carry a lens of this kind: `software-architecture` scores coupling, cohesion, abstraction, testability and pattern consistency; `architecture-workflow` rates the same five by lens and makes the score a checkpoint a person approves.
+Theirs is a number a model assigns per run, which is not reproducible and not ours to want; what transfers is the list of readings, because each of ours can be taken against the records and the code we already hold.
+The readings end in an act — rename, split, merge — because a lens whose output is a score teaches a reader to argue with the number instead of the cut.
+
+### FR-SKILL-490 — The architecture procedure says how files move without breaking the project
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-150]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-arch/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-05
+```
+
+The architecture procedure **shall** say how the files of a move change hands: complete units rather than ranges of lines, the new copy written and verified before the old is deleted, and the project's own checks run between one file and the next.
+
+**Rationale.** A move record says what changes hands and the checker says when the move is finished; between those two is the act itself, and it is where a redraw destroys a repository.
+`architecture-workflow` carries a protocol for exactly this — never split by line ranges, write then verify then delete, keep the original until what replaced it passes, a handful of files per round, each file standing on its own — and classifies a file split as its second-highest risk, above adding a service layer and below changing the build.
+What is adapted rather than copied is the verification: theirs is a compilation gate in two named languages, ours is whatever the project's own checks are, because a project here may be documents or a language nobody has compiled (`SRS-DD-ART-080`).
+
+### FR-SKILL-500 — A procedure is measured against not having it
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-310]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_proc_eval.py]
+tests: [tests/proc-eval-smoke.sh]
+created: 2026-10-05
+```
+
+When asked for a baseline, the procedure measurement **shall** run each scenario a second time with the procedure out of the instance's reach, and report what each run met and the difference between them.
+
+**Rationale.** A single score says what one instance did with the procedure in front of it, not what the procedure was worth: an instance that would have solved the task anyway scores the same as a procedure that carried it.
+The published architecture skills are measured exactly this way — `claude-architecture-skills` reports each skill against an unskilled baseline over the same scenarios, and the pair is what makes its numbers readable; one of its seven comes out at 90% against a baseline of 70%, which is a different thing from the one at 100% against 35%.
+Out of reach rather than deleted: the run is asked without the tool that loads a procedure, so the repository the instance reads is the same one in both halves and the difference is the procedure alone.
+The check that the procedure was invoked fails in the baseline half by construction; it is counted as a failure and said, because hiding it would make the two halves look more alike than they are.

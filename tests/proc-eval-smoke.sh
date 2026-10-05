@@ -74,6 +74,9 @@ bad = {"tools": [{"name": "Edit", "input": {"file_path": "arch/00-elements.md"}}
 print(json.dumps({"scenario": "srs-arch", "run": 1, "trace": good}))
 print(json.dumps({"scenario": "srs-arch", "run": 2, "trace": bad}))
 print(json.dumps({"scenario": "no-such-scenario", "run": 1, "trace": bad}))
+baseline = dict(bad)
+baseline["baseline"] = True
+print(json.dumps({"scenario": "srs-arch", "run": 1, "baseline": True, "trace": baseline}))
 PY
 WORDS=$(wc -w < .claude/skills/srs-arch/SKILL.md | tr -d ' ')
 # The tool prints both sizes in ascending order, so the expectation sorts them
@@ -93,10 +96,34 @@ grep -q "failed: skill srs-arch" /tmp/srs-proc-eval.out && grep -q "failed: no_t
 grep -q "^srs-arch       2 run(s)  procedure srs-arch $SIZES words  added    900  burned    41809  checks met 6 of 10$" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the per-scenario summary is not the mean of the two runs, naming both sizes the runs were taken under"; cat /tmp/srs-proc-eval.out; exit 1; }
 grep -q "no-such-scenario" /tmp/srs-proc-eval.out && { echo "proc-eval: a saved run of no scenario was scored"; exit 1; }
+
+# --- verifies: FR-SKILL-500 — the baseline half, scored apart and compared.
+# With the procedure: runs 1 and 2 meet 6 of 10. Without it: 1 of 5. The pair is
+# what makes either number readable.
+grep -q "^srs-arch       run 1 baseline  floor  20002" /tmp/srs-proc-eval.out \
+    || { echo "proc-eval: a baseline run is not marked as one on its line"; cat /tmp/srs-proc-eval.out; exit 1; }
+grep -q "^srs-arch       1 baseline run(s) with the procedure out of reach  checks met 1 of 5$" /tmp/srs-proc-eval.out \
+    || { echo "proc-eval: the baseline half is not summed apart"; cat /tmp/srs-proc-eval.out; exit 1; }
+grep -q "^srs-arch       with the procedure 60%, without it 20%, difference +40 points$" /tmp/srs-proc-eval.out \
+    || { echo "proc-eval: the difference between the two halves is not reported"; cat /tmp/srs-proc-eval.out; exit 1; }
+python3 - <<'BASE' || { echo "proc-eval: a baseline run still reaches the procedure"; exit 1; }
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, "tools")
+import srs_proc_eval as e
+assert e.allowed_without_procedure("Read,Grep,Skill,Bash(python3 tools/*)") \
+    == "Read,Grep,Bash(python3 tools/*)"
+assert "Skill" in e.DEFAULT_TOOLS and "Skill" not in e.allowed_without_procedure(e.DEFAULT_TOOLS)
+BASE
+# srs-end: FR-SKILL-500
 python3 - "$WORDS" <<'PY' || { echo "proc-eval: the JSON report disagrees with the text"; exit 1; }
 import json, sys
 rows = json.load(open("/tmp/srs-proc-eval.json"))["runs"]
-assert len(rows) == 2
+# Three rows: the two runs with the procedure and the baseline half beside them,
+# which the report sums apart (FR-SKILL-500).
+assert len(rows) == 3, len(rows)
+assert [row["baseline"] for row in rows] == [False, False, True], \
+    [row["baseline"] for row in rows]
 assert rows[0]["tokens"] == {"floor": 20002, "end": 21802, "added": 1800, "output": 250,
                              "cache_created": 21800, "cache_read": 41500, "input": 6,
                              "burned": 63556}, rows[0]["tokens"]

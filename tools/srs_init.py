@@ -111,7 +111,7 @@ GROUNDS_SKILLS = ("srs-bet",)
 # its own configuration file for the same reason (ADR-0023).
 ARCH_STANDARD = os.path.join(SRS_DIR, "arch.md")
 ARCH_CONFIG = os.path.join("arch", "arch-config.json")
-ARCH_TOOLS = ("srs_arch.py",)
+ARCH_TOOLS = ("srs_arch.py", "srs_arch_doc.py")
 ARCH_SKILLS = ("srs-arch",)
 
 # implements: FR-INIT-330, FR-INIT-340
@@ -1751,7 +1751,8 @@ def run_upgrade(args, target):
             sys.stdout.write(
                 "Note: --arch no does not remove a layer that is already "
                 "there; it is refreshed like the rest of the tooling. To be "
-                "rid of it, delete arch/, srs-dd/tools/srs_arch.py and the srs-arch "
+                "rid of it, delete arch/, srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py and "
+                "the srs-arch "
                 "skill.\n")
         install_arch(installer)
     elif args.arch == "yes":

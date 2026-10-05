@@ -13,7 +13,7 @@ Every record named to a person is cited at its first mention, as `AGENTS.md` ask
 
 ## First things first
 
-`python3 srs-dd/tools/srs_arch.py --no-write`. Three findings lie between the description and the specification, and they are not the same finding:
+`python3 srs-dd/tools/srs_arch.py --no-write`; `python3 srs-dd/tools/srs_arch_doc.py` prints the layer as a document when somebody needs to read it rather than check it. Three findings lie between the description and the specification, and they are not the same finding:
 
 - **a carrier no element claims** — a file the specification says realizes a requirement, and no part owns it: a `carries` out of date, or a part nobody has written down;
 - **a realized requirement no element carries** — built, and no part answers for it;
@@ -36,13 +36,16 @@ A part designed and not yet built is `proposed`, and the layer reads that status
 
 1. **Work against the drivers, not the whole specification.** `python3 srs-dd/tools/srs_arch.py --drivers`.
 2. **Name the parts** as *Naming a part* below says, with `status: proposed` and the paths the files will have.
-3. **Close the holes.** The checker lists every approved requirement no part answers for; while that list is not empty the design is unfinished, and each entry is a conversation, not a line to add. A `draft` requirement is not in it and is not designed against.
-4. **Read what the move would cost** before touching anything: `python3 srs-dd/tools/srs_arch.py --plan` prints the files that change hands with both ends, the obligations that change part, the dependencies the design adds, and the parts it empties.
-5. **Flip the status when it is built.** The checker says which designed part has all its files and all its obligations in place; changing `proposed` to `built` is a person's act, and the layer never does it.
+3. **Judge each one before writing it down**, by five readings — a part that fails one is renamed, split or merged, not documented: its sentence names one responsibility; everything it carries serves that sentence; what it leans on is declared and the code agrees; the obligations it answers for can be read in one sitting; and crossing into it has a shape, which `interface:` is for — a part nobody can say that of has no boundary.
+4. **Close the holes.** The checker lists every approved requirement no part answers for; while that list is not empty the design is unfinished, and each entry is a conversation, not a line to add. A `draft` requirement is not in it and is not designed against.
+5. **Read what the move would cost** before touching anything: `python3 srs-dd/tools/srs_arch.py --plan` prints the files that change hands with both ends, the obligations that change part, the dependencies the design adds, and the parts it empties.
+6. **Flip the status when it is built.** The checker says which designed part has all its files and all its obligations in place; changing `proposed` to `built` is a person's act, and the layer never does it.
 
 ## Recording a move
 
 An agreed redraw is a record of its own — `M-<NNN>`, in `arch/10-moves.md` by convention — with `from`, `to`, `moves` and the `adr` it stands on; the format is in the standard. It is written when the redraw is agreed and closed when it is done, and the checker says when that is: a move whose every path is at the receiving end and none at the leaving one is finished. A path at neither end is a move that cannot be carried out as written — the file moved, or it belongs to a part the record never named.
+
+**Moving the files is where a redraw breaks a repository.** One file at a time, and the project's own checks between each: move complete units and never a range of lines; write the new file, verify it, and only then delete the old; keep the original until what replaced it passes; a handful per round, no more.
 
 The plan is computed and the move is authored: `--plan` is the difference between the two cuts, the record is what somebody decided to do about it, and why the cut changes is in the ADR.
 

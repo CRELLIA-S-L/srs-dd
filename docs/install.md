@@ -94,7 +94,7 @@ Copy into your repository, by hand:
 - `srs-dd/` whole — `README.md`, `LICENSE`, `standard.md`, `method.md`, `guide.md` and the tools below;
 - `srs-dd/tools/srs_check.py`, `srs-dd/tools/srs_parse.py`, `srs-dd/tools/srs_view.py`, `srs-dd/tools/srs_upgrade.py`, `srs-dd/tools/srs_baseline.py`, `srs-dd/tools/srs_dates.py` and `srs-dd/tools/srs_gate.py` — the checker imports the parser from beside itself, so the two travel together, and the gate is what the hook and the pipeline call (not the framework-only tools — the installer, the release command, the two measurements and the local gate — which stay in the framework repository);
 - from `.claude/skills/`: `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page` (not `srs-init` or `srs-release`, which are framework-only);
-- to keep an architecture layer as well — what the parts are and what each carries — also `skeleton/arch/` → `arch/`, plus `srs-dd/arch.md` from this repository, `srs-dd/tools/srs_arch.py` and the `srs-arch` skill.
+- to keep an architecture layer as well — what the parts are and what each carries — also `skeleton/arch/` → `arch/`, plus `srs-dd/arch.md` from this repository, `srs-dd/tools/srs_arch.py`, `srs-dd/tools/srs_arch_doc.py` and the `srs-arch` skill.
   The skeleton carries no `arch/arch-config.json` either: write it as `{"rules": {}}`.
 - to keep a grounds register as well — the hypotheses the requirements rest on — also `skeleton/grounds/` → `grounds/`, plus `srs-dd/grounds.md` from this repository, `srs-dd/tools/srs_grounds.py` and the `srs-bet` skill.
   All of it or none of it: the checker, the standard and the procedure only make sense together.

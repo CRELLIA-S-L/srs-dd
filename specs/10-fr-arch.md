@@ -854,3 +854,126 @@ Where the layer holds moves in force, the map **shall** state for each of them w
 **Rationale.** A system mid-redraw is not described by its parts alone: a part may still carry files it is losing, and a reader of the map would see a cut that is already being abandoned with nothing saying so.
 `FR-ARCH-110` says what the map states for a part; this is what it states for a move, in the same generated file rather than a second one, because a reader looks in one place and a second generated file is one more thing to leave stale.
 Generated and compared like the rest of it (`CON-ARCH-020`, `FR-ARCH-170`), so a move written and never regenerated into the map fails the gate exactly as a part does.
+
+### FR-ARCH-410 — The architecture document is printed on request
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+When asked for the architecture document, a command of the layer's own **shall** print it and write nothing.
+
+**Rationale.** A document for people is a different act from a check, and the published skills that do this well keep the two apart: `unkode` has the agent write the model once and a deterministic script render it, and `code-map` emits one Markdown file a reader opens.
+Ours needs no agent at all, because the model is already authored in `arch/`: the document is a projection, the way the viewer's page is a projection of the specification.
+Printed rather than written, so `CON-ARCH-010` stays trivially true — the command writes to no path, inside the layer or out — and where the document lands is the caller's to decide with a redirect.
+It is not a gate and reports no finding: the checker says what is wrong with the layer, and this says what the layer holds.
+
+### FR-ARCH-420 — The document says what the system is made of
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-110]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** state, for every element in force, its identifier and title, what it is responsible for, its status, the paths it carries, the requirements it answers for with their titles, and the moves in force over it.
+
+**Rationale.** The map answers the same question for a tool — a row per part, identifiers only — and that is what a gate compares.
+A person reading about a system needs the responsibility sentence and the obligations in words, which the map deliberately leaves out: a table of forty identifiers tells a reader nothing they can act on.
+The requirements come with their titles for the reason a citation does (`FR-SKILL-200`): a bare number is a key to a document the reader has to go and open.
+What is moving belongs here because a system mid-redraw is not described by its parts alone, which is the reason the map carries it too (`FR-ARCH-400`).
+
+### FR-ARCH-430 — The document draws the declared dependencies
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** draw the dependencies the elements declare as text the reader's renderer turns into a diagram.
+
+**Rationale.** A dependency graph is the one thing about a cut that prose cannot carry: ten parts and fourteen edges read as a list of fourteen sentences nobody finishes.
+Text and not an image, for the reason the standard-library rule exists (`SRS-DD-ART-120`): a diagram drawn as Mermaid renders on a forge, in an editor and in a wiki without this framework shipping a renderer or a dependency, and the three published skills that draw architecture all emit Mermaid for the same reason.
+The viewer draws its own SVG for the requirement graph (`FR-VIEW-390`), which is a different act: that one is interactive and part of a page, this one is a block of text in a document somebody commits.
+
+### FR-ARCH-440 — The document says where the code disagrees with the model
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-200]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** state every dependency the code has that the elements do not declare, with the file the checker read it from.
+
+**Rationale.** This is the half none of the published skills has, and it is the reason this layer exists: a reflexion model is worth reading precisely where the drawing and the code part company (`ADR-0023`).
+A document that drew only the declared edges would be the diagram nobody regenerates, which is what the layer was built to replace.
+From the checker's own computation rather than a second reading, so the document and the gate can never disagree about what the code does.
+
+### FR-ARCH-450 — The document says what nobody has said
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-320]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** name what the layer leaves unsaid: an element that declares no interface, an approved requirement no element answers for, and a file of a realized requirement no element carries.
+
+**Rationale.** A generated document reads as complete, and the three silences above are exactly what a reader would otherwise take for absence of a problem: in this repository on 2026-10-05 ten elements of ten declared no `interface`, though the format has carried the key since `IF-ARCH-010`.
+`code-map` makes the same argument for its own output and spells it "Not determined" rather than leaving a heading empty.
+The three are each a finding the checker already computes or a field it can see, so this section is a projection and not a second judgement.
+
+### FR-ARCH-460 — The document says when a section has nothing to say
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+Where a section of the architecture document has nothing to state, the document **shall** say so in that section's place, drawing no empty diagram and claiming no agreement where there was nothing to compare.
+
+**Rationale.** The first document every fresh install prints is the empty one — the layer is installed and no part is written down yet — and it came out with a heading holding nothing under it, a Mermaid block holding only its own declaration, which a forge renders as an error, and the sentence "every dependency the checker can read is declared" over a layer with no parts and no code to read.
+The last of those is the trap this layer's own standard names about `Warnings: 0`: the absence of a verdict read as a verdict.
+`code-map` makes the same rule for its output and spells the empty case out rather than leaving the heading bare.
+A generated document reads as complete whatever is in it, so the empty case is not a cosmetic question: a reader cannot tell a layer nobody has filled in from a generator that failed.

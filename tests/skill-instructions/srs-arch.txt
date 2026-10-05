@@ -9,6 +9,7 @@ srs-dd/tools/srs_arch.py --cite
 srs-dd/tools/srs_arch.py --no-write
 srs-dd/tools/srs_arch.py --drivers
 srs-dd/tools/srs_arch.py --plan
+srs-dd/tools/srs_arch_doc.py
 srs-dd/tools/srs_view.py
 srs-dd/tools/srs_view.py --code
 
@@ -16,6 +17,10 @@ srs-dd/tools/srs_view.py --code
 # or at the project's own decision, in a project the procedure is installed
 # into (ART-070), so the procedure states the reason instead of the number.
 twenty-five edges against seven real ones
+
+# readings and acts the procedure must carry
+renamed, split or merged
+write the new file, verify it, and only then delete the old
 
 # files
 AGENTS.md

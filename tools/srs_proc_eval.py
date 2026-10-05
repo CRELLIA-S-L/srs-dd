@@ -128,12 +128,27 @@ def procedure_size(name):
     return {"words": len(text.split()), "bytes": len(text.encode("utf-8"))}
 
 
-def run_agent(scenario):
-    """One fresh instance through one scenario; the raw stream-json events."""
+# implements: FR-SKILL-500
+def allowed_without_procedure(allowed):
+    """The same tools with the one that loads a procedure removed, so a baseline run reads the
+    same repository and reaches everything but the procedure."""
+    return ",".join(tool for tool in allowed.split(",") if tool.strip() != "Skill")
+# srs-end: FR-SKILL-500
+
+
+def run_agent(scenario, baseline=False):
+    """One fresh instance through one scenario; the raw stream-json events.
+
+    With `baseline`, the procedure is out of reach: the instance is asked the same prompt in the
+    same repository without the tool that loads one (`FR-SKILL-500`).
+    """
+    allowed = scenario["allowed_tools"]
+    if baseline:
+        allowed = allowed_without_procedure(allowed)
     command = [
         "claude", "-p", scenario["prompt"], "--output-format", "stream-json", "--verbose",
         "--max-turns", str(scenario["max_turns"]), "--no-session-persistence",
-        "--allowedTools", scenario["allowed_tools"],
+        "--allowedTools", allowed,
     ]
     run = subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
     events = []
@@ -232,8 +247,9 @@ def grade(scenario, trace):
 def report_line(name, run, tokens, trace, graded):
     met = sum(1 for _, _, passed in graded if passed)
     stop = trace.get("stop", "success")
-    return ("%-14s run %d  floor %6d  added %6d  burned %8d  out %5d  turns %2d  checks %d/%d%s"
-            % (name, run, tokens["floor"], tokens["added"], tokens["burned"], tokens["output"],
+    return ("%-14s run %d%s  floor %6d  added %6d  burned %8d  out %5d  turns %2d  checks %d/%d%s"
+            % (name, run, " baseline" if trace.get("baseline") else "",
+               tokens["floor"], tokens["added"], tokens["burned"], tokens["output"],
                trace["num_turns"], met, len(graded),
                "" if stop == "success" else "  stopped: %s" % stop))
 
@@ -246,6 +262,9 @@ def main(argv=None):
                         help="where the traces go, one JSON line per run "
                              "(default: .srs-eval/<timestamp>.jsonl)")
     parser.add_argument("--score", metavar="FILE", help="score the runs saved in FILE; ask nobody")
+    parser.add_argument("--baseline", action="store_true",
+                        help="run each scenario again with the procedure out of reach, and "
+                             "report the difference")
     parser.add_argument("--json", metavar="FILE", help="write the report as JSON too")
     args = parser.parse_args(argv)
 
@@ -275,22 +294,27 @@ def main(argv=None):
             SAVE_DIR, datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".jsonl")
         os.makedirs(os.path.dirname(os.path.abspath(save)), exist_ok=True)
         with open(save, "a", encoding="utf-8") as saver:
+            halves = (False, True) if args.baseline else (False,)
             for scenario in scenarios:
                 for run in range(1, args.runs + 1):
-                    events, problem = run_agent(scenario)
-                    if problem:
-                        sys.stderr.write("srs_proc_eval: %s run %d: %s\n"
-                                         % (scenario["name"], run, problem))
-                        return 2
-                    trace = trace_of(events)
-                    # The procedure's size as it was when this run was taken:
-                    # a trace scored later, after the procedure was cut, must
-                    # report the text the run actually followed.
-                    trace["procedure_size"] = procedure_size(scenario["procedure"])
-                    runs.append((scenario["name"], run, trace))
-                    saver.write(json.dumps({"scenario": scenario["name"], "run": run,
-                                            "trace": trace}, ensure_ascii=False) + "\n")
-                    saver.flush()
+                    for baseline in halves:
+                        events, problem = run_agent(scenario, baseline)
+                        if problem:
+                            sys.stderr.write("srs_proc_eval: %s run %d%s: %s\n"
+                                             % (scenario["name"], run,
+                                                " baseline" if baseline else "", problem))
+                            return 2
+                        trace = trace_of(events)
+                        # The procedure's size as it was when this run was taken:
+                        # a trace scored later, after the procedure was cut, must
+                        # report the text the run actually followed.
+                        trace["procedure_size"] = procedure_size(scenario["procedure"])
+                        trace["baseline"] = baseline
+                        runs.append((scenario["name"], run, trace))
+                        saver.write(json.dumps({"scenario": scenario["name"], "run": run,
+                                                "baseline": baseline, "trace": trace},
+                                               ensure_ascii=False) + "\n")
+                        saver.flush()
         print("traces: %s" % os.path.relpath(save, ROOT))
 
     rows = []
@@ -301,6 +325,7 @@ def main(argv=None):
                      "procedure_size": trace.get("procedure_size")
                      or procedure_size(by_name[name]["procedure"]),
                      "tokens": tokens, "turns": trace["num_turns"],
+                     "baseline": bool(trace.get("baseline")),
                      "checks": [{"kind": k, "argument": a, "passed": p} for k, a, p in graded],
                      "stop": trace.get("stop", "success"), "error": trace["is_error"]})
         print(report_line(name, run, tokens, trace, graded))
@@ -312,7 +337,9 @@ def main(argv=None):
     # added and burned, and the share of checks met — what a before/after reads.
     print()
     for scenario in scenarios:
-        mine = [row for row in rows if row["scenario"] == scenario["name"]]
+        everything = [row for row in rows if row["scenario"] == scenario["name"]]
+        mine = [row for row in everything if not row["baseline"]]
+        base = [row for row in everything if row["baseline"]]
         if not mine:
             continue
         n = len(mine)
@@ -326,6 +353,20 @@ def main(argv=None):
         met = sum(1 for row in mine for check in row["checks"] if check["passed"])
         print("%-14s %d run(s)  procedure %s %s words  added %6.0f  burned %8.0f  checks met %d of %d" % (
             scenario["name"], n, scenario["procedure"], size, added, burned, met, checks))
+        # implements: FR-SKILL-500
+        # The pair is what makes the number readable: with the procedure, without it, and the
+        # share each met. The check that the procedure was invoked fails in the baseline half
+        # by construction and is counted, not hidden.
+        if base:
+            base_checks = sum(len(row["checks"]) for row in base)
+            base_met = sum(1 for row in base for check in row["checks"] if check["passed"])
+            share = (met / checks * 100) if checks else 0.0
+            base_share = (base_met / base_checks * 100) if base_checks else 0.0
+            print("%-14s %d baseline run(s) with the procedure out of reach  checks met %d of %d"
+                  % (scenario["name"], len(base), base_met, base_checks))
+            print("%-14s with the procedure %.0f%%, without it %.0f%%, difference %+.0f points"
+                  % (scenario["name"], share, base_share, share - base_share))
+        # srs-end: FR-SKILL-500
     if args.json:
         with open(args.json, "w", encoding="utf-8") as handle:
             json.dump({"runs": rows}, handle, ensure_ascii=False, indent=2)

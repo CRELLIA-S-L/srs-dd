@@ -66,7 +66,7 @@ python3 path/to/srs-dd/tools/srs_init.py path/to/your-project --arch yes
 
 The layer has two settings in `arch/arch-config.json`, `rules` and `requirements`, and the install asks about neither: every rule starts at its default and the requirements start written, and a project lowers a rule or switches to derived requirements while it is still describing its parts.
 
-To be rid of it, delete `arch/`, `srs-dd/tools/srs_arch.py` and the `srs-arch` skill.
+To be rid of it, delete `arch/`, `srs-dd/tools/srs_arch.py`, `srs-dd/tools/srs_arch_doc.py` and the `srs-arch` skill.
 Nothing else refers to them.
 
 ## The long way
