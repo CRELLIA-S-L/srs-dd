@@ -43,7 +43,7 @@ A part designed and not yet built is `proposed`, and the layer reads that status
 
 ## Recording a move
 
-An agreed redraw is a record of its own — `M-<NNN>`, in `arch/10-moves.md` by convention — with `from`, `to`, `moves` and the `adr` it stands on; the format is in the standard. It is written when the redraw is agreed and closed when it is done, and the checker says when that is: a move whose every path is at the receiving end and none at the leaving one is finished. A path at neither end is a move that cannot be carried out as written — the file moved, or it belongs to a part the record never named.
+An agreed redraw is a record of its own — `M-<NNN>`, in `arch/10-moves.md` by convention — with `from`, `to`, `moves` and the `adr` it stands on; the format is in the standard. A part cut out of a bigger one is not a move but a design: there is no existing file to re-home. It is written when the redraw is agreed and closed when it is done, and the checker says when that is: a move whose every path is at the receiving end and none at the leaving one is finished. A path at neither end is a move that cannot be carried out as written — the file moved, or it belongs to a part the record never named.
 
 **Moving the files is where a redraw breaks a repository.** One file at a time, and the project's own checks between each: move complete units and never a range of lines; write the new file, verify it, and only then delete the old; keep the original until what replaced it passes; a handful per round, no more.
 

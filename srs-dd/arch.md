@@ -209,6 +209,11 @@ Two findings are about where a move has got to, read off what the elements at it
 - a move in force whose every path is claimed by an element in `to` and by none in `from` is finished, and is reported under `move-complete` so the record gets closed;
 - a path at neither end cannot be moved as written — the file was renamed, or it belongs to a part the move never named — and is reported under `move-orphan`.
 
+**An extraction is not a move.**
+A move re-homes a file that exists: the path leaves one part's `carries`, arrives in another's, and the move is finished when every path is at the receiving end.
+Where the receiving file does not exist yet — a part cut out of a bigger one — there is nothing to re-home, and a move record written for it is complete the moment it is saved.
+That act is the design instead: the new part stands `proposed`, its carriers name the files to be written, and `element-built` says when it is there.
+
 **The plan is computed and the move is authored.**
 `--plan` says what the difference between the two cuts is; a move record says what somebody agreed to do about it, and survives the commits that carry it out.
 Neither replaces the decision: the layer records that the cut is changing, and `specs/adr/` records why.

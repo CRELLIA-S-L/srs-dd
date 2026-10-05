@@ -125,6 +125,36 @@ What a person reads before they clone: the landing page, the contribution rules,
 
 **Rationale.** Separate from the procedures because the reader is different — a human deciding whether to adopt the framework, not an agent working inside it — and separate from the standard because a change here reaches nobody's specification.
 
+### E-110 — The specification's model
+
+```yaml
+status: proposed
+carries: [srs-dd/tools/srs_view_model.py]
+requirements: [IF-VIEW-010, FR-VIEW-050, FR-VIEW-080, FR-VIEW-120, FR-VIEW-390]
+protects: [IF-VIEW-010]
+depends_on: [E-010]
+interface: the module `srs_view_model` — the model the viewer projects, the difference against a revision, the baseline row and the viewer's tables of the checker's vocabulary — imported by the two parts that project it and by the baseline command
+```
+
+Reads the specification through the checker's parser and answers what it holds: the model, the difference against a revision, the baseline row.
+
+**Rationale.** Cut out of the viewer because three readers want the model and none of them wants the rendering: both layers run the command for `--json`, the baseline command imports the row, and the page folds it into HTML. The boundary is what they already cross, which `IF-VIEW-010` publishes.
+
+### E-120 — The specification's page
+
+```yaml
+status: proposed
+carries: [srs-dd/tools/srs_view_page.py]
+requirements: [FR-VIEW-060, FR-VIEW-070, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-130, FR-VIEW-140, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-220, FR-VIEW-230, FR-VIEW-260, FR-VIEW-310, FR-VIEW-340, FR-VIEW-410, NFR-VIEW-010]
+protects: [NFR-VIEW-010, FR-VIEW-060]
+depends_on: [E-110]
+interface: the module `srs_view_page` — one call that renders the whole page from the model, and one that draws the graph of a selection as an SVG — imported by the command that writes it out
+```
+
+Renders the specification as one self-contained page with its graph, and nothing else.
+
+**Rationale.** Half the viewer's lines and the most stretched requirement in the specification live here, and none of it is reached from the terminal except by one flag. Cut so that the page can be changed without touching how a requirement is answered, and so that the arithmetic the page's own script repeats has one home.
+
 ### E-080 — The standard and the payload
 
 ```yaml
