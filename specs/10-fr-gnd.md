@@ -1374,14 +1374,14 @@ Whether the project carries a register is read at every commit from `grounds/gro
 ### FR-GND-580 — The dashboard can be read as a page
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-GND-010]
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
 created: 2026-10-06
 ```
 

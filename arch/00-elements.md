@@ -24,7 +24,7 @@ The parser is here rather than beside it because both layers read the same recor
 ```yaml
 status: built
 carries: [srs-dd/tools/srs_view.py]
-requirements: [CON-SPEC-030, FR-INIT-280, FR-VIEW-010, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-070, FR-VIEW-080, FR-VIEW-120, FR-VIEW-140, FR-VIEW-240, FR-VIEW-250, FR-VIEW-270, FR-VIEW-280, FR-VIEW-290, FR-VIEW-300, FR-VIEW-320, FR-VIEW-330, FR-VIEW-340, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380, FR-VIEW-400, IF-SPEC-040, IF-VIEW-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010]
+requirements: [CON-SPEC-030, FR-INIT-280, FR-VIEW-010, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-070, FR-VIEW-080, FR-VIEW-120, FR-VIEW-140, FR-VIEW-240, FR-VIEW-250, FR-VIEW-270, FR-VIEW-280, FR-VIEW-290, FR-VIEW-300, FR-VIEW-320, FR-VIEW-330, FR-VIEW-340, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380, FR-VIEW-400, IF-SPEC-040, IF-VIEW-010, INV-SPEC-080, INV-SPEC-090, INV-SPEC-130, NFR-SPEC-010]
 protects: [IF-VIEW-010]
 depends_on: [E-010, E-110, E-120]
 interface: a command for a person — one requirement, a list, a search, a page — and `--json`, the model `IF-VIEW-010` publishes, which both layers read by running it rather than importing it
@@ -71,10 +71,10 @@ Freezes the specification at a milestone, cuts a release of the framework, and d
 ```yaml
 status: built
 carries: [srs-dd/tools/srs_grounds.py, srs-dd/grounds.md, grounds/90-dashboard.md]
-requirements: [CON-GND-010, CON-GND-020, CON-GND-030, CON-SPEC-030, FR-GND-010, FR-GND-020, FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060, FR-GND-070, FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-110, FR-GND-120, FR-GND-130, FR-GND-140, FR-GND-150, FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-190, FR-GND-200, FR-GND-210, FR-GND-220, FR-GND-230, FR-GND-240, FR-GND-250, FR-GND-260, FR-GND-270, FR-GND-310, FR-GND-390, FR-GND-400, FR-GND-410, FR-GND-420, FR-GND-430, FR-GND-450, FR-GND-460, FR-GND-470, FR-GND-490, FR-GND-500, FR-GND-510, FR-GND-520, FR-GND-540, FR-GND-550, FR-SKILL-020, IF-GND-010, IF-GND-020, IF-GND-030, INV-GND-010, INV-GND-020, INV-GND-030, INV-GND-040, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-GND-560]
+requirements: [CON-GND-010, CON-GND-020, CON-GND-030, CON-SPEC-030, FR-GND-010, FR-GND-020, FR-GND-030, FR-GND-040, FR-GND-050, FR-GND-060, FR-GND-070, FR-GND-080, FR-GND-090, FR-GND-100, FR-GND-110, FR-GND-120, FR-GND-130, FR-GND-140, FR-GND-150, FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-190, FR-GND-200, FR-GND-210, FR-GND-220, FR-GND-230, FR-GND-240, FR-GND-250, FR-GND-260, FR-GND-270, FR-GND-310, FR-GND-390, FR-GND-400, FR-GND-410, FR-GND-420, FR-GND-430, FR-GND-450, FR-GND-460, FR-GND-470, FR-GND-490, FR-GND-500, FR-GND-510, FR-GND-520, FR-GND-540, FR-GND-550, FR-SKILL-020, IF-GND-010, IF-GND-020, IF-GND-030, INV-GND-010, INV-GND-020, INV-GND-030, INV-GND-040, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-GND-560, FR-GND-580, IF-SPEC-050, INV-SPEC-130]
 protects: [CON-GND-010, CON-GND-030]
 depends_on: [E-010, E-020]
-interface: the command `srs_grounds.py [--no-write|--strict|--cite|--blast]` with the exit codes `IF-GND-020` publishes; the record format `IF-GND-010` promises to a project writing one; and the rule names `IF-GND-030` keeps
+interface: the command `srs_grounds.py [--no-write|--strict|--cite|--blast|--html|--link]` with the exit codes `IF-GND-020` publishes; the record format `IF-GND-010` promises to a project writing one; and the rule names `IF-GND-030` keeps
 ```
 
 The optional register of what the requirements rest on: hypotheses, bets, measurements and the dashboard computed from them.
@@ -86,10 +86,10 @@ The optional register of what the requirements rest on: hypotheses, bets, measur
 ```yaml
 status: built
 carries: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py, srs-dd/arch.md]
-requirements: [CON-ARCH-010, CON-ARCH-020, CON-SPEC-030, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, FR-ARCH-270, FR-ARCH-280, FR-SKILL-020, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, IF-ARCH-040, INV-ARCH-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-ARCH-290, FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350, FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050, FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450, FR-ARCH-460, FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500, FR-ARCH-510]
+requirements: [CON-ARCH-010, CON-ARCH-020, CON-SPEC-030, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, FR-ARCH-270, FR-ARCH-280, FR-SKILL-020, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, IF-ARCH-040, INV-ARCH-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-ARCH-290, FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350, FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050, FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450, FR-ARCH-460, FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530, IF-SPEC-050, INV-SPEC-130]
 protects: [CON-ARCH-010, INV-ARCH-010]
 depends_on: [E-010, E-020]
-interface: two commands — `srs_arch.py [--no-write|--strict|--cite|--drivers|--plan]` with the exit codes `IF-ARCH-020` publishes, and `srs_arch_doc.py`, which prints and writes nothing; the record formats `IF-ARCH-010` and `IF-ARCH-050`, the edges file `IF-ARCH-040`, and the rule names `IF-ARCH-030` keeps
+interface: two commands — `srs_arch.py [--no-write|--strict|--cite|--drivers|--plan]` with the exit codes `IF-ARCH-020` publishes, and `srs_arch_doc.py [--html|--link]`, which prints and writes nothing; the record formats `IF-ARCH-010` and `IF-ARCH-050`, the edges file `IF-ARCH-040`, and the rule names `IF-ARCH-030` keeps
 ```
 
 This layer: which parts the system is made of, what each carries, and the disagreements between that description and the specification.
@@ -145,7 +145,7 @@ Reads the specification through the checker's parser and answers what it holds: 
 ```yaml
 status: built
 carries: [srs-dd/tools/srs_view_page.py]
-requirements: [CON-SPEC-030, FR-CHK-160, FR-INIT-280, FR-VIEW-060, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-130, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-230, FR-VIEW-260, FR-VIEW-310, FR-VIEW-340, FR-VIEW-390, FR-VIEW-410, INV-SPEC-050, INV-SPEC-090, NFR-SPEC-010, NFR-VIEW-010]
+requirements: [CON-SPEC-030, FR-CHK-160, FR-INIT-280, FR-VIEW-060, FR-VIEW-080, FR-VIEW-090, FR-VIEW-100, FR-VIEW-110, FR-VIEW-130, FR-VIEW-150, FR-VIEW-160, FR-VIEW-180, FR-VIEW-190, FR-VIEW-200, FR-VIEW-210, FR-VIEW-230, FR-VIEW-260, FR-VIEW-310, FR-VIEW-340, FR-VIEW-390, FR-VIEW-410, INV-SPEC-050, INV-SPEC-090, NFR-SPEC-010, NFR-VIEW-010, IF-SPEC-050, INV-SPEC-130]
 protects: [NFR-VIEW-010, FR-VIEW-060]
 depends_on: [E-010, E-110]
 interface: the module `srs_view_page` — `render_site` for the whole page from the model, `graph_image` for the graph of a selection as an SVG and `neighbourhood` for the one step a drawing may be asked to include — imported by the command that writes them out
@@ -162,7 +162,7 @@ It reads the parser for two things the drawing cannot invent — which words are
 ```yaml
 status: built
 carries: [srs-dd/standard.md, srs-dd/method.md, srs-dd/guide.md, srs-dd/README.md, srs-dd/LICENSE, specs/adr/template.md, skeleton, .gitattributes]
-requirements: [CON-SPEC-020, FR-ARCH-140, FR-GND-300, FR-INIT-220, FR-SKILL-020, FR-SKILL-200, FR-SKILL-220, FR-SKILL-240, FR-SKILL-350, FR-SPEC-030, IF-SPEC-010, IF-SPEC-030, INV-SPEC-010, INV-SPEC-020, INV-SPEC-030, INV-SPEC-040, INV-SPEC-050, INV-SPEC-060, INV-SPEC-070, NFR-SPEC-020, FR-SPEC-040, FR-SPEC-050, FR-CI-150, FR-SPEC-070, CON-SPEC-040, IF-SPEC-040, FR-INIT-280, INV-SPEC-120, FR-SKILL-470]
+requirements: [CON-SPEC-020, FR-ARCH-140, FR-GND-300, FR-INIT-220, FR-SKILL-020, FR-SKILL-200, FR-SKILL-220, FR-SKILL-240, FR-SKILL-350, FR-SPEC-030, IF-SPEC-010, IF-SPEC-030, INV-SPEC-010, INV-SPEC-020, INV-SPEC-030, INV-SPEC-040, INV-SPEC-050, INV-SPEC-060, INV-SPEC-070, NFR-SPEC-020, FR-SPEC-040, FR-SPEC-050, FR-CI-150, FR-SPEC-070, CON-SPEC-040, IF-SPEC-040, FR-INIT-280, INV-SPEC-120, FR-SKILL-470, IF-SPEC-050]
 protects: [INV-SPEC-010, INV-SPEC-060, NFR-SPEC-020]
 depends_on: []
 interface: read, not called: the standard is what every rule of this repository is checked against, and the payload is copied into a target by the installer and read by the three suites that hold it to its counterpart here
@@ -177,7 +177,7 @@ The normative document on the specification format, and the starter files copied
 ```yaml
 status: built
 carries: [ci, .github/workflows/srs.yml, .githooks, tools/ci_selftest.sh, tools/test_lib.sh, srs-dd/tools/srs_gate.py, tests, specs/50-verification.md]
-requirements: [FR-ARCH-170, FR-CI-010, FR-CI-020, FR-CI-030, FR-CI-040, FR-CI-050, FR-CI-060, FR-CI-080, FR-CI-090, FR-CI-100, FR-CI-110, FR-CI-120, FR-CI-130, FR-GND-310, FR-GND-370, INV-SPEC-100, INV-SPEC-110, FR-CI-160, FR-GND-570, FR-ARCH-300, FR-CI-180, FR-CI-170]
+requirements: [FR-ARCH-170, FR-CI-010, FR-CI-020, FR-CI-030, FR-CI-040, FR-CI-050, FR-CI-060, FR-CI-080, FR-CI-090, FR-CI-100, FR-CI-110, FR-CI-120, FR-CI-130, FR-GND-310, FR-GND-370, INV-SPEC-100, INV-SPEC-110, FR-CI-160, FR-GND-570, FR-ARCH-300, FR-CI-180, FR-CI-170, FR-CI-190]
 protects: [INV-SPEC-100, INV-SPEC-110]
 depends_on: [E-010, E-050, E-060]
 interface: one command the hook and the pipelines call — `srs_gate.py [--staged|--strict]` — whose exit code is the commit's verdict

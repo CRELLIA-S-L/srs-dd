@@ -665,14 +665,14 @@ It extends `INV-SPEC-010` from the identifier to the path: what is published kee
 ### INV-SPEC-130 — A page links the pages its caller named
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-SPEC-050, FR-VIEW-060, FR-ARCH-520, FR-GND-580]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_arch_doc.py, srs-dd/tools/srs_grounds.py]
+tests: [tests/view-smoke.sh, tests/arch-doc.sh, tests/grounds-rules.sh]
 created: 2026-10-06
 ```
 

@@ -8,9 +8,9 @@ Total requirements: 371.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 7 |
+| `deferred` | 1 |
 | `partial` | 0 |
-| `implemented` | 360 |
+| `implemented` | 366 |
 | `superseded` | 4 |
 | `withdrawn` | 0 |
 
@@ -76,8 +76,8 @@ Total requirements: 371.
 | **FR-ARCH-490** A part reached by a name its interface does not state is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **FR-ARCH-500** A part says what it exists to protect | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **FR-ARCH-510** The document says what each part protects | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
-| **FR-ARCH-520** The architecture document can be read as a page | `deferred` | T | — | — |
-| **FR-ARCH-530** The drawing on the page is laid out by the command | `deferred` | T | — | — |
+| **FR-ARCH-520** The architecture document can be read as a page | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
+| **FR-ARCH-530** The drawing on the page is laid out by the command | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -128,7 +128,7 @@ Total requirements: 371.
 | **FR-CI-160** The local gate refuses a suite that leaves bytecode behind | `implemented` | I | `tools/ci_selftest.sh` | — |
 | **FR-CI-170** The gate refuses code that does not say whose it is | `implemented` | T | `tests/notice.sh` | `tests/notice.sh` |
 | **FR-CI-180** The hook and pipeline starters run one gate, shipped as a tool | `implemented` | T | `srs-dd/tools/srs_gate.py`<br>`ci/pre-commit`<br>`.githooks/pre-commit`<br>`ci/github-workflow.yml`<br>`ci/gitlab-ci.yml`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-CI-190** The pages of the layers the project keeps are published beside the specification | `deferred` | I | — | — |
+| **FR-CI-190** The pages of the layers the project keeps are published beside the specification | `implemented` | I | `ci/github-workflow.yml`<br>`ci/gitlab-ci.yml`<br>`.github/workflows/srs.yml` | — |
 | **FR-DOC-010** The landing page consists of eleven sections, in the order a reader's questions arise | `implemented` | I | `README.md` | — |
 | **FR-DOC-020** A command the documentation names is one the tool accepts | `implemented` | T | `README.md`<br>`docs/install.md`<br>`docs/upgrade.md`<br>`docs/agents.md`<br>`docs/multilingual.md`<br>`.github/workflows/srs.yml` | `tests/docs-commands.sh` |
 | **FR-DOC-030** The opening says what the framework is, for whom, and what it costs | `implemented` | I | `README.md` | — |
@@ -208,7 +208,7 @@ Total requirements: 371.
 | **FR-GND-550** A class III verdict is the reader's, not the arithmetic's | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-560** The register's standard names every rule its checker reports | `implemented` | T | `srs-dd/grounds.md` | `tests/standard-rules.sh` |
 | **FR-GND-570** The hook refuses a stale dashboard | `implemented` | T | `ci/pre-commit`<br>`.githooks/pre-commit`<br>`srs-dd/tools/srs_gate.py` | `tests/installer-smoke.sh` |
-| **FR-GND-580** The dashboard can be read as a page | `deferred` | T | — | — |
+| **FR-GND-580** The dashboard can be read as a page | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-INIT-010** Three modes, detected from the target | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh`<br>`tests/adopt-smoke.sh` |
 | **FR-INIT-020** Fresh install leaves a target its checker accepts | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-030** Adoption is transactional | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh` |
@@ -362,7 +362,7 @@ Total requirements: 371.
 | **IF-SPEC-020** A published rule name keeps its meaning | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **IF-SPEC-030** A decision's head is a stable format | `implemented` | T | `srs-dd/tools/srs_view_model.py`<br>`srs-dd/standard.md` | `tests/view-smoke.sh` |
 | **IF-SPEC-040** An area's name joins its words with an underscore | `implemented` | T | `srs-dd/standard.md`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_check.py`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_dates.py` | `tests/checker-rules.sh`<br>`tests/installer-smoke.sh`<br>`tests/view-smoke.sh`<br>`tests/dates-smoke.sh` |
-| **IF-SPEC-050** The published pages are one set of names | `deferred` | T | — | — |
+| **IF-SPEC-050** The published pages are one set of names | `implemented` | T | `srs-dd/standard.md`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_arch_doc.py`<br>`srs-dd/tools/srs_grounds.py` | `tests/standard-vocabulary.sh` |
 | **IF-VIEW-010** The model is published, not merely dumped | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
 | **INV-ARCH-010** An element is recorded in one direction only | `implemented` | I | `srs-dd/arch.md` | — |
 | **INV-GND-010** Hypothesis identifiers are immutable and never reused | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |
@@ -382,7 +382,7 @@ Total requirements: 371.
 | **INV-SPEC-100** A code field that claims a set names all of it | `implemented` | T | `tests/code-field-sets.sh` | `tests/code-field-sets.sh` |
 | **INV-SPEC-110** A copy of a list another file defines matches it | `implemented` | T | `tests/standard-vocabulary.sh` | `tests/standard-vocabulary.sh` |
 | **INV-SPEC-120** A path rewritten because a file moved still names that file | `deferred` | I | — | — |
-| **INV-SPEC-130** A page links the pages its caller named | `deferred` | T | — | — |
+| **INV-SPEC-130** A page links the pages its caller named | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_arch_doc.py`<br>`srs-dd/tools/srs_grounds.py` | `tests/view-smoke.sh`<br>`tests/arch-doc.sh`<br>`tests/grounds-rules.sh` |
 | **NFR-CHK-010** Validation stays under a second at 500 requirements | `implemented` | A | `srs-dd/tools/srs_check.py` | — |
 | **NFR-SKILL-010** A procedure needs no skill system | `implemented` | I | `.claude/skills`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | — |
 | **NFR-SKILL-020** A procedure fits a budget | `implemented` | T | `.claude/skills`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | `tests/skill-budget.sh` |
@@ -614,6 +614,7 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-CI-060** (`implemented`, method `I`) — A project that uses the framework is checked as a downstream consumer
 - **FR-CI-110** (`implemented`, method `I`) — The graph image is published beside the page
 - **FR-CI-160** (`implemented`, method `I`) — The local gate refuses a suite that leaves bytecode behind
+- **FR-CI-190** (`implemented`, method `I`) — The pages of the layers the project keeps are published beside the specification
 - **FR-DOC-010** (`implemented`, method `I`) — The landing page consists of eleven sections, in the order a reader's questions arise
 - **FR-DOC-030** (`implemented`, method `I`) — The opening says what the framework is, for whom, and what it costs
 - **FR-DOC-040** (`implemented`, method `I`) — The problem section names what agents broke and what a lookup repairs

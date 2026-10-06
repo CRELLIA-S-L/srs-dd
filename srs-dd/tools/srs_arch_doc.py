@@ -8,6 +8,9 @@
 
     python3 srs-dd/tools/srs_arch_doc.py              print the document
     python3 srs-dd/tools/srs_arch_doc.py > ARCH.md    put it where you want it
+    python3 srs-dd/tools/srs_arch_doc.py --html       the same document as one page
+    python3 srs-dd/tools/srs_arch_doc.py --html --link index.html,grounds.html
+                                                     and the pages beside it
 
 A projection of `arch/` and of what the specification says about it — the parts with their
 responsibilities and obligations, the dependencies they declare as a Mermaid drawing, the
@@ -20,6 +23,7 @@ Standard library only, compatible with Python 3.9.
 # file implements: FR-ARCH-410, CON-ARCH-010
 # file implements: NFR-SPEC-010, CON-SPEC-030, INV-SPEC-090
 import os
+import re
 import sys
 
 sys.dont_write_bytecode = True
@@ -191,6 +195,96 @@ def silences_section(elements, model, cfg):
 # srs-end: FR-ARCH-450
 
 
+# implements: FR-ARCH-530
+# The drawing the page carries. The markdown form hands the reader's renderer a diagram as text;
+# a browser needs no help beyond SVG, and a script fetched from somewhere is what a self-contained
+# page may not have.
+NODE_W, NODE_H, GAP_X, GAP_Y, PAD = 176, 40, 20, 54, 12
+TITLE_CHARS = 28
+
+
+def ranks_of(live, declared):
+    """How deep each part sits: one more than the deepest thing it depends on. A circle — which
+    the checker reports and nothing here forbids — stops the walk instead of looping."""
+    ids = set(live)
+    depth = {}
+
+    def walk(rid, seen):
+        if rid in depth:
+            return depth[rid]
+        if rid in seen:
+            return 0
+        targets = [t for t in sorted(declared.get(rid, ())) if t in ids]
+        value = 1 + max([walk(t, seen | {rid}) for t in targets] or [-1])
+        depth[rid] = value
+        return value
+
+    for rid in live:
+        walk(rid, set())
+    return depth
+
+
+def graph_svg(elements):
+    """The declared dependencies as one drawing: a node per part in force, an edge per declared
+    dependency, the parts that depend on most at the top. Empty where there is nothing to draw."""
+    live = [r.id for r in sorted(in_force(elements),
+                                 key=lambda r: srs_arch.srs_parse.id_key(r.id))]
+    if not live:
+        return ""
+    titles = {r.id: r.title for r in elements}
+    declared = srs_arch.declared_dependencies(elements)
+    depth = ranks_of(live, declared)
+    rows = {}
+    for rid in live:
+        rows.setdefault(depth[rid], []).append(rid)
+    order = sorted(rows, reverse=True)
+    width = PAD * 2 + max(len(row) * NODE_W + (len(row) - 1) * GAP_X for row in rows.values())
+    height = PAD * 2 + len(order) * NODE_H + (len(order) - 1) * GAP_Y
+
+    at = {}
+    for row_index, rank in enumerate(order):
+        row = rows[rank]
+        span = len(row) * NODE_W + (len(row) - 1) * GAP_X
+        left = (width - span) / 2
+        for column, rid in enumerate(row):
+            at[rid] = (left + column * (NODE_W + GAP_X),
+                       PAD + row_index * (NODE_H + GAP_Y))
+
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" '
+           'width="%d" height="%d" role="img">' % (width, height, width, height),
+           '<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" '
+           'markerHeight="7" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z"/></marker></defs>']
+    for source in live:
+        sx, sy = at[source]
+        for target in sorted(declared.get(source, ()), key=srs_arch.srs_parse.id_key):
+            if target not in at:
+                continue
+            tx, ty = at[target]
+            if sy == ty:
+                # Side by side: a bow clear of whatever stands between them.
+                bow = sy + NODE_H / 2
+                out.append('<path class="edge" d="M %d %d Q %d %d %d %d" marker-end="url(#arrow)"/>'
+                           % (sx + NODE_W, bow, (sx + tx + NODE_W) / 2, bow - NODE_H,
+                              tx, bow))
+            else:
+                out.append('<line class="edge" x1="%d" y1="%d" x2="%d" y2="%d" '
+                           'marker-end="url(#arrow)"/>'
+                           % (sx + NODE_W / 2, sy + NODE_H, tx + NODE_W / 2, ty))
+    for rid in live:
+        x, y = at[rid]
+        title = titles.get(rid, "")
+        if len(title) > TITLE_CHARS:
+            title = title[:TITLE_CHARS - 1].rstrip() + "\u2026"
+        out.append('<g class="node"><rect x="%d" y="%d" width="%d" height="%d" rx="4"/>'
+                   '<text x="%d" y="%d" class="node-id">%s</text>'
+                   '<text x="%d" y="%d" class="node-title">%s</text></g>'
+                   % (x, y, NODE_W, NODE_H, x + NODE_W / 2, y + 17, esc(rid),
+                      x + NODE_W / 2, y + 31, esc(title)))
+    out.append("</svg>")
+    return "".join(out)
+# srs-end: FR-ARCH-530
+
+
 # implements: FR-ARCH-410
 def render(elements, moves, model, edges, cfg):
     """The whole document, in the order a reader's questions arise."""
@@ -214,12 +308,232 @@ def render(elements, moves, model, edges, cfg):
 # srs-end: FR-ARCH-410
 
 
+# implements: IF-SPEC-050, INV-SPEC-130
+# The published set, copied from the Published pages table of the specification's standard; a
+# suite holds this copy to it. OWN is this document's place in the set: a page is not linked to
+# itself, and a caller that names it has made a mistake worth hearing about.
+PAGES = (("index.html", "the specification"),
+         ("arch.html", "the architecture document"),
+         ("grounds.html", "the grounds dashboard"))
+OWN = "arch.html"
+# srs-end: IF-SPEC-050, INV-SPEC-130
+
+# implements: FR-ARCH-520
+# A stylesheet of its own: sharing the specification page's would make that page a dependency
+# of this layer, and what is shareable is mostly the palette.
+STYLE = """
+:root { --bg: #ffffff; --fg: #1a1d21; --muted: #6b7280; --line: #e2e5e9; --panel: #f7f8fa;
+        --accent: #2c5fd0; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #15171a; --fg: #e8eaed; --muted: #9aa0a6; --line: #2b2f34; --panel: #1c1f23;
+          --accent: #7aa2f7; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 -apple-system,
+       BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 52rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+nav.pages { font-size: .9rem; margin-bottom: 1.4rem; }
+nav.pages a { color: var(--accent); }
+nav.pages span { color: var(--muted); padding: 0 .4rem; }
+h1 { font-size: 1.9rem; margin: 0 0 .4rem; }
+h2 { font-size: 1.3rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem;
+     border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .5rem 0; }
+ul { margin: .4rem 0; padding-left: 1.2rem; }
+li { margin: .15rem 0; }
+code { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+       background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+       padding: 0 .25rem; }
+em { color: var(--muted); font-style: normal; }
+.drawing { background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+           padding: .8rem; overflow-x: auto; }
+.drawing svg { display: block; max-width: 100%; height: auto; }
+.drawing .node rect { fill: var(--bg); stroke: var(--line); }
+.drawing .node-id { fill: var(--fg); font: 600 12px ui-monospace, SFMono-Regular, Menlo,
+                    Consolas, monospace; text-anchor: middle; }
+.drawing .node-title { fill: var(--muted); font: 11px -apple-system, BlinkMacSystemFont,
+                       "Segoe UI", Roboto, sans-serif; text-anchor: middle; }
+.drawing .edge { stroke: var(--accent); stroke-width: 1.4; fill: none; }
+.drawing marker path { fill: var(--accent); }
+.source { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+          white-space: pre; color: var(--muted); margin: 0; }
+"""
+
+PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture</title>
+<style>%s</style>
+</head>
+<body>
+<main>
+%s
+</main>
+</body>
+</html>
+"""
+
+# The three spans the document's own markdown uses. Underscores only at a word boundary, so a
+# path like srs_arch_doc.py outside backticks is not read as emphasis.
+RE_SPAN = re.compile(r"\*\*(.+?)\*\*|`(.+?)`|(?<![\w])_(.+?)_(?![\w])")
+
+
+def esc(text):
+    return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def spans(text):
+    """Inline markup to HTML, over the closed grammar this file emits."""
+    out, last = [], 0
+    for match in RE_SPAN.finditer(text):
+        out.append(esc(text[last:match.start()]))
+        bold, code, emphasis = match.groups()
+        if bold is not None:
+            out.append("<strong>%s</strong>" % esc(bold))
+        elif code is not None:
+            out.append("<code>%s</code>" % esc(code))
+        else:
+            out.append("<em>%s</em>" % esc(emphasis))
+        last = match.end()
+    out.append(esc(text[last:]))
+    return "".join(out)
+
+
+# implements: INV-SPEC-130
+def nav(named):
+    """The links to the other pages of the set, in the set's own order. Exactly what the caller
+    named: nothing where it named nothing, and no page that is not in the set."""
+    held = [(name, label) for name, label in PAGES if name in named]
+    if not held:
+        return ""
+    parts = []
+    for index, (name, label) in enumerate(held):
+        if index:
+            parts.append("<span>·</span>")
+        parts.append('<a href="%s">%s</a>' % (esc(name), esc(label)))
+    return '<nav class="pages">%s</nav>' % "".join(parts)
+
+
+def read_links(value):
+    """The names a caller gave, or a sentence saying what is wrong with them."""
+    named, known = [], dict(PAGES)
+    for name in (part.strip() for part in value.split(",")):
+        if not name:
+            continue
+        if name == OWN:
+            return None, ("%s is this page itself; name the pages beside it" % name)
+        if name not in known:
+            return None, ("%s is not one of the published pages: %s"
+                          % (name, ", ".join(n for n, _l in PAGES if n != OWN)))
+        if name not in named:
+            named.append(name)
+    return named, ""
+# srs-end: INV-SPEC-130
+
+
+def to_html(document, drawing="", named=()):
+    """The document as one page. The markdown is this file's own output, so the grammar is
+    closed — headings, two levels of list, paragraphs and the one fenced block, which carries
+    the drawing where there is one and its source where there is not."""
+    body, paragraph, fence = [], [], None
+    # One entry per open <ul>, saying whether its last <li> is still open: a nested list belongs
+    # inside the item above it, not beside it.
+    levels = []
+
+    def flush():
+        if paragraph:
+            body.append("<p>%s</p>" % spans(" ".join(paragraph)))
+            del paragraph[:]
+
+    def close_to(want):
+        while len(levels) > want:
+            if levels[-1]:
+                body.append("</li>")
+            body.append("</ul>")
+            levels.pop()
+
+    def item(indent, text):
+        want = 1 + len(indent) // 2
+        if want > len(levels):
+            while len(levels) < want:
+                body.append("<ul>")
+                levels.append(False)
+        else:
+            close_to(want)
+            if levels[-1]:
+                body.append("</li>")
+        body.append("<li>%s" % spans(text))
+        levels[-1] = True
+
+    for line in document.split("\n"):
+        if fence is not None:
+            if line.startswith("```"):
+                body.append('<div class="drawing">%s</div>'
+                            % (drawing or '<pre class="source">%s</pre>'
+                               % esc("\n".join(fence))))
+                fence = None
+            else:
+                fence.append(line)
+            continue
+        if line.startswith("```"):
+            flush()
+            close_to(0)
+            fence = []
+            continue
+        if not line.strip():
+            flush()
+            close_to(0)
+            continue
+        heading = re.match(r"^(#{1,3}) (.+)$", line)
+        if heading:
+            flush()
+            close_to(0)
+            level = len(heading.group(1))
+            body.append("<h%d>%s</h%d>" % (level, spans(heading.group(2)), level))
+            continue
+        bullet = re.match(r"^( *)- (.+)$", line)
+        if bullet:
+            flush()
+            item(bullet.group(1), bullet.group(2))
+            continue
+        paragraph.append(line.strip())
+    flush()
+    close_to(0)
+    return PAGE % (STYLE, nav(named) + "\n" + "\n".join(body))
+# srs-end: FR-ARCH-520
+
+
 # implements: FR-ARCH-410
 def main(argv=None):
     args = list(sys.argv[1:] if argv is None else argv)
+    # implements: FR-ARCH-520
+    as_page = False
+    if args and args[0] == "--html":
+        as_page = True
+        args = args[1:]
+    # srs-end: FR-ARCH-520
+    # implements: INV-SPEC-130
+    named = []
+    if args and args[0] == "--link":
+        if len(args) < 2:
+            sys.stderr.write("--link needs the page(s) to link: %s\n"
+                             % ", ".join(n for n, _l in PAGES if n != OWN))
+            return 2
+        named, problem = read_links(args[1])
+        if problem:
+            sys.stderr.write("%s\n" % problem)
+            return 2
+        args = args[2:]
+    # srs-end: INV-SPEC-130
     if args:
-        sys.stderr.write("unknown flag(s): %s\nusage: srs_arch_doc.py            "
-                         "(the document goes to stdout)\n" % " ".join(args))
+        sys.stderr.write("unknown flag(s): %s\nusage: srs_arch_doc.py [--html] "
+                         "[--link PAGE,…]   (the document goes to stdout)\n" % " ".join(args))
+        return 2
+    if named and not as_page:
+        sys.stderr.write("--link belongs to --html: the markdown form links nothing\n")
         return 2
     if not os.path.isdir(srs_arch.ARCH):
         sys.stderr.write("arch/ directory not found: %s\nThe architecture layer is optional; "
@@ -242,7 +556,9 @@ def main(argv=None):
     if unread:
         sys.stderr.write("%d record(s) could not be read and are not in this document; the "
                          "checker names them.\n" % len(unread))
-    sys.stdout.write(render(elements, moves, model, edges, cfg) + "\n")
+    document = render(elements, moves, model, edges, cfg)
+    sys.stdout.write(to_html(document, graph_svg(elements), named) if as_page
+                     else document + "\n")
     return 0
 # srs-end: FR-ARCH-410
 

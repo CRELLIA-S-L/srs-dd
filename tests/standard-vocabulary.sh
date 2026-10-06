@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 
 # file implements: INV-SPEC-110
 # file verifies: FR-SPEC-070, FR-VIEW-390, FR-VIEW-050, INV-SPEC-110, FR-SKILL-450
-# file verifies: IF-ARCH-050
+# file verifies: IF-ARCH-050, IF-SPEC-050
 python3 - <<'PY'
 import re, sys
 
@@ -22,6 +22,8 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_arch
 import srs_check
+import srs_grounds
+import srs_arch_doc
 import srs_grounds
 import srs_view_model
 import srs_view_page
@@ -144,6 +146,28 @@ found += ["srs_view_page.py has no colour for the status `%s`" % status for stat
 # which is written once and never changes, and the title.
 found += both_ways("srs_view_model.py DIFF_FIELDS", srs_view_model.DIFF_FIELDS,
                    (srs_check.KNOWN_FIELDS - {"created"}) | {"title"})
+
+# --- The published pages: the standard defines the set, each renderer carries a
+# --- copy of it, and a copy is only safe while something holds it to the table
+# --- (INV-SPEC-110). Both columns, since the label is what a reader clicks.
+pages_section = section(spec, "Published pages")
+table = [row for row in pages_section.splitlines() if row.startswith("| `")]
+defined = [(re.search(r"^\| `([^`]+)` \| (.+?) \|", row).group(1),
+            re.search(r"^\| `([^`]+)` \| (.+?) \|", row).group(2).strip())
+           for row in table]
+if not defined:
+    found.append("srs-dd/standard.md has no Published pages table, which three renderers copy")
+for module, where in (("srs_view_page", "srs-dd/tools/srs_view_page.py"),
+                      ("srs_arch_doc", "srs-dd/tools/srs_arch_doc.py"),
+                      ("srs_grounds", "srs-dd/tools/srs_grounds.py")):
+    carried = list(__import__(module).PAGES)
+    if carried != defined:
+        found.append("%s carries %s and the standard's table defines %s"
+                     % (where, carried, defined))
+    own = __import__(module).OWN
+    if own not in [name for name, _label in defined]:
+        found.append("%s calls itself %s, which the standard's table does not name"
+                     % (where, own))
 
 # --- What of the framework's lives outside srs-dd/, said in the standard
 # --- (FR-SKILL-450): the procedures by their prefix, and the region of the

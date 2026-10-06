@@ -36,6 +36,45 @@ from srs_view_model import (                                # noqa: E402
 # always stated on the page rather than silently cut.
 GRAPH_NODE_LIMIT = 150
 
+# implements: IF-SPEC-050, INV-SPEC-130
+# The published set, copied from the Published pages table of the standard; a suite holds this
+# copy to it. OWN is this page's place in the set: a page is not linked to itself.
+PAGES = (("index.html", "the specification"),
+         ("arch.html", "the architecture document"),
+         ("grounds.html", "the grounds dashboard"))
+OWN = "index.html"
+
+
+def nav(named):
+    """The links to the other pages of the set, in the set's own order. Exactly what the caller
+    named: nothing where it named nothing, and no page that is not in the set."""
+    held = [(name, label) for name, label in PAGES if name in named]
+    if not held:
+        return ""
+    parts = []
+    for index, (name, label) in enumerate(held):
+        if index:
+            parts.append('<span class="sep">\u00b7</span>')
+        parts.append('<a href="%s">%s</a>' % (esc(name), esc(label)))
+    return '<nav class="pages">%s</nav>' % "".join(parts)
+
+
+def read_links(value):
+    """The names a caller gave, or a sentence saying what is wrong with them."""
+    named, known = [], dict(PAGES)
+    for name in (part.strip() for part in value.split(",")):
+        if not name:
+            continue
+        if name == OWN:
+            return None, ("%s is this page itself; name the pages beside it" % name)
+        if name not in known:
+            return None, ("%s is not one of the published pages: %s"
+                          % (name, ", ".join(n for n, _l in PAGES if n != OWN)))
+        if name not in named:
+            named.append(name)
+    return named, ""
+# srs-end: IF-SPEC-050, INV-SPEC-130
+
 
 # --------------------------------------------------------------------
 # HTML
@@ -72,6 +111,9 @@ header {
   display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline;
 }
 header h1 { font-size: 17px; margin: 0; }
+nav.pages { font-size: 13px; margin: .2rem 0 .1rem; }
+nav.pages a { color: var(--accent); }
+nav.pages .sep { color: var(--muted); padding: 0 .35rem; }
 header .counts { color: var(--muted); font-size: 13px; }
 nav { margin-left: auto; display: flex; gap: 6px; }
 nav button {
@@ -1223,6 +1265,7 @@ PAGE = """<!doctype html>
   <h1>__TITLE__</h1>
   <div class="counts"><span id="shown">__COUNT__</span> of __COUNT__ \
 requirements · __VERSIONS__</div>
+  __PAGES__
   <nav>
     <button data-view="view-reqs" aria-selected="true">Requirements</button>
     <button data-view="view-dash" aria-selected="false">Dashboard</button>
@@ -1362,7 +1405,7 @@ def render_baselines(snapshots, logged=()):
 
 
 # implements: FR-VIEW-060, FR-VIEW-090
-def render_page(model, links, diff=None, baselines=None):
+def render_page(model, links, diff=None, baselines=None, named=()):
     # From the log, not the snapshots: which baselines exist is a question the log answers
     # in a checkout too shallow to hold them.
     logged = logged_baselines()
@@ -1414,11 +1457,11 @@ def render_page(model, links, diff=None, baselines=None):
                 # Everything before the number: the family the reader
                 # would go looking for, not the bare type.
                 families.setdefault(node.rsplit("-", 1)[0], []).append(node)
-            named = ", ".join("%s %d" % (name, len(families[name]))
-                              for name in sorted(families))
+            counted = ", ".join("%s %d" % (name, len(families[name]))
+                                for name in sorted(families))
             note = ("<p>%d node(s) beyond the first %d are not drawn — %s — "
                     "the layout stops being readable past that.</p>"
-                    % (len(dropped), GRAPH_NODE_LIMIT, esc(named)))
+                    % (len(dropped), GRAPH_NODE_LIMIT, esc(counted)))
         graph = ("<p>A column is an area and a row is a requirement’s "
                  "number, so a line crossing columns is a link that "
                  "leaves its area. A column folds away when its name "
@@ -1445,6 +1488,7 @@ def render_page(model, links, diff=None, baselines=None):
             ("__NOTATION__", notation_legend()),
             ("__FILTERS__", "".join(filters)),
             ("__DOCUMENTS__", documents),
+            ("__PAGES__", nav(named)),
             ("__BANNER__", banner),
             ("__DIFF__", render_diff_section(diff) if diff else ""),
             ("__CARDS__", "".join(render_card(e, model, known, links,
@@ -1470,10 +1514,11 @@ def render_page(model, links, diff=None, baselines=None):
 # srs-end: FR-VIEW-060, FR-VIEW-090
 
 
-def render_site(model, out_dir, diff=None, baselines=None):
+def render_site(model, out_dir, diff=None, baselines=None, named=()):
     """The whole page as text, with its links resolved against `out_dir`: how a link is made
-    is the page's business, so the caller hands over a directory and gets the text back."""
-    return render_page(model, Links(model, out_dir), diff, baselines)
+    is the page's business, so the caller hands over a directory and gets the text back.
+    `named` are the published pages beside this one, which the caller is the only one to know."""
+    return render_page(model, Links(model, out_dir), diff, baselines, named)
 
 
 def project_title():

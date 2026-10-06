@@ -30,13 +30,29 @@ jobs:
       - name: Specification gate
         run: python3 srs-dd/tools/srs_gate.py
 
-      # The readable specification as one self-contained HTML file,
-      # downloadable from the run's Artifacts. Delete these two steps if
-      # you do not want it.
-      - name: Render the specification
+      # The readable specification as one self-contained HTML file, and the page
+      # of each optional layer this project keeps beside it, each told which
+      # others will be there. Downloadable from the run's Artifacts; delete these
+      # two steps if you do not want them. `if` rather than `[ -d x ] && …`,
+      # which under `set -e` fails the step where the directory is absent.
+      - name: Render the pages
         run: |
+          beside=""
+          if [ -d arch ]; then beside="arch.html"; fi
+          if [ -d grounds ]; then beside="${beside:+$beside,}grounds.html"; fi
           python3 srs-dd/tools/srs_view.py --html site/index.html \
+            ${beside:+--link "$beside"} \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
+          if [ -d arch ]; then
+            others="index.html"
+            if [ -d grounds ]; then others="index.html,grounds.html"; fi
+            python3 srs-dd/tools/srs_arch_doc.py --html --link "$others" > site/arch.html
+          fi
+          if [ -d grounds ]; then
+            others="index.html"
+            if [ -d arch ]; then others="index.html,arch.html"; fi
+            python3 srs-dd/tools/srs_grounds.py --html --link "$others" > site/grounds.html
+          fi
 
       - uses: actions/upload-artifact@v7
         with:

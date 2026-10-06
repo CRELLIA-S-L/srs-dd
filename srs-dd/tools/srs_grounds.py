@@ -12,6 +12,9 @@
     python3 srs-dd/tools/srs_grounds.py --cite ID…  name records to a person
     python3 srs-dd/tools/srs_grounds.py --blast P…  what the requirements these
                                              files belong to are staked on
+    python3 srs-dd/tools/srs_grounds.py --html      the dashboard as one page
+    python3 srs-dd/tools/srs_grounds.py --html --link index.html,arch.html
+                                                    and the pages beside it
 
 The format is srs-dd/grounds.md's; this script only enforces it. The requirement
 model comes from srs_view.py as a subprocess, so an optional subsystem never dies
@@ -1372,6 +1375,170 @@ def cite(records, wanted):
 # srs-end: FR-GND-540
 
 
+# implements: IF-SPEC-050, INV-SPEC-130
+# The published set, copied from the Published pages table of the specification's standard; a
+# suite holds this copy to it. OWN is this page's place in the set: a page is not linked to
+# itself, and a caller that names it has made a mistake worth hearing about.
+PAGES = (("index.html", "the specification"),
+         ("arch.html", "the architecture document"),
+         ("grounds.html", "the grounds dashboard"))
+OWN = "grounds.html"
+# srs-end: IF-SPEC-050, INV-SPEC-130
+
+# implements: FR-GND-580
+# The dashboard as a page. Its own stylesheet and its own translator: the layers are installed
+# one without the other, so neither reaches into the other's tools for either.
+STYLE = """
+:root { --bg: #ffffff; --fg: #1a1d21; --muted: #6b7280; --line: #e2e5e9; --panel: #f7f8fa; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #15171a; --fg: #e8eaed; --muted: #9aa0a6; --line: #2b2f34; --panel: #1c1f23; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 -apple-system,
+       BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+nav.pages { font-size: .9rem; margin-bottom: 1.4rem; }
+nav.pages a { color: #2c5fd0; }
+nav.pages span { color: var(--muted); padding: 0 .4rem; }
+h1 { font-size: 1.9rem; margin: 0 0 .4rem; }
+h2 { font-size: 1.3rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem;
+     border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .5rem 0; }
+code { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+       background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+       padding: 0 .25rem; }
+em { color: var(--muted); font-style: normal; }
+table { border-collapse: collapse; margin: .8rem 0; font-size: .95rem; width: 100%; }
+th, td { border: 1px solid var(--line); padding: .35rem .6rem; text-align: left;
+         vertical-align: top; }
+th { background: var(--panel); font-weight: 600; }
+"""
+
+PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grounds</title>
+<style>%s</style>
+</head>
+<body>
+<main>
+%s
+</main>
+</body>
+</html>
+"""
+
+# The spans this dashboard writes. Underscores only at a word boundary, so a path outside
+# backticks is not read as emphasis.
+RE_SPAN = re.compile(r"\*\*(.+?)\*\*|`(.+?)`|(?<![\w])_(.+?)_(?![\w])")
+
+
+def esc(text):
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def spans(text):
+    out, last = [], 0
+    for match in RE_SPAN.finditer(text):
+        out.append(esc(text[last:match.start()]))
+        bold, code, emphasis = match.groups()
+        if bold is not None:
+            out.append("<strong>%s</strong>" % esc(bold))
+        elif code is not None:
+            out.append("<code>%s</code>" % esc(code))
+        else:
+            out.append("<em>%s</em>" % esc(emphasis))
+        last = match.end()
+    out.append(esc(text[last:]))
+    return "".join(out)
+
+
+def cells(line):
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+# implements: INV-SPEC-130
+def nav(named):
+    """The links to the other pages of the set, in the set's own order. Exactly what the caller
+    named: nothing where it named nothing, and no page that is not in the set."""
+    held = [(name, label) for name, label in PAGES if name in named]
+    if not held:
+        return ""
+    parts = []
+    for index, (name, label) in enumerate(held):
+        if index:
+            parts.append("<span>·</span>")
+        parts.append('<a href="%s">%s</a>' % (esc(name), esc(label)))
+    return '<nav class="pages">%s</nav>' % "".join(parts)
+
+
+def read_links(value):
+    """The names a caller gave, or a sentence saying what is wrong with them."""
+    named, known = [], dict(PAGES)
+    for name in (part.strip() for part in value.split(",")):
+        if not name:
+            continue
+        if name == OWN:
+            return None, ("%s is this page itself; name the pages beside it" % name)
+        if name not in known:
+            return None, ("%s is not one of the published pages: %s"
+                          % (name, ", ".join(n for n, _l in PAGES if n != OWN)))
+        if name not in named:
+            named.append(name)
+    return named, ""
+# srs-end: INV-SPEC-130
+
+
+def to_page(dashboard, named=()):
+    """The dashboard as one page. The markdown is this file's own output, so the grammar is
+    closed: three heading levels, paragraphs and tables."""
+    body, paragraph, table = [], [], None
+
+    def flush():
+        if paragraph:
+            body.append("<p>%s</p>" % spans(" ".join(paragraph)))
+            del paragraph[:]
+
+    def close_table():
+        nonlocal table
+        if table is not None:
+            body.append("</tbody></table>")
+            table = None
+
+    for line in dashboard.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("|"):
+            flush()
+            row = cells(stripped)
+            if all(set(cell) <= set("-: ") and cell for cell in row):
+                continue          # the rule under the heads, which HTML draws itself
+            if table is None:
+                body.append("<table><thead><tr>%s</tr></thead><tbody>"
+                            % "".join("<th>%s</th>" % spans(cell) for cell in row))
+                table = True
+                continue
+            body.append("<tr>%s</tr>" % "".join("<td>%s</td>" % spans(cell) for cell in row))
+            continue
+        close_table()
+        if not stripped:
+            flush()
+            continue
+        heading = re.match(r"^(#{1,3}) (.+)$", stripped)
+        if heading:
+            flush()
+            level = len(heading.group(1))
+            body.append("<h%d>%s</h%d>" % (level, spans(heading.group(2)), level))
+            continue
+        paragraph.append(stripped)
+    flush()
+    close_table()
+    return PAGE % (STYLE, nav(named) + "\n" + "\n".join(body))
+# srs-end: FR-GND-580
+
+
 # implements: FR-GND-010, FR-GND-120, IF-GND-020
 def main():
     argv = sys.argv[1:]
@@ -1380,6 +1547,21 @@ def main():
         cut = argv.index("--blast")
         paths = argv[cut + 1:]
         argv = argv[:cut] + ["--blast"]
+    # implements: INV-SPEC-130
+    named = []
+    if "--link" in argv:
+        cut = argv.index("--link")
+        rest = argv[cut + 1:]
+        if not rest:
+            sys.stderr.write("--link needs the page(s) to link: %s\n"
+                             % ", ".join(n for n, _l in PAGES if n != OWN))
+            return 2
+        named, problem = read_links(rest[0])
+        if problem:
+            sys.stderr.write("%s\n" % problem)
+            return 2
+        argv = argv[:cut] + ["--link"] + rest[1:]
+    # srs-end: INV-SPEC-130
     wanted = None
     if "--cite" in argv:
         cut = argv.index("--cite")
@@ -1390,11 +1572,15 @@ def main():
                              "usage: srs_grounds.py --cite ID…\n")
             return 2
     flags = set(argv)
-    unknown = sorted(flags - {"--no-write", "--strict", "--blast", "--cite"})
+    unknown = sorted(flags - {"--no-write", "--strict", "--blast", "--cite", "--html",
+                              "--link"})
     if unknown:
         sys.stderr.write("unknown flag(s): %s\nusage: srs_grounds.py "
-                         "[--no-write] [--strict] [--blast PATH…] [--cite ID…]\n"
-                         % " ".join(unknown))
+                         "[--no-write] [--strict] [--blast PATH…] [--cite ID…] "
+                         "[--html [--link PAGE,…]]\n" % " ".join(unknown))
+        return 2
+    if "--link" in flags and "--html" not in flags:
+        sys.stderr.write("--link belongs to --html: the dashboard's markdown links nothing\n")
         return 2
     if not os.path.isdir(GROUNDS):
         sys.stderr.write("no grounds/ directory here — this project carries "
@@ -1420,12 +1606,33 @@ def main():
     found, warnings, reports = validate(records, model, model_error, cfg)
     errors += found
 
+    # implements: FR-GND-580
+    # A page on stdout is a page alone: the findings move to the other stream so that
+    # redirecting the output gives a file and not a file with a report in its head.
+    said = sys.stderr if "--html" in flags else sys.stdout
+    # srs-end: FR-GND-580
     for line in reports:
-        sys.stdout.write("report: %s\n" % line)
+        said.write("report: %s\n" % line)
     for line in warnings:
-        sys.stdout.write("warning: %s\n" % line)
+        said.write("warning: %s\n" % line)
     for line in errors:
-        sys.stdout.write("error: %s\n" % line)
+        said.write("error: %s\n" % line)
+
+    # implements: FR-GND-580
+    if "--html" in flags:
+        # A broken register produces no dashboard in either form.
+        if errors:
+            said.write("\nRecords: %d. Errors: %d. Nothing printed.\n"
+                       % (len(records), len(errors)))
+            return 1
+        sys.stdout.write(to_page(build_dashboard(records, model, incoming or {}, cfg), named))
+        said.write("\nRecords: %d. Errors: 0. Warnings: %d. Page printed. (srs_grounds %s)\n"
+                   % (len(records), len(warnings), __version__))
+        if warnings and "--strict" in flags:
+            said.write("strict mode: %d warning(s) treated as errors.\n" % len(warnings))
+            return 1
+        return 0
+    # srs-end: FR-GND-580
 
     wrote = ""
     if not errors and "--no-write" not in flags:

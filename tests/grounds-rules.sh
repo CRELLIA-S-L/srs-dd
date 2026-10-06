@@ -13,7 +13,7 @@
 # verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
 # verifies: FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-450
 # verifies: FR-GND-460, FR-GND-470, FR-GND-230, FR-GND-140
-# verifies: FR-GND-150, FR-GND-490
+# verifies: FR-GND-150, FR-GND-490, FR-GND-580, INV-SPEC-130
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -1583,6 +1583,170 @@ ground < <(rec H-010 "Refuted below the gate" "$HYP_SMALL" \
 |---|---|---|---|---|
 | 2026-09-21 | 0 | 1 | refuted | @maintainer |')
 rule "FR-GND-550 a class III refutation below the gate contradicts its own threshold" 1 "smaller than the threshold's own at n >= 2"
+
+# --- verifies: FR-GND-580 — the dashboard as a page: stdout carries it alone,
+# --- it holds what the markdown holds, and nothing is fetched or written.
+ground < <(rec H-010 "A hypothesis the page can show" "$HYP" \
+               'Studios of five to fifty people export weekly.')
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) >/dev/null 2>&1
+cp "$LAB/grounds/90-dashboard.md" /tmp/srs-grounds-page.md
+page_rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) \
+    > /tmp/srs-grounds-page.out 2>/tmp/srs-grounds-page.err || page_rc=$?
+if [ "$page_rc" != "0" ]; then
+    echo "FAIL FR-GND-580 — --html on a sound register exited $page_rc"; cat /tmp/srs-grounds-page.err; exit 1
+fi
+passes=$((passes + 1))
+
+python3 - <<'PYPAGE'
+import re, sys
+from html.parser import HTMLParser
+
+page = open("/tmp/srs-grounds-page.out", encoding="utf-8").read()
+markdown = open("/tmp/srs-grounds-page.md", encoding="utf-8").read()
+
+# Stdout carries the page and nothing else: it begins and ends with it, and the
+# run's own summary is on the other stream.
+if not page.startswith("<!doctype html>") or page.rstrip().split("\n")[-1] != "</html>":
+    sys.exit("FAIL FR-GND-580 — stdout is not the page alone: %r … %r"
+             % (page[:20], page.rstrip()[-20:]))
+if "Records:" not in open("/tmp/srs-grounds-page.err", encoding="utf-8").read():
+    sys.exit("FAIL FR-GND-580 — the summary is not on the other stream")
+if "<style>" not in page:
+    sys.exit("FAIL FR-GND-580 — the page carries no stylesheet of its own")
+for fetched in ("src=", "@import", "<script", 'href="http', "url(http"):
+    if fetched in page:
+        sys.exit("FAIL FR-GND-580 — the page fetches: %s" % fetched)
+
+headings = len(re.findall(r"(?m)^#{1,3} ", markdown))
+if headings != len(re.findall(r"<h[123]>", page)):
+    sys.exit("FAIL FR-GND-580 — %d headings in the markdown, %d on the page"
+             % (headings, len(re.findall(r"<h[123]>", page))))
+tables = len(re.findall(r"(?m)^\|---", markdown))
+if tables != page.count("<table>"):
+    sys.exit("FAIL FR-GND-580 — %d tables in the markdown, %d on the page"
+             % (tables, page.count("<table>")))
+rows = len([line for line in markdown.split("\n")
+            if line.startswith("|") and not line.startswith("|---")])
+if rows != page.count("<tr>"):
+    sys.exit("FAIL FR-GND-580 — %d table rows in the markdown, %d on the page"
+             % (rows, page.count("<tr>")))
+if "|---" in page or "<td>---</td>" in page:
+    sys.exit("FAIL FR-GND-580 — the rule under a table's heads reached the page")
+
+VOID = {"meta", "br", "hr", "img", "input", "link"}
+
+
+class Check(HTMLParser):
+    def __init__(self):
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self.stack, self.problems = [], []
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in VOID:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if not self.stack:
+            self.problems.append("</%s> with nothing open, line %d" % (tag, self.getpos()[0]))
+        elif self.stack[-1] != tag:
+            self.problems.append("</%s> closes <%s>, line %d"
+                                 % (tag, self.stack[-1], self.getpos()[0]))
+            self.stack.pop()
+        else:
+            self.stack.pop()
+
+
+check = Check()
+check.feed(page)
+if check.problems or check.stack:
+    sys.exit("FAIL FR-GND-580 — the page is not well formed: %s %s"
+             % (check.problems[:3], check.stack[:3]))
+PYPAGE
+passes=$((passes + 6))
+
+# Nothing written: the dashboard on disk is the one the earlier run wrote.
+if ! cmp -s "$LAB/grounds/90-dashboard.md" /tmp/srs-grounds-page.md; then
+    echo "FAIL FR-GND-580 — --html rewrote the dashboard"; exit 1
+fi
+passes=$((passes + 1))
+
+# Two runs of the same register print the same bytes.
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) > /tmp/srs-grounds-page.again 2>/dev/null
+if ! cmp -s /tmp/srs-grounds-page.out /tmp/srs-grounds-page.again; then
+    echo "FAIL FR-GND-580 — two runs of --html differ"; exit 1
+fi
+passes=$((passes + 1))
+
+# A register with an error prints no page, says so on the other stream, and exits 1.
+ground < <(rec H-010 "A hypothesis with no class" 'status: assumed
+population: studios
+refuted_if: proportion < 0.25 at n >= 200
+expires: 2099-01-01
+owner: @someone
+impact: some' 'Studios export weekly.')
+rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) \
+    > /tmp/srs-grounds-page.out 2>/tmp/srs-grounds-page.err || rc=$?
+if [ "$rc" != "1" ]; then
+    echo "FAIL FR-GND-580 — a broken register exited $rc, expected 1"; exit 1
+fi
+if [ -s /tmp/srs-grounds-page.out ]; then
+    echo "FAIL FR-GND-580 — a broken register still printed a page"; head -3 /tmp/srs-grounds-page.out; exit 1
+fi
+if ! grep -qF "Nothing printed" /tmp/srs-grounds-page.err; then
+    echo "FAIL FR-GND-580 — it does not say that nothing was printed"; cat /tmp/srs-grounds-page.err; exit 1
+fi
+passes=$((passes + 3))
+
+# srs-end: FR-GND-580
+
+# --- verifies: INV-SPEC-130 — the page links exactly the pages its caller named.
+ground < <(rec H-010 "A hypothesis the page can show" "$HYP" \
+               'Studios of five to fifty people export weekly.')
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) > /tmp/srs-grounds-page.out 2>/dev/null
+if grep -qF 'nav class="pages"' /tmp/srs-grounds-page.out; then
+    echo "FAIL INV-SPEC-130 — nothing was named and the page links something"; exit 1
+fi
+passes=$((passes + 1))
+
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html --link arch.html,index.html ) \
+    > /tmp/srs-grounds-page.out 2>/dev/null
+python3 - <<'PYLINKS'
+import re, sys
+page = open("/tmp/srs-grounds-page.out", encoding="utf-8").read()
+strip = re.search(r'<nav class="pages">(.*?)</nav>', page, re.S)
+if not strip:
+    sys.exit("FAIL INV-SPEC-130 — no strip of links on the dashboard's page")
+order = re.findall(r'href="([^"]+)"', strip.group(1))
+if order != ["index.html", "arch.html"]:
+    sys.exit("FAIL INV-SPEC-130 — the links read %s, not the set's own order" % order)
+if "the specification" not in strip.group(1) or "the architecture document" not in strip.group(1):
+    sys.exit("FAIL INV-SPEC-130 — a link does not read by what the page it points at holds")
+PYLINKS
+passes=$((passes + 2))
+
+for bad in nope.html grounds.html; do
+    rc=0
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html --link "$bad" ) \
+        >/tmp/srs-grounds-page.out 2>/tmp/srs-grounds-page.err || rc=$?
+    if [ "$rc" != "2" ]; then
+        echo "FAIL INV-SPEC-130 — --link $bad exited $rc, expected 2"; exit 1
+    fi
+    if [ -s /tmp/srs-grounds-page.out ]; then
+        echo "FAIL INV-SPEC-130 — --link $bad printed a page anyway"; exit 1
+    fi
+    passes=$((passes + 1))
+done
+
+rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --link index.html ) >/dev/null 2>&1 || rc=$?
+if [ "$rc" != "2" ]; then
+    echo "FAIL INV-SPEC-130 — --link without --html exited $rc, expected 2"; exit 1
+fi
+passes=$((passes + 1))
+
+# srs-end: INV-SPEC-130
 
 echo "grounds-rules: $passes fixtures pass"
 # srs-end: FR-GND-550

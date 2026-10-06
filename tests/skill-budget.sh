@@ -68,10 +68,14 @@ cd "$(dirname "$0")/.."
 #               the guide carries the framework's guide verbatim as its
 #               region (FR-SKILL-440) beside the repository's own rules,
 #               so what the shipped guide holds is counted here once more
-#               (1 960).
+#               (1 960). 2 060 since 2026-10-06: the shipped guide gained the
+#               published set of pages and the flag that tells a page which
+#               others are beside it (IF-SPEC-050, INV-SPEC-130), and this
+#               repository's guide carries that region too, which left it at
+#               2 042 against a ceiling it already stood eight words under.
 OWN=1550
 TRANSITIVE=7050
-GUIDE=2000
+GUIDE=2060
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

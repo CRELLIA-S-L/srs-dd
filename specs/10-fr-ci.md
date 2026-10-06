@@ -443,13 +443,13 @@ The hook and the pipelines are the project's files, shared with every other chec
 ### FR-CI-190 — The pages of the layers the project keeps are published beside the specification
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: [FR-CI-040]
 depends_on: [IF-SPEC-050, FR-ARCH-520, FR-GND-580]
 refines: []
 conflicts_with: []
-code: []
+code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml]
 tests: []
 created: 2026-10-06
 ```

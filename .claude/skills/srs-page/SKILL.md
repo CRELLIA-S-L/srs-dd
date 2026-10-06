@@ -30,7 +30,17 @@ python3 srs-dd/tools/srs_view.py --html public/index.html \
 
 Without it the paths are still shown, they just do not lead anywhere.
 
-**CI may already publish it.** The templates in `ci/` render the same page as a build artifact — the GitLab one from the default branch, the GitHub one on every run — and each says how to switch on publishing it through Pages, so a link may exist that is always current — check before mailing a copy that will be stale next week.
+**The layers have pages of their own.** Where the project keeps them, `python3 srs-dd/tools/srs_arch_doc.py --html` prints the architecture — the parts, what each answers for, the dependency diagram drawn as an image — and `python3 srs-dd/tools/srs_grounds.py --html` prints the grounds dashboard. Both print to stdout, so the caller decides where they land, and the published set is `index.html`, `arch.html`, `grounds.html` side by side. Tell each page which others are beside it, or it links none of them:
+
+```
+python3 srs-dd/tools/srs_view.py --html site/index.html --link arch.html,grounds.html
+python3 srs-dd/tools/srs_arch_doc.py --html --link index.html,grounds.html > site/arch.html
+python3 srs-dd/tools/srs_grounds.py --html --link index.html,arch.html > site/grounds.html
+```
+
+A name that is not one of the three, or the page's own, is refused rather than carried: a link exists because somebody said that file will be there.
+
+**CI may already publish it.** The templates in `ci/` render the same pages as a build artifact — the GitLab one from the default branch, the GitHub one on every run, for whichever layers the project keeps — and each says how to switch on publishing them through Pages, so a link may exist that is always current — check before mailing a copy that will be stale next week.
 
 **Baselines need history.** The page compares frozen states by reading the commits behind them; a shallow checkout has none, and the page says so instead of pretending there are none.
 

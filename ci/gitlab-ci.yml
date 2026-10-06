@@ -33,7 +33,25 @@ spec-site:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - python3 srs-dd/tools/srs_view.py --html public/index.html --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+    # The specification, and the page of each optional layer this project keeps
+    # beside it, each told which others will be there. `if` rather than
+    # `[ -d x ] && …`, which under `set -e` fails the job where it is absent.
+    - |
+      beside=""
+      if [ -d arch ]; then beside="arch.html"; fi
+      if [ -d grounds ]; then beside="${beside:+$beside,}grounds.html"; fi
+      python3 srs-dd/tools/srs_view.py --html public/index.html ${beside:+--link "$beside"} \
+        --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+      if [ -d arch ]; then
+        others="index.html"
+        if [ -d grounds ]; then others="index.html,grounds.html"; fi
+        python3 srs-dd/tools/srs_arch_doc.py --html --link "$others" > public/arch.html
+      fi
+      if [ -d grounds ]; then
+        others="index.html"
+        if [ -d arch ]; then others="index.html,arch.html"; fi
+        python3 srs-dd/tools/srs_grounds.py --html --link "$others" > public/grounds.html
+      fi
   artifacts:
     paths:
       - public

@@ -80,6 +80,8 @@ Softer drift is a warning: a file a requirement names that does not name it back
 
 `python3 srs-dd/tools/srs_view.py --html` writes one self-contained page: search, filters, a status dashboard, the coverage gaps, a graph of every kind of link that you can narrow to one requirement's surroundings, pan, zoom and pull apart, and a comparison of any two frozen baselines.
 No CDN, no network, opens straight from `file://`.
+Where a project keeps the optional layers, the same holds for their two pages — `python3 srs-dd/tools/srs_arch_doc.py --html` draws the architecture, dependency diagram and all, and `python3 srs-dd/tools/srs_grounds.py --html` prints the grounds dashboard.
+The three are published side by side under fixed names, each linking the others, and the pipeline starters do it for whichever layers you keep.
 
 ## What you get back
 

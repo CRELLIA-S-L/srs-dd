@@ -308,6 +308,21 @@ The checker reports a `spec/v*` tag the log has no row for — under `--strict` 
 **A baseline is not a release.** It freezes what the system must do; a release ships what it does.
 Neither implies the other, they are numbered independently, and the same number in both places asserts nothing.
 
+## Published pages
+
+A project may publish what the framework renders for a reader.
+Where those pages are published together they are named by one set, and nothing is added to it:
+
+| File | Holds | Printed by |
+|---|---|---|
+| `index.html` | the specification | `srs-dd/tools/srs_view.py --html` |
+| `arch.html` | the architecture document | `srs-dd/tools/srs_arch_doc.py --html` |
+| `grounds.html` | the grounds dashboard | `srs-dd/tools/srs_grounds.py --html` |
+
+The names are fixed: the pages link each other by them, a pipeline writes them and a reader bookmarks them, so a name that moved would break all three at once.
+A page carries a link to exactly the pages of this set its caller named — a link exists because somebody said that file will be there, and never because the repository holds a layer.
+Two of the three are optional, so the set is a ceiling and not a list to fill: the page of a layer the project does not keep is never published, and nothing links it.
+
 ## Configuration
 
 All project settings live in `specs/srs-config.json`; any key absent from the file falls back to the checker's default.

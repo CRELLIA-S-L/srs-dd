@@ -1087,14 +1087,14 @@ Where a part names none the section is absent rather than empty, as `FR-ARCH-460
 ### FR-ARCH-520 — The architecture document can be read as a page
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-410]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
 created: 2026-10-06
 ```
 
@@ -1107,14 +1107,14 @@ Printed and not written, because `FR-ARCH-410` leaves where the document lands t
 ### FR-ARCH-530 — The drawing on the page is laid out by the command
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-520]
 refines: [FR-ARCH-430]
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
 created: 2026-10-06
 ```
 

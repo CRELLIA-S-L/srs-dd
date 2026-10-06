@@ -383,14 +383,14 @@ In the configuration and not in a record, because a forbidden edge is policy abo
 ### IF-SPEC-050 — The published pages are one set of names
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/standard.md, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_arch_doc.py, srs-dd/tools/srs_grounds.py]
+tests: [tests/standard-vocabulary.sh]
 created: 2026-10-06
 ```
 

@@ -6,7 +6,8 @@
 # generated document reads as complete either way.
 #
 # file verifies: FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450
-# file verifies: FR-ARCH-460, FR-ARCH-510
+# file verifies: FR-ARCH-460, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530
+# file verifies: INV-SPEC-130
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -338,5 +339,360 @@ doc
 silent "FR-ARCH-510 absent where the record names none" "Exists to protect"
 
 # srs-end: FR-ARCH-510
+
+# --- verifies: FR-ARCH-520 — the same document as one page: every section a
+# --- reader of the markdown gets, nothing fetched, and nothing written.
+page() { ( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html ) > /tmp/srs-arch-page.out 2>/tmp/srs-arch-page.err; }
+
+# shows <name> <fragment that must appear on the page>
+shows() {
+    if ! grep -qF -- "$2" /tmp/srs-arch-page.out; then
+        echo "FAIL $1 — the page does not hold: $2"; head -40 /tmp/srs-arch-page.out; exit 1
+    fi
+    passes=$((passes + 1))
+}
+
+# hides <name> <fragment that must not appear on the page>
+hides() {
+    if grep -qF -- "$2" /tmp/srs-arch-page.out; then
+        echo "FAIL $1 — the page holds what it should not: $2"; exit 1
+    fi
+    passes=$((passes + 1))
+}
+
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+protects: [FR-CORE-010]
+depends_on: [E-020]
+interface: one call, run()
+```
+
+Answers a question by reading the store.
+
+**Rationale.** Split from the store because the two are used at different moments.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/store.py]
+requirements: [FR-CORE-020]
+depends_on: []
+interface: one call, read()
+```
+
+Keeps what the engine reads.
+MD
+before=$(find "$LAB" -newer "$LAB/specs/srs-config.json" | wc -l)
+page
+doc
+
+# Every heading of the markdown form is a heading of the page: taken from the
+# document itself, so a section added later is asked for without naming it here.
+python3 - <<'PYHEAD'
+import re, sys
+markdown = open("/tmp/srs-arch-doc.out", encoding="utf-8").read()
+page = open("/tmp/srs-arch-page.out", encoding="utf-8").read()
+missing = []
+for level, text in re.findall(r"^(#{1,3}) (.+)$", markdown, re.M):
+    plain = re.sub(r"[*`_]", "", text)
+    if ("<h%d>" % len(level)) not in page or plain.split(" \u2014 ")[0] not in page:
+        missing.append(text)
+if missing:
+    sys.exit("FAIL FR-ARCH-520 — the page is missing heading(s): %s" % missing[:3])
+if markdown.count("- **") > page.count("<strong>"):
+    sys.exit("FAIL FR-ARCH-520 — the page has fewer bold labels than the markdown")
+PYHEAD
+passes=$((passes + 2))
+
+shows "FR-ARCH-520 one self-contained page" "<!doctype html>"
+shows "FR-ARCH-520 its own stylesheet, inside the file" "<style>"
+shows "FR-ARCH-520 a part, as a heading" "<h3>E-010 — The engine</h3>"
+shows "FR-ARCH-520 what it carries, as code" "<code>src/engine.py</code>"
+shows "FR-ARCH-520 an obligation with its title" "<li>FR-CORE-010 — The engine answers"
+# Nothing fetched: no source attribute, no import, no script and no address over
+# the network. `xmlns` is a namespace's name rather than a request, so the
+# drawing's own may stand.
+hides "FR-ARCH-520 no external source" "src="
+hides "FR-ARCH-520 no import of a stylesheet" "@import"
+hides "FR-ARCH-520 no script at all" "<script"
+hides "FR-ARCH-520 nothing addressed over the network" "href=\"http"
+hides "FR-ARCH-520 and nothing pulled in by a url()" "url(http"
+
+# Nothing written: both forms go to stdout, as `FR-ARCH-410` asks.
+after=$(find "$LAB" -newer "$LAB/specs/srs-config.json" | wc -l)
+[ "$before" = "$after" ] || { echo "FAIL FR-ARCH-520 — --html wrote into the project"; exit 1; }
+passes=$((passes + 1))
+
+# The tags close in the order they opened: a nested list belongs inside the item
+# above it, and a page a browser has to repair is a page a reader scrolls past.
+python3 - <<'PYWELL'
+from html.parser import HTMLParser
+import sys
+
+VOID = {"meta", "br", "hr", "img", "input", "link"}
+
+
+class Check(HTMLParser):
+    def __init__(self):
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self.stack, self.problems = [], []
+
+    def handle_starttag(self, tag, attrs):
+        # A list inside a list belongs inside the item above it: tags that merely
+        # balance can still put a <ul> where only an <li> may stand.
+        if tag == "ul" and self.stack and self.stack[-1] == "ul":
+            self.problems.append("<ul> inside <ul>, not inside an item, line %d"
+                                 % self.getpos()[0])
+        if tag not in VOID:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if not self.stack:
+            self.problems.append("</%s> with nothing open, line %d" % (tag, self.getpos()[0]))
+        elif self.stack[-1] != tag:
+            self.problems.append("</%s> closes <%s>, line %d"
+                                 % (tag, self.stack[-1], self.getpos()[0]))
+            self.stack.pop()
+        else:
+            self.stack.pop()
+
+
+check = Check()
+check.feed(open("/tmp/srs-arch-page.out", encoding="utf-8").read())
+if check.problems or check.stack:
+    sys.exit("FAIL FR-ARCH-520 — the page is not well formed: %s %s"
+             % (check.problems[:3], check.stack[:3]))
+PYWELL
+passes=$((passes + 1))
+
+# --- The empty layer, as a page: the sentences of `FR-ARCH-460` arrive as
+# --- emphasis rather than as markdown nobody rendered.
+elements <<'MD'
+# Elements
+
+The parts this project is made of.
+MD
+page
+shows "FR-ARCH-520 the empty layer reads as a sentence" "<em>No part is written down yet: the layer is installed and empty.</em>"
+hides "FR-ARCH-520 and no markdown is left raw" "_No part is written down yet"
+
+# --- A stray flag beside --html is refused as any other is.
+rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html --nope ) >/dev/null 2>/tmp/srs-arch-page.err || rc=$?
+if [ "$rc" != "2" ]; then
+    echo "FAIL FR-ARCH-520 — a stray flag beside --html exited $rc, expected 2"; exit 1
+fi
+if ! grep -qF -- "--html" /tmp/srs-arch-page.err; then
+    echo "FAIL FR-ARCH-520 — the usage line does not name --html"; cat /tmp/srs-arch-page.err; exit 1
+fi
+passes=$((passes + 2))
+
+# srs-end: FR-ARCH-520
+
+# --- verifies: FR-ARCH-530 — the drawing on the page is an image the command
+# --- laid out: a node per part in force, an edge per declared dependency.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+interface: one call, run()
+```
+
+Answers a question by reading the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/store.py]
+requirements: [FR-CORE-020]
+depends_on: []
+interface: one call, read()
+```
+
+Keeps what the engine reads.
+
+### E-030 — The old store
+
+```yaml
+status: superseded
+carries: []
+requirements: []
+depends_on: []
+```
+
+Replaced by E-020.
+MD
+page
+doc
+shows "FR-ARCH-530 the drawing is an image inside the page" "<svg "
+hides "FR-ARCH-530 and not a diagram somebody else must draw" "flowchart TD"
+says "FR-ARCH-530 while the markdown form still hands over the source" "flowchart TD"
+shows "FR-ARCH-530 a node carries the part's title" 'class="node-title">The engine</text>'
+hides "FR-ARCH-530 and no node for a part out of force" ">E-030<"
+
+# A box per part, none overlapping, none off the canvas, one edge per declared
+# dependency, and the part that depends drawn above what it depends on: a
+# drawing nobody can look at here is held to its geometry instead.
+python3 - <<'PYSVG'
+import re, sys
+page = open("/tmp/srs-arch-page.out", encoding="utf-8").read()
+svg = page[page.index("<svg"):page.index("</svg>") + 6]
+width, height = (int(v) for v in re.search(r'viewBox="0 0 (\d+) (\d+)"', svg).groups())
+boxes = [tuple(int(v) for v in box) for box in
+         re.findall(r'<rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"', svg)]
+ids = re.findall(r'class="node-id">([^<]+)<', svg)
+edges = len(re.findall(r'class="edge"', svg))
+if sorted(ids) != ["E-010", "E-020"]:
+    sys.exit("FAIL FR-ARCH-530 — the drawing's nodes are %s" % ids)
+if edges != 1:
+    sys.exit("FAIL FR-ARCH-530 — %d edge(s) drawn for one declared dependency" % edges)
+for first in range(len(boxes)):
+    for second in range(first + 1, len(boxes)):
+        a, b = boxes[first], boxes[second]
+        if a[0] < b[0] + b[2] and b[0] < a[0] + a[2] and a[1] < b[1] + b[3] and b[1] < a[1] + a[3]:
+            sys.exit("FAIL FR-ARCH-530 — two boxes overlap: %s %s" % (a, b))
+for box in boxes:
+    if box[0] < 0 or box[1] < 0 or box[0] + box[2] > width or box[1] + box[3] > height:
+        sys.exit("FAIL FR-ARCH-530 — a box falls outside the canvas: %s in %dx%d"
+                 % (box, width, height))
+rows = dict(zip(ids, (box[1] for box in boxes)))
+if not rows["E-010"] < rows["E-020"]:
+    sys.exit("FAIL FR-ARCH-530 — the part that depends is not drawn above what it depends on")
+PYSVG
+passes=$((passes + 5))
+
+# --- Two runs of the same records draw the same bytes.
+cp /tmp/srs-arch-page.out /tmp/srs-arch-page.first
+page
+if ! cmp -s /tmp/srs-arch-page.first /tmp/srs-arch-page.out; then
+    echo "FAIL FR-ARCH-530 — two runs of --html differ"; exit 1
+fi
+passes=$((passes + 1))
+
+# --- A circle: the checker reports it, and the drawing survives it rather than
+# --- looping while it ranks the parts.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+interface: one call, run()
+```
+
+Answers a question by reading the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/store.py]
+requirements: [FR-CORE-020]
+depends_on: [E-010]
+interface: one call, read()
+```
+
+Keeps what the engine reads.
+MD
+page
+shows "FR-ARCH-530 a circle is still drawn" "<svg "
+shows "FR-ARCH-530 with both parts in it" ">E-020<"
+
+# --- The empty layer: no drawing at all, and the sentence in its place.
+elements <<'MD'
+# Elements
+
+The parts this project is made of.
+MD
+page
+hides "FR-ARCH-530 nothing drawn where there is nothing to draw" "<svg "
+shows "FR-ARCH-530 and the sentence stands instead" "<em>Nothing to draw: no part is written down yet.</em>"
+
+# srs-end: FR-ARCH-530
+
+# --- verifies: INV-SPEC-130 — the page links exactly the pages its caller named.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010]
+depends_on: []
+interface: one call, run()
+```
+
+Answers a question.
+MD
+page
+hides "INV-SPEC-130 nothing named, nothing linked" "<nav class=\"pages\">"
+
+linked() {
+    ( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html --link "$1" ) \
+        > /tmp/srs-arch-page.out 2>/tmp/srs-arch-page.err
+}
+linked index.html
+shows "INV-SPEC-130 one named, one linked" '<a href="index.html">the specification</a>'
+hides "INV-SPEC-130 and not the one nobody named" 'href="grounds.html"'
+
+linked grounds.html,index.html
+shows "INV-SPEC-130 both named, both linked" '<a href="grounds.html">the grounds dashboard</a>'
+python3 - <<'PYORDER'
+import re, sys
+page = open("/tmp/srs-arch-page.out", encoding="utf-8").read()
+strip = re.search(r'<nav class="pages">(.*?)</nav>', page, re.S)
+if not strip:
+    sys.exit("FAIL INV-SPEC-130 — no strip of links on the page")
+order = re.findall(r'href="([^"]+)"', strip.group(1))
+if order != ["index.html", "grounds.html"]:
+    sys.exit("FAIL INV-SPEC-130 — the links read %s, not the set's own order" % order)
+PYORDER
+passes=$((passes + 2))
+
+for bad in nope.html arch.html; do
+    rc=0
+    ( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html --link "$bad" ) \
+        >/tmp/srs-arch-page.out 2>/tmp/srs-arch-page.err || rc=$?
+    if [ "$rc" != "2" ]; then
+        echo "FAIL INV-SPEC-130 — --link $bad exited $rc, expected 2"; exit 1
+    fi
+    if [ -s /tmp/srs-arch-page.out ]; then
+        echo "FAIL INV-SPEC-130 — --link $bad printed a page anyway"; exit 1
+    fi
+    if ! grep -qF -- "$bad" /tmp/srs-arch-page.err; then
+        echo "FAIL INV-SPEC-130 — the refusal does not name $bad"; cat /tmp/srs-arch-page.err; exit 1
+    fi
+    passes=$((passes + 1))
+done
+
+rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --link index.html ) >/dev/null 2>/tmp/srs-arch-page.err || rc=$?
+if [ "$rc" != "2" ]; then
+    echo "FAIL INV-SPEC-130 — --link without --html exited $rc, expected 2"; exit 1
+fi
+passes=$((passes + 1))
+
+# srs-end: INV-SPEC-130
 
 echo "arch-doc: $passes fixtures pass"

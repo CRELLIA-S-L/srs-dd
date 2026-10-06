@@ -25,7 +25,7 @@ rm -rf /tmp/srs-view
 python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
 
 # srs-end: FR-CI-090
-# verifies: FR-VIEW-160
+# verifies: FR-VIEW-160, INV-SPEC-130
 # Two linked requirements, one of them the target of a refinement, and one
 # dependency across them: enough to exercise the tree, the incoming links,
 # and a graph that draws every kind of link (FR-VIEW-160).
@@ -1944,3 +1944,69 @@ grep -q "nothing to draw: 1 requirement(s) selected" /tmp/srs-svg-none.out \
 [ -f /tmp/srs-graph-3.svg ] && { echo "--svg wrote a file for a selection with nothing to draw"; exit 1; }
 echo "view-smoke: --svg writes nothing and says so where the selection has no link"
 # srs-end: FR-VIEW-340
+
+# --- verifies: INV-SPEC-130 — the page links exactly the published pages its
+# --- caller named: nothing unasked, nothing outside the set, never itself.
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --html plain.html ) >/dev/null
+grep -q 'nav class="pages"' "$GRAPH/plain.html" \
+    && { echo "INV-SPEC-130 — nothing was named and the page links something"; exit 1; }
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --html linked.html \
+      --link grounds.html,arch.html ) >/dev/null
+python3 - <<'PYNAV'
+import re, sys
+page = open("/tmp/srs-view-graph/linked.html", encoding="utf-8").read()
+strip = re.search(r'<nav class="pages">(.*?)</nav>', page, re.S)
+if not strip:
+    sys.exit("INV-SPEC-130 — the page carries no strip of links")
+order = re.findall(r'href="([^"]+)"', strip.group(1))
+if order != ["arch.html", "grounds.html"]:
+    sys.exit("INV-SPEC-130 — the links read %s, not the set's own order" % order)
+if "the architecture document" not in strip.group(1):
+    sys.exit("INV-SPEC-130 — a link does not read by what the page it points at holds")
+PYNAV
+for bad in nope.html index.html; do
+    rc=0
+    ( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --html refused.html --link "$bad" ) \
+        >/dev/null 2>/tmp/srs-view-link.err || rc=$?
+    [ "$rc" = 2 ] || { echo "INV-SPEC-130 — --link $bad exited $rc, expected 2"; exit 1; }
+    grep -qF -- "$bad" /tmp/srs-view-link.err \
+        || { echo "INV-SPEC-130 — the refusal does not name $bad"; cat /tmp/srs-view-link.err; exit 1; }
+    [ -f "$GRAPH/refused.html" ] \
+        && { echo "INV-SPEC-130 — a refused --link still wrote a page"; exit 1; }
+done
+rc=0
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --link arch.html ) >/dev/null 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "INV-SPEC-130 — --link without --html exited $rc, expected 2"; exit 1; }
+# A specification past the graph's node limit, where the page's own note about
+# what it dropped is built: the strip of links is read from the same call, and a
+# name reused between the two would leave the page linking nothing. The bug this
+# fixture exists for was invisible in a lab of two requirements.
+NAV=/tmp/srs-view-nav
+rm -rf "$NAV"; mkdir -p "$NAV/srs-dd/tools" "$NAV/specs"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py srs-dd/tools/srs_view_page.py "$NAV/srs-dd/tools/"
+cp "$GRAPH/specs/srs-config.json" "$NAV/specs/"
+python3 - <<'PYBIG'
+lines = ["# Functional requirements — core", ""]
+total = 160
+for index in range(total):
+    number = (index + 1) * 10
+    nxt = (index + 2) * 10
+    lines += ["### FR-CORE-%03d — Requirement %d" % (number, number), "",
+              "```yaml", "status: implemented", "verification: T",
+              "derives_from: []",
+              "depends_on: [FR-CORE-%03d]" % nxt if index + 1 < total else "depends_on: []",
+              "refines: []", "conflicts_with: []", "code: []", "tests: []",
+              "created: 2026-10-06", "```", "",
+              "The system **shall** act %d." % number, ""]
+open("/tmp/srs-view-nav/specs/10-fr-core.md", "w", encoding="utf-8").write("\n".join(lines))
+PYBIG
+( cd "$NAV" && python3 srs-dd/tools/srs_view.py --html big.html --link arch.html ) >/dev/null
+grep -q "are not drawn" "$NAV/big.html" \
+    || { echo "INV-SPEC-130 — the lab did not reach the graph's limit, so the case is untested"; exit 1; }
+grep -q '<a href="arch.html">the architecture document</a>' "$NAV/big.html" \
+    || { echo "INV-SPEC-130 — the page dropped its links where the graph dropped nodes"; exit 1; }
+echo "view-smoke: the links survive a page whose graph had to drop nodes"
+
+echo "view-smoke: the page links exactly the published pages its caller named"
+# srs-end: INV-SPEC-130

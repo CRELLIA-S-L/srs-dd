@@ -1058,7 +1058,11 @@ python3 tools/srs_init.py "$GT2" --defaults --areas APP --ci both --grounds yes 
 for f in .github/workflows/srs.yml .gitlab-ci.yml .githooks/pre-commit; do
     grep -qF "python3 srs-dd/tools/srs_gate.py" "$GT2/$f" \
         || { echo "FAIL FR-CI-180 — the installed $f does not run the gate through srs-dd/tools/srs_gate.py"; exit 1; }
-    if grep -qE "python3 srs-dd/tools/srs_(check|grounds|arch)\.py" "$GT2/$f"; then
+    # A checker run as its own step is what the gate replaced; the same tool
+    # asked for a page is a renderer and not a step of the gate, so a line
+    # carrying --html does not count.
+    if grep -E "python3 srs-dd/tools/srs_(check|grounds|arch)\.py" "$GT2/$f" \
+            | grep -qv -- "--html"; then
         echo "FAIL FR-CI-180 — the installed $f still runs a step of the gate itself"; exit 1
     fi
 done

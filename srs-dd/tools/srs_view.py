@@ -16,6 +16,7 @@
     srs_view.py --coverage         gaps: no tests, code outside the spec, …
     srs_view.py --diff spec/v0.1.0 working tree against a baseline revision
     srs_view.py --html [PATH]      self-contained page, default .srs-site/
+    srs_view.py --html --link arch.html,grounds.html   with the pages beside it
     srs_view.py --json [PATH]      the model as JSON, for your own scripts
 
 Read-only by construction: it never rewrites the matrix and never gates. A broken
@@ -655,14 +656,14 @@ def ensure_parent(target):
 
 
 # implements: FR-VIEW-070, FR-VIEW-080
-def write_site(model, target, diff=None):
+def write_site(model, target, diff=None, named=()):
     page = page_module()
     out_dir = ensure_parent(target)
     # Only here: build_model runs inside load_revision too, and a model
     # that collected baselines would load a revision to build a model.
     baselines = baseline_snapshots()
     with open(target, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write(page.render_site(model, out_dir, diff, baselines))
+        handle.write(page.render_site(model, out_dir, diff, baselines, named))
     # Only the default directory ignores itself: writing a .gitignore
     # into a path the user named would be presumptuous.
     if os.path.realpath(out_dir) == os.path.realpath(DEFAULT_SITE):
@@ -754,6 +755,11 @@ def parse_args(argv):
                         help="print each requirement or decision (ADR-NNNN) as a "
                              "citation ready to paste: identifier, title, file "
                              "and status")
+    # implements: INV-SPEC-130
+    parser.add_argument("--link", metavar="PAGE,…",
+                        help="the published pages beside this one, linked from it: "
+                             "arch.html, grounds.html (with --html)")
+    # srs-end: INV-SPEC-130
     parser.add_argument("--repo-url", dest="repo_url", metavar="URL",
                         help="blob-URL prefix for links to code, overriding "
                              "repo_url in specs/srs-config.json; in CI the "
@@ -823,6 +829,12 @@ def main(argv=None):
         return 0
         # srs-end: FR-VIEW-120
 
+    # implements: INV-SPEC-130
+    if args.link and args.html is None:
+        sys.stderr.write("--link belongs to --html: there is no page to link from\n")
+        return 2
+    # srs-end: INV-SPEC-130
+
     diff = None
     if args.diff:
         # A bare version names a baseline, which may have no tag: the log
@@ -876,7 +888,15 @@ def main(argv=None):
             # srs-end: IF-VIEW-010
 
         if args.html is not None:
-            written = write_site(model, args.html, diff)
+            # implements: INV-SPEC-130
+            named = []
+            if args.link:
+                named, problem = page_module().read_links(args.link)
+                if problem:
+                    sys.stderr.write("%s\n" % problem)
+                    return 2
+            # srs-end: INV-SPEC-130
+            written = write_site(model, args.html, diff, named)
             out("Page written: %s" % written)
             if args.open:
                 # implements: FR-VIEW-140
