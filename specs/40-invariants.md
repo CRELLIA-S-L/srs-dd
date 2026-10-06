@@ -490,7 +490,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```

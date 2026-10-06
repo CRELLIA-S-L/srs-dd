@@ -18,7 +18,7 @@ Total requirements: 378.
 
 | Requirement | Status | Method | Code | Tests |
 |---|---|---|---|---|
-| **CON-ARCH-010** The architecture layer writes nowhere else | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
+| **CON-ARCH-010** The architecture layer writes nowhere else | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/tools/srs_arch_doc.py` | `tests/arch-rules.sh` |
 | **CON-ARCH-020** The map is generated | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-check.sh` |
 | **CON-GND-010** The grounds layer writes nowhere else | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **CON-GND-020** The dashboard is generated | `implemented` | T | `srs-dd/tools/srs_grounds.py`<br>`grounds/90-dashboard.md` | `tests/grounds-rules.sh`<br>`tests/grounds-check.sh` |
@@ -241,7 +241,7 @@ Total requirements: 378.
 | **FR-INIT-250** Every account of what an upgrade leaves alone names each kind | `superseded` | T | `docs/install.md`<br>`docs/upgrade.md`<br>`tools/srs_init.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/standard-vocabulary.sh` |
 | **FR-INIT-260** The tooling arrives without this framework's decision numbers | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-270** An upgrade refreshes the tooling and the skills without a flag | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
-| **FR-INIT-280** What stays the framework's says whose it is | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_baseline.py`<br>`srs-dd/tools/srs_dates.py`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`.claude/skills`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md`<br>`srs-dd/method.md`<br>`srs-dd/README.md`<br>`srs-dd/LICENSE` | `tests/installer-smoke.sh` |
+| **FR-INIT-280** What stays the framework's says whose it is | `implemented` | T | `srs-dd/tools/srs_check.py`<br>`srs-dd/tools/srs_parse.py`<br>`srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_upgrade.py`<br>`srs-dd/tools/srs_baseline.py`<br>`srs-dd/tools/srs_dates.py`<br>`srs-dd/tools/srs_gate.py`<br>`srs-dd/tools/srs_grounds.py`<br>`srs-dd/tools/srs_arch.py`<br>`srs-dd/tools/srs_arch_doc.py`<br>`.claude/skills`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md`<br>`srs-dd/method.md`<br>`srs-dd/README.md`<br>`srs-dd/LICENSE` | `tests/installer-smoke.sh` |
 | **FR-INIT-290** The hook and the pipelines are the project's files | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-300** The installer says whether the hook runs the gate | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-310** The installer says whether a pipeline runs the gate | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
@@ -290,7 +290,7 @@ Total requirements: 378.
 | **FR-SKILL-350** A change records the decisions its requirement left open | `implemented` | I | `srs-dd/standard.md`<br>`.claude/skills/srs/SKILL.md`<br>`AGENTS.md`<br>`skeleton/AGENTS.md` | `tests/skill-instructions.sh` |
 | **FR-SKILL-360** A build ends at the check procedure, not at the checker | `implemented` | I | `.claude/skills/srs/SKILL.md` | `tests/skill-instructions.sh` |
 | **FR-SKILL-370** A file that restates a changed requirement is re-read with it | `implemented` | I | `.claude/skills/srs/SKILL.md` | `tests/skill-instructions.sh` |
-| **FR-SKILL-380** The shipped guide names every command the installer ships | `implemented` | T | `skeleton/AGENTS.md`<br>`AGENTS.md` | `tests/guide-parity.sh` |
+| **FR-SKILL-380** The shipped guide names every command the installer ships | `implemented` | T | `srs-dd/guide.md`<br>`skeleton/AGENTS.md`<br>`AGENTS.md` | `tests/guide-parity.sh` |
 | **FR-SKILL-390** The shipped guide and constitution keep sensitive data out of the repository | `implemented` | T | `skeleton/AGENTS.md`<br>`AGENTS.md` | `tests/guide-parity.sh` |
 | **FR-SKILL-400** Closing a change removes the open issue it settles | `implemented` | T | `.claude/skills/srs/SKILL.md`<br>`srs-dd/standard.md` | `tests/skill-instructions.sh` |
 | **FR-SKILL-410** The installing procedures wire the gate into the hook | `implemented` | T | `.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md` | `tests/skill-instructions.sh` |
@@ -432,7 +432,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-ARCH-410** | FR-ARCH-420 (derives_from), FR-ARCH-430 (derives_from), FR-ARCH-440 (derives_from), FR-ARCH-450 (derives_from), FR-ARCH-460 (derives_from), FR-ARCH-510 (derives_from), FR-ARCH-520 (derives_from), FR-ARCH-550 (derives_from) |
 | **FR-ARCH-430** | FR-ARCH-530 (refines) |
 | **FR-ARCH-500** | FR-ARCH-510 (depends_on) |
-| **FR-ARCH-520** | FR-ARCH-530 (depends_on), FR-CI-190 (depends_on), INV-SPEC-130 (depends_on) |
+| **FR-ARCH-520** | FR-ARCH-530 (depends_on), FR-CI-190 (depends_on), FR-DOC-050 (depends_on), INV-SPEC-130 (depends_on) |
 | **FR-ARCH-540** | FR-SKILL-520 (depends_on) |
 | **FR-ARCH-550** | FR-ARCH-560 (depends_on) |
 | **FR-ARCH-570** | FR-ARCH-580 (derives_from), FR-SKILL-530 (depends_on) |
@@ -466,7 +466,8 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-CI-110** | FR-DOC-210 (depends_on) |
 | **FR-CI-120** | FR-CI-130 (derives_from) |
 | **FR-CI-180** | FR-INIT-290 (derives_from), FR-INIT-320 (derives_from) |
-| **FR-DOC-010** | FR-DOC-020 (depends_on), FR-DOC-030 (refines), FR-DOC-040 (refines), FR-DOC-050 (refines), FR-DOC-060 (refines), FR-DOC-070 (refines), FR-DOC-080 (refines), FR-DOC-090 (refines), FR-DOC-100 (refines), FR-DOC-110 (refines), FR-DOC-120 (refines), FR-DOC-130 (refines), FR-DOC-140 (depends_on), FR-DOC-190 (depends_on), FR-DOC-200 (depends_on), FR-DOC-210 (refines), FR-DOC-210 (depends_on) |
+| **FR-CI-190** | FR-DOC-050 (depends_on) |
+| **FR-DOC-010** | FR-DOC-020 (depends_on), FR-DOC-030 (refines), FR-DOC-040 (refines), FR-DOC-050 (refines), FR-DOC-060 (refines), FR-DOC-070 (refines), FR-DOC-080 (refines), FR-DOC-090 (refines), FR-DOC-100 (refines), FR-DOC-110 (refines), FR-DOC-120 (refines), FR-DOC-130 (refines), FR-DOC-140 (depends_on), FR-DOC-190 (depends_on), FR-DOC-200 (depends_on), FR-DOC-210 (refines) |
 | **FR-DOC-050** | FR-DOC-150 (depends_on) |
 | **FR-DOC-090** | FR-DOC-180 (depends_on) |
 | **FR-DOC-100** | FR-DOC-160 (depends_on) |
@@ -478,7 +479,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-GND-060** | FR-DOC-070 (depends_on), FR-GND-430 (depends_on) |
 | **FR-GND-070** | FR-GND-420 (depends_on) |
 | **FR-GND-110** | FR-GND-170 (depends_on), FR-GND-560 (derives_from), IF-GND-030 (depends_on) |
-| **FR-GND-140** | FR-DOC-070 (depends_on), FR-GND-150 (depends_on), FR-GND-160 (depends_on), FR-GND-190 (depends_on), FR-GND-350 (depends_on), FR-GND-550 (refines), FR-GND-550 (depends_on) |
+| **FR-GND-140** | FR-DOC-070 (depends_on), FR-GND-150 (depends_on), FR-GND-160 (depends_on), FR-GND-190 (depends_on), FR-GND-350 (depends_on), FR-GND-550 (refines) |
 | **FR-GND-150** | FR-GND-490 (depends_on) |
 | **FR-GND-160** | FR-GND-210 (depends_on), FR-GND-550 (derives_from) |
 | **FR-GND-170** | FR-GND-470 (depends_on) |
@@ -500,12 +501,12 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-GND-500** | FR-SKILL-180 (depends_on) |
 | **FR-GND-510** | FR-GND-520 (depends_on) |
 | **FR-GND-540** | FR-DOC-120 (depends_on), FR-SKILL-290 (depends_on) |
-| **FR-GND-580** | FR-CI-190 (depends_on), INV-SPEC-130 (depends_on) |
+| **FR-GND-580** | FR-CI-190 (depends_on), FR-DOC-050 (depends_on), INV-SPEC-130 (depends_on) |
 | **FR-INIT-010** | FR-DOC-080 (depends_on), FR-DOC-090 (depends_on), FR-DOC-180 (depends_on), FR-INIT-020 (derives_from), FR-INIT-030 (derives_from), FR-INIT-050 (derives_from), FR-INIT-060 (derives_from), FR-INIT-070 (depends_on), FR-INIT-100 (depends_on), FR-INIT-270 (derives_from), IF-CI-010 (depends_on) |
 | **FR-INIT-020** | CON-SPEC-020 (depends_on), FR-CI-050 (depends_on), FR-DOC-080 (depends_on), FR-INIT-140 (depends_on), FR-INIT-150 (derives_from) |
 | **FR-INIT-030** | FR-DOC-080 (depends_on), FR-DOC-090 (depends_on), FR-INIT-040 (derives_from), FR-INIT-230 (derives_from), IF-CI-010 (depends_on) |
 | **FR-INIT-040** | FR-DOC-080 (depends_on) |
-| **FR-INIT-060** | FR-INIT-110 (derives_from), FR-INIT-120 (derives_from), FR-INIT-200 (depends_on), FR-INIT-240 (derives_from), FR-INIT-250 (derives_from), FR-INIT-280 (depends_on) |
+| **FR-INIT-060** | FR-INIT-240 (derives_from), FR-INIT-250 (derives_from) |
 | **FR-INIT-070** | FR-DOC-030 (depends_on), FR-DOC-080 (depends_on), FR-INIT-130 (derives_from) |
 | **FR-INIT-080** | FR-DOC-080 (depends_on) |
 | **FR-INIT-090** | FR-DOC-080 (depends_on), FR-INIT-210 (depends_on), FR-SKILL-040 (depends_on) |
@@ -516,14 +517,14 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-INIT-170** | FR-DOC-080 (depends_on) |
 | **FR-INIT-180** | FR-DOC-130 (depends_on) |
 | **FR-INIT-210** | FR-DOC-090 (depends_on), FR-INIT-220 (depends_on), FR-SKILL-190 (depends_on) |
-| **FR-INIT-230** | FR-DOC-080 (depends_on) |
 | **FR-INIT-270** | FR-CI-180 (depends_on), FR-INIT-110 (derives_from), FR-INIT-120 (derives_from), FR-INIT-190 (depends_on), FR-INIT-280 (depends_on), FR-INIT-320 (depends_on) |
+| **FR-INIT-280** | FR-CI-170 (depends_on) |
 | **FR-INIT-290** | FR-INIT-300 (derives_from), FR-INIT-310 (derives_from), FR-INIT-360 (derives_from) |
 | **FR-INIT-300** | FR-INIT-340 (depends_on), FR-SKILL-410 (depends_on) |
 | **FR-INIT-310** | FR-INIT-340 (depends_on), FR-SKILL-420 (depends_on) |
 | **FR-INIT-320** | FR-INIT-330 (derives_from), FR-INIT-340 (derives_from), FR-INIT-380 (derives_from), FR-SKILL-430 (derives_from), FR-SKILL-440 (derives_from), FR-SKILL-450 (depends_on) |
 | **FR-INIT-360** | FR-INIT-370 (derives_from) |
-| **FR-INIT-370** | FR-SKILL-460 (derives_from) |
+| **FR-INIT-370** | FR-INIT-200 (depends_on), FR-SKILL-460 (derives_from) |
 | **FR-SKILL-010** | FR-DOC-040 (depends_on), FR-DOC-100 (depends_on), FR-DOC-110 (depends_on), FR-DOC-200 (depends_on), FR-SKILL-020 (depends_on), FR-SKILL-100 (depends_on), FR-SKILL-250 (depends_on), FR-SKILL-330 (derives_from), FR-SKILL-350 (derives_from), FR-SKILL-360 (derives_from), FR-SKILL-370 (derives_from) |
 | **FR-SKILL-020** | FR-VIEW-360 (derives_from) |
 | **FR-SKILL-030** | FR-DOC-060 (depends_on), FR-DOC-100 (depends_on), FR-SKILL-230 (depends_on), FR-SKILL-520 (derives_from) |
@@ -552,6 +553,8 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-SKILL-430** | FR-INIT-390 (derives_from), FR-SKILL-470 (depends_on) |
 | **FR-SKILL-440** | FR-INIT-370 (depends_on) |
 | **FR-SKILL-480** | FR-SKILL-510 (derives_from), FR-SKILL-530 (derives_from) |
+| **FR-SKILL-520** | FR-DOC-100 (depends_on) |
+| **FR-SKILL-530** | FR-DOC-100 (depends_on) |
 | **FR-SPEC-010** | FR-SKILL-080 (depends_on), FR-SPEC-020 (depends_on), FR-SPEC-060 (derives_from) |
 | **FR-SPEC-020** | FR-DOC-080 (depends_on), FR-INIT-170 (depends_on) |
 | **FR-SPEC-040** | FR-CHK-270 (derives_from), FR-CHK-280 (derives_from), FR-CHK-290 (derives_from) |
@@ -579,7 +582,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-VIEW-340** | FR-CI-110 (depends_on), FR-DOC-120 (depends_on), FR-DOC-210 (depends_on) |
 | **FR-VIEW-350** | FR-DOC-120 (depends_on) |
 | **FR-VIEW-360** | FR-DOC-120 (depends_on) |
-| **FR-VIEW-370** | FR-DOC-120 (depends_on), FR-VIEW-380 (derives_from), FR-VIEW-380 (depends_on) |
+| **FR-VIEW-370** | FR-DOC-120 (depends_on), FR-VIEW-380 (derives_from) |
 | **FR-VIEW-380** | FR-DOC-120 (depends_on), FR-SPEC-040 (depends_on), FR-VIEW-400 (derives_from) |
 | **FR-VIEW-400** | FR-CHK-280 (depends_on) |
 | **IF-ARCH-010** | FR-ARCH-020 (depends_on), FR-ARCH-030 (depends_on), FR-ARCH-310 (depends_on), FR-ARCH-340 (depends_on), FR-ARCH-500 (depends_on), FR-ARCH-540 (depends_on), FR-SKILL-520 (depends_on), INV-ARCH-010 (depends_on) |
@@ -594,7 +597,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **IF-SPEC-020** | FR-SPEC-050 (derives_from) |
 | **IF-SPEC-030** | FR-VIEW-330 (depends_on) |
 | **IF-SPEC-040** | FR-CHK-010 (depends_on), FR-CHK-080 (depends_on), FR-CHK-100 (depends_on), FR-CHK-300 (depends_on) |
-| **IF-SPEC-050** | FR-CI-190 (depends_on), INV-SPEC-130 (depends_on) |
+| **IF-SPEC-050** | FR-CI-190 (depends_on), FR-DOC-050 (depends_on), INV-SPEC-130 (depends_on) |
 | **IF-VIEW-010** | FR-ARCH-010 (depends_on), FR-DOC-120 (depends_on) |
 | **INV-GND-010** | FR-GND-180 (depends_on), IF-GND-010 (depends_on) |
 | **INV-GND-020** | FR-DOC-070 (depends_on), FR-GND-040 (depends_on), FR-GND-050 (depends_on), FR-GND-070 (depends_on), FR-GND-080 (depends_on), INV-GND-030 (depends_on) |
@@ -609,6 +612,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **INV-SPEC-070** | FR-VIEW-270 (depends_on) |
 | **INV-SPEC-080** | INV-SPEC-090 (derives_from) |
 | **INV-SPEC-100** | INV-SPEC-110 (derives_from) |
+| **INV-SPEC-130** | FR-DOC-050 (depends_on) |
 | **NFR-SKILL-010** | FR-DOC-060 (depends_on), FR-SKILL-380 (derives_from), NFR-SKILL-020 (derives_from) |
 | **NFR-SKILL-020** | FR-SKILL-300 (derives_from), FR-SKILL-310 (depends_on) |
 | **NFR-SPEC-010** | FR-DOC-030 (depends_on), NFR-SPEC-020 (derives_from) |
@@ -698,6 +702,6 @@ Verified by means other than testing — or the check has not been set up yet.
 
 ## Code files outside the specification
 
-No requirement references them: 0 of 6.
+No requirement references them: 0 of 18.
 
 

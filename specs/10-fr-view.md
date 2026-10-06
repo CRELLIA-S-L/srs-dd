@@ -848,7 +848,7 @@ What this prints is the case laid out for a reader instead.
 status: implemented
 verification: T
 derives_from: [FR-VIEW-370]
-depends_on: [FR-VIEW-370]
+depends_on: []
 refines: []
 conflicts_with: []
 code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_check.py]
@@ -857,6 +857,8 @@ created: 2026-09-20
 ```
 
 When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region it marks — for a block on lines of its own the lines down to its `srs-end:`, blocks inside it included, or without one down to the next block or a bounded number of lines; for an annotation after code the line it stands on; and for a `file` annotation the file, bounded.
+
+**The duplicate `depends_on: [FR-VIEW-370]` went on 2026-10-06**, by the audit before the 0.22.0 baseline: `derives_from` says the whole of the relation, and the same end under two fields drew the link twice wherever anything reads the radius.
 
 **Rationale.** Knowing the line saves the search; printing the region saves the read that follows it, and the two together turn three turns per requirement into one call.
 The region is what the author marked, the same in every language (`CON-SPEC-040`): the lines from a block down to the `srs-end:` that names one of its requirements, a nested block included because what is nested belongs to what encloses it.

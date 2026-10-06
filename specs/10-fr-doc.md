@@ -99,7 +99,7 @@ The repair is stated in the specification's own terms: a plan cites a requiremen
 status: implemented
 verification: I
 derives_from: []
-depends_on: [IF-SPEC-010, FR-CHK-030, FR-CHK-050, FR-CHK-055, FR-CHK-040, FR-CHK-240, FR-CHK-080, FR-CHK-200, FR-CHK-140, FR-CHK-150, FR-CHK-120, FR-VIEW-060, FR-VIEW-100, FR-VIEW-110]
+depends_on: [IF-SPEC-010, FR-CHK-030, FR-CHK-050, FR-CHK-055, FR-CHK-040, FR-CHK-240, FR-CHK-080, FR-CHK-200, FR-CHK-140, FR-CHK-150, FR-CHK-120, FR-VIEW-060, FR-VIEW-100, FR-VIEW-110, FR-ARCH-520, FR-GND-580, IF-SPEC-050, INV-SPEC-130, FR-CI-190]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -107,11 +107,14 @@ tests: []
 created: 2026-09-18
 ```
 
-*A requirement, and what the tooling does with it* **shall** show one requirement in the shape the standard defines, say what the checker fails on and what it only warns about, and say what the rendered page offers.
+*A requirement, and what the tooling does with it* **shall** show one requirement in the shape the standard defines, say what the checker fails on and what it only warns about, and say what the rendered pages offer — the specification's and, where a project keeps a layer, that layer's — and that they are published as one linked set.
+
+**The statement named one page until 2026-10-06**, by the audit before the 0.22.0 baseline: the section gained the layers' pages and the published set when they were built in this release, and the statement and the fields did not follow, which is the re-reading `FR-DOC-200` asks for and nothing enforces.
 
 **Rationale.** A stranger decides on the shape of the thing they will write every day, so the block is shown rather than described — a heading, a small metadata block, one statement, the reason — in the form `IF-SPEC-010` fixes, and `FR-DOC-150` holds the example to the parser so that the shape shown is the shape accepted.
 What the checker fails on and what it warns about are two lists a reader weighs differently, and each entry in them is a rule of the checker's: a dangling link (`FR-CHK-030`), a status without code (`FR-CHK-050`), a path that does not exist (`FR-CHK-055`), a cycle in either graph (`FR-CHK-040`, `FR-CHK-240`), an annotation naming nothing (`FR-CHK-080`); a file that does not name its requirement back (`FR-CHK-200`), a test-verified requirement with no test (`FR-CHK-140`), a requirement no link touches (`FR-CHK-150`); `--strict` promoting the second list (`FR-CHK-120`).
 The page is named for what it offers rather than how it is built — search, filters, the dashboard, the gaps, the graph and the comparison of baselines (`FR-VIEW-060`, `FR-VIEW-110`, `FR-VIEW-100`) — and for the one property a stranger cares about, that it opens from a file with nothing fetched.
+The layers' pages are named the same way — the architecture drawn (`FR-ARCH-520`), the register's dashboard printed (`FR-GND-580`) — and the set they make is named by what a reader does with it: three fixed names (`IF-SPEC-050`), each page linking the others (`INV-SPEC-130`), published by the starters for whichever layers the project keeps (`FR-CI-190`).
 
 ### FR-DOC-060 — The benefits section names a capability per entry, and each is a requirement's
 
@@ -163,7 +166,7 @@ When not to keep one is the paragraph that makes the rest credible: a register o
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-INIT-010, FR-INIT-020, FR-INIT-030, FR-INIT-040, FR-INIT-070, FR-INIT-080, FR-INIT-090, FR-INIT-170, FR-INIT-230, FR-SPEC-020]
+depends_on: [FR-INIT-010, FR-INIT-020, FR-INIT-030, FR-INIT-040, FR-INIT-070, FR-INIT-080, FR-INIT-090, FR-INIT-170, FR-SPEC-020]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -172,6 +175,8 @@ created: 2026-09-18
 ```
 
 *Install* **shall** carry the clone command and the installer's invocation, name what the installer asks for, name the flags that answer for a person and that write nothing, say what adoption of an existing specification does and does not touch, and link to the installation and upgrade documents.
+
+**The dependency on `FR-INIT-230` went on 2026-10-06**, by the audit before the 0.22.0 baseline: it was superseded in this release, and what adoption does and does not touch is `FR-INIT-040`, which this already named.
 
 **Rationale.** This is the section a person copies from, so what it carries is commands and the facts a person needs before running them: the questions coming — name, areas, roots, extensions, a CI template, the lexicon (`FR-INIT-090`), the register and its period, the layer; `--defaults` and `--dry-run` (`FR-INIT-070`); that an existing specification is validated first, its requirements never modified (`FR-INIT-040`), its own standard set aside for ours (`FR-INIT-230`) and the whole left byte-identical on failure (`FR-INIT-030`); that undated requirements are offered a date from the history (`FR-INIT-170`, `FR-SPEC-020`); that a pre-commit hook already in place is not displaced (`FR-INIT-080`).
 The details, the modes and the exit codes are in `docs/install.md` and the upgrade path in `docs/upgrade.md`, linked rather than repeated, and `FR-DOC-190` holds the links.
@@ -203,7 +208,7 @@ The three decisions — the areas and the lexicon (`FR-SKILL-040`) and the line 
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-SKILL-010, FR-SKILL-030, FR-SKILL-050, FR-SKILL-060, FR-SKILL-080, FR-SKILL-090, FR-SKILL-100, FR-SKILL-110, FR-SKILL-120, FR-SKILL-130, FR-SKILL-170, FR-SKILL-180, FR-SKILL-260, FR-GND-320, FR-ARCH-150]
+depends_on: [FR-SKILL-010, FR-SKILL-030, FR-SKILL-050, FR-SKILL-060, FR-SKILL-080, FR-SKILL-090, FR-SKILL-100, FR-SKILL-110, FR-SKILL-120, FR-SKILL-130, FR-SKILL-170, FR-SKILL-180, FR-SKILL-260, FR-GND-320, FR-ARCH-150, FR-SKILL-520, FR-SKILL-530]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -213,8 +218,10 @@ created: 2026-09-18
 
 *What you then tell the agent to do* **shall** list every procedure the installer copies into a project — with what to say to invoke it and what the procedure does — and name the rules that bind all of them.
 
+**The two new procedures were drawn in on 2026-10-06**, by the audit before the 0.22.0 baseline: the table gained the recovery and the architecture audit when they were built in this release and the field did not, so a change to either reached the table through `FR-DOC-160` alone, which holds the set of names and says nothing about what the rows claim.
+
 **Rationale.** After the install the procedures are in the project's own tree, and the table is the moment a reader learns that they exist and what each is for; a procedure missing from it is one no one asks for by name.
-`FR-DOC-160` holds the set of names to what the installer copies, including the two that arrive only with a register (`FR-GND-320`) or a layer (`FR-ARCH-150`); what each does is its own requirement's — the loop (`FR-SKILL-010`), harvesting that proposes (`FR-SKILL-030`), an audit that reports and repairs nothing and offers the links an area lacks (`FR-SKILL-050`, `FR-SKILL-260`), authoring that judges the statement, asks what it stands on and stops at the requirement (`FR-SKILL-120`, `FR-SKILL-180`, `FR-SKILL-090`), the check that names what to run (`FR-SKILL-100`), the baseline that settles the number and offers an audit (`FR-SKILL-080`, `FR-SKILL-130`).
+`FR-DOC-160` holds the set of names to what the installer copies, including the two that arrive only with a register (`FR-GND-320`) or a layer (`FR-ARCH-150`); what each does is its own requirement's — the loop (`FR-SKILL-010`), harvesting that proposes (`FR-SKILL-030`), an audit that reports and repairs nothing and offers the links an area lacks (`FR-SKILL-050`, `FR-SKILL-260`), authoring that judges the statement, asks what it stands on and stops at the requirement (`FR-SKILL-120`, `FR-SKILL-180`, `FR-SKILL-090`), the check that names what to run (`FR-SKILL-100`), the baseline that settles the number and offers an audit (`FR-SKILL-080`, `FR-SKILL-130`), recovering a cut in batches somebody approves (`FR-SKILL-520`) and the architecture audit that ends each finding in an act (`FR-SKILL-530`).
 The three rules at the end are why an agent with these is safer than one without, and they are the specification's: it proposes and the maintainer approves (`FR-SKILL-030`), it runs nothing unasked, and it reports what follows rather than what it noticed (`FR-SKILL-170`).
 
 ### FR-DOC-110 — The loop section states the five steps as the installed guide states them
@@ -419,7 +426,7 @@ The same set of edits, for the reason the loop gives for the requirement and the
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-DOC-010, FR-CI-110, FR-VIEW-340, FR-VIEW-110]
+depends_on: [FR-CI-110, FR-VIEW-340, FR-VIEW-110]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md, .github/workflows/srs.yml]
@@ -428,6 +435,8 @@ created: 2026-09-18
 ```
 
 *What it looks like* **shall** show the graph image the pipeline publishes beside the page — this page's own requirements and everything they link to — as a link to the live page, and say what a box and a line are and which lane is the page's own.
+
+**The duplicate `depends_on: [FR-DOC-010]` went on 2026-10-06**, by the audit before the 0.22.0 baseline: `refines` says the whole of the relation, and the same end under two fields drew the link twice wherever anything reads the radius.
 
 **Rationale.** A stranger who has recognised the problem wants to see the thing, and the page is the one place a forge lets them: it strips frames and scripts and shows an image, so the image is what a reader gets who has not clicked.
 The image is the pipeline's (`FR-CI-110`), drawn by the viewer (`FR-VIEW-340`) from the specification at every deploy, so the page never shows a picture older than itself and nobody keeps a screenshot; the gate holds the name the page shows to the name the pipeline writes, because a picture addressed by URL breaks in silence when either side renames it.

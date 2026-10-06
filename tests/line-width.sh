@@ -56,9 +56,10 @@ def wide(path, lines=None):
     return found
 
 
-# --- Negation first, on lines written for it: this gate reads the repository
-# --- itself, so on a clean tree it prints success whatever its own logic does.
-# --- One case per clause of FR-CI-100, and the boundary on both sides.
+# --- The cases this gate is not already held to from outside. `checker-rules.sh`
+# --- runs it against a lab with a wide line and a long literal, which covers the
+# --- refusal and the exemption; what it cannot reach from there is the boundary
+# --- itself, the literal-block exemption, and the limit's own value.
 # The number itself, from the requirement and not from the code: cases computed
 # from LIMIT move with it, so raising it would pass every one of them.
 assert LIMIT == 120, "FR-CI-100 says 120 columns"

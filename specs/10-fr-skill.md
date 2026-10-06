@@ -1019,12 +1019,14 @@ derives_from: [NFR-SKILL-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [skeleton/AGENTS.md, AGENTS.md]
+code: [srs-dd/guide.md, skeleton/AGENTS.md, AGENTS.md]
 tests: [tests/guide-parity.sh]
 created: 2026-09-24
 ```
 
 The agent guide the framework ships **shall** name every command the installer copies into a project.
+
+**The field gained `srs-dd/guide.md` on 2026-10-06**, by the audit before the 0.22.0 baseline: the guide the statement is about has been a file of its own since the framework took a directory in this release, and the field named only the two guides that carry its region, so `--code` on the source answered as if no rule governed it.
 
 **Rationale.** A project's agents learn what they can run from the guide they read in every session, and the procedures reach them by path through it (`NFR-SKILL-010`).
 The optional layers and the dating command were added after the guide was written, each with its requirements, its procedure and its CI step, and none named the guide: on 2026-09-24 it mentioned the two layers only through their `--cite` commands, and `srs-dd/tools/srs_dates.py` not at all, so a project that kept a layer added the lines by hand and turned its guide into a fork that `--force` would overwrite.

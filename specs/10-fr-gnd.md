@@ -1314,7 +1314,7 @@ An unknown identifier is refused in the same run, naming it.
 status: implemented
 verification: T
 derives_from: [FR-GND-160]
-depends_on: [FR-GND-140]
+depends_on: []
 refines: [FR-GND-140]
 conflicts_with: []
 code: [srs-dd/tools/srs_grounds.py]
@@ -1323,6 +1323,8 @@ created: 2026-09-21
 ```
 
 Where a hypothesis is of class III, the grounds checker **shall not** compel the verdict of a measurement from how far its sample can miss, reporting a row only where it cannot be compared at all, where its verdict is not a word a measurement can reach, or where the verdict contradicts the threshold's own words — a refutation on the safe side of the bound, or on a sample smaller than the threshold names.
+
+**The duplicate `depends_on: [FR-GND-140]` went on 2026-10-06**, by the audit before the 0.22.0 baseline: `refines` says the whole of the relation, and the same end under two fields drew the link twice wherever anything reads the radius.
 
 **Rationale.** `FR-GND-140` compels a verdict from the threshold so that it stops being an opinion, and for a number an instrument or an experiment produced that is right.
 A class III measurement is a person's reading of interviews, observation and judgement, and its populations are small by nature: at `n = 2` the interval `FR-GND-150` computes reaches 0.575 even when both answers were no, so the arithmetic compels `supported` for every threshold a claim about two people could carry — a maintainer who talked to both, concluded it does not hold and wrote `refuted` was told the opposite by a comparison nobody could have won.

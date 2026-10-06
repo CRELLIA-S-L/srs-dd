@@ -36,6 +36,21 @@ def names_records(text):
 
 
 tools_py = set(glob.glob("tools/*.py")) | set(glob.glob("srs-dd/tools/*.py"))
+
+
+def shipped_srs_dir():
+    """Everything under srs-dd/ the installer copies, read off its own tuples, the
+    source of the guide aside: it is the one file of ours whose text becomes part of
+    the project's document, so a notice of ours in it would claim their file."""
+    sys.path.insert(0, "tools")
+    sys.dont_write_bytecode = True
+    import srs_init
+    tools = srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS
+    return ({os.path.join(srs_init.SRS_TOOLS, name).replace(os.sep, "/") for name in tools}
+            | {path.replace(os.sep, "/") for path in srs_init.DIR_FILES}
+            | {srs_init.GROUNDS_STANDARD.replace(os.sep, "/"),
+               srs_init.ARCH_STANDARD.replace(os.sep, "/")}) - {srs_init.GUIDE_SOURCE.replace(os.sep, "/")}
+
 # The requirement, the kind of path it claims, and the set of that kind it
 # must name — the kind filters the field, so a guide beside the procedures
 # in FR-SKILL-200's field is neither required nor in the way.
@@ -54,6 +69,12 @@ CLAIMS = (
     # tool that uses them is one the invariant binds.
     ("INV-SPEC-080", r"^(srs-dd/)?tools/", {p for p in tools_py if "NUMBER" in open(p, encoding="utf-8").read()}),
     ("INV-SPEC-090", r"^(srs-dd/)?tools/", {p for p in tools_py if "id_key" in open(p, encoding="utf-8").read()}),
+    # Every file of the framework's own directory the installer copies: the
+    # tools of the core and of both layers, the standards and the documents.
+    # The source of the guide is excused by name — its text lands inside the
+    # project's own AGENTS.md — and the skills are a directory in the field,
+    # which the kind leaves out.
+    ("FR-INIT-280", r"^srs-dd/", shipped_srs_dir()),
 )
 
 

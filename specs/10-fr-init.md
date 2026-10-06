@@ -217,7 +217,7 @@ If the target lies inside this repository, the installer **shall** refuse before
 ```yaml
 status: implemented
 verification: I
-derives_from: [FR-INIT-060, FR-INIT-270]
+derives_from: [FR-INIT-270]
 depends_on: []
 refines: []
 conflicts_with: []
@@ -228,6 +228,8 @@ created: 2026-08-07
 
 When upgrading, the installer **shall** print the version transition and the upgrade notes recorded for the versions being crossed.
 
+**The link to `FR-INIT-060` went on 2026-10-06**, by the audit before the 0.22.0 baseline: that requirement was superseded in this release, and its successor `FR-INIT-360` is about which files are the project's — nothing to do with where upgrade notes come from. What this derives from is `FR-INIT-270`, which it already named.
+
 **Rationale.** A maintainer who upgrades three versions at once needs the notes for all three, and nobody reads a changelog they were not handed.
 
 ### FR-INIT-120 — Upgrading is one command inside the project
@@ -235,7 +237,7 @@ When upgrading, the installer **shall** print the version transition and the upg
 ```yaml
 status: implemented
 verification: T
-derives_from: [FR-INIT-060, FR-INIT-270]
+derives_from: [FR-INIT-270]
 depends_on: [FR-INIT-140]
 refines: []
 conflicts_with: []
@@ -245,6 +247,8 @@ created: 2026-08-08
 ```
 
 When run inside an initialized project, the upgrader **shall** fetch the framework that project was installed from, run its installer against the project, and remove what it fetched.
+
+**The link to `FR-INIT-060` went on 2026-10-06**, for the reason `FR-INIT-110` gives: the superseded requirement's successor is about the project's own files, and `FR-INIT-270` is what upgrading in one command derives from.
 
 **Rationale.** The old procedure asked a maintainer to keep a framework clone somewhere, remember where, and pull it before every upgrade.
 Nothing in the project pointed at any of that, so an agent working there could not upgrade without being handed the address — which is the whole reason this exists.
@@ -412,7 +416,7 @@ One line per file, in the shape the marker already has, rather than one per anno
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-INIT-060]
+depends_on: [FR-INIT-370]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
@@ -421,6 +425,8 @@ created: 2026-09-08
 ```
 
 The installer **shall** record the project's name in the target's configuration, so that a later run can rewrite the agent guides without asking for it again.
+
+**The dependency moved from `FR-INIT-060` to `FR-INIT-370` on 2026-10-06**, by the audit before the 0.22.0 baseline: rewriting the guides without asking again is now the refreshing of the framework's region in place, and that is where this rests.
 
 **Rationale.** `AGENTS.md` and `CLAUDE.md` are the only payload files that are filled in rather than copied: each template carries the project's name, and `AGENTS.md` also carries the line `FR-INIT-220` writes about its width — answers a person gives at install.
 An upgrade does not ask those questions, so until the answers were kept there was nothing to fill the template with — and the installer's response was to leave the guides alone entirely, with `--force` and without it.
@@ -603,15 +609,17 @@ Nothing moved between the two lists when they were split: the tooling and the sk
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-INIT-270, FR-INIT-060]
+depends_on: [FR-INIT-270]
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md, srs-dd/method.md, srs-dd/README.md, srs-dd/LICENSE]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md, srs-dd/method.md, srs-dd/README.md, srs-dd/LICENSE]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
 Every file the installer copies into a target whose text stays the framework's — the tools, the skills, the standards and the documents of its own directory, the source of the guide aside — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+
+**The link to `FR-INIT-060` went on 2026-10-06**: a notice belongs to the files that stay the framework's, and the superseded requirement's successor is about the ones that are the project's.
 
 **Rationale.** The licence asks that its notice travel with every copy, and none of the files the installer copies said who holds the copyright or on what terms: a tool lifted from an installed project carried the framework's name and version and no notice of whose it was.
 The notice goes into the file rather than beside it, because a file is what gets copied on, one at a time.

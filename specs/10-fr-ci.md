@@ -392,7 +392,9 @@ tests: []
 created: 2026-09-25
 ```
 
-After each suite, the local gate **shall** fail where the suite left `tools/__pycache__` behind and it was not there before.
+After each suite, the local gate **shall** fail where the suite left behind a bytecode directory beside the tooling that was not there before.
+
+**The statement said `tools/__pycache__` until 2026-10-06**, by the audit before the 0.22.0 baseline: the tooling moved to `srs-dd/tools/` in this release and the gate was widened to watch both trees without the statement following it. It now names the directory by what it is rather than where it was, and the gate takes each tree on its own — a cache standing in one before the suite ran no longer covers for the other — and says which directory it found.
 
 **Rationale.** A suite that imports a tool to read its tuples writes that tool's bytecode beside it unless it says not to, and `CONTRIBUTING.md` asked it of every tool that imports another and of no suite.
 On 2026-09-25 five of them did it — `docs-content`, `guide-parity`, `proc-eval-smoke`, `standard-rules` and `upgrade-smoke` — and the tree carried the files until somebody looked.
@@ -405,7 +407,7 @@ Inspection, as `FR-CI-030` is: the gate is the thing that runs the suites, and a
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-CI-020]
+depends_on: [FR-CI-020, FR-INIT-280]
 refines: []
 conflicts_with: []
 code: [tests/notice.sh]
@@ -414,6 +416,8 @@ created: 2026-09-30
 ```
 
 The local gate **shall** refuse a file of code this repository keeps — a tool, a suite, its own pipeline and hook, the starters under `ci/` aside — that does not carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+
+**The dependency on `FR-INIT-280` was drawn on 2026-10-06**, by the audit before the 0.22.0 baseline: the rationale below named it twice and no field did, so a change to which shipped files carry the notice did not reach the gate that refuses them.
 
 **Rationale.** The licence covers the repository from its root, and a file lifted from it on its own carries nothing of that: the notice has to be in the file.
 Written as a rule for contributors it would hold until the first file somebody forgot, so it is a gate, as the width of a line is (`FR-CI-100`) — over the same files, the code a person writes here, markdown aside.
