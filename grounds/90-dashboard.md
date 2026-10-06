@@ -71,17 +71,17 @@ Counted by quarter, which is what `period` says in the register's configuration.
 | quarter | arrived unclaimed | areas |
 |---|---|---|
 | 2026-Q3 | 291 | ARCH 35, CHK 32, CI 20, DOC 1, GND 67, INIT 27, SKILL 43, SPEC 28, VIEW 38 |
-| 2026-Q4 | 48 | ARCH 25, CHK 1, CI 1, GND 1, INIT 8, SKILL 9, SPEC 3 |
+| 2026-Q4 | 55 | ARCH 30, CHK 1, CI 1, GND 1, INIT 8, SKILL 11, SPEC 3 |
 
 ## Requirements resting on no hypothesis
 
-339 of 367 requirements. Weight is what stands on them: how many
+346 of 374 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
+| FR-ARCH-010 | 22 | 1 | 23 |
 | FR-VIEW-060 | 22 | 1 | 23 |
-| FR-ARCH-010 | 21 | 1 | 22 |
 | FR-SKILL-200 | 8 | 14 | 22 |
 | IF-SPEC-010 | 17 | 2 | 19 |
 | CON-SPEC-030 | 2 | 16 | 18 |
@@ -90,16 +90,17 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-020 | 1 | 15 | 16 |
 | FR-CI-020 | 9 | 4 | 13 |
 | FR-CI-090 | 0 | 13 | 13 |
-| FR-GND-010 | 11 | 1 | 12 |
+| FR-GND-010 | 12 | 1 | 13 |
 | FR-SKILL-010 | 11 | 1 | 12 |
 | IF-GND-010 | 10 | 2 | 12 |
 | FR-ARCH-090 | 10 | 1 | 11 |
 | FR-INIT-010 | 10 | 1 | 11 |
 | IF-SPEC-040 | 4 | 6 | 10 |
 | INV-SPEC-090 | 0 | 10 | 10 |
+| FR-ARCH-410 | 8 | 1 | 9 |
 | FR-CHK-080 | 7 | 2 | 9 |
+| IF-ARCH-010 | 8 | 1 | 9 |
 | CON-GND-020 | 6 | 2 | 8 |
-| FR-ARCH-410 | 7 | 1 | 8 |
 | FR-CI-010 | 4 | 4 | 8 |
 | FR-CI-180 | 2 | 6 | 8 |
 | FR-GND-140 | 7 | 1 | 8 |
@@ -110,9 +111,9 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CHK-030 | 6 | 1 | 7 |
 | FR-INIT-270 | 6 | 1 | 7 |
 | FR-VIEW-010 | 6 | 1 | 7 |
-| IF-ARCH-010 | 6 | 1 | 7 |
 | INV-SPEC-010 | 5 | 2 | 7 |
 | CON-SPEC-010 | 4 | 2 | 6 |
+| FR-ARCH-060 | 5 | 1 | 6 |
 | FR-ARCH-170 | 2 | 4 | 6 |
 | FR-ARCH-360 | 4 | 2 | 6 |
 | FR-CHK-050 | 5 | 1 | 6 |
@@ -132,7 +133,6 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-050 | 3 | 3 | 6 |
 | NFR-SKILL-010 | 3 | 3 | 6 |
 | CON-SPEC-020 | 3 | 2 | 5 |
-| FR-ARCH-060 | 4 | 1 | 5 |
 | FR-ARCH-110 | 4 | 1 | 5 |
 | FR-ARCH-150 | 3 | 2 | 5 |
 | FR-ARCH-240 | 2 | 3 | 5 |
@@ -221,6 +221,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-280 | 0 | 3 | 3 |
 | FR-SKILL-290 | 1 | 2 | 3 |
 | FR-SKILL-430 | 2 | 1 | 3 |
+| FR-SKILL-480 | 2 | 1 | 3 |
 | FR-SPEC-020 | 2 | 1 | 3 |
 | FR-VIEW-100 | 1 | 2 | 3 |
 | FR-VIEW-120 | 1 | 2 | 3 |
@@ -236,6 +237,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-040 | 1 | 1 | 2 |
 | FR-ARCH-130 | 0 | 2 | 2 |
 | FR-ARCH-140 | 0 | 2 | 2 |
+| FR-ARCH-210 | 1 | 1 | 2 |
 | FR-ARCH-280 | 1 | 1 | 2 |
 | FR-ARCH-330 | 0 | 2 | 2 |
 | FR-ARCH-350 | 0 | 2 | 2 |
@@ -247,6 +249,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-470 | 0 | 2 | 2 |
 | FR-ARCH-480 | 0 | 2 | 2 |
 | FR-ARCH-490 | 0 | 2 | 2 |
+| FR-ARCH-570 | 2 | 0 | 2 |
 | FR-CHK-010 | 1 | 1 | 2 |
 | FR-CHK-040 | 1 | 1 | 2 |
 | FR-CHK-060 | 1 | 1 | 2 |
@@ -300,7 +303,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-410 | 0 | 2 | 2 |
 | FR-SKILL-420 | 0 | 2 | 2 |
 | FR-SKILL-460 | 0 | 2 | 2 |
-| FR-SKILL-480 | 1 | 1 | 2 |
 | FR-SPEC-030 | 0 | 2 | 2 |
 | FR-SPEC-050 | 1 | 1 | 2 |
 | FR-VIEW-030 | 1 | 1 | 2 |
@@ -324,7 +326,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-080 | 0 | 1 | 1 |
 | FR-ARCH-100 | 0 | 1 | 1 |
 | FR-ARCH-160 | 0 | 1 | 1 |
-| FR-ARCH-210 | 0 | 1 | 1 |
 | FR-ARCH-220 | 0 | 1 | 1 |
 | FR-ARCH-230 | 0 | 1 | 1 |
 | FR-ARCH-250 | 0 | 1 | 1 |
@@ -335,6 +336,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-460 | 0 | 1 | 1 |
 | FR-ARCH-510 | 0 | 1 | 1 |
 | FR-ARCH-530 | 0 | 1 | 1 |
+| FR-ARCH-540 | 1 | 0 | 1 |
+| FR-ARCH-550 | 1 | 0 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
 | FR-CHK-100 | 0 | 1 | 1 |
@@ -418,4 +421,8 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-110 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
+| FR-ARCH-560 | 0 | 0 | 0 |
+| FR-ARCH-580 | 0 | 0 | 0 |
+| FR-SKILL-520 | 0 | 0 | 0 |
+| FR-SKILL-530 | 0 | 0 | 0 |
 | INV-SPEC-120 | 0 | 0 | 0 |

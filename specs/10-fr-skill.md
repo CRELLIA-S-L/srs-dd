@@ -1291,3 +1291,44 @@ The architecture procedure **shall** ask, of every part being designed or redraw
 **Rationale.** The five readings judge a part by its shape — one responsibility, what it carries, what it leans on, how much it answers for, what crosses into it — and none of them asks what would be lost if the boundary moved, which is the question a cut is defended with.
 Asked at design time, because afterwards the answer is reconstructed from the code rather than remembered.
 The permission to answer "nothing in particular" is what keeps the field honest: a part that holds behaviour and protects no property of its own is the common case, and a procedure that demanded a quality attribute for each would be answered with invented ones.
+
+### FR-SKILL-520 — Recovering a cut proposes, the maintainer approves
+
+```yaml
+status: deferred
+verification: I
+derives_from: []
+depends_on: [IF-ARCH-010, FR-ARCH-540]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+The procedure that recovers an architecture from a project that already has one **shall** write element records only in batches shown to the maintainer beforehand.
+
+**Rationale.** `FR-SKILL-030` states this for requirements mined out of code, and the reason carries over without a word changed: a recovered cut is a reading of what exists, not a decision about it, and the part a reader disagrees with is the one worth catching before forty of them are in the file.
+What a batch is read from is the project's: the code, an architecture document it already keeps, and the draft `FR-ARCH-540` computes, which is where a batch starts rather than ends.
+A project made of documents is out of scope at this stage — the layer's readings are written for code, and the maintainer settled it that way on 2026-10-06 rather than widen `code_roots` and `code_extensions` for every target; `specs/91-open-issues.md` holds the rest of that question.
+
+### FR-SKILL-530 — The architecture audit ends every finding in an act
+
+```yaml
+status: deferred
+verification: I
+derives_from: [FR-SKILL-480]
+depends_on: [FR-ARCH-570]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+The procedure that audits an architecture **shall** end every finding in an act — rename, split, merge, redraw, or leave it alone with the reason — and in no score.
+
+**Rationale.** An audit that produces adjectives is read once and changes nothing: the readings `FR-SKILL-480` names end in an act for the same reason, and an audit over a whole cut is where the temptation to grade instead is strongest.
+`ADR-0045` already refused a number a model assigns per run, and this says the refusal again where somebody would otherwise reach for one: what the audit may put beside a finding is a count anybody can re-derive (`FR-ARCH-570`), never a verdict out of ten.
+Leaving a part alone is an act too, and naming it is what keeps the audit honest: a cut nobody should touch is the commonest finding on a system that works, and an audit with no such line reads as a list of complaints.
+What the audit reads is the procedure's own business — the checker's findings, the document's divergence and silences, the drivers, the price of the cut and what each part stands on — and none of it is restated here.

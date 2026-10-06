@@ -214,6 +214,8 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 
 **What stays open:** each item is a change to the standard or to a default, and none is made yet; the defaults reach every target at its next install, so each is settled with the upgrade note it needs.
 
+**Settled for the architecture layer, 2026-10-06:** a project made of documents gets no architecture layer at this stage. The layer's readings — the dependencies it computes from imports, the draft cut it offers over files no part carries (`FR-ARCH-540`), the recovery procedure (`FR-SKILL-520`) — are written for code, and the maintainer chose that over widening `code_roots` and `code_extensions` for every target's next install. The four items below stay open for the specification itself, where the question is not the same: a specification of documents is the case `CON-SPEC-040` was written for.
+
 **Decision needed:** for each of the four, the change — widen the default extensions and roots, say in the standard what `code` and `tests` hold for a document or a diagram, and give a file that takes no comment a way to be paired — with the upgrade note each needs; or narrow `CON-SPEC-040` to say the framework serves code repositories and leave the defaults as they are.
 
 ## A scanner for secrets in the gate

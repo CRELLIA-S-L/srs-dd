@@ -1123,3 +1123,107 @@ Where the architecture document is printed as a page, the command **shall** draw
 **Rationale.** `FR-ARCH-430` asks for text the reader's renderer turns into a diagram, which in markdown is Mermaid and in a browser is SVG — the browser draws SVG itself, while a Mermaid block needs a script fetched from somewhere, and `FR-ARCH-520` forbids fetching.
 So the layout is the command's own, and the alternative was to name a third party on a page strangers open.
 A node per element in force and an edge per declared dependency, so that the drawing says what the markdown form's says and a reader comparing the two finds no third story.
+
+### FR-ARCH-540 — A draft cut is computed from what nobody carries
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-060]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+When asked for a draft cut, a command of the layer's own **shall** print one candidate record per directory holding files no element carries, naming those files and the requirements whose `code` field names them, and write nothing.
+
+**Rationale.** A project adopting the layer on a mature codebase faces a blank `arch/00-elements.md` and several hundred files, and the first hour of that is mechanical: the checker already knows which files no part carries (`FR-ARCH-060`) and which requirements name each of them, so the draft is a join it can compute.
+By directory, because that is the grouping a project has already made and the one a reader recognises; it is a starting point to rename, split and merge, not a cut — no tool can tell what a part is responsible for.
+Printed and never written, for the reason `CON-ARCH-020` gives of the map: a record is authored, and a file a tool filled in reads like a decision somebody made.
+
+### FR-ARCH-550 — The document says what each part stands on
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-GND-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the project keeps a grounds register, the architecture document **shall** state, for every element in force, the hypotheses the requirements it carries rest on and the state of each.
+
+**Rationale.** The path already exists and nobody walks it: a part carries requirements, a bet names the hypothesis a requirement rests on, and a hypothesis has a state — so what a part stands on is a join over records the project already has, and the layer never read the register at all.
+It belongs in the document rather than in the map, because it is the reading a person does before deciding whether a boundary may move: a part whose two or three protected obligations rest on something `assumed` is a part to redraw carefully, and one standing on confirmed ground is one to leave alone.
+Where the project keeps no register the section is absent, as `FR-ARCH-460` asks of every section with nothing to say.
+
+### FR-ARCH-560 — A part standing on refuted ground is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-550]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the project keeps a grounds register, the architecture checker **shall** report an element carrying a requirement that rests on a `refuted` or `expired` hypothesis as a warning named `element-ungrounded`, naming the element and the hypothesis.
+
+**Rationale.** The document answers the question when somebody asks it; this answers it when nobody does, which is the half that matters — a hypothesis is refuted long after the part was cut, and the part is where the cost lands.
+`refuted` and `expired` and not `assumed`, because an assumed hypothesis is the ordinary state of a register and a rule that fired on it would fire on everything, which `ADR-0020` says trains a reader to pass over the whole class.
+A warning rather than an error, and priced by the project like every other reading of this layer (`FR-ARCH-090`): refuted ground is a reason to look, and what to do about it is nobody's to decide from here.
+
+### FR-ARCH-570 — What a cut costs is computed
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+When asked to price a cut — the parts the layer holds, or the areas the specification declares — the architecture command **shall** print, for each group, how many links between requirements cross its boundary in each direction and how many stay inside it.
+
+**Rationale.** Two cuts are argued about with adjectives until somebody counts what crosses them.
+The count is the one thing about a cut that is not a matter of taste: a group with forty links inside and two crossing is a part, and one with four inside and thirty crossing is a line drawn through the middle of something.
+Both cuts are priced because both are asked about: the areas are the grouping a project already has and the first candidate anybody proposes, and the parts are what it lives with.
+It is a reading and not a finding, for the reason `FR-ARCH-350` gives of the plan: a cut that could be cheaper is not a defect, and a warning for it would never stop firing.
+No score and no verdict — `ADR-0045` refused a number a model assigns, and this is the other kind: a count anybody can re-derive from the same records.
+The count has been made by hand here once already: `ADR-0012` chose the graph's grouping on the strength of fifty of seventy-seven links staying inside an area, at eighty-seven requirements in six areas.
+Nothing has recomputed it since, and the specification has passed three hundred.
+
+### FR-ARCH-580 — A cut is proposed from the links themselves
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-570]
+depends_on: [FR-ARCH-210]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+When asked for a proposed cut, the architecture command **shall** print groups of requirements that together hold every requirement the specification has not cancelled and share none, and write nothing.
+
+**Rationale.** A project with a specification and no architecture has one question — what are the parts — and the links between its requirements already answer part of it: what derives from, refines and depends on what is where cohesion is, and the drivers `FR-ARCH-210` ranks are what the first parts form around.
+Every requirement that still stands in exactly one group, because that is what a cut is; a proposal that left some out would be a sketch somebody has to finish without knowing what is missing.
+Printed and never written, for the reason `FR-ARCH-540` gives: a part has a responsibility and a name, and neither is computable — what is computed is the grouping to argue with, priced by `FR-ARCH-570` so that the argument has numbers in it.
