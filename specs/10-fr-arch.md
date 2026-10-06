@@ -1083,3 +1083,43 @@ The architecture document **shall** state, for every element that names one, the
 **Rationale.** The obligations a part carries are already in the document, forty identifiers deep for the larger parts, and the two or three it was cut to keep are invisible among them.
 A reader deciding whether a boundary may move needs that short list first: it is the answer to what breaks if the part is merged into its neighbour.
 Where a part names none the section is absent rather than empty, as `FR-ARCH-460` asks of every section.
+
+### FR-ARCH-520 — The architecture document can be read as a page
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+When asked for the architecture document as a page, a command of the layer's own **shall** print it as a single self-contained HTML file that requests nothing over the network.
+
+**Rationale.** What the document states is already specified without a form — `FR-ARCH-420` to `FR-ARCH-460` say what it must say and never what it is written in — so this adds the second form and claims nothing about the content.
+Self-contained for the reason `FR-VIEW-060` gives of the specification's page: a page that fetches anything stops working where the network does not reach, and a published document that calls a third party reports every one of its readers to it.
+Printed and not written, because `FR-ARCH-410` leaves where the document lands to the caller and `CON-ARCH-010` leaves the layer nothing to write outside itself.
+
+### FR-ARCH-530 — The drawing on the page is laid out by the command
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-520]
+refines: [FR-ARCH-430]
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the architecture document is printed as a page, the command **shall** draw the dependencies the elements declare as an SVG inside the file, a node per element in force and an edge per declared dependency.
+
+**Rationale.** `FR-ARCH-430` asks for text the reader's renderer turns into a diagram, which in markdown is Mermaid and in a browser is SVG — the browser draws SVG itself, while a Mermaid block needs a script fetched from somewhere, and `FR-ARCH-520` forbids fetching.
+So the layout is the command's own, and the alternative was to name a third party on a page strangers open.
+A node per element in force and an edge per declared dependency, so that the drawing says what the markdown form's says and a reader comparing the two finds no third story.

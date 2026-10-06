@@ -1370,3 +1370,23 @@ Where a project carries a grounds register, the gate, run before a commit, **sha
 The dashboard reads the specification as well as the register — a requirement changing status moves it — so a commit that touches only `specs/` can leave it stale, and an agent that ran the specification checker and stopped there was told so only by the pipeline.
 A refusal rather than a report, unlike the bets the hook reports under `FR-GND-310`: a stale dashboard is a file somebody forgot to regenerate, which the committer can always fix, while a refuted hypothesis may be exactly what they are in the middle of repairing.
 Whether the project carries a register is read at every commit from `grounds/grounds-config.json`, as the pipeline reads it, so a register added later is gated from its first commit without the hook being installed again.
+
+### FR-GND-580 — The dashboard can be read as a page
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-GND-010]
+depends_on: [CON-GND-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+When asked for the dashboard as a page, a command of the register's own **shall** print it as a single self-contained HTML file that requests nothing over the network.
+
+**Rationale.** The readings the dashboard carries are specified without a form — `FR-GND-130` and its neighbours say what it states — so this adds the form alone.
+Printed and not written: `CON-GND-010` leaves the register's commands nothing to write outside it, and the markdown dashboard the gate compares byte for byte (`FR-GND-370`) stays the one generated file.
+Self-contained for the reason `FR-ARCH-520` gives.

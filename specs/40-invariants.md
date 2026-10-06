@@ -661,3 +661,24 @@ The hazard is in every path a project and the framework can both own, which is w
 **No gate goes with it.** What a path named when the sentence was written is not in the text: both referents are spelled the same, and only the sentence around them says which was meant.
 A script that guessed would be wrong wherever the guess matters, so this is verified by inspection and says so — the same reason `INV-SPEC-070` gives.
 It extends `INV-SPEC-010` from the identifier to the path: what is published keeps its meaning, and an edit that preserves the spelling while changing the referent breaks that as surely as reusing a number would.
+
+### INV-SPEC-130 — A page links the pages its caller named
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-050, FR-VIEW-060, FR-ARCH-520, FR-GND-580]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Wherever the framework prints a page `IF-SPEC-050` names, it **shall** carry a link to exactly the pages of that set its caller named.
+
+**Rationale.** The pages are one document set for a reader, and a set whose members do not name each other is three files somebody has to be told about.
+The caller names them rather than the page deciding for itself, because only the caller knows which pages it is about to produce: a page that chose its own links from what the repository holds — a `grounds/` directory, an `arch/` one — would promise a sibling nobody printed, and a page printed to stdout cannot even look beside its output to check.
+So a link exists on exactly one ground: somebody said that file will be there. Where nothing was named the page carries no links, which is what a hand-run of a single page gets, and `FR-CI-190`'s step names all three because it is the one place that knows the whole set is being produced.
+The names come from `IF-SPEC-050` and not from the caller's imagination: a name outside that set is a published URL nobody else writes, and the page would be the only thing pointing at it.

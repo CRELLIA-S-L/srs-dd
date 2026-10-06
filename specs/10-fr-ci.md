@@ -439,3 +439,23 @@ The hook and pipeline starters the installer writes **shall** run the gate throu
 **Rationale.** The gate's steps were written three times — in the hook and in each CI template — and those files may be the project's own, refreshed only with `--force` (`FR-INIT-060`), so every change to the gate reached a project only through an upgrade note asking somebody to edit the file by hand.
 As a tool it is refreshed with the rest (`FR-INIT-270`), and the hook and the pipeline run the same steps by construction.
 The hook and the pipelines are the project's files, shared with every other check it runs, so the installer writes them once as starters and never again (`FR-INIT-290`); what they hold of ours is a call, and the notice of whose the gate is travels in the tool (`FR-INIT-280`).
+
+### FR-CI-190 — The pages of the layers the project keeps are published beside the specification
+
+```yaml
+status: deferred
+verification: I
+derives_from: [FR-CI-040]
+depends_on: [IF-SPEC-050, FR-ARCH-520, FR-GND-580]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the pipeline publishes the specification as a page, it **shall** publish beside it the page of every layer the project keeps, from the same revision.
+
+**Rationale.** The same revision for the reason `FR-CI-110` gives of the graph image: two pages rendered from different commits disagree about the system they describe, and nothing on either says so.
+Every layer the project keeps rather than a fixed pair, because both layers are optional (`FR-ARCH-120` and `FR-GND-280` say so of theirs) and a step that rendered a page for a layer nobody installed would fail the run it was added to help.
+Verified by inspection for the reason `FR-CI-040` gives: no suite here runs a pipeline.

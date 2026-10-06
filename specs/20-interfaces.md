@@ -379,3 +379,23 @@ A forbidden dependency **shall** be written in the layer's configuration under `
 **Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
 In the configuration and not in a record, because a forbidden edge is policy about two parts and a key on one of them would be the link written twice that `INV-ARCH-010` exists to prevent.
 `*` on one side is what makes the common intents sayable — nothing may lean on this part, this part may lean on nothing — and `why` is required because a rule whose failure cannot say what it protects is a rule somebody deletes.
+
+### IF-SPEC-050 — The published pages are one set of names
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the framework's pages are published together, they **shall** be named by one set — `index.html` for the specification, `arch.html` for the architecture document, `grounds.html` for the grounds dashboard — side by side in one directory.
+
+**Rationale.** Three names and one requirement, because what a reader and a pipeline rely on is that these are all of them, and splitting would destroy exactly that claim — the exception *How to phrase* makes for a list of exit codes.
+They are an interface and not an implementation detail: `INV-SPEC-130` links by them, a pipeline writes by them and a reader bookmarks them, so a name that moved would break all three at once.
+Side by side in one directory, because a page that links its siblings by a bare name can only find them beside it.
