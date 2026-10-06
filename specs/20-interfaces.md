@@ -399,3 +399,43 @@ Where the framework's pages are published together, they **shall** be named by o
 **Rationale.** Three names and one requirement, because what a reader and a pipeline rely on is that these are all of them, and splitting would destroy exactly that claim — the exception *How to phrase* makes for a list of exit codes.
 They are an interface and not an implementation detail: `INV-SPEC-130` links by them, a pipeline writes by them and a reader bookmarks them, so a name that moved would break all three at once.
 Side by side in one directory, because a page that links its siblings by a bare name can only find them beside it.
+
+### IF-ARCH-070 — The order of parts is a stable format
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+An order of parts **shall** be written in the layer's configuration under `layers` as a JSON list of groups, each a list of element identifiers, from the group that may lean on every other to the group that may lean on none, with groups added over time and the direction never reversed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+A list of lists and not a key on each element, because a level is a statement about the cut as a whole and a key on one part would be the same policy written in as many places as there are parts — the reason `IF-ARCH-060` keeps a forbidden pair out of the records.
+The direction is the one thing here that can never move: a reversed reading would turn every finding into its opposite without changing a character of the file, so it is fixed at the top of the list — what may lean on everything — and said in the standard in those words.
+In the configuration a key the checker does not know is passed over, so a project that writes `layers` keeps working on a checker older than this requirement, and reads its first findings on the day it upgrades.
+
+### IF-ARCH-080 — The list of names forbidden to a part is a stable format
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+A name a part may not reach **shall** be written in the layer's configuration under `forbidden_names` as a JSON list of objects whose `in` names an element, whose `name` is the name as the code writes it, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The shape follows `IF-ARCH-060` entry for entry — two ends and a sentence — because it is the same kind of policy with the far end outside the system, and a project that has written one can write the other without reading anything.
+`name` is the name as the code writes it and nothing else: a pattern, a path or a package would each need a reading of its own, and the names a file enters by are what the checker already has (`FR-ARCH-490`).

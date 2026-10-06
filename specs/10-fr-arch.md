@@ -1227,3 +1227,85 @@ When asked for a proposed cut, the architecture command **shall** print groups o
 **Rationale.** A project with a specification and no architecture has one question — what are the parts — and the links between its requirements already answer part of it: what derives from, refines and depends on what is where cohesion is, and the drivers `FR-ARCH-210` ranks are what the first parts form around.
 Every requirement that still stands in exactly one group, because that is what a cut is; a proposal that left some out would be a sketch somebody has to finish without knowing what is missing.
 Printed and never written, for the reason `FR-ARCH-540` gives: a part has a responsibility and a name, and neither is computable — what is computed is the grouping to argue with, priced by `FR-ARCH-570` so that the argument has numbers in it.
+
+### FR-ARCH-590 — A dependency that runs against the declared order of parts is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the configuration declares an order of groups of parts, the architecture checker **shall** report a dependency that runs against that order — one an element declares or one the code has — as a warning named `dependency-upward`, naming both parts, which of the two it read it from, and each part's place in the order.
+
+**Rationale.** A cut in levels is the oldest thing anybody says about an architecture and the one thing this layer could not hear: a project could say that nothing below leans on what is above only by listing every pair of parts under `forbidden` (`IF-ARCH-060`), which grows as the square of the cut and is rewritten whenever a part is added.
+An order says it once, and the pairs fall out of it.
+Both sources, for the reason `FR-ARCH-470` gives: a declared upward edge is a model contradicting the project's own policy, and one the code has and nothing declares is the policy broken in silence — read from the code the way `FR-ARCH-200` reads it, which means on one language by itself and on the project's own edges elsewhere (`FR-ARCH-260`).
+No sentence is demanded of the project here, unlike a forbidden pair: the order is its own reason, and the finding can say what was being protected by naming where each part stands in it, where a pair's intent is invisible without a sentence.
+Within one group nothing is reported — a group is the level, a set of parts that may lean on each other, and a project that wants two of them separated puts each in a group of its own.
+A warning the project prices (`FR-ARCH-090`), so a pipeline running `--strict` fails on it and a project adopting the layer on a code base that already violates its own order can lower it while it digs out.
+
+### FR-ARCH-600 — A malformed order of parts is refused
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+If `layers` is not a list of groups of identifiers, names an element no record defines, or names one element in more than one group, the architecture checker **shall** refuse to run and say which group and why.
+
+**Rationale.** An order that resolves to nothing reads as enforced and enforces nothing, which is the argument `FR-ARCH-480` makes for a prohibition; refused rather than reported, because this is the setup and not a finding about the layer.
+An element in two groups has no place in the order, so every edge touching it would be judged twice and both ways.
+An element in no group is not an error and is not reported either: a project may order the part of its cut it has an opinion about, which is how an order is adopted at all.
+
+### FR-ARCH-610 — A name a part may not reach is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-080]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+Where the configuration forbids a name to a part and the language of a file that part carries can be read, the architecture checker **shall** report that file reaching the name as a warning named `name-forbidden`, naming the file, the name and the sentence the project gave for the prohibition.
+
+**Rationale.** What a part is allowed to build with is a decision about the cut as much as what it may lean on: a part kept free of the network, of a framework, of a concurrency primitive is kept that way by nobody noticing until it is not.
+`depends_on` cannot say it, because the thing reached is not a part of this system and has no element to name.
+The reading is the one `FR-ARCH-490` already does — the names a file enters by — so the rule asks the code a second question rather than a new way of looking at it, and it says nothing where the language cannot be read, as `FR-ARCH-200` says nothing there.
+The project's sentence is printed with the finding, for the reason `FR-ARCH-470` gives: a prohibition whose failure cannot say what it protected is one somebody deletes.
+
+### FR-ARCH-620 — A malformed forbidden name is refused
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-080]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-06
+```
+
+If an entry under `forbidden_names` names an element no record defines, or omits `in`, `name` or `why`, the architecture checker **shall** refuse to run and say which entry and why.
+
+**Rationale.** The same argument as `FR-ARCH-480` and `FR-ARCH-600`: a prohibition pointing at no part is not a weaker prohibition, it is a sentence that will be read as one and enforce nothing.
