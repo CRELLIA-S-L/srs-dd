@@ -106,6 +106,16 @@ An edge that runs upward is reported under `dependency-upward`, where an element
 No sentence is asked of the project here: the order is its own reason, and the finding says where each of the two parts stands in it.
 A part named in two groups has no place in the order and is refused rather than reported, the way a prohibition with `*` on both sides is.
 
+**What a part may build with is policy too.** `depends_on` and the order speak about parts of this system; a module from outside it has no element to name, and the prohibition says the part, the module and the sentence its failure prints:
+
+```json
+{"forbidden_imports": [{"in": "E-010", "module": "subprocess", "why": "the model never shells out"}]}
+```
+
+`module` is the top-level module name as the code writes it, which is what the checker reads — `import a.b` and `from a.b import c` are both `a` — and nothing else: a pattern, a path or a dotted name inside a package would each need a reading of its own.
+It is reported under `import-forbidden` where the language of a file the part carries can be read, and says nothing where it cannot, as the comparison with the code says nothing there.
+An entry naming a part no record defines fails the run, and one missing a key or naming something that is not an element is refused before anything is read.
+
 `depends_on` is the declared model, and it is written by a person.
 It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected: on the framework's own nine Python modules it gave twenty-five edges against the seven their imports have.
 
@@ -298,6 +308,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `protects-uncarried` | A requirement an element protects and does not carry |
 | `element-ungrounded` | An element carrying a requirement that rests on a `refuted` or `expired` hypothesis, where the project keeps a grounds register |
 | `dependency-upward` | A dependency that runs against the order of groups declared under `layers`, declared by an element or had by the code |
+| `import-forbidden` | A file importing a module the project forbade the part that carries it, where the language can be read |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

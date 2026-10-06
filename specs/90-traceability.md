@@ -8,9 +8,9 @@ Total requirements: 384.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 4 |
+| `deferred` | 1 |
 | `partial` | 0 |
-| `implemented` | 376 |
+| `implemented` | 379 |
 | `superseded` | 4 |
 | `withdrawn` | 0 |
 
@@ -85,8 +85,8 @@ Total requirements: 384.
 | **FR-ARCH-580** A cut is proposed from the links themselves | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **FR-ARCH-590** A dependency that runs against the declared order of parts is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **FR-ARCH-600** A malformed order of parts is refused | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
-| **FR-ARCH-610** A name a part may not reach is reported | `deferred` | T | — | — |
-| **FR-ARCH-620** A malformed forbidden name is refused | `deferred` | T | — | — |
+| **FR-ARCH-610** A module a part may not import is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-620** A malformed forbidden import is refused | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -364,7 +364,7 @@ Total requirements: 384.
 | **IF-ARCH-050** The move record is a stable format | `implemented` | I | `srs-dd/arch.md`<br>`srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh`<br>`tests/standard-vocabulary.sh` |
 | **IF-ARCH-060** The forbidden-dependency list is a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **IF-ARCH-070** The order of parts is a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
-| **IF-ARCH-080** The list of names forbidden to a part is a stable format | `deferred` | T | — | — |
+| **IF-ARCH-080** The list of imports forbidden to a part is a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **IF-CI-010** Exit codes of the installer | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh`<br>`tests/installer-smoke.sh` |
 | **IF-CI-020** Exit codes of the checker | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
 | **IF-GND-010** The register record is a stable format | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |

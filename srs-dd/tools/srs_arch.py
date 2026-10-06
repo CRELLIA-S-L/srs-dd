@@ -98,7 +98,7 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "dependency-undeclared", "element-cycle", "carrier-missing",
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
          "dependency-forbidden", "interface-bypassed", "protects-uncarried",
-         "element-ungrounded", "dependency-upward")
+         "element-ungrounded", "dependency-upward", "import-forbidden")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -126,7 +126,8 @@ def fail_setup(message):
 def load_config():
     """What each rule costs, as the project set it, and how the requirements are kept. A
     missing file means every default."""
-    cfg = {"rules": {}, "requirements": "written", "forbidden": [], "layers": []}
+    cfg = {"rules": {}, "requirements": "written", "forbidden": [], "layers": [],
+           "forbidden_imports": []}
     if not os.path.exists(CONFIG):
         return cfg, None
     try:
@@ -195,6 +196,25 @@ def load_config():
             placed[value] = index
     cfg["layers"] = layers
     # srs-end: IF-ARCH-070, FR-ARCH-600
+    # implements: IF-ARCH-080, FR-ARCH-620
+    # What a part may not import: the part, the module and the sentence its failure prints. The
+    # far end is outside this system, so `depends_on` has nothing to name and the policy lives
+    # here beside the forbidden pairs.
+    banned = raw.get("forbidden_imports", [])
+    if not isinstance(banned, list):
+        return None, "arch/arch-config.json: `forbidden_imports` must be a JSON list"
+    for index, entry in enumerate(banned):
+        where = "arch/arch-config.json: forbidden_imports entry %d" % index
+        if not isinstance(entry, dict):
+            return None, "%s must be an object with `in`, `module` and `why`" % where
+        for key in ("in", "module", "why"):
+            value = entry.get(key)
+            if not isinstance(value, str) or not value.strip():
+                return None, "%s: `%s` must be text" % (where, key)
+        if not RE_ID.match(entry["in"]):
+            return None, "%s: `in` is %r, expected an element identifier" % (where, entry["in"])
+    cfg["forbidden_imports"] = banned
+    # srs-end: IF-ARCH-080, FR-ARCH-620
     return cfg, None
     # srs-end: FR-ARCH-240
 # srs-end: FR-ARCH-090
@@ -994,6 +1014,42 @@ def check_forbidden(records, edges, errors, warnings, reports, cfg):
 # srs-end: FR-ARCH-470, FR-ARCH-480
 
 
+# implements: FR-ARCH-610, FR-ARCH-620
+def check_forbidden_imports(records, errors, warnings, reports, cfg):
+    """A module a part may not import, where the language of its files can be read.
+
+    The far end is outside the system, so there is no element to name and no edge to declare:
+    this is policy about what a part may build with, and it is read from the imports the checker
+    already reads for the model. An entry about a part nobody has resolves to nothing and fails
+    the run, the way a prohibition naming no part does.
+    """
+    if not cfg["forbidden_imports"]:
+        return
+    present = set(record.id for record in records if RE_ID.match(record.id))
+    unknown = ["arch/arch-config.json: forbidden_imports entry %d names %s in `in`, which no "
+               "element carries" % (index, entry["in"])
+               for index, entry in enumerate(cfg["forbidden_imports"])
+               if entry["in"] not in present]
+    if unknown:
+        errors.extend(unknown)
+        return
+    banned = {}
+    for entry in cfg["forbidden_imports"]:
+        banned.setdefault(entry["in"], []).append(entry)
+    by_path, _names = python_modules(records)
+    for path in sorted(by_path):
+        entries = banned.get(by_path[path])
+        if not entries:
+            continue
+        imported = set(imports_of(os.path.join(ROOT, path)))
+        for entry in entries:
+            if entry["module"] in imported:
+                rule_finding(warnings, reports, cfg, "import-forbidden",
+                             "%s imports %s, which %s may not: %s"
+                             % (path, entry["module"], by_path[path], entry["why"]))
+# srs-end: FR-ARCH-610, FR-ARCH-620
+
+
 # implements: FR-ARCH-590, FR-ARCH-600
 def check_layers(records, edges, errors, warnings, reports, cfg):
     """A dependency that runs against the order of groups the project declared.
@@ -1525,6 +1581,7 @@ def main(argv=None):
     check_cycles(elements, warnings, reports, cfg)
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_layers(elements, edges, errors, warnings, reports, cfg)
+    check_forbidden_imports(elements, errors, warnings, reports, cfg)
     check_interfaces(elements, edges, warnings, reports, cfg)
     check_protects(elements, model, errors, warnings, reports, cfg)
     check_grounded(elements, model, warnings, reports, cfg, read_grounds() or {})

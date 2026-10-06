@@ -12,6 +12,7 @@
 # verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500
 # verifies: FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580
 # verifies: FR-ARCH-590, FR-ARCH-600, IF-ARCH-070
+# verifies: FR-ARCH-610, FR-ARCH-620, IF-ARCH-080
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2879,6 +2880,48 @@ printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 printf 'x\n' > "$LAB/src/a.py"
 
 # srs-end: IF-ARCH-070, FR-ARCH-590, FR-ARCH-600
+
+# --- verifies: IF-ARCH-080, FR-ARCH-610, FR-ARCH-620 — a module a part may
+# --- not import: the far end is outside the system, so no element names it.
+printf 'import json\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "the engine never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-610 a module the part may not import" 0 \
+    "src/a.py imports json, which E-010 may not: the engine never serialises"
+
+# --- A module nobody forbade, and a prohibition about another part, are both
+# --- silent — the halves that fail quietly if the matching is wrong.
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "subprocess", "why": "no shelling out"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-610 a module the part does not import" 0 "which E-010 may not"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-020", "module": "json", "why": "the store never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-610 a prohibition about another part" 0 "imports json"
+
+# --- Priced, like every rule of this checker.
+printf '{"rules": {"import-forbidden": "report"}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-610 lowered to a note" 0 "note: "
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-610 at its default cost it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {"import-forbidden": "off"}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-610 switched off says nothing" 0 "which E-010 may not"
+
+# --- An entry about a part nobody has reads as enforced and enforces nothing.
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-990", "module": "json", "why": "nope"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an entry naming no part" 1 \
+    "forbidden_imports entry 0 names E-990 in \`in\`, which no element carries"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "forbidden_imports": {"in": "E-010"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 a list that is not a list" 2 "\`forbidden_imports\` must be a JSON list"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an entry with no reason" 2 "forbidden_imports entry 0: \`why\` must be text"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "why": "half an entry"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an entry with no module" 2 "forbidden_imports entry 0: \`module\` must be text"
+printf '{"rules": {}, "forbidden_imports": [{"in": "src/a.py", "module": "json", "why": "a file, not a part"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an end that is not an element" 2 "forbidden_imports entry 0: \`in\` is 'src/a.py', expected an element identifier"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: IF-ARCH-080, FR-ARCH-610, FR-ARCH-620
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

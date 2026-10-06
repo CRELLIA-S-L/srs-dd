@@ -1271,41 +1271,45 @@ If `layers` is not a list of groups of identifiers, names an element no record d
 An element in two groups has no place in the order, so every edge touching it would be judged twice and both ways.
 An element in no group is not an error and is not reported either: a project may order the part of its cut it has an opinion about, which is how an order is adopted at all.
 
-### FR-ARCH-610 — A name a part may not reach is reported
+### FR-ARCH-610 — A module a part may not import is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [IF-ARCH-080]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
-Where the configuration forbids a name to a part and the language of a file that part carries can be read, the architecture checker **shall** report that file reaching the name as a warning named `name-forbidden`, naming the file, the name and the sentence the project gave for the prohibition.
+Where the configuration forbids a module to a part and the language of a file that part carries can be read, the architecture checker **shall** report that file importing the module as a warning named `import-forbidden`, naming the file, the module and the sentence the project gave for the prohibition.
+
+**Narrowed on 2026-10-07, before it was built**: it said any name the code reaches, and what the checker reads is the imports of the one language it reads by itself — the top-level module name, as `FR-ARCH-200` reads it. A name reached without an import is outside it, and the rule says so rather than promising a reading nobody wrote.
 
 **Rationale.** What a part is allowed to build with is a decision about the cut as much as what it may lean on: a part kept free of the network, of a framework, of a concurrency primitive is kept that way by nobody noticing until it is not.
 `depends_on` cannot say it, because the thing reached is not a part of this system and has no element to name.
 The reading is the one `FR-ARCH-490` already does — the names a file enters by — so the rule asks the code a second question rather than a new way of looking at it, and it says nothing where the language cannot be read, as `FR-ARCH-200` says nothing there.
 The project's sentence is printed with the finding, for the reason `FR-ARCH-470` gives: a prohibition whose failure cannot say what it protected is one somebody deletes.
 
-### FR-ARCH-620 — A malformed forbidden name is refused
+### FR-ARCH-620 — A malformed forbidden import is refused
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-ARCH-080]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
-If an entry under `forbidden_names` names an element no record defines, or omits `in`, `name` or `why`, the architecture checker **shall** refuse to run and say which entry and why.
+If an entry under `forbidden_imports` names an element no record defines, or omits `in`, `module` or `why`, the architecture checker **shall** refuse to run and say which entry and why.
+
+**The keys were renamed on 2026-10-07, before it was built**, with the narrowing `FR-ARCH-610` records.
 
 **Rationale.** The same argument as `FR-ARCH-480` and `FR-ARCH-600`: a prohibition pointing at no part is not a weaker prohibition, it is a sentence that will be read as one and enforce nothing.

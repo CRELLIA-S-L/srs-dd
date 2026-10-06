@@ -421,21 +421,23 @@ A list of lists and not a key on each element, because a level is a statement ab
 The direction is the one thing here that can never move: a reversed reading would turn every finding into its opposite without changing a character of the file, so it is fixed at the top of the list — what may lean on everything — and said in the standard in those words.
 In the configuration a key the checker does not know is passed over, so a project that writes `layers` keeps working on a checker older than this requirement, and reads its first findings on the day it upgrades.
 
-### IF-ARCH-080 — The list of names forbidden to a part is a stable format
+### IF-ARCH-080 — The list of imports forbidden to a part is a stable format
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
-A name a part may not reach **shall** be written in the layer's configuration under `forbidden_names` as a JSON list of objects whose `in` names an element, whose `name` is the name as the code writes it, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+An import a part may not have **shall** be written in the layer's configuration under `forbidden_imports` as a JSON list of objects whose `in` names an element, whose `module` is the top-level module name as the code writes it, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Renamed on 2026-10-07, before it was built**, with the narrowing `FR-ARCH-610` records: the key and the entry say import and module because that is what is read.
 
 **Rationale.** The shape follows `IF-ARCH-060` entry for entry — two ends and a sentence — because it is the same kind of policy with the far end outside the system, and a project that has written one can write the other without reading anything.
-`name` is the name as the code writes it and nothing else: a pattern, a path or a package would each need a reading of its own, and the names a file enters by are what the checker already has (`FR-ARCH-490`).
+`module` is the top-level module name and nothing else: a pattern, a path or a dotted name inside a package would each need a reading of its own, and the names a file imports are what the checker already has (`FR-ARCH-200`, `FR-ARCH-490`).
