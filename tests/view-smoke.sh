@@ -2008,5 +2008,18 @@ grep -q '<a href="arch.html">the architecture document</a>' "$NAV/big.html" \
     || { echo "INV-SPEC-130 — the page dropped its links where the graph dropped nodes"; exit 1; }
 echo "view-smoke: the links survive a page whose graph had to drop nodes"
 
+# --- verifies: FR-VIEW-050 — a baseline whose row is written and whose commit is
+# --- not made yet: the version resolves to nothing, and the sentence says which
+# --- of the two is missing rather than handing over git's own error.
+printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n| 9.9.9 | 2026-10-06 | — | written, never committed |\n' \
+    > "$NAV/specs/92-baselines.md"
+rc=0
+( cd "$NAV" && python3 srs-dd/tools/srs_view.py --diff 9.9.9 ) >/tmp/srs-view-nocommit.out 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "FR-VIEW-050 — a baseline with no revision exited $rc, expected 2"; exit 1; }
+grep -qF "9.9.9 is in the log and nothing in git history holds it" /tmp/srs-view-nocommit.out \
+    || { echo "FR-VIEW-050 — it does not say the log holds the baseline and git does not"; cat /tmp/srs-view-nocommit.out; exit 1; }
+echo "view-smoke: a baseline the log holds and git does not is said, not handed to git"
+# srs-end: FR-VIEW-050
+
 echo "view-smoke: the page links exactly the published pages its caller named"
 # srs-end: INV-SPEC-130

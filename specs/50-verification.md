@@ -48,6 +48,7 @@ Every file in the table runs in CI, one step each, and locally through `tools/ci
 
 | Requirement | Measurement | Date |
 |---|---|---|
+| NFR-CHK-010 | 90 ms wall clock at 500 requirements, after the rules of 0.22.0 — the design-mode and move readings, forbidden dependencies, interface conformance, the ground under a part. A harder fixture than the rows below it: each of the 500 is annotated in a file of its own, depends on the one before it, and is named by a suite, so the pairing and link rules all run (`--no-write`, Python 3.14, Apple silicon; three runs: 90, 100, 90 ms) | 2026-10-06 |
 | NFR-CHK-010 | 50 ms by the same method, after the two pairing rules were added — every file a requirement names checked for its back-reference, every scanned file checked for being claimed at all, with all 500 requirements annotated in the fixture | 2026-08-14 |
 | NFR-CHK-010 | 52 ms by the same method, after five rules were added — the required-key and retired-key checks, the two reports on tests and links, and the routing that gives every rule a severity | 2026-08-11 |
 | NFR-CHK-010 | A generated specification of 500 requirements validates in 45 ms wall clock, interpreter startup included (`--no-write`, Python 3.14, Apple silicon) | 2026-08-06 |

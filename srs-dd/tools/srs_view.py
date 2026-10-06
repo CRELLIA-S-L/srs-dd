@@ -842,7 +842,15 @@ def main(argv=None):
         revision = args.diff
         if re.match(r"^\d+\.\d+\.\d+$", args.diff) \
                 and args.diff in logged_baselines():
-            revision = baseline_revision(args.diff) or args.diff
+            revision = baseline_revision(args.diff)
+            if revision is None:
+                # The row is written and the commit carrying it is not made yet, or the
+                # history holding it is not in this checkout. Git's own message for the
+                # bare version says none of that.
+                sys.stderr.write("baseline %s is in the log and nothing in git history "
+                                 "holds it — no tag, and no commit that added its row\n"
+                                 % args.diff)
+                return 2
         try:
             diff = compute_diff(load_revision(revision), model)
         except ViewError as exc:

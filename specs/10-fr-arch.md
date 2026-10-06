@@ -84,7 +84,7 @@ An error rather than a warning because a typed identifier that resolves is the w
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-040]
 refines: []
 conflicts_with: []
@@ -103,7 +103,7 @@ A warning rather than an error because the honest resolutions differ — re-poin
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
@@ -133,7 +133,7 @@ That belongs to the checker `FR-CHK-070` already speaks for: implementation ahea
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
@@ -156,7 +156,7 @@ Where the layer keeps the field written the two are the same set, and this said 
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
@@ -362,7 +362,7 @@ It lives in this area rather than among the requirements about gates for the rea
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
@@ -1047,7 +1047,7 @@ A part that declares no interface is not reported here: that silence is `FR-ARCH
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
@@ -1169,7 +1169,7 @@ Where the project keeps no register the section is absent, as `FR-ARCH-460` asks
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-550]
 refines: []
 conflicts_with: []

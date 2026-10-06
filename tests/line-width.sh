@@ -36,10 +36,12 @@ SOURCES = (glob.glob("tools/*.py") + glob.glob("srs-dd/tools/*.py") + glob.glob(
            + [p for p in ("ci/pre-commit", ".githooks/pre-commit")
               if os.path.exists(p)])
 
-bad = []
-for path in sorted(SOURCES):
+def wide(path, lines=None):
+    """The lines of one file that are too wide for a reason somebody chose."""
+    found = []
     inside = False
-    for num, line in enumerate(io.open(path, encoding="utf-8"), 1):
+    source = lines if lines is not None else io.open(path, encoding="utf-8")
+    for num, line in enumerate(source, 1):
         line = line.rstrip("\n")
         was_inside = inside
         # A Python triple-quoted block is literal throughout, so every line
@@ -50,7 +52,33 @@ for path in sorted(SOURCES):
         if len(line) <= LIMIT or was_inside or inside:
             continue
         if len(QUOTED.sub("''", line)) > LIMIT:
-            bad.append((path, num, len(line)))
+            found.append((path, num, len(line)))
+    return found
+
+
+# --- Negation first, on lines written for it: this gate reads the repository
+# --- itself, so on a clean tree it prints success whatever its own logic does.
+# --- One case per clause of FR-CI-100, and the boundary on both sides.
+# The number itself, from the requirement and not from the code: cases computed
+# from LIMIT move with it, so raising it would pass every one of them.
+assert LIMIT == 120, "FR-CI-100 says 120 columns"
+at_limit = "x = " + "a" * (LIMIT - 4)
+over = "x = " + "a" * (LIMIT - 3)
+literal = "x = '" + "a" * (LIMIT + 40) + "'"
+assert len(at_limit) == LIMIT and len(over) == LIMIT + 1
+assert wide("case.py", [at_limit]) == [], "a line exactly at the limit is not too wide"
+assert wide("case.py", [over]) == [("case.py", 1, LIMIT + 1)], "a line one past the limit is"
+assert wide("case.py", [literal]) == [], "a line long because of a literal on it is not"
+assert wide("case.py", ['"""', over, '"""']) == [], "a line inside a literal block is not"
+assert wide("case.sh", [over]) == [("case.sh", 1, LIMIT + 1)], "the limit is not Python's alone"
+# A triple-quoted block of a shell file is no block: the exemption is Python's.
+assert wide("case.sh", ['"""', over, '"""']) == [("case.sh", 2, LIMIT + 1)], \
+    "the literal-block exemption applies outside Python"
+print("line-width: the limit, its boundary, a literal and a literal block are each decided")
+
+bad = []
+for path in sorted(SOURCES):
+    bad += wide(path)
 
 for path, num, width in bad:
     sys.stderr.write(

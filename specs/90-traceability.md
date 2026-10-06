@@ -155,7 +155,7 @@ Total requirements: 378.
 | **FR-DOC-190** A link the documentation carries leads to a file that exists | `implemented` | T | `README.md`<br>`docs/install.md`<br>`docs/upgrade.md`<br>`docs/agents.md`<br>`docs/multilingual.md`<br>`.github/workflows/srs.yml` | `tests/docs-content.sh` |
 | **FR-DOC-200** A section is re-read when a requirement it restates changes | `implemented` | I | `README.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-DOC-210** The picture section shows the graph the pipeline publishes, linked to the page | `implemented` | T | `README.md`<br>`.github/workflows/srs.yml` | `tests/docs-content.sh` |
-| **FR-DOC-220** Every list of this repository's tools and procedures names each of them | `implemented` | T | `README.md`<br>`AGENTS.md`<br>`docs/install.md`<br>`docs/agents.md`<br>`CONTRIBUTING.md` | `tests/docs-content.sh` |
+| **FR-DOC-220** Every list of this repository's tools and procedures names each of them | `implemented` | T | `README.md`<br>`AGENTS.md`<br>`docs/install.md`<br>`docs/agents.md`<br>`docs/upgrade.md`<br>`CONTRIBUTING.md` | `tests/docs-content.sh` |
 | **FR-GND-010** The register is read and reported on | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh`<br>`tests/grounds-check.sh` |
 | **FR-GND-020** Well-formed and unique identifiers | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh` |
 | **FR-GND-030** A missing required key is named as missing | `implemented` | T | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh` |
@@ -257,7 +257,7 @@ Total requirements: 378.
 | **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-page/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md`<br>`.claude/skills/srs-arch/SKILL.md`<br>`.claude/skills/srs-arch-harvest/SKILL.md`<br>`.claude/skills/srs-arch-audit/SKILL.md`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md` | — |
 | **FR-SKILL-030** Harvesting proposes, the maintainer approves | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
 | **FR-SKILL-040** Setup brings two decisions back to the maintainer | `implemented` | I | `.claude/skills/srs-init/SKILL.md` | — |
-| **FR-SKILL-050** An audit reports, it does not repair | `implemented` | I | `.claude/skills/srs-audit/SKILL.md` | — |
+| **FR-SKILL-050** An audit reports, it does not repair | `implemented` | I | `.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-arch-audit/SKILL.md` | — |
 | **FR-SKILL-060** The upgrade procedure travels with the project | `implemented` | T | `.claude/skills/srs-upgrade/SKILL.md`<br>`tools/srs_init.py` | `tests/upgrade-smoke.sh` |
 | **FR-SKILL-070** The release procedure travels with the framework | `implemented` | I | `.claude/skills/srs-release/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-SKILL-080** The baseline procedure travels with the project | `implemented` | T | `.claude/skills/srs-baseline/SKILL.md`<br>`tools/srs_init.py` | `tests/installer-smoke.sh` |
@@ -414,7 +414,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-ARCH-010** | CON-ARCH-010 (depends_on), CON-ARCH-020 (depends_on), FR-ARCH-040 (depends_on), FR-ARCH-060 (depends_on), FR-ARCH-070 (depends_on), FR-ARCH-080 (depends_on), FR-ARCH-120 (depends_on), FR-ARCH-200 (depends_on), FR-ARCH-210 (depends_on), FR-ARCH-220 (depends_on), FR-ARCH-230 (depends_on), FR-ARCH-240 (depends_on), FR-ARCH-270 (depends_on), FR-ARCH-280 (depends_on), FR-ARCH-320 (depends_on), FR-ARCH-350 (depends_on), FR-ARCH-360 (depends_on), FR-ARCH-410 (depends_on), FR-ARCH-570 (depends_on), FR-DOC-070 (depends_on), IF-ARCH-020 (depends_on), IF-ARCH-030 (depends_on) |
 | **FR-ARCH-040** | FR-ARCH-050 (depends_on) |
 | **FR-ARCH-060** | FR-ARCH-240 (depends_on), FR-ARCH-260 (depends_on), FR-ARCH-340 (refines), FR-ARCH-540 (derives_from), FR-DOC-070 (depends_on) |
-| **FR-ARCH-090** | FR-ARCH-100 (depends_on), FR-ARCH-220 (depends_on), FR-ARCH-280 (derives_from), FR-ARCH-320 (derives_from), FR-ARCH-330 (derives_from), FR-ARCH-380 (derives_from), FR-ARCH-390 (derives_from), FR-ARCH-470 (derives_from), FR-ARCH-490 (derives_from), IF-ARCH-030 (depends_on) |
+| **FR-ARCH-090** | FR-ARCH-050 (derives_from), FR-ARCH-060 (derives_from), FR-ARCH-070 (derives_from), FR-ARCH-080 (derives_from), FR-ARCH-100 (depends_on), FR-ARCH-200 (derives_from), FR-ARCH-220 (depends_on), FR-ARCH-280 (derives_from), FR-ARCH-320 (derives_from), FR-ARCH-330 (derives_from), FR-ARCH-380 (derives_from), FR-ARCH-390 (derives_from), FR-ARCH-470 (derives_from), FR-ARCH-490 (derives_from), FR-ARCH-500 (derives_from), FR-ARCH-560 (derives_from), IF-ARCH-030 (depends_on) |
 | **FR-ARCH-110** | FR-ARCH-160 (depends_on), FR-ARCH-250 (refines), FR-ARCH-400 (depends_on), FR-ARCH-420 (depends_on) |
 | **FR-ARCH-120** | FR-ARCH-130 (depends_on), FR-ARCH-140 (depends_on), FR-ARCH-150 (depends_on) |
 | **FR-ARCH-150** | FR-DOC-100 (depends_on), FR-SKILL-480 (depends_on), FR-SKILL-490 (depends_on) |
@@ -526,7 +526,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-INIT-370** | FR-SKILL-460 (derives_from) |
 | **FR-SKILL-010** | FR-DOC-040 (depends_on), FR-DOC-100 (depends_on), FR-DOC-110 (depends_on), FR-DOC-200 (depends_on), FR-SKILL-020 (depends_on), FR-SKILL-100 (depends_on), FR-SKILL-250 (depends_on), FR-SKILL-330 (derives_from), FR-SKILL-350 (derives_from), FR-SKILL-360 (derives_from), FR-SKILL-370 (derives_from) |
 | **FR-SKILL-020** | FR-VIEW-360 (derives_from) |
-| **FR-SKILL-030** | FR-DOC-060 (depends_on), FR-DOC-100 (depends_on), FR-SKILL-230 (depends_on) |
+| **FR-SKILL-030** | FR-DOC-060 (depends_on), FR-DOC-100 (depends_on), FR-SKILL-230 (depends_on), FR-SKILL-520 (derives_from) |
 | **FR-SKILL-040** | FR-DOC-090 (depends_on), FR-SKILL-190 (depends_on), IF-SKILL-010 (depends_on) |
 | **FR-SKILL-050** | FR-DOC-100 (depends_on), FR-SKILL-160 (depends_on), FR-SKILL-260 (depends_on) |
 | **FR-SKILL-060** | FR-DOC-100 (depends_on) |

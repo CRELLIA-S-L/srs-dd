@@ -309,6 +309,22 @@ for name in srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS:
     if "`%s`" % name not in travels:
         fail("CONTRIBUTING.md — FR-DOC-220 — the tooling that travels does not name %s" % name)
 
+# What to delete to be rid of a layer: a reader following it leaves behind
+# whatever the sentence forgot, and the sentence is written per layer.
+with open("docs/upgrade.md", encoding="utf-8") as handle:
+    upgrade = handle.read()
+for layer, members in (("grounds", srs_init.GROUNDS_TOOLS + srs_init.GROUNDS_SKILLS),
+                       ("arch", srs_init.ARCH_TOOLS + srs_init.ARCH_SKILLS)):
+    line = next((l for l in upgrade.splitlines()
+                 if l.startswith("To be rid of it") and "`%s/`" % layer in l), "")
+    if not line:
+        fail("docs/upgrade.md — FR-DOC-220 — nothing says what to delete to be rid of %s/" % layer)
+        continue
+    for name in members:
+        if name.replace(".py", "") not in line:
+            fail("docs/upgrade.md — FR-DOC-220 — what to delete to be rid of %s/ does not name %s"
+                 % (layer, name))
+
 # srs-end: FR-DOC-220
 # --- verifies: FR-DOC-190 — a relative link leads to a file that exists.
 LINK = re.compile(r"\]\(([^)\s#]+)(?:#[^)]*)?\)")

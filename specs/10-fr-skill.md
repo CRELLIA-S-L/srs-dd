@@ -108,12 +108,12 @@ derives_from: []
 depends_on: [FR-VIEW-040]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs-audit/SKILL.md]
+code: [.claude/skills/srs-audit/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md]
 tests: []
 created: 2026-08-07
 ```
 
-The `srs-audit` procedure **shall** report what it finds without changing the specification or the code on its own.
+An audit procedure **shall** report what it finds without changing the specification, the architecture or the code on its own.
 
 **Rationale.** When the two disagree it is unknown which one is wrong, and that is the maintainer's call — a helpful fix here would silently pick a side.
 
@@ -121,6 +121,8 @@ The `srs-audit` procedure **shall** report what it finds without changing the sp
 A pass over an area's links finds what the specification lacks within itself, with the code no part of it, and under the old wording the procedure's own rule — *name the edit; do not make it* — rested on this requirement's title rather than on its statement.
 Widened to what it finds, because the reason was never about the code: where two sides disagree it is unknown which is wrong, and where there is only the specification it is unknown whether what the audit sees is a gap or a shape somebody chose.
 Both are the maintainer's to settle, and a procedure that acts on its own settles them in silence.
+
+**Widened again on 2026-10-06, by the audit before the 0.22.0 baseline.** The statement named one procedure while the title named the act, and by then there were two: `srs-arch-audit` reads a cut the same way and must not redraw it either. The records of the layer are a third side nobody may pick for the maintainer, so the sentence names them.
 
 ### FR-SKILL-060 — The upgrade procedure travels with the project
 
@@ -1297,7 +1299,7 @@ The permission to answer "nothing in particular" is what keeps the field honest:
 ```yaml
 status: implemented
 verification: I
-derives_from: []
+derives_from: [FR-SKILL-030]
 depends_on: [IF-ARCH-010, FR-ARCH-540]
 refines: []
 conflicts_with: []
