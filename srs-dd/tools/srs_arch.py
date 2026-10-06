@@ -12,6 +12,9 @@
     python3 srs-dd/tools/srs_arch.py --cite E-NNN… name elements to a person
     python3 srs-dd/tools/srs_arch.py --drivers    the requirements that drive the cut
     python3 srs-dd/tools/srs_arch.py --plan       what moving to the designed parts requires
+    python3 srs-dd/tools/srs_arch.py --draft      a cut to argue with, from the files no part carries
+    python3 srs-dd/tools/srs_arch.py --price parts|areas|proposed
+                                                  what a cut costs: links inside, out and in
 
 The requirement model is read by running srs-dd/tools/srs_view.py as a subprocess and parsing what it
 publishes, which the framework promises to keep stable, so this file never learns the requirement
@@ -46,6 +49,7 @@ __version__ = srs_parse.__version__
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ARCH = os.path.join(ROOT, "arch")
+GROUNDS = os.path.join(ROOT, "grounds")
 CONFIG = os.path.join(ARCH, "arch-config.json")
 EDGES = os.path.join(ARCH, "edges.json")
 EDGES_REL = os.path.join("arch", "edges.json")
@@ -93,7 +97,8 @@ MOVE_CLOSED = ("done", "abandoned")
 RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "element-empty",
          "dependency-undeclared", "element-cycle", "carrier-missing",
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
-         "dependency-forbidden", "interface-bypassed", "protects-uncarried")
+         "dependency-forbidden", "interface-bypassed", "protects-uncarried",
+         "element-ungrounded")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -264,6 +269,56 @@ def collect_files():
 # srs-end: FR-ARCH-010
 
 
+# implements: FR-ARCH-550
+def read_grounds():
+    """What each requirement rests on — `{requirement: [(hypothesis, status), …]}` — or None
+    where the project keeps no register. Read through the register's own reader, imported from
+    beside this file: the format of a record is that layer's business and not this one's.
+    A bet that was retired is past, and a hypothesis a bet names and the register does not hold
+    is the register's own finding to report, not this layer's."""
+    if not os.path.isdir(GROUNDS):
+        return None
+    try:
+        import srs_grounds
+    except ImportError:
+        return None
+    unread = []
+    records = srs_grounds.read_records(unread)
+    hypotheses = {rid: rec for rid, rec in records.items() if rec.kind == "H"}
+    rests = {}
+    for rec in records.values():
+        if rec.kind != "B" or rec.fields.get("status") == "retired":
+            continue
+        requirement = as_list(rec.fields.get("requirement"))
+        named = as_list(rec.fields.get("all_of")) + as_list(rec.fields.get("any_of"))
+        for rid in requirement:
+            for hid in named:
+                if hid not in hypotheses:
+                    continue
+                status = hypotheses[hid].fields.get("status")
+                if isinstance(status, list):
+                    status = status[0] if status else ""
+                pair = (hid, status or "?")
+                if pair not in rests.setdefault(rid, []):
+                    rests[rid].append(pair)
+    for rid in rests:
+        rests[rid].sort(key=lambda pair: srs_parse.id_key(pair[0]))
+    return rests
+
+
+def stands_on(record, model, cfg, rests):
+    """The hypotheses the obligations of one element rest on, with their state, in the order the
+    specification holds its requirements."""
+    written, computed = carried_by([record], model, cfg)
+    order = spec_order(model)
+    out = []
+    for rid in sorted(written[record.id] | computed[record.id], key=order):
+        for hid, status in rests.get(rid, ()):
+            out.append((rid, hid, status))
+    return out
+# srs-end: FR-ARCH-550
+
+
 # implements: FR-ARCH-010
 def read_records(errors):
     """Every element the layer holds, in the order the files present them."""
@@ -327,6 +382,25 @@ def check_moves(moves, errors):
             errors.append("%s — status %r is not one of %s"
                           % (record.where, status, ", ".join(MOVE_STATUSES)))
 # srs-end: FR-ARCH-360, IF-ARCH-050
+
+
+# implements: FR-ARCH-560
+def check_grounded(records, model, warnings, reports, cfg, rests):
+    """A part carrying a requirement that rests on ground the register has lost. `refuted` and
+    `expired` only: `assumed` is the ordinary state of a register and would fire on everything."""
+    if not rests:
+        return
+    titles = {r["id"]: r.get("title", "") for r in model["requirements"]}
+    for record in sorted(records, key=lambda r: srs_parse.id_key(r.id)):
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        for rid, hid, status in stands_on(record, model, cfg, rests):
+            if status not in ("refuted", "expired"):
+                continue
+            rule_finding(warnings, reports, cfg, "element-ungrounded",
+                         "%s — %s carries %s, which rests on %s (%s)"
+                         % (record.where, record.id, rid, hid, status))
+# srs-end: FR-ARCH-560
 
 
 # implements: FR-ARCH-370
@@ -936,6 +1010,58 @@ def check_conformance(records, edges, warnings, reports, cfg):
 # srs-end: FR-ARCH-200, FR-ARCH-260
 
 
+# implements: FR-ARCH-540
+def print_draft(records, model, cfg, unread=()):
+    """A cut to argue with, not a cut: the files no part carries, grouped by the directory they
+    sit in, each group written out as a record to rename, split, merge and paste in.
+
+    The join is the checker's own — what `carrier-unclaimed` reports, read the other way round —
+    so a project adopting the layer on a mature codebase starts from the specification's own
+    answer instead of from a blank file.
+    """
+    carried = live_carriers(records)
+    taken = {r.id for r in records if RE_ID.match(r.id)}
+    groups = {}
+    for requirement in model["requirements"]:
+        if requirement.get("status") not in REALIZED:
+            continue
+        for path in (requirement.get("code") or []):
+            if owner_of(path, carried) is not None:
+                continue
+            where = os.path.dirname(path) or "."
+            group = groups.setdefault(where, {"files": [], "requirements": []})
+            if path not in group["files"]:
+                group["files"].append(path)
+            if requirement["id"] not in group["requirements"]:
+                group["requirements"].append(requirement["id"])
+    out = sys.stdout.write
+    if unread:
+        out("%d record(s) could not be read and are not accounted for here; the checker names "
+            "them.\n\n" % len(unread))
+    if not groups:
+        out("Every file a realized requirement names is carried by a part: there is nothing to "
+            "draft.\n")
+        return 0
+    order = spec_order(model)
+    numbers = sorted(int(rid.split("-")[1]) for rid in taken) or [0]
+    nxt = numbers[-1] + 10
+    out("A draft cut, printed and never written: %d director%s holding files no part carries.\n"
+        "A part has a responsibility and a name, and neither is computable — rename, split and "
+        "merge these, then paste what survives into arch/00-elements.md.\n\n"
+        % (len(groups), "y" if len(groups) == 1 else "ies"))
+    for where in sorted(groups):
+        group = groups[where]
+        out("### E-%03d — <what %s is responsible for>\n\n" % (nxt, where))
+        out("```yaml\nstatus: built\ncarries: [%s]\n" % ", ".join(sorted(group["files"])))
+        out("requirements: [%s]\n"
+            % ", ".join(sorted(group["requirements"], key=order)))
+        out("depends_on: []\ninterface: <how this part is reached from outside>\n```\n\n")
+        out("<One sentence: what this part answers for. An \"and\" in it is two parts.>\n\n")
+        nxt += 10
+    return 0
+# srs-end: FR-ARCH-540
+
+
 # implements: FR-ARCH-350
 def print_plan(records, model, cfg, unread=()):
     """What moving to the designed parts requires: files changing hands with both ends named,
@@ -1010,6 +1136,121 @@ def print_plan(records, model, cfg, unread=()):
                 out.write("    %s → %s — the dependency goes with it\n" % (eid, target))
     return 0
 # srs-end: FR-ARCH-350
+
+
+# implements: FR-ARCH-570
+def links_of(model):
+    """Every link between two requirements, as pairs, from what the viewer publishes under
+    `incoming` — the one place that holds them all, so no list of link fields is copied here."""
+    pairs = []
+    for target, named in sorted(model.get("incoming", {}).items()):
+        for entry in named:
+            if len(entry) == 2:
+                pairs.append((entry[1], target))
+    return pairs
+
+
+def price_cut(groups, model):
+    """What a cut costs, group by group: links with both ends inside, links leaving, links
+    arriving. `groups` is {name: {requirement, …}}; a requirement in no group is counted once at
+    the end, because a cut that covers less than the specification is the first thing to say."""
+    member = {}
+    for name, held in groups.items():
+        for rid in held:
+            member[rid] = name
+    rows = {name: {"inside": 0, "out": 0, "in": 0} for name in groups}
+    for source, target in links_of(model):
+        here, there = member.get(source), member.get(target)
+        if here is None and there is None:
+            continue
+        if here == there:
+            rows[here]["inside"] += 1
+        else:
+            if here is not None:
+                rows[here]["out"] += 1
+            if there is not None:
+                rows[there]["in"] += 1
+    uncovered = sorted((r["id"] for r in model["requirements"]
+                        if r["id"] not in member and r.get("status") not in CANCELLED),
+                       key=srs_parse.id_key)
+    return rows, uncovered
+
+
+def print_price(groups, model, title, titles=None):
+    """The price of one cut, widest group first: the reading is comparative, so the order is the
+    one that puts the parts worth arguing about at the top."""
+    rows, uncovered = price_cut(groups, model)
+    out = sys.stdout.write
+    # Distinct, not the sum: a requirement two parts both answer for is covered once, and the
+    # sum would say the cut covers more than the specification holds.
+    covered = len(set().union(*groups.values()) if groups else set())
+    out("%s — %d group(s), %d of %d requirements covered.\n"
+        "Links with both ends inside a group, then leaving it, then arriving.\n\n"
+        % (title, len(groups), covered,
+           len([r for r in model["requirements"] if r.get("status") not in CANCELLED])))
+    for name in sorted(groups, key=lambda n: (-len(groups[n]), n)):
+        count = rows[name]
+        out("%-12s %4d held · %4d inside · %4d out · %4d in%s\n"
+            % (name, len(groups[name]), count["inside"], count["out"], count["in"],
+               "   %s" % titles[name] if titles and name in titles else ""))
+    if uncovered:
+        out("\n%d requirement(s) in no group: %s\n"
+            % (len(uncovered), ", ".join(uncovered[:12])
+               + (", …" if len(uncovered) > 12 else "")))
+    return 0
+
+
+def groups_of_parts(records, model, cfg):
+    """The cut the layer holds: one group per element in force, holding what it carries."""
+    written, computed = carried_by(records, model, cfg)
+    groups, titles = {}, {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        groups[record.id] = written[record.id] | computed[record.id]
+        titles[record.id] = record.title
+    return groups, titles
+
+
+def groups_of_areas(model):
+    """The cut the specification already made: one group per area."""
+    groups = {}
+    for requirement in model["requirements"]:
+        if requirement.get("status") in CANCELLED:
+            continue
+        area = requirement.get("area") or requirement["id"].split("-")[1]
+        groups.setdefault(area, set()).add(requirement["id"])
+    return groups
+# srs-end: FR-ARCH-570
+
+
+# implements: FR-ARCH-580
+def propose_cut(model, seeds):
+    """A cut from the links themselves: every requirement joins the driver it is nearest to over
+    the links, a tie going to the lower identifier, and whatever no driver reaches forms the
+    remainder. One walk from all the seeds at once, so the result is the same on every run."""
+    neighbours = {}
+    for source, target in links_of(model):
+        neighbours.setdefault(source, set()).add(target)
+        neighbours.setdefault(target, set()).add(source)
+    standing = [r["id"] for r in model["requirements"] if r.get("status") not in CANCELLED]
+    nearest = {}
+    frontier = [(0, seed, seed) for seed in seeds if seed in set(standing)]
+    while frontier:
+        step = []
+        for distance, seed, rid in sorted(frontier, key=lambda item: (item[0], item[1], item[2])):
+            if rid in nearest:
+                continue
+            nearest[rid] = seed
+            for other in sorted(neighbours.get(rid, ())):
+                if other not in nearest:
+                    step.append((distance + 1, seed, other))
+        frontier = [item for item in step if item[2] not in nearest]
+    groups = {}
+    for rid in standing:
+        groups.setdefault(nearest.get(rid, "—"), set()).add(rid)
+    return groups
+# srs-end: FR-ARCH-580
 
 
 # implements: FR-ARCH-210
@@ -1132,11 +1373,20 @@ def main(argv=None):
         if not wanted:
             return fail_setup("--cite needs at least one element identifier\n"
                               "usage: srs_arch.py --cite E-NNN…")
-    unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers", "--plan"})
+    priced = None
+    if "--price" in args:
+        cut = args.index("--price")
+        rest = args[cut + 1:]
+        if not rest or rest[0] not in ("parts", "areas", "proposed"):
+            return fail_setup("--price needs one of: parts, areas, proposed\n"
+                              "usage: srs_arch.py --price parts|areas|proposed")
+        priced = rest[0]
+        args = args[:cut] + rest[1:]
+    unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers", "--plan", "--draft"})
     if unknown:
         return fail_setup("unknown flag(s): %s\n"
                           "usage: srs_arch.py [--no-write] [--strict] [--drivers] [--plan] "
-                          "[--cite E-NNN…]"
+                          "[--draft] [--price parts|areas|proposed] [--cite E-NNN…]"
                           % " ".join(unknown))
     strict = "--strict" in args
     write = "--no-write" not in args
@@ -1166,6 +1416,34 @@ def main(argv=None):
         elements = partition(read_records(unread), unread)[0]
         return print_plan(elements, model, cfg, unread)
 
+    # implements: FR-ARCH-570, FR-ARCH-580
+    if priced is not None:
+        if priced == "areas":
+            return print_price(groups_of_areas(model), model, "The areas the specification declares")
+        if priced == "proposed":
+            incoming = model.get("incoming", {})
+            weight = {"IF": 0, "INV": 1, "CON": 2, "NFR": 3, "FR": 4}
+            ranked = sorted(model["requirements"],
+                            key=lambda r: (-len(incoming.get(r["id"], [])),
+                                           weight.get(r["id"].split("-")[0], 9), r["id"]))
+            seeds = [r["id"] for r in ranked[:10]]
+            sys.stdout.write("A cut proposed from the links, seeded by the drivers: %s.\n"
+                             "Printed, never written — a part has a responsibility and a name, "
+                             "and neither is computable.\n\n" % ", ".join(seeds))
+            return print_price(propose_cut(model, seeds), model, "The cut the links suggest")
+        unread = []
+        elements = partition(read_records(unread), unread)[0]
+        groups, titles = groups_of_parts(elements, model, cfg)
+        return print_price(groups, model, "The parts the layer holds", titles)
+    # srs-end: FR-ARCH-570, FR-ARCH-580
+
+    # implements: FR-ARCH-540
+    if "--draft" in args:
+        unread = []
+        elements = partition(read_records(unread), unread)[0]
+        return print_draft(elements, model, cfg, unread)
+    # srs-end: FR-ARCH-540
+
     errors, warnings, reports = [], [], []
     records = read_records(errors)
     elements, moves = partition(records, errors)
@@ -1179,6 +1457,7 @@ def main(argv=None):
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_interfaces(elements, edges, warnings, reports, cfg)
     check_protects(elements, model, errors, warnings, reports, cfg)
+    check_grounded(elements, model, warnings, reports, cfg, read_grounds() or {})
     check_moves(moves, errors)
     check_moves_resolve(moves, elements, model, errors)
     check_move_state(moves, elements, warnings, reports, cfg)

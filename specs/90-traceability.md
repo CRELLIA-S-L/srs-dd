@@ -8,9 +8,9 @@ Total requirements: 378.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 8 |
+| `deferred` | 1 |
 | `partial` | 0 |
-| `implemented` | 366 |
+| `implemented` | 373 |
 | `superseded` | 4 |
 | `withdrawn` | 0 |
 
@@ -78,11 +78,11 @@ Total requirements: 378.
 | **FR-ARCH-510** The document says what each part protects | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
 | **FR-ARCH-520** The architecture document can be read as a page | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
 | **FR-ARCH-530** The drawing on the page is laid out by the command | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
-| **FR-ARCH-540** A draft cut is computed from what nobody carries | `deferred` | T | — | — |
-| **FR-ARCH-550** The document says what each part stands on | `deferred` | T | — | — |
-| **FR-ARCH-560** A part standing on refuted ground is reported | `deferred` | T | — | — |
-| **FR-ARCH-570** What a cut costs is computed | `deferred` | T | — | — |
-| **FR-ARCH-580** A cut is proposed from the links themselves | `deferred` | T | — | — |
+| **FR-ARCH-540** A draft cut is computed from what nobody carries | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
+| **FR-ARCH-550** The document says what each part stands on | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
+| **FR-ARCH-560** A part standing on refuted ground is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-570** What a cut costs is computed | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
+| **FR-ARCH-580** A cut is proposed from the links themselves | `implemented` | T | `srs-dd/tools/srs_arch.py` | `tests/arch-rules.sh` |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -254,7 +254,7 @@ Total requirements: 378.
 | **FR-INIT-380** What the installer does not own in its directory is reported | `implemented` | T | `tools/srs_init.py` | `tests/installer-smoke.sh` |
 | **FR-INIT-390** The installer writes no constitution | `implemented` | T | `tools/srs_init.py` | `tests/guide-parity.sh`<br>`tests/installer-smoke.sh` |
 | **FR-SKILL-010** The everyday loop | `implemented` | I | `.claude/skills/srs/SKILL.md` | — |
-| **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-page/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md`<br>`.claude/skills/srs-arch/SKILL.md`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md` | — |
+| **FR-SKILL-020** Rules are stated once | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-init/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-page/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md`<br>`.claude/skills/srs-upgrade/SKILL.md`<br>`.claude/skills/srs-arch/SKILL.md`<br>`.claude/skills/srs-arch-harvest/SKILL.md`<br>`.claude/skills/srs-arch-audit/SKILL.md`<br>`srs-dd/standard.md`<br>`srs-dd/grounds.md`<br>`srs-dd/arch.md` | — |
 | **FR-SKILL-030** Harvesting proposes, the maintainer approves | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
 | **FR-SKILL-040** Setup brings two decisions back to the maintainer | `implemented` | I | `.claude/skills/srs-init/SKILL.md` | — |
 | **FR-SKILL-050** An audit reports, it does not repair | `implemented` | I | `.claude/skills/srs-audit/SKILL.md` | — |
@@ -272,7 +272,7 @@ Total requirements: 378.
 | **FR-SKILL-170** An observation is reported as a finding only once it is one | `implemented` | I | `.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md` | — |
 | **FR-SKILL-180** Authoring asks what the requirement stands on | `implemented` | I | `.claude/skills/srs-new/SKILL.md` | — |
 | **FR-SKILL-190** Setup reads the project's line width rather than guessing it | `implemented` | I | `.claude/skills/srs-init/SKILL.md` | — |
-| **FR-SKILL-200** A record is named by more than its number | `implemented` | I | `AGENTS.md`<br>`skeleton/AGENTS.md`<br>`CLAUDE.md`<br>`skeleton/CLAUDE.md`<br>`srs-dd/standard.md`<br>`.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-arch/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md` | — |
+| **FR-SKILL-200** A record is named by more than its number | `implemented` | I | `AGENTS.md`<br>`skeleton/AGENTS.md`<br>`CLAUDE.md`<br>`skeleton/CLAUDE.md`<br>`srs-dd/standard.md`<br>`.claude/skills/srs/SKILL.md`<br>`.claude/skills/srs-audit/SKILL.md`<br>`.claude/skills/srs-check/SKILL.md`<br>`.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs-baseline/SKILL.md`<br>`.claude/skills/srs-bet/SKILL.md`<br>`.claude/skills/srs-arch/SKILL.md`<br>`.claude/skills/srs-arch-harvest/SKILL.md`<br>`.claude/skills/srs-arch-audit/SKILL.md`<br>`.claude/skills/srs-release/SKILL.md` | — |
 | **FR-SKILL-210** What is already written is read before something new is | `implemented` | I | `.claude/skills/srs-new/SKILL.md`<br>`.claude/skills/srs-harvest/SKILL.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-220** What to read comes from the specification, not from a search | `implemented` | I | `AGENTS.md`<br>`skeleton/AGENTS.md`<br>`.claude/skills/srs/SKILL.md` | — |
 | **FR-SKILL-230** A mined requirement is checked against what is written | `implemented` | I | `.claude/skills/srs-harvest/SKILL.md` | — |
@@ -304,8 +304,8 @@ Total requirements: 378.
 | **FR-SKILL-490** The architecture procedure says how files move without breaking the project | `implemented` | T | `.claude/skills/srs-arch/SKILL.md` | `tests/skill-instructions.sh` |
 | **FR-SKILL-500** A procedure is measured against not having it | `implemented` | T | `tools/srs_proc_eval.py` | `tests/proc-eval-smoke.sh` |
 | **FR-SKILL-510** The architecture procedure asks what a part protects | `implemented` | T | `.claude/skills/srs-arch/SKILL.md` | `tests/skill-instructions.sh` |
-| **FR-SKILL-520** Recovering a cut proposes, the maintainer approves | `deferred` | I | — | — |
-| **FR-SKILL-530** The architecture audit ends every finding in an act | `deferred` | I | — | — |
+| **FR-SKILL-520** Recovering a cut proposes, the maintainer approves | `implemented` | I | `.claude/skills/srs-arch-harvest/SKILL.md` | — |
+| **FR-SKILL-530** The architecture audit ends every finding in an act | `implemented` | I | `.claude/skills/srs-arch-audit/SKILL.md` | — |
 | **FR-SPEC-010** Freezing a baseline is one command | `implemented` | T | `srs-dd/tools/srs_baseline.py` | `tests/baseline-smoke.sh` |
 | **FR-SPEC-020** A specification can be dated from its own history | `implemented` | T | `srs-dd/tools/srs_dates.py` | `tests/dates-smoke.sh` |
 | **FR-SPEC-030** A decision that chose a mechanism says how it works | `implemented` | I | `srs-dd/standard.md`<br>`specs/adr/template.md` | — |
@@ -674,6 +674,8 @@ Verified by means other than testing — or the check has not been set up yet.
 - **FR-SKILL-280** (`implemented`, method `I`) — A statement about the project is checked against its source before it is sent
 - **FR-SKILL-320** (`implemented`, method `I`) — What is put to a person for a decision is in the message that asks
 - **FR-SKILL-330** (`implemented`, method `I`) — What a conversation settles is offered as a requirement
+- **FR-SKILL-520** (`implemented`, method `I`) — Recovering a cut proposes, the maintainer approves
+- **FR-SKILL-530** (`implemented`, method `I`) — The architecture audit ends every finding in an act
 - **FR-SPEC-030** (`implemented`, method `I`) — A decision that chose a mechanism says how it works
 - **FR-SPEC-040** (`implemented`, method `I`) — An annotation stands above what carries the requirement out
 - **IF-ARCH-010** (`implemented`, method `I`) — The element record is a stable format

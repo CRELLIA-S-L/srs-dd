@@ -19,7 +19,7 @@ System behavior is described in `specs/` as numbered requirements with links bet
 - **Freeze a baseline** — `python3 srs-dd/tools/srs_baseline.py X.Y.Z` writes the row into `specs/92-baselines.md`; the commit that carries it is the baseline, and `.claude/skills/srs-baseline/SKILL.md` is the procedure. Nothing here commits or tags for you.
 - **Date requirements** — `python3 srs-dd/tools/srs_dates.py` writes into each requirement the date its identifier first appeared in the history; `--dry-run` says what it would write. Run on purpose, never by a gate.
 - **Grounds register**, where the project keeps `grounds/` — `python3 srs-dd/tools/srs_grounds.py` checks it and regenerates `grounds/90-dashboard.md`; `--blast <path>` says what the requirements behind a file stand on, and `--html` prints the dashboard as a page. `.claude/skills/srs-bet/SKILL.md` is the procedure.
-- **Architecture layer**, where the project keeps `arch/` — `python3 srs-dd/tools/srs_arch.py` checks it against the specification and regenerates `arch/90-map.md`; a part still `proposed` is a design, and `--plan` says what moving to it requires. `python3 srs-dd/tools/srs_arch_doc.py` prints the layer as a document for a person, on request, and `--html` prints it as a page. `.claude/skills/srs-arch/SKILL.md` is the procedure.
+- **Architecture layer**, where the project keeps `arch/` — `python3 srs-dd/tools/srs_arch.py` checks it against the specification and regenerates `arch/90-map.md`; a part still `proposed` is a design, and `--plan` says what moving to it requires. `python3 srs-dd/tools/srs_arch_doc.py` prints the layer as a document for a person, on request, and `--html` prints it as a page. `.claude/skills/srs-arch/SKILL.md` is the procedure; `srs-arch-harvest` recovers a cut from a project that has one, `srs-arch-audit` judges one.
 - **Publish the pages** — `index.html`, `arch.html` and `grounds.html` side by side (*Published pages*, `srs-dd/standard.md`); `--link` says which others are beside a page, and it links exactly those, so none promises a page nobody rendered.
 - **Upgrade the framework** — `python3 srs-dd/tools/srs_upgrade.py` shows the version transition, the upgrade notes and the file list, then asks; `.claude/skills/srs-upgrade/SKILL.md` is the procedure. No framework clone, no address to look up.
 
@@ -74,7 +74,7 @@ Never run the installer against this repository: it would install the framework 
 | `tools/` | `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (framework-only) |
 | `tests/` | The suites this repository's pipeline runs; requirements cite them by path |
 | `ci/` | Starters of a project's pipelines and hook — not this repository's own pipeline |
-| `.claude/skills/` | Procedures; `srs-init` and `srs-release` are framework-only, the rest ship — `srs-bet` and `srs-arch` with their layer |
+| `.claude/skills/` | Procedures; `srs-init` and `srs-release` are framework-only, the rest ship — `srs-bet` with the register, the three `srs-arch*` with the layer |
 | `.github/workflows/srs.yml` | This repository's own pipeline |
 
 ## Two rules that protect other people's repositories

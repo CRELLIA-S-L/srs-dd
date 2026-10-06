@@ -112,7 +112,7 @@ GROUNDS_SKILLS = ("srs-bet",)
 ARCH_STANDARD = os.path.join(SRS_DIR, "arch.md")
 ARCH_CONFIG = os.path.join("arch", "arch-config.json")
 ARCH_TOOLS = ("srs_arch.py", "srs_arch_doc.py")
-ARCH_SKILLS = ("srs-arch",)
+ARCH_SKILLS = ("srs-arch", "srs-arch-harvest", "srs-arch-audit")
 
 # implements: FR-INIT-330, FR-INIT-340
 # How the installer tells its own file from the project's: the token with the version

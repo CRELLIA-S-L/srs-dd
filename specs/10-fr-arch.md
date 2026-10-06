@@ -1127,14 +1127,14 @@ A node per element in force and an edge per declared dependency, so that the dra
 ### FR-ARCH-540 — A draft cut is computed from what nobody carries
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-060]
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
@@ -1147,14 +1147,14 @@ Printed and never written, for the reason `CON-ARCH-020` gives of the map: a rec
 ### FR-ARCH-550 — The document says what each part stands on
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-410]
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
 created: 2026-10-06
 ```
 
@@ -1167,14 +1167,14 @@ Where the project keeps no register the section is absent, as `FR-ARCH-460` asks
 ### FR-ARCH-560 — A part standing on refuted ground is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-550]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
@@ -1187,14 +1187,14 @@ A warning rather than an error, and priced by the project like every other readi
 ### FR-ARCH-570 — What a cut costs is computed
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
@@ -1211,14 +1211,14 @@ Nothing has recomputed it since, and the specification has passed three hundred.
 ### FR-ARCH-580 — A cut is proposed from the links themselves
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-570]
 depends_on: [FR-ARCH-210]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 

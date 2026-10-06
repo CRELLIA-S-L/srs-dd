@@ -7,7 +7,7 @@
 #
 # file verifies: FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450
 # file verifies: FR-ARCH-460, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530
-# file verifies: INV-SPEC-130
+# file verifies: INV-SPEC-130, FR-ARCH-550
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -694,5 +694,84 @@ fi
 passes=$((passes + 1))
 
 # srs-end: INV-SPEC-130
+
+# --- verifies: FR-ARCH-550 — what the parts stand on, where the project keeps a
+# --- register: absent where it keeps none, since there is no question to answer.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010]
+depends_on: []
+interface: one call, run()
+```
+
+Answers a question.
+MD
+doc
+silent "FR-ARCH-550 no register, no section" "What the parts stand on"
+
+cp srs-dd/tools/srs_grounds.py "$LAB/srs-dd/tools/"
+mkdir -p "$LAB/grounds"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+cat > "$LAB/grounds/10-h-test.md" <<'MD'
+# Grounds under test
+
+### H-010 — The claim under the engine
+
+```yaml
+status: assumed
+class: III
+population: studios of five to fifty people
+refuted_if: proportion < 0.25 at n >= 200
+expires: 2099-01-01
+owner: @someone
+impact: a third of the plan
+```
+
+Studios of five to fifty people export weekly.
+
+### B-010 — The engine rests on it
+
+```yaml
+status: active
+requirement: FR-CORE-010
+all_of: [H-010]
+```
+
+Worth building only if the claim holds.
+MD
+doc
+says "FR-ARCH-550 the section is there once the register is" "## What the parts stand on"
+says "FR-ARCH-550 the part, the hypothesis and its state" "- **E-010** The engine — H-010 (\`assumed\`) under 1 obligation(s)"
+says "FR-ARCH-550 and where it comes from is said" "- What the parts stand on: the bets and hypotheses in \`grounds/\`"
+
+# A register nothing in the layer stands on: said, not left blank.
+cat > "$LAB/grounds/10-h-test.md" <<'MD'
+# Grounds under test
+
+### H-010 — A claim nothing rests on
+
+```yaml
+status: assumed
+class: III
+population: studios of five to fifty people
+refuted_if: proportion < 0.25 at n >= 200
+expires: 2099-01-01
+owner: @someone
+impact: a third of the plan
+```
+
+Studios of five to fifty people export weekly.
+MD
+doc
+says "FR-ARCH-550 a register nothing stands on is said" "_No obligation of any part rests on a hypothesis the register holds._"
+rm -rf "$LAB/grounds"
+
+# srs-end: FR-ARCH-550
 
 echo "arch-doc: $passes fixtures pass"

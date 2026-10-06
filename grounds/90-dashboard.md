@@ -80,14 +80,14 @@ requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
+| FR-SKILL-200 | 8 | 16 | 24 |
 | FR-ARCH-010 | 22 | 1 | 23 |
 | FR-VIEW-060 | 22 | 1 | 23 |
-| FR-SKILL-200 | 8 | 14 | 22 |
 | IF-SPEC-010 | 17 | 2 | 19 |
 | CON-SPEC-030 | 2 | 16 | 18 |
 | FR-INIT-280 | 0 | 18 | 18 |
+| FR-SKILL-020 | 1 | 17 | 18 |
 | NFR-SPEC-010 | 2 | 16 | 18 |
-| FR-SKILL-020 | 1 | 15 | 16 |
 | FR-CI-020 | 9 | 4 | 13 |
 | FR-CI-090 | 0 | 13 | 13 |
 | FR-GND-010 | 12 | 1 | 13 |
@@ -194,6 +194,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-320 | 1 | 2 | 3 |
 | FR-ARCH-340 | 1 | 2 | 3 |
 | FR-ARCH-500 | 1 | 2 | 3 |
+| FR-ARCH-550 | 1 | 2 | 3 |
+| FR-ARCH-570 | 2 | 1 | 3 |
 | FR-CHK-055 | 2 | 1 | 3 |
 | FR-CHK-210 | 0 | 3 | 3 |
 | FR-CHK-240 | 2 | 1 | 3 |
@@ -249,7 +251,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-470 | 0 | 2 | 2 |
 | FR-ARCH-480 | 0 | 2 | 2 |
 | FR-ARCH-490 | 0 | 2 | 2 |
-| FR-ARCH-570 | 2 | 0 | 2 |
+| FR-ARCH-540 | 1 | 1 | 2 |
+| FR-ARCH-560 | 0 | 2 | 2 |
 | FR-CHK-010 | 1 | 1 | 2 |
 | FR-CHK-040 | 1 | 1 | 2 |
 | FR-CHK-060 | 1 | 1 | 2 |
@@ -336,8 +339,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-460 | 0 | 1 | 1 |
 | FR-ARCH-510 | 0 | 1 | 1 |
 | FR-ARCH-530 | 0 | 1 | 1 |
-| FR-ARCH-540 | 1 | 0 | 1 |
-| FR-ARCH-550 | 1 | 0 | 1 |
+| FR-ARCH-580 | 0 | 1 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
 | FR-CHK-100 | 0 | 1 | 1 |
@@ -401,6 +403,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-490 | 0 | 1 | 1 |
 | FR-SKILL-500 | 0 | 1 | 1 |
 | FR-SKILL-510 | 0 | 1 | 1 |
+| FR-SKILL-520 | 0 | 1 | 1 |
+| FR-SKILL-530 | 0 | 1 | 1 |
 | FR-SPEC-060 | 0 | 1 | 1 |
 | FR-VIEW-090 | 0 | 1 | 1 |
 | FR-VIEW-130 | 0 | 1 | 1 |
@@ -421,8 +425,4 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-110 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-ARCH-560 | 0 | 0 | 0 |
-| FR-ARCH-580 | 0 | 0 | 0 |
-| FR-SKILL-520 | 0 | 0 | 0 |
-| FR-SKILL-530 | 0 | 0 | 0 |
 | INV-SPEC-120 | 0 | 0 | 0 |

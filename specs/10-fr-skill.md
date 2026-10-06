@@ -32,7 +32,7 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
 tests: []
 created: 2026-08-07
 ```
@@ -476,7 +476,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, srs-dd/standard.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-release/SKILL.md]
+code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, srs-dd/standard.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, .claude/skills/srs-release/SKILL.md]
 tests: []
 created: 2026-08-27
 ```
@@ -1295,13 +1295,13 @@ The permission to answer "nothing in particular" is what keeps the field honest:
 ### FR-SKILL-520 — Recovering a cut proposes, the maintainer approves
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: []
 depends_on: [IF-ARCH-010, FR-ARCH-540]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-arch-harvest/SKILL.md]
 tests: []
 created: 2026-10-06
 ```
@@ -1315,13 +1315,13 @@ A project made of documents is out of scope at this stage — the layer's readin
 ### FR-SKILL-530 — The architecture audit ends every finding in an act
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: [FR-SKILL-480]
 depends_on: [FR-ARCH-570]
 refines: []
 conflicts_with: []
-code: []
+code: [.claude/skills/srs-arch-audit/SKILL.md]
 tests: []
 created: 2026-10-06
 ```

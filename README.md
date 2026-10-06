@@ -191,6 +191,8 @@ Ask for them by name, or describe the task and let the agent pick.
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
 | "why do we do X" / a measurement came in | `srs-bet` — the grounds register: write a hypothesis, stake a requirement on it, record a measurement, settle what happens when one is refuted. |
 | "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, and read the disagreements the checker computes between that description, the specification and the code. |
+| "is our architecture any good" / "should this part be split" | `srs-arch-audit` — reads the cut against the specification, the code, what it costs and what it stands on, and ends every finding in an act. |
+| "we have the code and no architecture" | `srs-arch-harvest` — recovers the parts from the code and from whatever the project already says about itself, in batches you approve. |
 | "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, rewrites `srs-dd/` and the procedures, and nothing of yours. |
 
 Three rules bind every one of them, and they are why an agent with these is safer than an agent without: **it proposes, you approve** — no status is flipped and no batch is written without you; **it never runs builds or tests unasked**; **it reports what follows, not what it noticed** — an observation with no consequence is dropped rather than handed to you as homework.
@@ -244,7 +246,7 @@ Each layer's checker cites its own records in the same form — `srs_arch.py --c
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
 | `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
 | `tools/` | `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
-| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
+| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch`, `srs-arch-harvest` and `srs-arch-audit` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `.github/`, `.githooks/` | This repository's own pipeline and the hook that runs the same suites before a commit; targets get the templates in `ci/` instead |

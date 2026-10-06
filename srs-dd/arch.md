@@ -282,6 +282,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `dependency-forbidden` | A dependency the project forbade, declared by an element or had by the code |
 | `interface-bypassed` | A part entered by a name its own `interface` does not state |
 | `protects-uncarried` | A requirement an element protects and does not carry |
+| `element-ungrounded` | An element carrying a requirement that rests on a `refuted` or `expired` hypothesis, where the project keeps a grounds register |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

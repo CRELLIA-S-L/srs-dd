@@ -155,6 +155,34 @@ def divergence_section(elements, edges, cfg):
 # srs-end: FR-ARCH-440
 
 
+# implements: FR-ARCH-550
+def grounds_section(elements, model, cfg, rests):
+    """What the parts stand on: the hypotheses behind each part's obligations and the state of
+    each. Absent, not empty, where the project keeps no register — there is no question to
+    answer rather than nothing to say."""
+    if rests is None:
+        return []
+    out = ["## What the parts stand on", "",
+           "What the register says about the ground under each part's obligations. A part resting "
+           "on something `refuted` or `expired` is reported by the checker as well.", ""]
+    rows = []
+    for record in sorted(in_force(elements), key=lambda r: srs_arch.srs_parse.id_key(r.id)):
+        standing = srs_arch.stands_on(record, model, cfg, rests)
+        if not standing:
+            continue
+        held = {}
+        for rid, hid, status in standing:
+            held.setdefault((hid, status), []).append(rid)
+        named = ", ".join(
+            "%s (`%s`) under %d obligation(s)" % (hid, status, len(held[(hid, status)]))
+            for hid, status in sorted(held, key=lambda pair: srs_arch.srs_parse.id_key(pair[0])))
+        rows.append("- **%s** %s — %s" % (record.id, record.title, named))
+    if not rows:
+        return out + ["_No obligation of any part rests on a hypothesis the register holds._", ""]
+    return out + rows + [""]
+# srs-end: FR-ARCH-550
+
+
 # implements: FR-ARCH-450
 def silences_section(elements, model, cfg):
     """What the layer leaves unsaid, named rather than left to read as absence of a problem."""
@@ -286,7 +314,7 @@ def graph_svg(elements):
 
 
 # implements: FR-ARCH-410
-def render(elements, moves, model, edges, cfg):
+def render(elements, moves, model, edges, cfg, rests=None):
     """The whole document, in the order a reader's questions arise."""
     live_moves = [m for m in moves if srs_arch.RE_MOVE.match(m.id)
                   and m.fields.get("status") not in srs_arch.MOVE_CLOSED]
@@ -297,13 +325,16 @@ def render(elements, moves, model, edges, cfg):
     out += parts_section(elements, live_moves, model, cfg)
     out += drawing_section(elements)
     out += divergence_section(elements, edges, cfg)
+    out += grounds_section(elements, model, cfg, rests)
     out += silences_section(elements, model, cfg)
     out += ["## Where this comes from", "",
             "- The parts, their responsibilities and the moves: the records in `arch/`",
             "- The requirements and their titles: the specification, through "
             "`srs-dd/tools/srs_view.py --json`",
-            "- The disagreement with the code: the architecture checker's own reading",
-            ""]
+            "- The disagreement with the code: the architecture checker's own reading"]
+    if rests is not None:
+        out.append("- What the parts stand on: the bets and hypotheses in `grounds/`")
+    out.append("")
     return "\n".join(out)
 # srs-end: FR-ARCH-410
 
@@ -556,7 +587,7 @@ def main(argv=None):
     if unread:
         sys.stderr.write("%d record(s) could not be read and are not in this document; the "
                          "checker names them.\n" % len(unread))
-    document = render(elements, moves, model, edges, cfg)
+    document = render(elements, moves, model, edges, cfg, srs_arch.read_grounds())
     sys.stdout.write(to_html(document, graph_svg(elements), named) if as_page
                      else document + "\n")
     return 0

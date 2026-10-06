@@ -10,6 +10,7 @@
 # verifies: FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350
 # verifies: FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050
 # verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500
+# verifies: FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2397,6 +2398,401 @@ MD
 silent "FR-ARCH-500 naming none is ordinary and silent" 0 "protects"
 
 # srs-end: FR-ARCH-500
+
+# --- verifies: FR-ARCH-560 — a part standing on ground the register has lost.
+# --- The register is a layer of its own, so the lab grows one: its tool, a
+# --- hypothesis whose state the fixture moves, and a bet naming a requirement.
+cp srs-dd/tools/srs_grounds.py "$LAB/srs-dd/tools/"
+mkdir -p "$LAB/grounds"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+
+# ground <status> — the register under test: one hypothesis in that state and a
+# bet resting FR-CORE-010 on it.
+ground() {
+    cat > "$LAB/grounds/10-h-test.md" <<MD
+# Grounds under test
+
+### H-010 — The claim under the first requirement
+
+\`\`\`yaml
+status: $1
+class: III
+population: studios of five to fifty people
+refuted_if: proportion < 0.25 at n >= 200
+expires: 2099-01-01
+owner: @someone
+impact: a third of the plan
+\`\`\`
+
+Studios of five to fifty people export weekly.
+
+### B-010 — The first requirement rests on it
+
+\`\`\`yaml
+status: ${2:-active}
+requirement: FR-CORE-010
+all_of: [H-010]
+\`\`\`
+
+Worth building only if the claim holds.
+MD
+}
+
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+interface: one call, first()
+```
+
+Carries the first.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+interface: one call, second()
+```
+
+Carries the second.
+MD
+
+ground refuted
+rule "FR-ARCH-560 a part on refuted ground is reported" 0 "E-010 carries FR-CORE-010, which rests on H-010 (refuted)"
+rule "FR-ARCH-560 and it fails a strict run" 1 "rests on H-010 (refuted)" --strict
+silent "FR-ARCH-560 and the part standing on nothing is not" 0 "E-020 carries"
+
+ground expired
+rule "FR-ARCH-560 expired ground counts too" 0 "rests on H-010 (expired)"
+
+ground assumed
+silent "FR-ARCH-560 assumed ground is the ordinary state and silent" 0 "rests on H-010"
+
+ground supported
+silent "FR-ARCH-560 supported ground is silent" 0 "rests on H-010"
+
+# A retired bet is a bet that was: the ground it named is past.
+ground refuted retired
+silent "FR-ARCH-560 a retired bet names no ground" 0 "rests on H-010"
+
+# Priced off like every other reading of this layer.
+ground refuted
+printf '{\n  "rules": {"element-ungrounded": "off"}\n}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-560 the project can price it off" 0 "rests on H-010"
+printf '{\n  "rules": {}\n}\n' > "$LAB/arch/arch-config.json"
+
+# Without a register there is no question: the rule cannot fire at all.
+rm -rf "$LAB/grounds"
+silent "FR-ARCH-560 no register, no finding" 0 "rests on H-010"
+
+# srs-end: FR-ARCH-560
+
+# --- verifies: FR-ARCH-540 — the draft cut: a lab of its own, because this one
+# --- asks what an empty layer over a codebase looks like.
+DRAFT=/tmp/srs-arch-draft
+rm -rf "$DRAFT"
+mkdir -p "$DRAFT/srs-dd/tools" "$DRAFT/specs" "$DRAFT/arch" "$DRAFT/src/engine" "$DRAFT/src/store"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$DRAFT/srs-dd/tools/"
+cp "$LAB/specs/srs-config.json" "$DRAFT/specs/"
+printf 'x\n' > "$DRAFT/src/engine/run.py"
+printf 'x\n' > "$DRAFT/src/engine/parse.py"
+printf 'x\n' > "$DRAFT/src/store/keep.py"
+printf '{\n  "rules": {}\n}\n' > "$DRAFT/arch/arch-config.json"
+printf '# Elements\n\nNothing is written down yet.\n' > "$DRAFT/arch/00-elements.md"
+cat > "$DRAFT/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — The engine answers
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/engine/run.py, src/engine/parse.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** answer.
+
+### FR-CORE-020 — The store keeps
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/store/keep.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** keep.
+MD
+
+draft() { ( cd "$DRAFT" && python3 srs-dd/tools/srs_arch.py --draft ) > /tmp/srs-arch-draft.out 2>&1; }
+before=$(cat "$DRAFT/arch/00-elements.md")
+draft
+python3 - <<'PYDRAFT'
+import re, sys
+text = open("/tmp/srs-arch-draft.out", encoding="utf-8").read()
+if "2 directories holding files no part carries" not in text:
+    sys.exit("FAIL FR-ARCH-540 — the draft does not say how many directories it grouped:\n" + text[:300])
+records = re.findall(r"^### (E-\d{3}) — <what (\S+) is responsible for>$", text, re.M)
+if records != [("E-010", "src/engine"), ("E-020", "src/store")]:
+    sys.exit("FAIL FR-ARCH-540 — the draft's records are %s" % records)
+if "carries: [src/engine/parse.py, src/engine/run.py]" not in text:
+    sys.exit("FAIL FR-ARCH-540 — a group does not name the files it holds")
+if "requirements: [FR-CORE-010]" not in text or "requirements: [FR-CORE-020]" not in text:
+    sys.exit("FAIL FR-ARCH-540 — a group does not name the requirements that name its files")
+PYDRAFT
+passes=$((passes + 4))
+
+# Nothing written: the layer's own file is the one the fixture left there.
+[ "$before" = "$(cat "$DRAFT/arch/00-elements.md")" ] \
+    || { echo "FAIL FR-ARCH-540 — --draft wrote into arch/00-elements.md"; exit 1; }
+passes=$((passes + 1))
+
+# The round trip: filled in and pasted, the draft is a layer its own checker accepts.
+( cd "$DRAFT" && python3 srs-dd/tools/srs_arch.py --draft | sed -n '3,$p' \
+    | sed 's/<what \(.*\) is responsible for>/The \1 part/; s/<how this part is reached from outside>/one call/; s/<One sentence.*>/It answers for what it carries./' \
+    > /tmp/srs-arch-draft.records )
+{ printf '# Elements\n\n'; cat /tmp/srs-arch-draft.records; } > "$DRAFT/arch/00-elements.md"
+rc=0
+( cd "$DRAFT" && python3 srs-dd/tools/srs_arch.py --no-write --strict ) > /tmp/srs-arch-draft.log 2>&1 || rc=$?
+if [ "$rc" != "0" ]; then
+    echo "FAIL FR-ARCH-540 — the filled-in draft does not pass its own checker"; cat /tmp/srs-arch-draft.log; exit 1
+fi
+passes=$((passes + 1))
+
+# And once every file is carried, there is nothing to draft and it says so.
+draft
+grep -qF "there is nothing to draft" /tmp/srs-arch-draft.out \
+    || { echo "FAIL FR-ARCH-540 — a layer that carries everything still drafts"; cat /tmp/srs-arch-draft.out; exit 1; }
+passes=$((passes + 1))
+
+# The next number continues the layer's own: E-010 taken, the draft starts at E-020.
+printf '# Elements\n\n### E-010 — The engine\n\n```yaml\nstatus: built\ncarries: [src/engine]\nrequirements: [FR-CORE-010]\ndepends_on: []\ninterface: one call\n```\n\nCarries the engine.\n' \
+    > "$DRAFT/arch/00-elements.md"
+draft
+grep -qF "### E-020 — <what src/store is responsible for>" /tmp/srs-arch-draft.out \
+    || { echo "FAIL FR-ARCH-540 — the draft does not continue the layer's own numbering"; cat /tmp/srs-arch-draft.out; exit 1; }
+passes=$((passes + 1))
+
+# srs-end: FR-ARCH-540
+
+# --- verifies: FR-ARCH-570, FR-ARCH-580 — what a cut costs, and the cut the
+# --- links suggest. Three requirements and two parts, so every number here is
+# --- one a reader can count by hand: 020 depends on 010 inside the first part,
+# --- 030 depends on 010 across the boundary.
+PRICE=/tmp/srs-arch-price
+rm -rf "$PRICE"
+mkdir -p "$PRICE/srs-dd/tools" "$PRICE/specs" "$PRICE/arch" "$PRICE/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$PRICE/srs-dd/tools/"
+cp "$LAB/specs/srs-config.json" "$PRICE/specs/"
+printf 'x\n' > "$PRICE/src/a.py"
+printf 'x\n' > "$PRICE/src/b.py"
+printf 'x\n' > "$PRICE/src/c.py"
+printf '{\n  "rules": {}\n}\n' > "$PRICE/arch/arch-config.json"
+cat > "$PRICE/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — The first
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/a.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** act first.
+
+### FR-CORE-020 — The second
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CORE-010]
+refines: []
+conflicts_with: []
+code: [src/b.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** act second.
+
+### FR-CORE-030 — The third
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CORE-010]
+refines: []
+conflicts_with: []
+code: [src/c.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** act third.
+MD
+cat > "$PRICE/arch/00-elements.md" <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+interface: one call, first()
+```
+
+Carries the first two.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/c.py]
+requirements: [FR-CORE-030]
+depends_on: []
+interface: one call, third()
+```
+
+Carries the third.
+MD
+
+priced() { ( cd "$PRICE" && python3 srs-dd/tools/srs_arch.py --price "$1" ) > /tmp/srs-arch-price.out 2>&1; }
+
+priced parts
+python3 - <<'PYPRICE'
+import re, sys
+text = open("/tmp/srs-arch-price.out", encoding="utf-8").read()
+if "3 of 3 requirements covered" not in text:
+    sys.exit("FAIL FR-ARCH-570 — the coverage line is wrong:\n" + text)
+rows = dict((m.group(1), tuple(int(v) for v in m.groups()[1:])) for m in
+            re.finditer(r"^(E-\d{3})\s+(\d+) held · \s*(\d+) inside · \s*(\d+) out · \s*(\d+) in",
+                        text, re.M))
+# E-010 holds 010 and 020: the link between them is inside, and 030's link arrives.
+if rows.get("E-010") != (2, 1, 0, 1):
+    sys.exit("FAIL FR-ARCH-570 — E-010 priced %s, expected (2, 1, 0, 1)" % (rows.get("E-010"),))
+# E-020 holds 030 alone: nothing inside, one link leaving.
+if rows.get("E-020") != (1, 0, 1, 0):
+    sys.exit("FAIL FR-ARCH-570 — E-020 priced %s, expected (1, 0, 1, 0)" % (rows.get("E-020"),))
+PYPRICE
+passes=$((passes + 3))
+
+priced areas
+grep -qF "The areas the specification declares — 1 group(s), 3 of 3 requirements covered." /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-570 — the areas cut is not priced"; cat /tmp/srs-arch-price.out; exit 1; }
+grep -qE "^CORE +3 held · +2 inside · +0 out · +0 in" /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-570 — the one area's price is wrong"; cat /tmp/srs-arch-price.out; exit 1; }
+passes=$((passes + 2))
+
+# A part that carries nothing of the specification is still a group, and what no
+# group holds is said: the second part is emptied and its requirement left over.
+cat > "$PRICE/arch/00-elements.md" <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+interface: one call, first()
+```
+
+Carries the first.
+MD
+priced parts
+grep -qF "2 requirement(s) in no group: FR-CORE-020, FR-CORE-030" /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-570 — what the cut leaves out is not named"; cat /tmp/srs-arch-price.out; exit 1; }
+passes=$((passes + 1))
+
+# --- The proposal needs a specification larger than the handful of seeds it
+# --- starts from, or every requirement is a seed and the grouping is untested.
+# --- Twenty requirements: the first is the only one anything links to, ten are
+# --- seeds by the ranking's tie-break, and the other ten hang off the first.
+python3 - <<'PYBIG'
+lines = ["# Functional requirements — core", ""]
+for index in range(20):
+    number = (index + 1) * 10
+    depends = "[FR-CORE-010]" if index >= 10 else "[]"
+    lines += ["### FR-CORE-%03d — Requirement %d" % (number, number), "", "```yaml",
+              "status: implemented", "verification: T", "derives_from: []",
+              "depends_on: %s" % depends, "refines: []", "conflicts_with: []",
+              "code: []", "tests: []", "created: 2026-10-06", "```", "",
+              "The system **shall** act %d." % number, ""]
+open("/tmp/srs-arch-price/specs/10-fr-core.md", "w", encoding="utf-8").write("\n".join(lines))
+PYBIG
+priced proposed
+python3 - <<'PYPROP'
+import re, sys
+text = open("/tmp/srs-arch-price.out", encoding="utf-8").read()
+if "seeded by the drivers: FR-CORE-010" not in text:
+    sys.exit("FAIL FR-ARCH-580 — the proposal does not name its seeds:\n" + text)
+if "10 group(s), 20 of 20 requirements covered" not in text:
+    sys.exit("FAIL FR-ARCH-580 — the proposal is not ten groups over twenty requirements:\n"
+             + text)
+rows = dict((m.group(1), int(m.group(2))) for m in
+            re.finditer(r"^(FR-CORE-\d{3})\s+(\d+) held", text, re.M))
+# Everything that links to the first requirement joins its group: it and the ten.
+if rows.get("FR-CORE-010") != 11:
+    sys.exit("FAIL FR-ARCH-580 — the first group holds %s, expected 11 — the links did not "
+             "draw the grouping" % rows.get("FR-CORE-010"))
+if sum(rows.values()) != 20:
+    sys.exit("FAIL FR-ARCH-580 — the groups hold %d places for 20 requirements, so they share "
+             "some" % sum(rows.values()))
+PYPROP
+cp /tmp/srs-arch-price.out /tmp/srs-arch-price.first
+priced proposed
+cmp -s /tmp/srs-arch-price.first /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-580 — two runs of --price proposed differ"; exit 1; }
+passes=$((passes + 3))
+
+# Neither writes anything, and a cut nobody named is refused.
+before=$(cat "$PRICE/arch/00-elements.md")
+priced parts
+[ "$before" = "$(cat "$PRICE/arch/00-elements.md")" ] \
+    || { echo "FAIL FR-ARCH-570 — --price wrote into the layer"; exit 1; }
+rc=0
+( cd "$PRICE" && python3 srs-dd/tools/srs_arch.py --price ) >/tmp/srs-arch-price.out 2>&1 || rc=$?
+[ "$rc" = "2" ] || { echo "FAIL FR-ARCH-570 — --price with no cut named exited $rc, expected 2"; exit 1; }
+rc=0
+( cd "$PRICE" && python3 srs-dd/tools/srs_arch.py --price nope ) >/dev/null 2>&1 || rc=$?
+[ "$rc" = "2" ] || { echo "FAIL FR-ARCH-570 — --price nope exited $rc, expected 2"; exit 1; }
+passes=$((passes + 3))
+
+# srs-end: FR-ARCH-570, FR-ARCH-580
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280
