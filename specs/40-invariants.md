@@ -481,6 +481,30 @@ The architecture layer **shall** record which requirements a part carries in the
 a link written on both ends is a link that eventually disagrees with itself, and only one of the two copies is ever updated.
 It also keeps the layer optional in the way that matters — a requirement file says nothing about elements, so removing `arch/` removes the layer and leaves the specification exactly as it was.
 
+
+### INV-ARCH-020 — A path belongs to one part by one rule
+
+```yaml
+status: draft
+verification: T
+derives_from: [INV-ARCH-010]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Wherever the architecture checker resolves a path to the element that carries it, the resolution **shall** be the same one: the element with the most specific claim on the path — the path itself before a directory above it — and no element where two claim it equally.
+
+**Rationale.** `srs-dd/arch.md` says twice that an end is resolved "by the same rule that decides which part a file belongs to", and the checker has two rules.
+One of them, the one the carrier findings and the project's own edges go through, prefers the most specific claim and refuses a tie.
+The other, the one that maps every carried Python file to its part, assigns a file once per record that claims it, so the last record in the file wins — which was measured on 2026-10-07: the same two records, a directory and a file inside it, attributed `src/a.py` to the inner part when the outer record came first and to the outer part when the inner one did, and five rules read the code through that map.
+Nothing in this repository nests a part inside another, so the two rules agree everywhere today and the disagreement is latent; it becomes a verdict that depends on the order of records the day a project nests, which is the day somebody adopts the layer on a code base where a boundary sits inside a directory.
+Written as an invariant and not as a rule of the checker because there is nothing new to report: the claim is that one reading is used everywhere, the shape `INV-SPEC-090` has for the order of identifiers.
+A `draft` because it was found by an audit of the layer rather than asked for (Lifecycle, `srs-dd/standard.md`): what it obliges is a change to how five existing rules read the code, and that is the maintainer's to approve.
+
 ### CON-ARCH-010 — The architecture layer writes nowhere else
 
 ```yaml
