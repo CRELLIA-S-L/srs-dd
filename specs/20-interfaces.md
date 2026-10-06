@@ -403,14 +403,14 @@ Side by side in one directory, because a page that links its siblings by a bare 
 ### IF-ARCH-070 — The order of parts is a stable format
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 

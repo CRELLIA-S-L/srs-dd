@@ -98,7 +98,7 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "dependency-undeclared", "element-cycle", "carrier-missing",
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
          "dependency-forbidden", "interface-bypassed", "protects-uncarried",
-         "element-ungrounded")
+         "element-ungrounded", "dependency-upward")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -126,7 +126,7 @@ def fail_setup(message):
 def load_config():
     """What each rule costs, as the project set it, and how the requirements are kept. A
     missing file means every default."""
-    cfg = {"rules": {}, "requirements": "written", "forbidden": []}
+    cfg = {"rules": {}, "requirements": "written", "forbidden": [], "layers": []}
     if not os.path.exists(CONFIG):
         return cfg, None
     try:
@@ -176,6 +176,25 @@ def load_config():
                     where, key, entry[key])
     cfg["forbidden"] = forbidden
     # srs-end: IF-ARCH-060, FR-ARCH-480
+    # implements: IF-ARCH-070, FR-ARCH-600
+    # The order of the cut, top down: the first group may lean on every other and the last on
+    # none. A part named in two groups has no place in it — every edge touching that part would
+    # be judged both ways — so the order is refused here rather than read as policy.
+    layers = raw.get("layers", [])
+    if not isinstance(layers, list) or not all(isinstance(group, list) for group in layers):
+        return None, "arch/arch-config.json: `layers` must be a JSON list of groups"
+    placed = {}
+    for index, group in enumerate(layers):
+        for value in group:
+            if not isinstance(value, str) or not RE_ID.match(value):
+                return None, ("arch/arch-config.json: layers group %d holds %r, expected an "
+                              "element identifier" % (index, value))
+            if value in placed:
+                return None, ("arch/arch-config.json: %s is in groups %d and %d, so the order "
+                              "does not say where it stands" % (value, placed[value], index))
+            placed[value] = index
+    cfg["layers"] = layers
+    # srs-end: IF-ARCH-070, FR-ARCH-600
     return cfg, None
     # srs-end: FR-ARCH-240
 # srs-end: FR-ARCH-090
@@ -913,6 +932,34 @@ def check_interfaces(records, edges, warnings, reports, cfg):
 # srs-end: FR-ARCH-490
 
 
+# implements: FR-ARCH-470, FR-ARCH-590
+def dependency_pairs(records, edges):
+    """Every dependency between two parts this checker can see, as (source, target, how).
+
+    Three suppliers — the model a person declared, the imports of the one language read here, and
+    the edges the project supplied — and `how` is what a finding prints, so a reader knows which
+    of the three it came from. Shared by the two rules that judge an edge against a policy
+    instead of against the model.
+    """
+    declared = declared_dependencies(records)
+    pairs = [(source, target, "the model declares it")
+             for source in sorted(declared, key=srs_parse.id_key)
+             for target in sorted(declared[source], key=srs_parse.id_key)]
+    by_path, unique = python_modules(records)
+    for path in sorted(by_path):
+        for name in imports_of(os.path.join(ROOT, path)):
+            target_path = unique.get(name)
+            if target_path is not None and by_path[target_path] != by_path[path]:
+                pairs.append((by_path[path], by_path[target_path], "%s imports %s" % (path, name)))
+    owners = live_carriers(records)
+    for source, target_path, via in edges:
+        element, target = element_of(source, owners), element_of(target_path, owners)
+        if element is not None and target is not None and element != target:
+            pairs.append((element, target, "%s uses %s" % (source, target_path)))
+    return pairs
+# srs-end: FR-ARCH-470, FR-ARCH-590
+
+
 # implements: FR-ARCH-470, FR-ARCH-480
 def check_forbidden(records, edges, errors, warnings, reports, cfg):
     """Dependencies the project said must not exist, in the model and in the code alike.
@@ -933,21 +980,7 @@ def check_forbidden(records, edges, errors, warnings, reports, cfg):
         return ((entry["from"] == "*" or entry["from"] == source)
                 and (entry["to"] == "*" or entry["to"] == target))
 
-    declared = declared_dependencies(records)
-    pairs = [(source, target, "the model declares it")
-             for source in sorted(declared, key=srs_parse.id_key)
-             for target in sorted(declared[source], key=srs_parse.id_key)]
-    by_path, unique = python_modules(records)
-    for path in sorted(by_path):
-        for name in imports_of(os.path.join(ROOT, path)):
-            target_path = unique.get(name)
-            if target_path is not None and by_path[target_path] != by_path[path]:
-                pairs.append((by_path[path], by_path[target_path], "%s imports %s" % (path, name)))
-    owners = live_carriers(records)
-    for source, target_path, via in edges:
-        element, target = element_of(source, owners), element_of(target_path, owners)
-        if element is not None and target is not None and element != target:
-            pairs.append((element, target, "%s uses %s" % (source, target_path)))
+    pairs = dependency_pairs(records, edges)
 
     said = set()
     for source, target, how in pairs:
@@ -959,6 +992,42 @@ def check_forbidden(records, edges, errors, warnings, reports, cfg):
                          "%s depends on %s and the project forbids it (%s): %s"
                          % (source, target, how, entry["why"]))
 # srs-end: FR-ARCH-470, FR-ARCH-480
+
+
+# implements: FR-ARCH-590, FR-ARCH-600
+def check_layers(records, edges, errors, warnings, reports, cfg):
+    """A dependency that runs against the order of groups the project declared.
+
+    An element in no group is outside the order and nothing is said about it: that is how an
+    order is adopted on a cut that already exists, one group at a time. Within one group nothing
+    is reported either — a group is the level, and a project that wants two of its parts
+    separated puts each in a group of its own.
+    """
+    if not cfg["layers"]:
+        return
+    present = set(record.id for record in records if RE_ID.match(record.id))
+    place, unknown = {}, []
+    for index, group in enumerate(cfg["layers"]):
+        for element in group:
+            if element not in present:
+                unknown.append("arch/arch-config.json: layers group %d names %s, which no "
+                               "element carries" % (index, element))
+            else:
+                place[element] = index
+    if unknown:
+        errors.extend(unknown)
+        return
+    said = set()
+    for source, target, how in dependency_pairs(records, edges):
+        if source not in place or target not in place:
+            continue
+        if place[target] >= place[source] or (source, target, how) in said:
+            continue
+        said.add((source, target, how))
+        rule_finding(warnings, reports, cfg, "dependency-upward",
+                     "%s in group %d depends on %s in group %d, which the order puts above it "
+                     "(%s)" % (source, place[source], target, place[target], how))
+# srs-end: FR-ARCH-590, FR-ARCH-600
 
 
 # implements: FR-ARCH-200, FR-ARCH-260
@@ -1455,6 +1524,7 @@ def main(argv=None):
     check_conformance(elements, edges, warnings, reports, cfg)
     check_cycles(elements, warnings, reports, cfg)
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
+    check_layers(elements, edges, errors, warnings, reports, cfg)
     check_interfaces(elements, edges, warnings, reports, cfg)
     check_protects(elements, model, errors, warnings, reports, cfg)
     check_grounded(elements, model, warnings, reports, cfg, read_grounds() or {})

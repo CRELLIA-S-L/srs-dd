@@ -184,6 +184,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-240 | 3 | 1 | 4 |
 | FR-VIEW-330 | 2 | 2 | 4 |
 | IF-ARCH-060 | 2 | 2 | 4 |
+| IF-ARCH-070 | 2 | 2 | 4 |
 | IF-VIEW-010 | 2 | 2 | 4 |
 | INV-GND-010 | 2 | 2 | 4 |
 | INV-SPEC-060 | 3 | 1 | 4 |
@@ -256,6 +257,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-490 | 0 | 2 | 2 |
 | FR-ARCH-540 | 1 | 1 | 2 |
 | FR-ARCH-560 | 0 | 2 | 2 |
+| FR-ARCH-590 | 0 | 2 | 2 |
+| FR-ARCH-600 | 0 | 2 | 2 |
 | FR-CHK-010 | 1 | 1 | 2 |
 | FR-CHK-040 | 1 | 1 | 2 |
 | FR-CHK-060 | 1 | 1 | 2 |
@@ -321,7 +324,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-VIEW-390 | 0 | 2 | 2 |
 | FR-VIEW-400 | 1 | 1 | 2 |
 | IF-ARCH-030 | 1 | 1 | 2 |
-| IF-ARCH-070 | 2 | 0 | 2 |
 | IF-ARCH-080 | 2 | 0 | 2 |
 | IF-GND-030 | 1 | 1 | 2 |
 | IF-SPEC-020 | 1 | 1 | 2 |
@@ -427,8 +429,6 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-110 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-ARCH-590 | 0 | 0 | 0 |
-| FR-ARCH-600 | 0 | 0 | 0 |
 | FR-ARCH-610 | 0 | 0 | 0 |
 | FR-ARCH-620 | 0 | 0 | 0 |
 | INV-SPEC-120 | 0 | 0 | 0 |

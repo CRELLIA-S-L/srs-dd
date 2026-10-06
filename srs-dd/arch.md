@@ -92,6 +92,20 @@ Each entry names two ends — an element, or `*` for any — and the sentence it
 It is reported under `dependency-forbidden` where an element declares such an edge and where the code has one, since the two differ: a model contradicting the project's own policy, and the policy broken in silence.
 An entry naming an element no record defines, missing a side or its reason, or carrying `*` on both sides is refused rather than reported — it resolves to nothing and would read as enforced.
 
+**The cut can have an order.** Where the parts stand in levels, saying so as a pair for every two of them grows as the square of the cut and is rewritten whenever a part is added; an order says it once, and the pairs fall out of it:
+
+```json
+{"layers": [["E-010"], ["E-020", "E-030"], ["E-040"]]}
+```
+
+The list is read top down: the first group may lean on every other, the last on none.
+That direction is fixed and will never be reversed, because a reversed reading would turn every finding into its opposite without changing a character of the file.
+Within one group nothing is reported — a group is the level, a set of parts that may lean on each other, and a project that wants two of them separated puts each in a group of its own.
+A part in no group is outside the order and nothing is said about it, which is how an order is adopted on a cut that already exists: one group at a time.
+An edge that runs upward is reported under `dependency-upward`, where an element declares it and where the code has it, the two being different findings for the reason a forbidden pair gives.
+No sentence is asked of the project here: the order is its own reason, and the finding says where each of the two parts stands in it.
+A part named in two groups has no place in the order and is refused rather than reported, the way a prohibition with `*` on both sides is.
+
 `depends_on` is the declared model, and it is written by a person.
 It is not derived from the links between requirements: those record one obligation resting on another, which is not the same relation as one part calling another, and deriving it was measured and rejected: on the framework's own nine Python modules it gave twenty-five edges against the seven their imports have.
 
@@ -283,6 +297,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `interface-bypassed` | A part entered by a name its own `interface` does not state |
 | `protects-uncarried` | A requirement an element protects and does not carry |
 | `element-ungrounded` | An element carrying a requirement that rests on a `refuted` or `expired` hypothesis, where the project keeps a grounds register |
+| `dependency-upward` | A dependency that runs against the order of groups declared under `layers`, declared by an element or had by the code |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

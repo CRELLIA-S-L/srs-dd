@@ -1231,14 +1231,14 @@ Printed and never written, for the reason `FR-ARCH-540` gives: a part has a resp
 ### FR-ARCH-590 — A dependency that runs against the declared order of parts is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [IF-ARCH-070]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 
@@ -1254,14 +1254,14 @@ A warning the project prices (`FR-ARCH-090`), so a pipeline running `--strict` f
 ### FR-ARCH-600 — A malformed order of parts is refused
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-ARCH-070]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-06
 ```
 

@@ -11,6 +11,7 @@
 # verifies: FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050
 # verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500
 # verifies: FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580
+# verifies: FR-ARCH-590, FR-ARCH-600, IF-ARCH-070
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2793,6 +2794,91 @@ rc=0
 passes=$((passes + 3))
 
 # srs-end: FR-ARCH-570, FR-ARCH-580
+
+# --- verifies: IF-ARCH-070, FR-ARCH-590, FR-ARCH-600 — the order of the cut:
+# --- an edge that runs upward, in the model, in the imports and in the edges
+# --- the project supplies, and the orders that are refused instead.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-590 a declared edge against the order" 0 \
+    "E-010 in group 1 depends on E-020 in group 0, which the order puts above it (the model declares it)"
+
+printf 'import b\n' > "$LAB/src/a.py"
+rule "FR-ARCH-590 and the same edge in the code" 0 \
+    "E-010 in group 1 depends on E-020 in group 0, which the order puts above it (src/a.py imports b)"
+
+# --- The third supplier: an edge the project computed itself.
+printf 'x\n' > "$LAB/src/a.py"
+printf '[{"from": "src/a.py", "to": "src/b.py", "via": "Store:3"}]\n' > "$LAB/arch/edges.json"
+rule "FR-ARCH-590 and an edge the project supplied" 0 \
+    "E-010 in group 1 depends on E-020 in group 0, which the order puts above it (src/a.py uses src/b.py)"
+rm -f "$LAB/arch/edges.json"
+
+# --- Downward is what the order allows, and this is the half that fails
+# --- quietly if the comparison is the wrong way round.
+printf '{"rules": {}, "layers": [["E-010"], ["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 a dependency running downward" 0 "which the order puts above it"
+
+# --- A group is the level: parts inside it may lean on each other.
+printf '{"rules": {}, "layers": [["E-010", "E-020"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 two parts in one group" 0 "which the order puts above it"
+
+# --- A part the order does not place is outside it.
+printf '{"rules": {}, "layers": [["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 a part in no group" 0 "which the order puts above it"
+
+# --- Priced, like every rule of this checker.
+printf '{"rules": {"dependency-upward": "report"}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-590 lowered to a note" 0 "note: "
+silent "FR-ARCH-590 a note does not fail a strict run" 0 "treated as errors" --strict
+printf '{"rules": {}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-590 at its default cost it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {"dependency-upward": "off"}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 switched off says nothing" 0 "which the order puts above it"
+
+# --- An order about a part nobody has reads as enforced and enforces nothing.
+printf '{"rules": {}, "layers": [["E-990"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 an order naming no part" 1 \
+    "layers group 0 names E-990, which no element carries"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "layers": ["E-010"]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 an order that is not a list of groups" 2 "\`layers\` must be a JSON list of groups"
+printf '{"rules": {}, "layers": [["nope"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 a group holding something else" 2 "layers group 0 holds 'nope', expected an element identifier"
+printf '{"rules": {}, "layers": [["E-010"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 a part in two groups" 2 \
+    "E-010 is in groups 0 and 1, so the order does not say where it stands"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: IF-ARCH-070, FR-ARCH-590, FR-ARCH-600
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280
