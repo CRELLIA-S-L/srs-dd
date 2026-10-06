@@ -643,7 +643,9 @@ tests: [tests/installer-smoke.sh]
 created: 2026-09-30
 ```
 
-The installer **shall** never write into `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml` where the file already exists, with `--force` or without.
+The installer **shall** never write into `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml` where the file already exists, with no flag to override it.
+
+**The statement said "with `--force` or without" until 2026-10-06**, by the second audit before the 0.22.0 baseline: the flag went in this release, so the clause presupposed something no reader could find. It says what it always meant — nothing overrides this — the way `FR-INIT-360` does; the rationale keeps `--force` where it recounts what used to happen.
 
 **Rationale.** A project runs every pre-commit check it has through one hook, and in GitLab every job through one file; neither belongs to the framework once the project has one, and a copyright line of ours in it would claim the project's file as ours.
 Before this they were refreshed with `--force` where they carried the marker, which rewrote whatever the project had added beside the gate.

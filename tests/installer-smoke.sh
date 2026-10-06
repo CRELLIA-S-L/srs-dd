@@ -638,6 +638,30 @@ rc=0; python3 tools/srs_init.py /tmp/srs-precious --defaults \
 test "$rc" -eq 1
 grep -q "status implemented but the code field is empty" /tmp/precious-broken.log
 
+# A target nothing can be written into is a refusal before anything changed,
+# which is exit 2. Until the guard it was a PermissionError traceback out of
+# the first directory of the payload and exit 1 — the code reserved for a
+# checker error in the target — found by running the installer at a path on a
+# read-only filesystem. Root can write into a directory with no write bit, so
+# there the case cannot be staged and says so.
+if [ "$(id -u)" -eq 0 ]; then
+    echo "installer-smoke: running as root, the unwritable-target case cannot be staged"
+else
+    ro=/tmp/srs-unwritable
+    rm -rf "$ro"; mkdir -p "$ro"; chmod 500 "$ro"
+    rc=0; python3 tools/srs_init.py "$ro" --defaults </dev/null \
+        > /tmp/srs-unwritable.log 2>&1 || rc=$?
+    chmod 700 "$ro"; rm -rf "$ro"
+    test "$rc" -eq 2 \
+        || { echo "FAIL IF-CI-010 — an unwritable target gave exit $rc, not 2"; cat /tmp/srs-unwritable.log; exit 1; }
+    grep -q "the target must be a writable directory" /tmp/srs-unwritable.log \
+        || { echo "FAIL IF-CI-010 — an unwritable target was not refused in words"; cat /tmp/srs-unwritable.log; exit 1; }
+    if grep -q "Traceback" /tmp/srs-unwritable.log; then
+        echo "FAIL IF-CI-010 — an unwritable target produced a traceback instead of a refusal"
+        cat /tmp/srs-unwritable.log; exit 1
+    fi
+fi
+
 # srs-end: IF-CI-010
 # verifies: CON-SPEC-020, FR-INIT-260
 # specs/ here is the framework's own specification, not payload (ART-070).

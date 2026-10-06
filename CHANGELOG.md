@@ -50,6 +50,10 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
 - Nothing is precious any more, and `--force` is gone. A file is the framework's and lives under `srs-dd/`, or the project's and is written once as a starter — the hook, the pipelines, `AGENTS.md`, `CLAUDE.md`, `.gitattributes` — or the project's and never written; adopt no longer sets a project's `specs/README.md` aside, since the standard does not go there (`FR-INIT-060`, `FR-INIT-230`, `FR-INIT-240` and `FR-INIT-250` superseded).
 - A project's own hook gets no copy of the gate beside it. Where something already runs on commit the installer writes no hook at all and says what to call from theirs; `.githooks/pre-commit.srs-dd` is no longer written (`FR-INIT-080`).
 
+### Fixed
+
+- The installer refuses a target it cannot write into. A path inside a directory with no write bit, or on a read-only filesystem, took the whole interview and then died with a `PermissionError` traceback and exit 1 — the code reserved for a checker error in the target — leaving whatever had been copied where it fell. It now says what is wrong before anything is written and exits 2, the code for a refusal that changed nothing (`IF-CI-010`).
+
 ### Upgrade notes
 
 - **Incompatible with earlier versions.** The tools moved from `tools/` to `srs-dd/tools/` and the standards from `specs/README.md`, `grounds/README.md` and `arch/README.md` to `srs-dd/`; the upgrade moves them for a project installed before and deletes the old copies, and every call — in the hook, the pipelines, the guide and anything of the project's own — becomes `python3 srs-dd/tools/<tool>`. The articles ART-010, ART-020, ART-030, ART-050, ART-060 and ART-100 of the shipped constitution are `SRS-DD-ART-*` in `srs-dd/method.md`; a reference to the old number in a record of the project means the article of the same number there, and the copies in `specs/constitution.md` may be deleted. `--force` is gone.

@@ -1812,6 +1812,22 @@ def main():
         sys.stderr.write("Target is not a directory: %s\n" % target)
         return 2
 
+    # A target nothing can be written into is a refusal before anything
+    # changed, not a PermissionError out of the first directory the payload
+    # needs: that walk stops halfway, with whatever it had already copied in
+    # place and no code saying so. A target that does not exist yet is made,
+    # so the question is asked of the nearest directory above it that does.
+    writable_root = target
+    while not os.path.isdir(writable_root):
+        parent = os.path.dirname(writable_root)
+        if parent == writable_root:
+            break
+        writable_root = parent
+    if not os.access(writable_root, os.W_OK):
+        sys.stderr.write("Cannot write into %s: the target must be a writable "
+                         "directory.\n" % writable_root)
+        return 2
+
     # implements: FR-INIT-330
     # The one directory the installer rewrites without asking is the one
     # it must never touch when somebody else made it.
