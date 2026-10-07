@@ -62,6 +62,8 @@ def parts_section(elements, moves, model, cfg):
     titles = {r["id"]: r.get("title", "") for r in model["requirements"]}
     written, computed = srs_arch.carried_by(elements, model, cfg)
     order = srs_arch.spec_order(model)
+    inside = srs_arch.sits_inside(elements)
+    responsibility_of = {r.id: r.title for r in elements}
     out = ["## What the system is made of", ""]
     # implements: FR-ARCH-460
     if not in_force(elements):
@@ -77,6 +79,10 @@ def parts_section(elements, moves, model, cfg):
         out.append("- **Carries:** %s" % (", ".join("`%s`" % p for p in carries) or "_nothing_"))
         interface = record.fields.get("interface")
         out.append("- **Interface:** %s" % (interface or "_Not determined._"))
+        # implements: FR-ARCH-660
+        for other in inside.get(record.id, ()):
+            out.append("- **Inside:** %s — %s" % (other, responsibility_of.get(other, "")))
+        # srs-end: FR-ARCH-660
         # implements: FR-ARCH-510
         # The two or three a part was cut to keep, before the forty it merely carries: this is
         # the answer to what breaks if the boundary moves. Absent where the record names none.
@@ -99,6 +105,35 @@ def parts_section(elements, moves, model, cfg):
         out.append("")
     return out
 # srs-end: FR-ARCH-420
+
+
+# implements: FR-ARCH-660
+def order_section(elements, cfg):
+    """The order of the parts, where the project declared one: the groups in their own sequence,
+    what each holds, and the parts the order does not place.
+
+    Absent where no order is declared, as every optional section here is. A part outside the order
+    is said out loud: it is unconstrained, which is either deliberate or an adoption half done.
+    """
+    if not cfg["layers"]:
+        return []
+    titles = {r.id: r.title for r in in_force(elements)}
+    out = ["## The order of the parts", "",
+           "Read top down: a part may lean on its own group and on any group below it. "
+           "A dependency running upward is what the checker reports.", ""]
+    for index, group in enumerate(cfg["layers"]):
+        held = [eid for eid in group if eid in titles]
+        out.append("%d. %s" % (index, ", ".join("**%s** %s" % (eid, titles[eid]) for eid in held)
+                               or "_no part in force_"))
+    placed = {eid for group in cfg["layers"] for eid in group}
+    loose = sorted((eid for eid in titles if eid not in placed),
+                   key=srs_arch.srs_parse.id_key)
+    out += [""]
+    if loose:
+        out += ["Outside the order, and so unconstrained by it: "
+                + ", ".join("**%s** %s" % (eid, titles[eid]) for eid in loose) + ".", ""]
+    return out
+# srs-end: FR-ARCH-660
 
 
 # implements: FR-ARCH-430
@@ -252,16 +287,29 @@ def ranks_of(live, declared):
     return depth
 
 
-def graph_svg(elements):
+def graph_svg(elements, cfg=None):
     """The declared dependencies as one drawing: a node per part in force, an edge per declared
-    dependency, the parts that depend on most at the top. Empty where there is nothing to draw."""
+    dependency, the parts that depend on most at the top. Empty where there is nothing to draw.
+
+    Where the project declared an order, that is the height instead of the computed depth: the
+    shape the project says it has, rather than this drawing's guess at it.
+    """
     live = [r.id for r in sorted(in_force(elements),
                                  key=lambda r: srs_arch.srs_parse.id_key(r.id))]
     if not live:
         return ""
     titles = {r.id: r.title for r in elements}
     declared = srs_arch.declared_dependencies(elements)
-    depth = ranks_of(live, declared)
+    # implements: FR-ARCH-670
+    # The declared order wins over the computed depth, and a part the order does not place goes
+    # below the last group: putting it at a level would say something nobody declared.
+    place = srs_arch.placed_in_order(cfg) if cfg else {}
+    if place:
+        loose = max(place.values()) + 1
+        depth = {rid: -place.get(rid, loose) for rid in live}
+    else:
+        depth = ranks_of(live, declared)
+    # srs-end: FR-ARCH-670
     rows = {}
     for rid in live:
         rows.setdefault(depth[rid], []).append(rid)
@@ -323,6 +371,7 @@ def render(elements, moves, model, edges, cfg, rests=None):
            "about it by `srs-dd/tools/srs_arch_doc.py` (srs-dd %s). Generated: do not edit — "
            "edit the records and print it again." % __version__, ""]
     out += parts_section(elements, live_moves, model, cfg)
+    out += order_section(elements, cfg)
     out += drawing_section(elements)
     out += divergence_section(elements, edges, cfg)
     out += grounds_section(elements, model, cfg, rests)
@@ -588,7 +637,7 @@ def main(argv=None):
         sys.stderr.write("%d record(s) could not be read and are not in this document; the "
                          "checker names them.\n" % len(unread))
     document = render(elements, moves, model, edges, cfg, srs_arch.read_grounds())
-    sys.stdout.write(to_html(document, graph_svg(elements), named) if as_page
+    sys.stdout.write(to_html(document, graph_svg(elements, cfg), named) if as_page
                      else document + "\n")
     return 0
 # srs-end: FR-ARCH-410

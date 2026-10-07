@@ -15,6 +15,7 @@
 # verifies: FR-ARCH-610, FR-ARCH-620, IF-ARCH-080
 # verifies: INV-ARCH-020
 # verifies: FR-ARCH-630, FR-ARCH-640
+# verifies: FR-ARCH-650
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -3085,6 +3086,56 @@ silent "FR-ARCH-630 a carried file in the language it reads" 0 "compared with no
 rm -f "$LAB/src/a.swift"
 
 # srs-end: FR-ARCH-630
+
+# --- verifies: FR-ARCH-650 — the map says where each part sits: inside which
+# --- part, and at which place in the order. Both facts in one column, and a
+# --- part with neither says so rather than leaving the cell to be guessed at.
+printf 'x\n' > "$LAB/src/a.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The shell
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Owns the directory.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Owns one file inside it.
+MD
+printf '{"rules": {}, "layers": [["E-010"], ["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-650 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "| **E-020** The store | \`built\` | inside **E-010**, level 1 |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-650 — the map does not say where the inner part sits"
+         grep -F "E-020" "$LAB/arch/90-map.md"; exit 1; }
+grep -qF "| **E-010** The shell | \`built\` | level 0 |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-650 — the map does not say where the outer part stands"
+         grep -F "E-010" "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 2))
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-650 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "| **E-010** The shell | \`built\` | — |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-650 — a part that sits nowhere in particular is not said to"
+         grep -F "E-010" "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+
+# srs-end: FR-ARCH-650
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

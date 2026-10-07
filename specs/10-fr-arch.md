@@ -1357,3 +1357,64 @@ It is the shape this project distrusts most, a check that is green because it ne
 A warning the project prices (`FR-ARCH-090`), because a project mid-redraw may knowingly have two claims on one path for a while and the hook should not stop it; under `--strict` it fails, as every warning here does.
 Both ends are named because the finding is useless without them: the point is which two records to look at, and the path alone does not say.
 
+### FR-ARCH-650 — The map says where each part sits
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-110]
+depends_on: [INV-ARCH-020, IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+The map **shall** state, for every element, the element it sits inside where another carries a path above its own, and where it stands in the order where the configuration declares one.
+
+**Rationale.** A part inside another and an order over the parts are both things the layer now holds and nothing a person reads shows: the map is a flat table of what each part carries, so the hierarchy and the levels exist only in the configuration and in findings nobody has yet triggered.
+Both facts are about where one part sits, so they are one column rather than two: a reader scanning the table asks the question once.
+The column is written for every element, with nothing to say spelled out as such, because a column that appeared only in projects that nest would make the table's shape depend on the project and a reader would not know whether its absence meant no nesting or an old tool.
+
+### FR-ARCH-660 — The document says the order and what sits inside what
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-420]
+depends_on: [INV-ARCH-020, IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-07
+```
+
+Where the configuration declares an order, the architecture document **shall** state it — the groups in their order, what each holds, and which parts stand outside it — and say of every part inside another which part that is.
+
+**Rationale.** The document is what a person who will not read the records is given, and it already says what the system is made of, what the code disagrees with, what nobody has said and what each part protects and stands on.
+The order is the one statement about the cut as a whole that a reader cannot reconstruct from the parts, and a part standing outside the order is the thing to notice: it is unconstrained, which may be deliberate or may be the half-finished adoption of an order.
+Said only where an order is declared, as every optional section of this document is: a project without one reads a document that never mentions levels.
+
+### FR-ARCH-670 — The drawing puts each part at its place in the order
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-430]
+depends_on: [IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-07
+```
+
+Where the configuration declares an order, the drawing the architecture command lays out **shall** place every part of a group at the same height, in the order's own sequence, and the parts outside the order below the last group.
+
+**Rationale.** The drawing lays the parts out by how deep each sits in the declared dependencies, which is a computed guess at the shape; where the project has said what the shape is, the drawing should show that instead, and an edge running upward is then visible as a line going the wrong way rather than as a finding in a list.
+It is the reading `ADR-0010` already gives the requirement graph, where the rows are the layers of derivation.
+The parts outside the order go below the last group rather than among them: they are unconstrained, and placing them at a level would say something the configuration does not.
+The drawing this binds is the one the command lays out itself; the diagram the document carries as text is laid out by whatever renders it, so an order cannot be imposed there and is said in words instead.
+

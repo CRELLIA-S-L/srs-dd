@@ -8,6 +8,7 @@
 # file verifies: FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450
 # file verifies: FR-ARCH-460, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530
 # file verifies: INV-SPEC-130, FR-ARCH-550
+# file verifies: FR-ARCH-660, FR-ARCH-670
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -773,5 +774,80 @@ says "FR-ARCH-550 a register nothing stands on is said" "_No obligation of any p
 rm -rf "$LAB/grounds"
 
 # srs-end: FR-ARCH-550
+
+# --- verifies: FR-ARCH-660, FR-ARCH-670 — the order of the parts and what
+# --- sits inside what: both states, since a document reads as complete either
+# --- way, and the drawing's heights come from the order where there is one.
+elements <<'MD'
+# Elements
+
+### E-010 — The shell
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+```
+
+Owns the directory.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/store.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Owns one file inside it.
+MD
+printf 'x\n' > "$LAB/src/store.py"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+doc
+silent "FR-ARCH-660 no order declared, no section" "## The order of the parts"
+says "FR-ARCH-660 what sits inside what is said anyway" "- **Inside:** E-010 — The shell"
+
+printf '{"rules": {}, "layers": [["E-010"], ["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+doc
+says "FR-ARCH-660 the section appears with an order" "## The order of the parts"
+says "FR-ARCH-660 the groups in their own sequence" "0. **E-010** The shell"
+says "FR-ARCH-660 and the group below it" "1. **E-020** The store"
+silent "FR-ARCH-660 nothing stands outside this order" "Outside the order"
+
+printf '{"rules": {}, "layers": [["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+doc
+says "FR-ARCH-660 a part the order does not place is said out loud" "Outside the order, and so unconstrained by it: **E-020** The store."
+
+# --- The drawing: the declared order decides the heights, so the part in the
+# --- first group sits above the part in the second however the dependencies
+# --- happen to run.
+printf '{"rules": {}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html ) > /tmp/srs-arch-doc.svg 2>&1
+python3 - <<'PYSVG'
+import re, sys
+page = open("/tmp/srs-arch-doc.svg", encoding="utf-8").read()
+ys = {}
+for match in re.finditer(r'<g class="node"[^>]*>.*?</g>', page, re.S):
+    node = match.group(0)
+    eid = re.search(r"E-\d+", node)
+    y = re.search(r'y="(\d+)"', node) or re.search(r'cy="(\d+)"', node)
+    if eid and y:
+        ys.setdefault(eid.group(0), int(y.group(1)))
+if not ys:
+    for match in re.finditer(r'<rect[^>]*y="(\d+)"[^>]*/>\s*<text[^>]*>(E-\d+)', page):
+        ys[match.group(2)] = int(match.group(1))
+if len(ys) < 2:
+    sys.stderr.write("FAIL FR-ARCH-670 — could not read the node heights out of the page\n")
+    sys.exit(1)
+if not ys["E-020"] < ys["E-010"]:
+    sys.stderr.write("FAIL FR-ARCH-670 — the order puts E-020 first and the drawing did not: %r\n" % ys)
+    sys.exit(1)
+print("FR-ARCH-670 the first group is drawn above the second")
+PYSVG
+passes=$((passes + 1))
+
+# srs-end: FR-ARCH-660, FR-ARCH-670
 
 echo "arch-doc: $passes fixtures pass"

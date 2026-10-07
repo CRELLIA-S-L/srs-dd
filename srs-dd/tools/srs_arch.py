@@ -1025,6 +1025,37 @@ def check_forbidden(records, edges, errors, warnings, reports, cfg):
 # srs-end: FR-ARCH-470, FR-ARCH-480
 
 
+# implements: FR-ARCH-650
+def sits_inside(records):
+    """For each element, the elements carrying a path above one of its own.
+
+    A part nests inside another when a path it carries lies under a path the other carries. It is
+    the relation the resolution of a path to a part reads downward, read upward here, so the two
+    cannot disagree about what nests in what.
+    """
+    owners = live_carriers(records)
+    inside = {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in NOT_OWNING:
+            continue
+        above = set()
+        for path in as_list(record.fields.get("carries")):
+            pieces = path.rstrip("/").split("/")
+            for depth in range(len(pieces) - 1, 0, -1):
+                for other in owners.get("/".join(pieces[:depth]), ()):
+                    if other != record.id:
+                        above.add(other)
+        if above:
+            inside[record.id] = sorted(above, key=srs_parse.id_key)
+    return inside
+
+
+def placed_in_order(cfg):
+    """Which group of the declared order each element stands in, by its number in the file."""
+    return {element: index for index, group in enumerate(cfg["layers"]) for element in group}
+# srs-end: FR-ARCH-650
+
+
 # implements: FR-ARCH-630
 def check_code_read(records, edges, reports):
     """Whether this run compared the declared model with anything at all.
@@ -1470,7 +1501,9 @@ def render_map(records, model, cfg, moves=()):
     if derived:
         out += ["Requirements are derived: an entry in **bold** is one the record names, "
                 "an entry in plain text one computed from what the element owns.", ""]
-    out += ["| Element | Status | Carries | Requirements |", "|---|---|---|---|"]
+    # implements: FR-ARCH-650
+    inside, place = sits_inside(records), placed_in_order(cfg)
+    out += ["| Element | Status | Where | Carries | Requirements |", "|---|---|---|---|---|"]
     carrying = set()
     for record in sorted(records, key=lambda r: srs_parse.id_key(r.id)):   # implements: INV-SPEC-090
         if not RE_ID.match(record.id):
@@ -1482,9 +1515,13 @@ def render_map(records, model, cfg, moves=()):
         held = set(named) | set(extra)
         carrying |= held
         live = sum(1 for rid in held if by_id.get(rid, {}).get("status") in REALIZED)
-        out.append("| **%s** %s | `%s` | %s | %s (%d realized) |"
+        where = ", ".join(
+            ["inside **%s**" % other for other in inside.get(record.id, ())]
+            + (["level %d" % place[record.id]] if record.id in place else [])) or "—"
+        out.append("| **%s** %s | `%s` | %s | %s | %s (%d realized) |"
                    % (record.id, record.title, record.fields.get("status") or "?",
-                      carries, shown, live))
+                      where, carries, shown, live))
+    # srs-end: FR-ARCH-650
     out.append("")
     out.append("%d elements, carrying %d of the %d requirements this specification holds."
                % (len([r for r in records if RE_ID.match(r.id)]),
