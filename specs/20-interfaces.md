@@ -441,3 +441,24 @@ An import a part may not have **shall** be written in the layer's configuration 
 
 **Rationale.** The shape follows `IF-ARCH-060` entry for entry — two ends and a sentence — because it is the same kind of policy with the far end outside the system, and a project that has written one can write the other without reading anything.
 `module` is the top-level module name and nothing else: a pattern, a path or a dotted name inside a package would each need a reading of its own, and the names a file imports are what the checker already has (`FR-ARCH-200`, `FR-ARCH-490`).
+
+### IF-ARCH-090 — The allow-list of a part is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+The parts that may reach a part **shall** be written in the layer's configuration under `only` as a JSON list of objects whose `to` names an element, whose `from` is a non-empty list of element identifiers, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+The shape follows `IF-ARCH-060` — two ends and a sentence — with the near end a list, which is the whole difference between a prohibition and an allow-list.
+No wildcard on either side: `*` in `to` would make every part reachable only from the named few, which is a statement about the whole cut and belongs to the order, and `*` in `from` would permit everything, which is the absence of a policy rather than one.
+

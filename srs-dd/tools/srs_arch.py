@@ -99,7 +99,7 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
          "dependency-forbidden", "interface-bypassed", "protects-uncarried",
          "element-ungrounded", "dependency-upward", "import-forbidden",
-         "carrier-contested")
+         "carrier-contested", "dependency-unpermitted")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -128,7 +128,7 @@ def load_config():
     """What each rule costs, as the project set it, and how the requirements are kept. A
     missing file means every default."""
     cfg = {"rules": {}, "requirements": "written", "forbidden": [], "layers": [],
-           "forbidden_imports": []}
+           "forbidden_imports": [], "only": []}
     if not os.path.exists(CONFIG):
         return cfg, None
     try:
@@ -216,6 +216,33 @@ def load_config():
             return None, "%s: `in` is %r, expected an element identifier" % (where, entry["in"])
     cfg["forbidden_imports"] = banned
     # srs-end: IF-ARCH-080, FR-ARCH-620
+    # implements: IF-ARCH-090, FR-ARCH-690
+    # Who may reach a part, said once instead of as a prohibition per other part. An empty `from`
+    # says nobody may, which is a prohibition with a wildcard and not an allow-list, so it is a
+    # typo for the other form and is refused here.
+    only = raw.get("only", [])
+    if not isinstance(only, list):
+        return None, "arch/arch-config.json: `only` must be a JSON list"
+    for index, entry in enumerate(only):
+        where = "arch/arch-config.json: only entry %d" % index
+        if not isinstance(entry, dict):
+            return None, "%s must be an object with `to`, `from` and `why`" % where
+        for key in ("to", "why"):
+            value = entry.get(key)
+            if not isinstance(value, str) or not value.strip():
+                return None, "%s: `%s` must be text" % (where, key)
+        if not RE_ID.match(entry["to"]):
+            return None, "%s: `to` is %r, expected an element identifier" % (where, entry["to"])
+        reachers = entry.get("from")
+        if not isinstance(reachers, list) or not reachers:
+            return None, ("%s: `from` must be a non-empty list of element identifiers — an empty "
+                          "one says no part may reach it, which is a prohibition" % where)
+        for value in reachers:
+            if not isinstance(value, str) or not RE_ID.match(value):
+                return None, ("%s: `from` holds %r, expected an element identifier"
+                              % (where, value))
+    cfg["only"] = only
+    # srs-end: IF-ARCH-090, FR-ARCH-690
     return cfg, None
     # srs-end: FR-ARCH-240
 # srs-end: FR-ARCH-090
@@ -1056,6 +1083,42 @@ def placed_in_order(cfg):
 # srs-end: FR-ARCH-650
 
 
+# implements: FR-ARCH-680, FR-ARCH-690
+def check_only(records, edges, errors, warnings, reports, cfg):
+    """Who may reach a part, and the edges that come from anywhere else.
+
+    The mirror of a prohibition: there the named pair is refused, here everything but the named
+    few is. An entry about a part no record defines resolves to nothing and fails the run, the way
+    a prohibition naming no part does.
+    """
+    if not cfg["only"]:
+        return
+    present = set(record.id for record in records if RE_ID.match(record.id))
+    unknown = []
+    for index, entry in enumerate(cfg["only"]):
+        for eid in [entry["to"]] + list(entry["from"]):
+            if eid not in present:
+                unknown.append("arch/arch-config.json: only entry %d names %s, which no element "
+                               "carries" % (index, eid))
+    if unknown:
+        errors.extend(unknown)
+        return
+    allowed = {}
+    for entry in cfg["only"]:
+        allowed.setdefault(entry["to"], []).append(entry)
+    said = set()
+    for source, target, how in dependency_pairs(records, edges):
+        for entry in allowed.get(target, ()):
+            if source in entry["from"] or (source, target, how) in said:
+                continue
+            said.add((source, target, how))
+            rule_finding(warnings, reports, cfg, "dependency-unpermitted",
+                         "%s depends on %s, which only %s may reach (%s): %s"
+                         % (source, target, " and ".join(sorted(entry["from"], key=srs_parse.id_key)),
+                            how, entry["why"]))
+# srs-end: FR-ARCH-680, FR-ARCH-690
+
+
 # implements: FR-ARCH-630
 def check_code_read(records, edges, reports):
     """Whether this run compared the declared model with anything at all.
@@ -1670,6 +1733,7 @@ def main(argv=None):
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_layers(elements, edges, errors, warnings, reports, cfg)
     check_forbidden_imports(elements, errors, warnings, reports, cfg)
+    check_only(elements, edges, errors, warnings, reports, cfg)
     check_interfaces(elements, edges, warnings, reports, cfg)
     check_protects(elements, model, errors, warnings, reports, cfg)
     check_grounded(elements, model, warnings, reports, cfg, read_grounds() or {})

@@ -1418,3 +1418,43 @@ It is the reading `ADR-0010` already gives the requirement graph, where the rows
 The parts outside the order go below the last group rather than among them: they are unconstrained, and placing them at a level would say something the configuration does not.
 The drawing this binds is the one the command lays out itself; the diagram the document carries as text is laid out by whatever renders it, so an order cannot be imposed there and is said in words instead.
 
+### FR-ARCH-680 — A dependency from a part the allow-list leaves out is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-090]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where the configuration says which parts may reach a part, the architecture checker **shall** report a dependency on that part from any other — one an element declares or one the code has — as a warning named `dependency-unpermitted`, naming both parts, which of the two it read it from, and the sentence the project gave.
+
+**Rationale.** "Only the gateway reaches the store" is the commonest thing a project wants to say about a boundary, and saying it with prohibitions takes one entry per other part, rewritten whenever a part is added — the same arithmetic the order fixed for levels.
+Said as an allow-list it is one entry, and the entry is the thing a reviewer reads: the exception list is visible rather than implied by everything absent from a list of prohibitions.
+Both sources, for the reason `FR-ARCH-470` gives: a declared edge from outside the list is a model contradicting the project's own policy, and one the code has is the policy broken in silence.
+The project's sentence is printed, as every policy finding here prints it, because a prohibition whose failure cannot say what it protected is one somebody deletes.
+A warning the project prices (`FR-ARCH-090`), so a project adopting the layer on a code base that already violates its own policy can lower it while it digs out.
+
+### FR-ARCH-690 — A malformed allow-list is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-090]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+If an entry under `only` names an element no record defines, omits `to`, `from` or `why`, or leaves `from` empty, the architecture checker **shall** refuse to run and say which entry and why.
+
+**Rationale.** The argument `FR-ARCH-480` makes for a prohibition, and an allow-list has one more way to resolve to nothing: an empty `from` says that no part may reach this one, which is a prohibition with a wildcard and not an allow-list, so it is a typo for the other form rather than a policy anybody holds.
+

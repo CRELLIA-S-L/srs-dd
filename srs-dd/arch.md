@@ -97,6 +97,16 @@ Each entry names two ends — an element, or `*` for any — and the sentence it
 It is reported under `dependency-forbidden` where an element declares such an edge and where the code has one, since the two differ: a model contradicting the project's own policy, and the policy broken in silence.
 An entry naming an element no record defines, missing a side or its reason, or carrying `*` on both sides is refused rather than reported — it resolves to nothing and would read as enforced.
 
+**Who may reach a part can be said once.** The mirror of a prohibition: there the named pair is refused, here everything but the named few is, which is what a project means by "only the gateway reaches the store" and would otherwise be one prohibition per other part:
+
+```json
+{"only": [{"to": "E-020", "from": ["E-010"], "why": "the store is reached through the gateway"}]}
+```
+
+`from` is a non-empty list of parts; empty would say that no part may reach this one, which is a prohibition with a wildcard, and neither side takes `*` — on `to` it would be a statement about the whole cut, which the order is for, and on `from` it would permit everything, which is the absence of a policy.
+It is reported under `dependency-unpermitted`, in the declared model and in what the code says, with the sentence the project gave.
+An entry naming a part no record defines fails the run; one missing a key or holding something that is not an element is refused before anything is read.
+
 **The cut can have an order.** Where the parts stand in levels, saying so as a pair for every two of them grows as the square of the cut and is rewritten whenever a part is added; an order says it once, and the pairs fall out of it:
 
 ```json
@@ -317,6 +327,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `dependency-upward` | A dependency that runs against the order of groups declared under `layers`, declared by an element or had by the code |
 | `import-forbidden` | A file importing a module the project forbade the part that carries it, where the language can be read |
 | `carrier-contested` | A path more than one element in force carries, which therefore belongs to none of them |
+| `dependency-unpermitted` | A dependency on a part from one the allow-list under `only` leaves out, declared by an element or had by the code |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

@@ -16,6 +16,7 @@
 # verifies: INV-ARCH-020
 # verifies: FR-ARCH-630, FR-ARCH-640
 # verifies: FR-ARCH-650
+# verifies: FR-ARCH-680, FR-ARCH-690, IF-ARCH-090
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -3136,6 +3137,112 @@ grep -qF "| **E-010** The shell | \`built\` | — |" "$LAB/arch/90-map.md" \
 passes=$((passes + 1))
 
 # srs-end: FR-ARCH-650
+
+# --- verifies: IF-ARCH-090, FR-ARCH-680, FR-ARCH-690 — who may reach a part,
+# --- said once: the mirror of a prohibition, where everything but the named
+# --- few is refused.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"], "why": "the store is reached through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an allow-list naming no part" 1 \
+    "only entry 0 names E-030, which no element carries"
+
+printf '{"rules": {}, "only": [{"to": "E-010", "from": ["E-020"], "why": "nothing depends on the engine"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-680 an allow-list nobody crosses is silent" 0 "which only"
+
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-010"], "why": "the engine is the only reader"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-680 the part on the list is allowed" 0 "which only E-010 may reach"
+
+# --- The whole point: an edge from a part the list leaves out, declared and in
+# --- the code alike.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060]
+depends_on: []
+```
+
+Keeps it.
+
+### E-030 — The gateway
+
+```yaml
+status: built
+carries: [src/c.py]
+requirements: [FR-CORE-070]
+depends_on: []
+```
+
+Fronts the store.
+MD
+printf 'x\n' > "$LAB/src/c.py"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"], "why": "the store is reached through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-680 a declared edge from a part the list leaves out" 0 \
+    "E-010 depends on E-020, which only E-030 may reach (the model declares it): the store is reached through the gateway"
+printf 'import b\n' > "$LAB/src/a.py"
+rule "FR-ARCH-680 and the same edge in the code" 0 \
+    "E-010 depends on E-020, which only E-030 may reach (src/a.py imports b)"
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {"dependency-unpermitted": "report"}, "only": [{"to": "E-020", "from": ["E-030"], "why": "through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-680 lowered to a note" 0 "note: E-010 depends on E-020, which only E-030 may reach"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"], "why": "through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-680 at its default cost it fails a strict run" 1 "treated as errors" --strict
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "only": [{"to": "E-020", "from": [], "why": "nobody at all"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an empty allow-list is a prohibition" 2 \
+    "an empty one says no part may reach it, which is a prohibition"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"]}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an entry with no reason" 2 "only entry 0: \`why\` must be text"
+printf '{"rules": {}, "only": [{"to": "src/b.py", "from": ["E-030"], "why": "a file, not a part"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an end that is not an element" 2 "only entry 0: \`to\` is 'src/b.py', expected an element identifier"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["*"], "why": "everyone"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 no wildcard on the near side" 2 "only entry 0: \`from\` holds '*', expected an element identifier"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rm -f "$LAB/src/c.py"
+
+# srs-end: IF-ARCH-090, FR-ARCH-680, FR-ARCH-690
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280
