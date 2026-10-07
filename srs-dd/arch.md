@@ -189,6 +189,9 @@ Three rules compare the two: a unit a part names that the facts do not hold, a u
 All three cost a note by default, because the far end is usually a repository this one does not own and failing a build over somebody else's deployment makes one team answer for another's decisions; a project whose own pipeline produces the facts can price them up.
 The links are compared one way only, as the code is: facts about a system show what happened or what is permitted, never that something cannot happen.
 
+How the file is produced and when is the project's business, as it is for the edges file: a project that generates it runs its producer before the checker, in the same pipeline, so that the reading and the comparison are one act; a project that writes it by hand treats it as any other hand-written record and leans on `life` to say how long that hand's work is worth trusting.
+Nothing holds the file against the system — the checker cannot read what it did not compute — so a file with no life is as silent as an absent one and says nothing about its own age.
+
 **The framework reads this one format and no technology.** It has no reader for any descriptor, manifest, pipeline or trace, and never looks at a running system: what turns a project's world into these facts is the project's own, and it is where the knowledge of that world belongs.
 
 ## Derived requirements
