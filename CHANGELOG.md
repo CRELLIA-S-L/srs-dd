@@ -8,6 +8,20 @@ Versions are framework releases, tagged `vX.Y.Z`; the same number is embedded in
      `### Upgrade notes` is printed in full; `### Added` and `### Changed` are printed one line per `- ` entry, so keep every entry's first sentence self-contained.
      Keep that shape. -->
 
+## [0.24.0] — 2026-10-07
+
+### Added
+
+- The architecture layer can be told what the project runs. A part names the units it ships in with the `units` key — the names the project uses, so one unit may hold many parts and one part may ship as two — and what a unit holds is computed from the parts that name it rather than written down. What the project knows about those units goes in `arch/units.json`: when the facts were taken, from where, the units, optionally the links between them, and optionally how many days their producer says they stay true. The checker compares the two in both directions and reports a unit the facts do not hold, a unit no part names, and a link no part's dependencies account for — all three as notes by default, because the far end is usually a repository this one does not own (`FR-ARCH-700`, `FR-ARCH-710`, `FR-ARCH-720`, `FR-ARCH-730`, `IF-ARCH-100`).
+- Facts that have gone stale are used for nothing. Past the life the file states, the checker uses none of them and says so with their date and source, because a run that compared nothing must not read like one that found nothing; a file stating no life cannot go stale, and the document says that with the rest of its provenance (`FR-ARCH-740`).
+- The document states the units and where the facts came from. Each unit with the parts it holds, and the provenance of the facts in every state — fresh with a life, fresh without one, stale, or none supplied (`FR-ARCH-760`).
+- A malformed file of facts is refused. It is refused before anything is read and the refusal names what is wrong: not an object, no date or source, a date that is not one, no units, a link missing a side, a life that is not a whole number of days (`FR-ARCH-750`).
+- The framework reads one format and no technology. There is no reader here for any descriptor, manifest, pipeline or trace, and the checker never looks at a running system: what turns a project's world into these facts is the project's own, and a project that generates the file runs its producer before the checker, in the same pipeline.
+
+### Changed
+
+- The landing page describes the architecture layer. It gave the layer one clause and the grounds register three paragraphs; it now gives the layer the same three things — what it holds, what its checker reports, and when a project should decline it — with the parts and their nesting, the four policies a project can set over them, and the units. The benefits list and the reading section gained what they were missing: an entry for the layer, and the layer's own commands (`FR-DOC-070`, `FR-DOC-060`, `FR-DOC-120`).
+
 ## [0.23.0] — 2026-10-07
 
 ### Added
