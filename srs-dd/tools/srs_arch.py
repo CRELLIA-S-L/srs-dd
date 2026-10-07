@@ -752,28 +752,38 @@ def owner_of(path, carried):
 # srs-end: FR-ARCH-060
 
 
-# implements: FR-ARCH-200
+# implements: FR-ARCH-200, INV-ARCH-020
 def python_modules(records):
     """Every Python file the layer carries, as path -> element, plus the names that resolve.
+
+    Which part a file belongs to is asked of `element_of`, the one resolution the layer's standard
+    states — the most specific claim, and nobody where two claim it equally. Assigning it here per
+    record instead let the last record in the file win, so a part inside another owned its files
+    or did not depending on the order the records were written in.
 
     Two maps, because a bare module name is not unique: a name two carried files answer to
     resolves to neither.
     """
-    by_path = {}
+    owners = live_carriers(records)
+    carried = set()
     for record in records:
         if not RE_ID.match(record.id) or record.fields.get("status") in NOT_OWNING:
             continue
         for path in as_list(record.fields.get("carries")):
             full = os.path.join(ROOT, path)
             if os.path.isfile(full) and path.endswith(".py"):
-                by_path[path] = record.id
+                carried.add(path)
             elif os.path.isdir(full):
                 for current, dirs, files in os.walk(full):
                     dirs[:] = [d for d in dirs if not d.startswith(".")]
                     for name in sorted(files):
                         if name.endswith(".py"):
-                            rel = os.path.relpath(os.path.join(current, name), ROOT)
-                            by_path[rel] = record.id
+                            carried.add(os.path.relpath(os.path.join(current, name), ROOT))
+    by_path = {}
+    for path in sorted(carried):
+        element = element_of(path, owners)
+        if element is not None:
+            by_path[path] = element
     by_name = {}
     for path in sorted(by_path):
         by_name.setdefault(os.path.basename(path)[:-3], []).append(path)
@@ -781,7 +791,7 @@ def python_modules(records):
     # was read last is how this rule would name an element the importer never touched.
     unique = {name: paths[0] for name, paths in by_name.items() if len(paths) == 1}
     return by_path, unique
-# srs-end: FR-ARCH-200
+# srs-end: FR-ARCH-200, INV-ARCH-020
 
 
 # implements: FR-ARCH-200

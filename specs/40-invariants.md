@@ -485,18 +485,20 @@ It also keeps the layer optional in the way that matters — a requirement file 
 ### INV-ARCH-020 — A path belongs to one part by one rule
 
 ```yaml
-status: draft
+status: implemented
 verification: T
 derives_from: [INV-ARCH-010]
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 
 Wherever the architecture checker resolves a path to the element that carries it, the resolution **shall** be the same one: the element with the most specific claim on the path — the path itself before a directory above it — and no element where two claim it equally.
+
+**Approved and built on 2026-10-07**, the rule read against what the field has already settled rather than chosen here. The module decomposition style of *Documenting Software Architectures* gives a child one parent and no loops; UML owns a named element in at most one namespace and admits a part into at most one whole; C4 makes a component part of one container. The hierarchical reflexion models this layer's conformance check descends from map a concrete entity either directly or "indirectly by way of its closest containing entity" — the most specific claim, which is what this states. Tools that partition by path answer the same way: a Bazel package holds everything beneath its directory "except those which themselves contain a BUILD file", and a dependency-structure matrix seats each atom in one leaf. The opposite convention — the last matching pattern wins, as `CODEOWNERS` and `.gitignore` have it — belongs to a file that is an ordered list of policy, which `arch/00-elements.md` is not: its records are ordered by identifier for a reader, so the order deciding anything was nobody's decision.
 
 **Rationale.** `srs-dd/arch.md` says twice that an end is resolved "by the same rule that decides which part a file belongs to", and the checker has two rules.
 One of them, the one the carrier findings and the project's own edges go through, prefers the most specific claim and refuses a tie.

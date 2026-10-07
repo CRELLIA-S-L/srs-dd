@@ -7,10 +7,10 @@ Total requirements: 385.
 
 | Status | Requirements |
 |---|---|
-| `draft` | 1 |
+| `draft` | 0 |
 | `deferred` | 1 |
 | `partial` | 0 |
-| `implemented` | 379 |
+| `implemented` | 380 |
 | `superseded` | 4 |
 | `withdrawn` | 0 |
 
@@ -378,7 +378,7 @@ Total requirements: 385.
 | **IF-SPEC-050** The published pages are one set of names | `implemented` | T | `srs-dd/standard.md`<br>`srs-dd/tools/srs_view_page.py`<br>`srs-dd/tools/srs_arch_doc.py`<br>`srs-dd/tools/srs_grounds.py` | `tests/standard-vocabulary.sh` |
 | **IF-VIEW-010** The model is published, not merely dumped | `implemented` | T | `srs-dd/tools/srs_view.py`<br>`srs-dd/tools/srs_view_model.py` | `tests/view-smoke.sh` |
 | **INV-ARCH-010** An element is recorded in one direction only | `implemented` | I | `srs-dd/arch.md` | — |
-| **INV-ARCH-020** A path belongs to one part by one rule | `draft` | T | — | — |
+| **INV-ARCH-020** A path belongs to one part by one rule | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **INV-GND-010** Hypothesis identifiers are immutable and never reused | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |
 | **INV-GND-020** A bet is recorded in one direction only | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |
 | **INV-GND-030** An unclaimed requirement is a reading, not a defect | `implemented` | I | `srs-dd/tools/srs_grounds.py` | `tests/grounds-rules.sh` |

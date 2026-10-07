@@ -13,6 +13,7 @@
 # verifies: FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580
 # verifies: FR-ARCH-590, FR-ARCH-600, IF-ARCH-070
 # verifies: FR-ARCH-610, FR-ARCH-620, IF-ARCH-080
+# verifies: INV-ARCH-020
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2922,6 +2923,114 @@ printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 printf 'x\n' > "$LAB/src/a.py"
 
 # srs-end: IF-ARCH-080, FR-ARCH-610, FR-ARCH-620
+
+# --- verifies: INV-ARCH-020 — a part inside another. The file belongs to the
+# --- most specific claim, the order the records are written in decides
+# --- nothing, and a path two parts claim equally belongs to neither. Before
+# --- this the map from file to part was filled per record, so the last record
+# --- in the file won and the same two records gave opposite answers.
+printf 'import json\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-020", "module": "json", "why": "the inner part never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+nested_outer_first() { elements <<'MD'
+# Elements
+
+### E-010 — The outer part
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Owns the directory.
+
+### E-020 — The inner part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Owns one file inside it.
+MD
+}
+nested_inner_first() { elements <<'MD'
+# Elements
+
+### E-020 — The inner part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Owns one file inside it.
+
+### E-010 — The outer part
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Owns the directory.
+MD
+}
+nested_outer_first
+rule "INV-ARCH-020 the inner part owns the file it claims" 0 \
+    "src/a.py imports json, which E-020 may not: the inner part never serialises"
+nested_inner_first
+rule "INV-ARCH-020 and the order of the records decides nothing" 0 \
+    "src/a.py imports json, which E-020 may not: the inner part never serialises"
+
+# --- The other half: the outer part does not own what the inner one claims,
+# --- whichever order they are written in.
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "the outer part never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+silent "INV-ARCH-020 the outer part does not own the inner part's file" 0 "imports json"
+nested_outer_first
+silent "INV-ARCH-020 and that does not depend on the order either" 0 "imports json"
+
+# --- Two equal claims resolve to neither, so every rule that needs an owner
+# --- is silent about that file.
+elements <<'MD'
+# Elements
+
+### E-010 — One claimant
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: []
+```
+
+Claims the file.
+
+### E-020 — The other claimant
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Claims the same file.
+MD
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+silent "INV-ARCH-020 a path two parts claim belongs to neither" 0 "imports json"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: INV-ARCH-020
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

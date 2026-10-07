@@ -81,6 +81,11 @@ A key that is neither required nor optional here is not an error — that tolera
 `carries` is not limited to source files.
 A requirement's `code` field names whatever realizes it — a standard, a procedure, a CI template, a template shipped to somebody else — and the part that owns those files is a part like any other.
 
+**Which part a file belongs to.** The element with the most specific claim on it: the one that carries the path itself, failing that the one carrying the nearest directory above it.
+A part inside another therefore owns the files it names, and the order the records are written in decides nothing.
+Where two elements claim a path equally it belongs to neither, and every rule that needs an owner is silent about that file — the one thing to suspect when a file nothing reports turns out to be claimed twice.
+This is the resolution everywhere: the carrier findings, the requirements derived from what a part owns, the imports read from the code and the edges a project supplies all ask it.
+
 **A dependency can be forbidden.** `depends_on` says what a part leans on; what no part may lean on is policy about the cut, and it lives in the layer's configuration:
 
 ```json
@@ -323,3 +328,4 @@ A rule name the checker has published keeps its meaning: names are never renamed
   It says what changes hands; why the cut changes belongs in `specs/adr/`, which is what its `adr` points at.
 - Do not cut the parts as finely as the file tree.
   If every module is an element, the layer says nothing the directory listing did not.
+  A part inside another is not what this forbids — the advice is about granularity, not hierarchy, and a boundary that sits inside a directory is a part like any other, owning the files it names by the rule above.

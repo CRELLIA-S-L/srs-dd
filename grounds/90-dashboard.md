@@ -330,6 +330,7 @@ requirements link to them, plus how many files their `code` field names.
 | IF-GND-030 | 1 | 1 | 2 |
 | IF-SPEC-020 | 1 | 1 | 2 |
 | INV-ARCH-010 | 1 | 1 | 2 |
+| INV-ARCH-020 | 0 | 2 | 2 |
 | INV-SPEC-100 | 1 | 1 | 2 |
 | FR-ARCH-020 | 0 | 1 | 1 |
 | FR-ARCH-030 | 0 | 1 | 1 |
@@ -431,5 +432,4 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-110 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| INV-ARCH-020 | 0 | 0 | 0 |
 | INV-SPEC-120 | 0 | 0 | 0 |
