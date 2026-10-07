@@ -124,6 +124,7 @@ The pre-commit hook says which bets the files in your commit are standing on.
 The dashboard states how old the confirmed core is, what each frame has refused, and which requirements rest on no hypothesis at all — because a requirement nobody can say why the product has is the signal this layer exists to protect, and demanding a bet for every one of them would destroy it.
 
 The **architecture layer** is the other optional sibling, and it answers the other question a specification does not: not what the system must do, but what it is made of.
+This repository keeps one on itself — twelve parts, an order declared over them, and the page published beside the specification's own.
 
 - A **part** has a responsibility in one sentence, the files that are it, what it leans on, how it is reached from outside, and the requirements it carries — written by hand or derived from the files it owns.
   A part may sit inside another, and a file belongs to the innermost part that claims it, by one rule used everywhere.
