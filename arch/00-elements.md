@@ -85,16 +85,17 @@ The optional register of what the requirements rest on: hypotheses, bets, measur
 
 ```yaml
 status: built
-carries: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py, srs-dd/arch.md]
-requirements: [CON-ARCH-010, CON-ARCH-020, CON-SPEC-030, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, FR-ARCH-270, FR-ARCH-280, FR-SKILL-020, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, IF-ARCH-040, INV-ARCH-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-ARCH-290, FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350, FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050, FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450, FR-ARCH-460, FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530, IF-SPEC-050, INV-SPEC-130, FR-ARCH-550, FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580, FR-ARCH-590, FR-ARCH-600, IF-ARCH-070, FR-ARCH-610, FR-ARCH-620, IF-ARCH-080, INV-ARCH-020, FR-ARCH-630, FR-ARCH-640, FR-ARCH-650, FR-ARCH-660, FR-ARCH-670, FR-ARCH-680, FR-ARCH-690, IF-ARCH-090, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730, FR-ARCH-740, FR-ARCH-750, FR-ARCH-760, IF-ARCH-100]
+carries: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+requirements: [CON-ARCH-010, CON-ARCH-020, CON-SPEC-030, FR-ARCH-010, FR-ARCH-020, FR-ARCH-030, FR-ARCH-040, FR-ARCH-050, FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100, FR-ARCH-110, FR-ARCH-200, FR-ARCH-210, FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, FR-ARCH-270, FR-ARCH-280, FR-SKILL-020, IF-ARCH-010, IF-ARCH-020, IF-ARCH-030, IF-ARCH-040, INV-ARCH-010, INV-SPEC-080, INV-SPEC-090, NFR-SPEC-010, FR-ARCH-290, FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350, FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050, FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500, FR-ARCH-550, FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580, FR-ARCH-590, FR-ARCH-600, IF-ARCH-070, FR-ARCH-610, FR-ARCH-620, IF-ARCH-080, INV-ARCH-020, FR-ARCH-630, FR-ARCH-640, FR-ARCH-650, FR-ARCH-680, FR-ARCH-690, IF-ARCH-090, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730, FR-ARCH-740, FR-ARCH-750, IF-ARCH-100]
 protects: [CON-ARCH-010, INV-ARCH-010]
 depends_on: [E-010, E-020, E-050]
-interface: two commands — `srs_arch.py [--no-write|--strict|--cite|--drivers|--plan|--draft|--price]` with the exit codes `IF-ARCH-020` publishes, and `srs_arch_doc.py [--html|--link]`, which prints and writes nothing; the record formats `IF-ARCH-010` and `IF-ARCH-050`, the edges file `IF-ARCH-040`, and the rule names `IF-ARCH-030` keeps
+interface: the command `srs_arch.py [--no-write|--strict|--cite|--drivers|--plan|--draft|--price]` with the exit codes `IF-ARCH-020` publishes; the record formats `IF-ARCH-010` and `IF-ARCH-050`, the edges file `IF-ARCH-040`, the facts about units `IF-ARCH-100`, the configuration's `layers`, `forbidden_imports` and `only` (`IF-ARCH-070`, `IF-ARCH-080`, `IF-ARCH-090`), and the rule names `IF-ARCH-030` keeps; and the module `srs_arch` itself, imported by the document beside it for the records it reads, the resolution of a path to a part and the order the project declared
 ```
 
 This layer: which parts the system is made of, what each carries, and the disagreements between that description and the specification.
 
 **Rationale.** Built on the same seam as the grounds layer and for the same reason, decided in ADR-0023.
+The document it used to carry left on 2026-10-07 for `E-130`, because the two had a one-way boundary that no rule could hold while they were one part (ADR-0052).
 
 ### E-070 — The procedures and the agent guides
 
@@ -187,3 +188,18 @@ What makes the rules binding: the suites, the local pre-commit gate, this reposi
 
 **Rationale.** Depends on every checker it runs.
 The templates live here rather than with the payload because what they contain is this part's business — which suites exist and in what order they run.
+
+### E-130 — The architecture document
+
+```yaml
+status: built
+carries: [srs-dd/tools/srs_arch_doc.py]
+requirements: [FR-ARCH-410, FR-ARCH-420, FR-ARCH-430, FR-ARCH-440, FR-ARCH-450, FR-ARCH-460, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530, FR-ARCH-550, FR-ARCH-660, FR-ARCH-670, FR-ARCH-760, IF-SPEC-050, INV-SPEC-130, CON-ARCH-010, CON-SPEC-030, FR-INIT-280, INV-SPEC-090, NFR-SPEC-010]
+protects: [CON-ARCH-010]
+depends_on: [E-060]
+interface: the command `srs_arch_doc.py [--html|--link]`, which prints the layer and writes nothing
+```
+
+Projects the layer as a document a person reads, and as a page beside the specification's own.
+
+**Rationale.** Split from the layer on 2026-10-07 (ADR-0052): the checker and this projection already had a one-way boundary — this imports `srs_arch` and nothing imports this — and while they were one part no rule could hold them to it. Proven on a fixture: the checker made to import the document drew no finding at all inside one part, and four the moment they were two.
