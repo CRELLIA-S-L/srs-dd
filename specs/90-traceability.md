@@ -442,7 +442,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-ARCH-120** | FR-ARCH-130 (depends_on), FR-ARCH-140 (depends_on), FR-ARCH-150 (depends_on) |
 | **FR-ARCH-150** | FR-DOC-100 (depends_on), FR-SKILL-480 (depends_on), FR-SKILL-490 (depends_on) |
 | **FR-ARCH-170** | FR-ARCH-300 (derives_from), FR-SKILL-100 (depends_on) |
-| **FR-ARCH-200** | FR-ARCH-260 (depends_on), FR-ARCH-440 (depends_on), FR-ARCH-490 (depends_on), FR-ARCH-630 (derives_from) |
+| **FR-ARCH-200** | FR-ARCH-260 (depends_on), FR-ARCH-440 (depends_on), FR-ARCH-490 (depends_on), FR-ARCH-630 (derives_from), FR-DOC-070 (depends_on) |
 | **FR-ARCH-210** | FR-ARCH-580 (depends_on) |
 | **FR-ARCH-240** | FR-ARCH-250 (depends_on), FR-DOC-070 (depends_on) |
 | **FR-ARCH-260** | FR-ARCH-630 (depends_on), IF-ARCH-040 (depends_on) |
@@ -452,16 +452,22 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **FR-ARCH-320** | FR-ARCH-450 (depends_on) |
 | **FR-ARCH-340** | FR-ARCH-350 (depends_on) |
 | **FR-ARCH-360** | FR-ARCH-370 (depends_on), FR-ARCH-380 (depends_on), FR-ARCH-390 (depends_on), FR-ARCH-400 (depends_on) |
-| **FR-ARCH-410** | FR-ARCH-420 (derives_from), FR-ARCH-430 (derives_from), FR-ARCH-440 (derives_from), FR-ARCH-450 (derives_from), FR-ARCH-460 (derives_from), FR-ARCH-510 (derives_from), FR-ARCH-520 (derives_from), FR-ARCH-550 (derives_from) |
+| **FR-ARCH-410** | FR-ARCH-420 (derives_from), FR-ARCH-430 (derives_from), FR-ARCH-440 (derives_from), FR-ARCH-450 (derives_from), FR-ARCH-460 (derives_from), FR-ARCH-510 (derives_from), FR-ARCH-520 (derives_from), FR-ARCH-550 (derives_from), FR-DOC-120 (depends_on) |
 | **FR-ARCH-420** | FR-ARCH-660 (derives_from), FR-ARCH-760 (derives_from) |
 | **FR-ARCH-430** | FR-ARCH-530 (refines), FR-ARCH-670 (derives_from) |
+| **FR-ARCH-470** | FR-DOC-070 (depends_on) |
+| **FR-ARCH-490** | FR-DOC-070 (depends_on) |
 | **FR-ARCH-500** | FR-ARCH-510 (depends_on) |
-| **FR-ARCH-520** | FR-ARCH-530 (depends_on), FR-CI-190 (depends_on), FR-DOC-050 (depends_on), INV-SPEC-130 (depends_on) |
-| **FR-ARCH-540** | FR-SKILL-520 (depends_on) |
+| **FR-ARCH-520** | FR-ARCH-530 (depends_on), FR-CI-190 (depends_on), FR-DOC-050 (depends_on), FR-DOC-120 (depends_on), INV-SPEC-130 (depends_on) |
+| **FR-ARCH-540** | FR-DOC-120 (depends_on), FR-SKILL-520 (depends_on) |
 | **FR-ARCH-550** | FR-ARCH-560 (depends_on) |
-| **FR-ARCH-570** | FR-ARCH-580 (derives_from), FR-SKILL-530 (depends_on) |
+| **FR-ARCH-570** | FR-ARCH-580 (derives_from), FR-DOC-120 (depends_on), FR-SKILL-530 (depends_on) |
+| **FR-ARCH-590** | FR-DOC-060 (depends_on), FR-DOC-070 (depends_on) |
+| **FR-ARCH-610** | FR-DOC-070 (depends_on) |
 | **FR-ARCH-630** | FR-ARCH-740 (derives_from) |
-| **FR-ARCH-700** | FR-ARCH-710 (depends_on), FR-ARCH-720 (depends_on), FR-ARCH-730 (depends_on), FR-ARCH-760 (depends_on) |
+| **FR-ARCH-680** | FR-DOC-060 (depends_on), FR-DOC-070 (depends_on) |
+| **FR-ARCH-700** | FR-ARCH-710 (depends_on), FR-ARCH-720 (depends_on), FR-ARCH-730 (depends_on), FR-ARCH-760 (depends_on), FR-DOC-070 (depends_on) |
+| **FR-ARCH-710** | FR-DOC-060 (depends_on), FR-DOC-070 (depends_on) |
 | **FR-CHK-010** | INV-SPEC-010 (depends_on) |
 | **FR-CHK-030** | FR-CHK-040 (depends_on), FR-CHK-075 (depends_on), FR-CHK-150 (depends_on), FR-CHK-240 (depends_on), FR-DOC-050 (depends_on), INV-SPEC-020 (depends_on) |
 | **FR-CHK-040** | FR-DOC-050 (depends_on) |
@@ -630,7 +636,7 @@ Who links to each requirement. Computed; not stored in the requirements themselv
 | **IF-SPEC-050** | FR-CI-190 (depends_on), FR-DOC-050 (depends_on), INV-SPEC-130 (depends_on) |
 | **IF-VIEW-010** | FR-ARCH-010 (depends_on), FR-DOC-120 (depends_on) |
 | **INV-ARCH-010** | FR-ARCH-700 (derives_from), INV-ARCH-020 (derives_from) |
-| **INV-ARCH-020** | FR-ARCH-640 (derives_from), FR-ARCH-650 (depends_on), FR-ARCH-660 (depends_on) |
+| **INV-ARCH-020** | FR-ARCH-640 (derives_from), FR-ARCH-650 (depends_on), FR-ARCH-660 (depends_on), FR-DOC-070 (depends_on) |
 | **INV-GND-010** | FR-GND-180 (depends_on), IF-GND-010 (depends_on) |
 | **INV-GND-020** | FR-DOC-070 (depends_on), FR-GND-040 (depends_on), FR-GND-050 (depends_on), FR-GND-070 (depends_on), FR-GND-080 (depends_on), INV-GND-030 (depends_on) |
 | **INV-GND-030** | FR-GND-090 (depends_on), FR-GND-100 (depends_on), FR-GND-220 (depends_on), FR-GND-500 (derives_from) |

@@ -95,6 +95,9 @@ The three are published side by side under fixed names, each linking the others,
   The `srs-audit` procedure derives cases from the statement's own EARS parts, builds a decision table where conditions combine, and refuses to call a case covered until it can name the change to the code that would turn that test red.
 - **Already have code and no spec?**
   `srs-harvest` reads it area by area and proposes draft requirements in batches you approve, never writing a status or inventing a test that does not exist.
+- **An architecture you can be wrong about in public.**
+  Declare the order your parts stand in, who may reach what, what a part may not import, and the units you deploy.
+  The checker reads the code, and whatever facts you supply about what runs, and reports where the description and the thing have come apart — including the case where it could compare nothing at all.
 - **Agent-agnostic, and optional.**
   `AGENTS.md` is read natively by Cursor, Codex, Gemini CLI and Copilot; the skills are plain Markdown any agent can follow; a team working entirely by hand loses nothing.
 
@@ -106,7 +109,6 @@ Delete a requirement's rationale and a strict run reports nothing at all.
 
 The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest area this framework specifies itself in.
 It holds three kinds of ground, and one record that joins them to the specification.
-The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries — written by hand or derived from the files it owns — and a checker that reports a file the specification claims and no part owns.
 
 - A **hypothesis** is a claim about the world that could turn out false — who needs the thing, what they will pay for, what they do today instead.
   It carries a bounded population, a threshold that says what would refute it, a term, and an owner who answers for measuring it.
@@ -120,6 +122,25 @@ What that buys is one thing: **when an assumption is refuted, everything built o
 `srs_grounds.py` reports a hypothesis past its term, one built on and never measured, a verdict that does not follow from its own threshold, a threshold moved after the first measurement, evidence deleted.
 The pre-commit hook says which bets the files in your commit are standing on.
 The dashboard states how old the confirmed core is, what each frame has refused, and which requirements rest on no hypothesis at all — because a requirement nobody can say why the product has is the signal this layer exists to protect, and demanding a bet for every one of them would destroy it.
+
+The **architecture layer** is the other optional sibling, and it answers the other question a specification does not: not what the system must do, but what it is made of.
+
+- A **part** has a responsibility in one sentence, the files that are it, what it leans on, how it is reached from outside, and the requirements it carries — written by hand or derived from the files it owns.
+  A part may sit inside another, and a file belongs to the innermost part that claims it, by one rule used everywhere.
+- The project sets **policy over the parts**, and the checker holds the code to it: an order of levels, where a dependency running upward is a finding; a pair that must not exist; a module a part may not import; and an allow-list — only these parts may reach that one — which otherwise takes one prohibition per part in the system.
+- A **unit** is what gets deployed or run as one piece.
+  It is a name the parts claim, so one unit may hold many parts and one part may ship as two, and what a unit holds is computed rather than written down.
+  What the project knows about its units — which exist, what talks to what, when that was read and from where — goes in one small file the project produces itself, from deployment descriptors that may live in another repository, from its pipeline, from traces, or by hand.
+
+What that buys is one thing in three directions: **the description is held against something that can contradict it.**
+`srs_arch.py` reports a file the specification claims and no part owns, a requirement built and belonging to no part, a part that answers to nothing, a dependency the code has and the model does not declare, a circle, a part entered by a name its own interface does not state, and every policy above.
+Where facts about the units are supplied it reports a unit that is not there, one nobody wrote down, and a link no part's dependencies account for.
+Where those facts are older than their own stated life it uses none of them and says so, because a run that compared nothing must not read like one that found nothing.
+The layer also prints itself as a document for a person — the parts, the drawing of the dependencies, the units, and where every claim came from.
+
+**When not to keep the layer.** Where the parts are obvious and few — a single script, a library with one public module, a service whose whole structure fits in the first paragraph of its README.
+There the description is a second copy of the file tree, and a description that adds nothing teaches every reader that the directory is decoration.
+The question is not "could we list our parts" but "is there a boundary somebody could cross without noticing".
 
 **When not to keep a register.** Where the basis of the work is fixed outside the project and does not move — avionics, a protocol implementation, a compliance obligation, a component whose contract is somebody else's specification.
 There the requirement tree already carries everything, the hypotheses would be invented to fill the file, and a register of invented entries teaches every reader that the register is decoration.
@@ -235,6 +256,9 @@ python3 srs-dd/tools/srs_view.py --area DOC --around --svg graph.svg   one area 
 The viewer never writes to `specs/` and never gates anything.
 Where a project keeps a register, `python3 srs-dd/tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
 Each layer's checker cites its own records in the same form — `srs_arch.py --cite E-NNN…`, `srs_grounds.py --cite H-NNN…` — because the viewer reads the specification and nothing else.
+The architecture layer answers four more questions with its own commands.
+`srs_arch.py --drivers` ranks the requirements a cut should form around, `--draft` proposes one from the files no part carries, and `--price parts|areas|proposed` says what a cut costs in links inside it, leaving it and arriving.
+`srs_arch_doc.py` prints the whole layer as a document, and `--html` as a page beside the specification's own.
 
 ## Where things are
 

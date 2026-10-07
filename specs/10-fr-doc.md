@@ -122,7 +122,7 @@ The layers' pages are named the same way — the architecture drawn (`FR-ARCH-52
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-VIEW-010, FR-VIEW-020, FR-CI-010, FR-SKILL-160, FR-SKILL-030, NFR-SKILL-010]
+depends_on: [FR-VIEW-010, FR-VIEW-020, FR-CI-010, FR-SKILL-160, FR-SKILL-030, NFR-SKILL-010, FR-ARCH-590, FR-ARCH-680, FR-ARCH-710]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -145,7 +145,7 @@ The four that left were true and were said elsewhere on the page — immutable i
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-GND-010, FR-GND-060, FR-GND-420, FR-GND-140, FR-GND-190, FR-GND-200, FR-GND-240, FR-GND-250, FR-GND-220, FR-GND-310, INV-GND-020, FR-ARCH-010, FR-ARCH-060, FR-ARCH-240]
+depends_on: [FR-GND-010, FR-GND-060, FR-GND-420, FR-GND-140, FR-GND-190, FR-GND-200, FR-GND-240, FR-GND-250, FR-GND-220, FR-GND-310, INV-GND-020, FR-ARCH-010, FR-ARCH-060, FR-ARCH-240, FR-ARCH-200, FR-ARCH-470, FR-ARCH-490, FR-ARCH-590, FR-ARCH-610, FR-ARCH-680, FR-ARCH-700, FR-ARCH-710, INV-ARCH-020]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
@@ -153,10 +153,13 @@ tests: []
 created: 2026-09-18
 ```
 
-*Why the thing exists, not only what it does* **shall** say what a specification does not record, describe the grounds register — its three kinds of ground and the bet that joins them to a requirement — and the architecture layer, say what the register's checker reports, and say when a project should keep no register.
+*Why the thing exists, not only what it does* **shall** say what a specification does not record, describe the grounds register — its three kinds of ground and the bet that joins them to a requirement — and the architecture layer — its parts, the policies a project sets over them and the units it says it runs — say what each layer's checker reports, and say when a project should keep neither.
+
+**The architecture half was one clause until 2026-10-07**: the section named the layer and said what only the register's checker reports, which was fair when the layer had three rules and stopped being fair at twenty-two. It now owes the layer the same three things it owes the register — what it holds, what its checker reports, and when a project should decline it.
 
 **Rationale.** Both layers are optional, and a reader who does not know why they exist declines them or keeps them for the wrong reason.
-The section states the gap first — a rationale is prose no rule checks — and then the two answers, in the terms the layers are specified in: a hypothesis with a threshold and a term, an ideology and a frame that are never measured, a bet that is a record of its own so that a requirement carries no field (`INV-GND-020`); a part, its files, and a file no part owns (`FR-ARCH-060`), written or derived (`FR-ARCH-240`).
+The section states the gap first — a rationale is prose no rule checks — and then the two answers, in the terms the layers are specified in: a hypothesis with a threshold and a term, an ideology and a frame that are never measured, a bet that is a record of its own so that a requirement carries no field (`INV-GND-020`); a part, its files, and a file no part owns (`FR-ARCH-060`), written or derived (`FR-ARCH-240`), the order the parts stand in (`FR-ARCH-590`), what a part may not lean on or import and who may reach it (`FR-ARCH-470`, `FR-ARCH-610`, `FR-ARCH-680`), a part inside another resolved by one rule (`INV-ARCH-020`), and the units the project says it runs, compared with the facts it supplies (`FR-ARCH-700`, `FR-ARCH-710`).
+What the layer's checker reports is named for the same reason the register's is: the model against the code (`FR-ARCH-200`), a part entered by a name its interface does not state (`FR-ARCH-490`), and the policies above.
 What the checker reports is named because that is what the layer costs and pays: a hypothesis past its term (`FR-GND-060`), one built on and never measured (`FR-GND-420`), a verdict that does not follow (`FR-GND-140`), a threshold moved (`FR-GND-190`), evidence deleted (`FR-GND-200`), the hook naming the bets a commit touches (`FR-GND-310`); on the dashboard, how old the core is (`FR-GND-240`), what each frame refused (`FR-GND-250`), and the requirements resting on nothing (`FR-GND-220`), which the section says is the signal rather than the debt.
 When not to keep one is the paragraph that makes the rest credible: a register of invented entries teaches every reader that the register is decoration, and the page says so before a reader finds out.
 
@@ -249,7 +252,7 @@ The same five steps are in `skeleton/AGENTS.md`, so the page restates the guide 
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-240, FR-VIEW-330, FR-VIEW-340, IF-VIEW-010, FR-VIEW-080, FR-GND-310, FR-ARCH-270, FR-GND-540, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380]
+depends_on: [FR-VIEW-010, FR-VIEW-020, FR-VIEW-030, FR-VIEW-040, FR-VIEW-050, FR-VIEW-060, FR-VIEW-240, FR-VIEW-330, FR-VIEW-340, IF-VIEW-010, FR-VIEW-080, FR-GND-310, FR-ARCH-270, FR-GND-540, FR-VIEW-350, FR-VIEW-360, FR-VIEW-370, FR-VIEW-380, FR-ARCH-410, FR-ARCH-540, FR-ARCH-570, FR-ARCH-520]
 refines: [FR-DOC-010]
 conflicts_with: []
 code: [README.md]
