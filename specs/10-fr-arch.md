@@ -1458,3 +1458,146 @@ If an entry under `only` names an element no record defines, omits `to`, `from` 
 
 **Rationale.** The argument `FR-ARCH-480` makes for a prohibition, and an allow-list has one more way to resolve to nothing: an empty `from` says that no part may reach this one, which is a prohibition with a wildcard and not an allow-list, so it is a typo for the other form rather than a policy anybody holds.
 
+### FR-ARCH-700 — A part says which units it ships in
+
+```yaml
+status: deferred
+verification: T
+derives_from: [INV-ARCH-010]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+An element **shall** name the units it ships in by the names the project uses for them, the parts a unit holds being computed from those names rather than written down.
+
+**Rationale.** A part is what the code is divided into; a unit is what is deployed or run as one piece, and the two do not line up — a unit may hold many parts, and one part may ship as two.
+A name rather than a flag covers all three shapes with one key: one part naming one unit, ten parts naming the same unit, one part naming two.
+The names are the project's own, because what a unit is called is a fact about the project's world and not something this layer can know.
+Computed in one direction for the reason `INV-ARCH-010` gives for requirements: a list written at both ends eventually disagrees with itself, and only one copy is ever updated.
+A unit is therefore not a record of this layer and has no identifier of its own: there is nothing about it the layer could check that the parts and the facts do not already say.
+
+### FR-ARCH-710 — A unit the model declares and the facts do not hold is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Where the project supplies facts about its units, the architecture checker **shall** report a unit a part names that the facts do not hold, naming the unit and the parts that name it.
+
+**Rationale.** Either the model describes something that is not there any more, or the facts were taken from somewhere that does not have it — and which of the two it is the layer cannot know, which is why it reports rather than decides.
+A note by default (`FR-ARCH-090`): the facts usually come from a repository this one does not own, and failing a build over somebody else's deployment makes one team answer for another's decisions.
+A project whose own pipeline produces the facts knows better and can price it up.
+
+### FR-ARCH-720 — A unit the facts hold and no part declares is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Where the project supplies facts about its units, the architecture checker **shall** report a unit the facts hold that no part names, naming the unit.
+
+**Rationale.** The other direction of the same comparison, kept apart for the reason `FR-ARCH-060` and `FR-ARCH-070` are kept apart: a part describing something that is gone and a thing running that nobody described are different problems with different answers.
+This one is the more interesting of the two in a mature system: a unit nobody wrote down is either somebody else's, or yours and forgotten.
+A note by default, for the reason `FR-ARCH-710` gives.
+
+### FR-ARCH-730 — A link in the facts the model does not declare is reported
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Where the facts link two units, the architecture checker **shall** report it as not declared unless a part shipping in the first declares a dependency on a part shipping in the second, naming both units and the parts that would have to declare it.
+
+**Rationale.** This is the comparison `FR-ARCH-200` makes between the declared model and the code, one level up: there the evidence is an import, here it is a link somebody observed or configured between two units.
+One direction only, as there: a link the facts do not show is not reported, because facts about a running system show what happened or what is permitted and never that something cannot happen.
+A link whose end is a unit no part names is left alone — `FR-ARCH-720` has already said that unit is unknown, and saying it twice would have a project price both away.
+Inside one unit nothing is reported: parts shipping together are not linked by the fact of shipping together.
+A note by default, for the reason `FR-ARCH-710` gives.
+
+### FR-ARCH-740 — Facts past their life are treated as absent
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-630]
+depends_on: [IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Where the facts about units state a life, the architecture checker **shall** use none of them once they are older than it and report that it did so.
+
+**Rationale.** Facts about a system in operation rot without anything in the repository changing, which is the one way this layer can be wrong while every check is green — the shape `FR-ARCH-630` was written against.
+The producer states the life because only the producer knows how often it runs; the checker cannot guess it and does not impose one.
+Facts that state no life cannot go stale and are used as they are; that they say nothing about their own age is told to a reader by `FR-ARCH-760` with the rest of their provenance, because it is a property of the facts rather than something this run did.
+Used or not, never partly: facts taken together are a single reading of the system, and half of a stale reading is not a fresher one.
+
+### FR-ARCH-750 — A malformed file of facts is refused
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+If the facts about units are not a JSON object, lack `taken`, `source` or `units`, state a `taken` that is not a date or a life that is not a whole number of days, or hold a unit name or a link that is not text, the architecture checker **shall** refuse to run and say what is wrong.
+
+**Rationale.** The argument `IF-ARCH-040` makes for the edges file: a shape the checker cannot read is the setup, not a finding about the layer, and a file half read would make the comparison lie in the project's favour.
+
+### FR-ARCH-760 — The document says the units and where the facts came from
+
+```yaml
+status: deferred
+verification: T
+derives_from: [FR-ARCH-420]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Where any part names a unit, the architecture document **shall** state each unit with the parts it holds, and, where facts about units were supplied, when they were taken, from where, and for how long their producer says they stay true or that it says nothing about that.
+
+**Rationale.** The units exist only as names scattered across the records, so the one view in which the system's pieces are visible has to be computed, and the document is where a person who will not read the records is given it.
+The provenance is stated beside them because a reader judging a disagreement needs to know what the model was compared against — a commit of another repository, a cluster, a list somebody typed — and that is exactly what a finding from these facts cannot say on its own.
+Absent where no part names a unit, as every optional section of this document is.
+

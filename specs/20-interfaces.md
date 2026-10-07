@@ -462,3 +462,24 @@ The parts that may reach a part **shall** be written in the layer's configuratio
 The shape follows `IF-ARCH-060` — two ends and a sentence — with the near end a list, which is the whole difference between a prohibition and an allow-list.
 No wildcard on either side: `*` in `to` would make every part reachable only from the named few, which is a statement about the whole cut and belongs to the order, and `*` in `from` would permit everything, which is the absence of a policy rather than one.
 
+### IF-ARCH-100 — The facts about units are a stable format
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-07
+```
+
+Facts about a project's units **shall** be written in `arch/units.json` as a JSON object whose `taken` is the date they were read, `source` the text saying where from, `units` the list of unit names, `links` the pairs of names standing for one unit reaching another, and `life` the number of days the producer says they stay true, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+Names and not identifiers of this layer: the file speaks the project's own vocabulary, which is what lets one project produce it from deployment descriptors in another repository, another from its pipeline, a third from traces and a fourth by hand — the framework reads one format and learns no technology.
+`taken` and `source` are required because a fact whose age and origin are unknown cannot be weighed against a model, and `life` is optional because a project may have no idea how fast its own answer rots — that admission is better recorded than guessed at.
+`links` is optional: a project may know what it runs long before it knows what talks to what.
+
