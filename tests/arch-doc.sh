@@ -9,6 +9,7 @@
 # file verifies: FR-ARCH-460, FR-ARCH-510, FR-ARCH-520, FR-ARCH-530
 # file verifies: INV-SPEC-130, FR-ARCH-550
 # file verifies: FR-ARCH-660, FR-ARCH-670
+# file verifies: FR-ARCH-700, FR-ARCH-760
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -849,5 +850,75 @@ PYSVG
 passes=$((passes + 1))
 
 # srs-end: FR-ARCH-660, FR-ARCH-670
+
+# --- verifies: FR-ARCH-700, FR-ARCH-760 — the units, what each holds, and
+# --- where the facts came from: all four states, since a document reads as
+# --- complete whichever one it is in.
+elements <<'MD'
+# Elements
+
+### E-010 — The shell
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010]
+depends_on: [E-020]
+units: [api]
+```
+
+Owns the directory.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/store.py]
+requirements: [FR-CORE-020]
+depends_on: []
+units: [api, worker]
+```
+
+Owns one file inside it.
+MD
+printf 'x\n' > "$LAB/src/store.py"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rm -f "$LAB/arch/units.json"
+doc
+says "FR-ARCH-700 a unit holds the parts that name it" "- **api** — E-010, E-020"
+says "FR-ARCH-700 and one part may ship as two units" "- **worker** — E-020"
+says "FR-ARCH-760 no facts is said out loud" "No facts about these units were supplied, so nothing here was compared with what runs."
+
+TODAY=$(date +%F)
+printf '{"taken": "%s", "source": "the deploy repository at 4f21a0c", "life": 14, "units": ["api", "worker"]}\n' "$TODAY" > "$LAB/arch/units.json"
+doc
+says "FR-ARCH-760 the provenance of the facts" "from the deploy repository at 4f21a0c; their producer says they stay true for 14 day(s)."
+printf '{"taken": "%s", "source": "a list kept by hand", "units": ["api", "worker"]}\n' "$TODAY" > "$LAB/arch/units.json"
+doc
+says "FR-ARCH-760 facts that say nothing about their age" "their producer says nothing about how long they stay true."
+printf '{"taken": "2000-01-01", "source": "a cluster nobody has looked at since", "life": 1, "units": ["api"]}\n' > "$LAB/arch/units.json"
+doc
+says "FR-ARCH-760 a stale reading is said to be one" "so none of them was used"
+rm -f "$LAB/arch/units.json"
+
+# --- No part names a unit: no section at all, not an empty one.
+elements <<'MD'
+# Elements
+
+### E-010 — The shell
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Owns the directory.
+MD
+doc
+silent "FR-ARCH-760 no units, no section" "## The units"
+
+# srs-end: FR-ARCH-700, FR-ARCH-760
 
 echo "arch-doc: $passes fixtures pass"

@@ -76,6 +76,7 @@ A key that is neither required nor optional here is not an error — that tolera
 | `depends_on` | optional | other elements this part leans on — the declared model |
 | `interface` | optional | how the part is reached from outside — a name stated here is what another part may enter by, and one it enters by and this does not state is reported |
 | `protects` | optional | the requirements the part was cut to keep, a subset of what it carries |
+| `units` | optional | the units this part ships in, by the names the project uses for them |
 | `superseded_by` | by status | the successor, where the status is `superseded`; read by a person, not checked |
 
 `carries` is not limited to source files.
@@ -155,6 +156,40 @@ A project that generates it runs the generator before the checker, in the same p
 Without the file, a project written in a language other than Python has a declared model and nothing that ever disagrees with it — `Warnings: 0` is then the absence of a verdict, not a verdict.
 The checker says so on such a run: where no carried file is in the language it reads and there are no supplied edges, it notes that the model was compared with nothing.
 That note is not one of the rules and cannot be priced away — it does not report anything about the cut, it reports what the run did not do.
+
+## Units, and the facts about them
+
+A part is what the code is divided into; a unit is what is deployed or run as one piece, and the two do not line up — a unit may hold many parts, and one part may ship as two.
+A part says which units it ships in, by the names the project uses for them:
+
+```yaml
+units: [orders-api, orders-worker]
+```
+
+The names are the project's own, because what a unit is called is a fact about its world and not something this layer can know.
+What a unit holds is not written anywhere: it is the parts that name it, computed, for the reason the requirements a part carries are written on one side only.
+A unit is therefore not a record of this layer and has no identifier of its own.
+
+What the project knows about those units goes in `arch/units.json`, which the project produces however it can — from deployment descriptors that may live in another repository, from its own pipeline, from traces of the running system, or by hand:
+
+```json
+{"taken": "2026-10-07",
+ "source": "deploy repo at 4f21a0c",
+ "life": 14,
+ "units": ["orders-api", "orders-worker", "billing"],
+ "links": [{"from": "orders-api", "to": "billing"}]}
+```
+
+`taken` and `source` are required: a fact whose age and origin are unknown cannot be weighed against a model, and a reader judging a disagreement has to know what the model was compared against.
+`life` is how many days the producer says the facts stay true, and only the producer can know it; past that the checker uses none of them and says so, because facts taken together are one reading of the system and half a stale reading is not a fresher one.
+A file stating no life cannot go stale and is used as it is; that it says nothing about its own age is told to a reader by the document, with the rest of its provenance.
+`links` is optional — a project may know what it runs long before it knows what talks to what.
+
+Three rules compare the two: a unit a part names that the facts do not hold, a unit the facts hold that no part names, and a link the facts hold that no part's `depends_on` accounts for.
+All three cost a note by default, because the far end is usually a repository this one does not own and failing a build over somebody else's deployment makes one team answer for another's decisions; a project whose own pipeline produces the facts can price them up.
+The links are compared one way only, as the code is: facts about a system show what happened or what is permitted, never that something cannot happen.
+
+**The framework reads this one format and no technology.** It has no reader for any descriptor, manifest, pipeline or trace, and never looks at a running system: what turns a project's world into these facts is the project's own, and it is where the knowledge of that world belongs.
 
 ## Derived requirements
 
@@ -328,6 +363,9 @@ A project that wants its cut closed before any code is written prices it up.
 | `import-forbidden` | A file importing a module the project forbade the part that carries it, where the language can be read |
 | `carrier-contested` | A path more than one element in force carries, which therefore belongs to none of them |
 | `dependency-unpermitted` | A dependency on a part from one the allow-list under `only` leaves out, declared by an element or had by the code |
+| `unit-absent` | A unit a part names that the facts the project supplied do not hold |
+| `unit-unclaimed` | A unit the facts hold that no part names |
+| `link-undeclared` | A link the facts hold between two units whose parts declare no dependency |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

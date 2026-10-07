@@ -17,6 +17,8 @@
 # verifies: FR-ARCH-630, FR-ARCH-640
 # verifies: FR-ARCH-650
 # verifies: FR-ARCH-680, FR-ARCH-690, IF-ARCH-090
+# verifies: FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
+# verifies: FR-ARCH-740, FR-ARCH-750, IF-ARCH-100
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -3243,6 +3245,99 @@ printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 rm -f "$LAB/src/c.py"
 
 # srs-end: IF-ARCH-090, FR-ARCH-680, FR-ARCH-690
+
+# --- verifies: IF-ARCH-100, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720
+# --- verifies: FR-ARCH-730, FR-ARCH-740, FR-ARCH-750
+# --- The units the parts ship in against the facts the project supplies about
+# --- them: both directions, the links, the silent cases, the stale reading and
+# --- the shapes that are refused.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+units: [api]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+units: [store]
+```
+
+Keeps it.
+MD
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+TODAY=$(date +%F)
+
+# --- Facts that agree with the model say nothing at all.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "api", "to": "store"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+silent "FR-ARCH-710 facts that agree are silent" 0 "the unit"
+silent "FR-ARCH-730 a link the model declares is silent" 0 "the facts link"
+
+# --- A unit the model names and the facts do not hold, and the other way round.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api"]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-710 a unit the facts do not hold" 0 \
+    "the unit store is named by E-020 and the facts do not hold it"
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store", "stranger"]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-720 a unit no part names" 0 "the facts hold the unit stranger and no part names it"
+
+# --- A link the parts do not account for, and the two silences around it.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "store", "to": "api"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-730 a link no part declares" 0 \
+    "the facts link the unit store to api, and none of E-020 declares a dependency on any of E-010"
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "api", "to": "nowhere"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+silent "FR-ARCH-730 a link into a unit nobody names is left alone" 0 "the facts link"
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "api", "to": "api"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+silent "FR-ARCH-730 a link inside one unit is not a dependency" 0 "the facts link"
+
+# --- Priced: all three are notes by default, because the far end is usually
+# --- another team's repository.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api"]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-710 a note by default" 0 "note: the unit store is named by E-020"
+silent "FR-ARCH-710 and a note does not fail a strict run" 0 "treated as errors" --strict
+printf '{"rules": {"unit-absent": "warn"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-710 priced up, it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+
+# --- A reading older than its own stated life is used for nothing, and the run
+# --- says so rather than looking like one that found nothing.
+printf '{"taken": "2000-01-01", "source": "the deploy repository", "life": 1, "units": ["api"]}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-740 a stale reading is used for nothing" 0 "so none of them was used"
+silent "FR-ARCH-740 and its facts are not compared" 0 "the unit store is named by"
+printf '{"taken": "2000-01-01", "source": "the deploy repository", "units": ["api"]}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-740 facts with no life cannot go stale" 0 "the unit store is named by E-020"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '[]\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-750 the top level must be an object" 2 "the top level must be a JSON object"
+printf '{"source": "somewhere", "units": []}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-750 facts with no date" 2 "\`taken\` must be text"
+printf '{"taken": "yesterday", "source": "somewhere", "units": []}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-750 a date that is not one" 2 "expected a date as YYYY-MM-DD"
+printf '{"taken": "%s", "source": "somewhere"}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-750 facts with no units" 2 "\`units\` must be a JSON list of names"
+printf '{"taken": "%s", "source": "somewhere", "units": ["api"], "links": [{"from": "api"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-750 a link missing a side" 2 "link 0: \`to\` must be text"
+printf '{"taken": "%s", "source": "somewhere", "units": ["api"], "life": "a fortnight"}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-750 a life that is not a number of days" 2 "expected a whole number of days"
+
+rm -f "$LAB/arch/units.json"
+silent "FR-ARCH-700 no facts, no findings about units" 0 "the unit"
+
+# srs-end: IF-ARCH-100, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730, FR-ARCH-740, FR-ARCH-750
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

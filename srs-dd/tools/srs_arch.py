@@ -25,6 +25,7 @@ Nothing here writes outside arch/: declining the layer, or deleting it, has to c
 # file implements: FR-ARCH-010, CON-ARCH-010
 # file implements: NFR-SPEC-010, CON-SPEC-030
 import ast
+import datetime
 import json
 import os
 import re
@@ -53,6 +54,10 @@ GROUNDS = os.path.join(ROOT, "grounds")
 CONFIG = os.path.join(ARCH, "arch-config.json")
 EDGES = os.path.join(ARCH, "edges.json")
 EDGES_REL = os.path.join("arch", "edges.json")
+# implements: IF-ARCH-100
+UNITS = os.path.join(ARCH, "units.json")
+UNITS_REL = os.path.join("arch", "units.json")
+# srs-end: IF-ARCH-100
 MAP = os.path.join(ARCH, "90-map.md")
 MAP_REL = os.path.join("arch", "90-map.md")
 VIEWER = os.path.join(ROOT, "srs-dd", "tools", "srs_view.py")
@@ -99,7 +104,8 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
          "dependency-forbidden", "interface-bypassed", "protects-uncarried",
          "element-ungrounded", "dependency-upward", "import-forbidden",
-         "carrier-contested", "dependency-unpermitted")
+         "carrier-contested", "dependency-unpermitted", "unit-absent",
+         "unit-unclaimed", "link-undeclared")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -107,7 +113,13 @@ SEVERITIES = ("warn", "report", "off")
 
 # implements: FR-ARCH-320
 # What a rule costs where the project has not said: a backlog is a note, not a warning.
-DEFAULT_SEVERITY = {"requirement-unassigned": "report"}
+# implements: FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
+# The facts about units usually come from a repository this one does not own, so a
+# disagreement with them is a conversation between two teams and not a build to fail;
+# a project whose own pipeline produces them knows better and can price them up.
+DEFAULT_SEVERITY = {"requirement-unassigned": "report", "unit-absent": "report",
+                    "unit-unclaimed": "report", "link-undeclared": "report"}
+# srs-end: FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
 # srs-end: FR-ARCH-320
 
 # implements: FR-ARCH-240
@@ -246,6 +258,82 @@ def load_config():
     return cfg, None
     # srs-end: FR-ARCH-240
 # srs-end: FR-ARCH-090
+
+
+# implements: IF-ARCH-100, FR-ARCH-750, FR-ARCH-740
+def load_units_file(today=None):
+    """The facts the project supplied about its units, as (facts, problem, note).
+
+    `facts` is None where there are none to use, which is both an absent file and one whose own
+    stated life has run out: facts taken together are one reading of the system, and half a stale
+    reading is not a fresher one. `note` is what the run has to say about that, since a run that
+    used nothing must not look like one that found nothing, the point the standard makes about
+    reading the code. A shape this cannot read is a setup fault and comes back as `problem`.
+    """
+    if not os.path.exists(UNITS):
+        return None, None, None
+    try:
+        with open(UNITS, encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except (OSError, ValueError) as exc:
+        return None, "%s: %s" % (UNITS_REL, exc), None
+    if not isinstance(raw, dict):
+        return None, "%s: the top level must be a JSON object" % UNITS_REL, None
+    for key in ("taken", "source"):
+        if not isinstance(raw.get(key), str) or not raw[key].strip():
+            return None, "%s: `%s` must be text" % (UNITS_REL, key), None
+    try:
+        taken = datetime.date(*[int(part) for part in raw["taken"].split("-")])
+    except (TypeError, ValueError):
+        return None, ("%s: `taken` is %r, expected a date as YYYY-MM-DD"
+                      % (UNITS_REL, raw["taken"])), None
+    names = raw.get("units")
+    if not isinstance(names, list) or any(not isinstance(n, str) or not n.strip() for n in names):
+        return None, "%s: `units` must be a JSON list of names" % UNITS_REL, None
+    links = raw.get("links", [])
+    if not isinstance(links, list):
+        return None, "%s: `links` must be a JSON list" % UNITS_REL, None
+    pairs = []
+    for index, link in enumerate(links):
+        where = "%s: link %d" % (UNITS_REL, index)
+        if not isinstance(link, dict):
+            return None, "%s must be an object with `from` and `to`" % where, None
+        for key in ("from", "to"):
+            if not isinstance(link.get(key), str) or not link[key].strip():
+                return None, "%s: `%s` must be text" % (where, key), None
+        pairs.append((link["from"], link["to"]))
+    life = raw.get("life")
+    if life is not None and (isinstance(life, bool) or not isinstance(life, int) or life < 0):
+        return None, ("%s: `life` is %r, expected a whole number of days"
+                      % (UNITS_REL, life)), None
+    facts = {"taken": taken, "source": raw["source"], "life": life,
+             "units": sorted(set(names)), "links": pairs}
+    if life is not None:
+        age = ((today or datetime.date.today()) - taken).days
+        if age > life:
+            return None, None, ("the facts in %s, taken from %s on %s, are %d days old and their "
+                                "producer says they stay true for %d, so none of them was used: "
+                                "nothing here was compared with the units"
+                                % (UNITS_REL, raw["source"], raw["taken"], age, life))
+    return facts, None, None
+# srs-end: IF-ARCH-100, FR-ARCH-750, FR-ARCH-740
+
+
+# implements: FR-ARCH-700
+def units_of(records):
+    """Which parts ship in each unit, computed from the names the parts claim.
+
+    Written on the parts and nowhere else, so the two sides cannot disagree: a unit is a name, not
+    a record, and what it holds is this.
+    """
+    held = {}
+    for record in records:
+        if not RE_ID.match(record.id) or record.fields.get("status") in CANCELLED:
+            continue
+        for name in as_list(record.fields.get("units")):
+            held.setdefault(name, []).append(record.id)
+    return {name: sorted(ids, key=srs_parse.id_key) for name, ids in held.items()}
+# srs-end: FR-ARCH-700
 
 
 # implements: IF-ARCH-040
@@ -1119,6 +1207,42 @@ def check_only(records, edges, errors, warnings, reports, cfg):
 # srs-end: FR-ARCH-680, FR-ARCH-690
 
 
+# implements: FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
+def check_units(records, facts, warnings, reports, cfg):
+    """The units the parts name against the units the project says it has, both ways, and the
+    links the facts hold against the dependencies the parts declare.
+
+    One direction for the links, as for the code: facts about a system show what happened or what
+    is permitted and never that something cannot happen. A link whose end no part names is left
+    alone — that unit has already been reported as unknown, and saying it twice would have a
+    project price both away.
+    """
+    if facts is None:
+        return
+    held = units_of(records)
+    there = set(facts["units"])
+    for name in sorted(held):
+        if name not in there:
+            rule_finding(warnings, reports, cfg, "unit-absent",
+                         "the unit %s is named by %s and the facts do not hold it"
+                         % (name, " and ".join(held[name])))
+    for name in sorted(there - set(held)):
+        rule_finding(warnings, reports, cfg, "unit-unclaimed",
+                     "the facts hold the unit %s and no part names it" % name)
+    declared = declared_dependencies(records)
+    for source, target in facts["links"]:
+        if source == target or source not in held or target not in held:
+            continue
+        if any(other in declared.get(element, ()) for element in held[source]
+               for other in held[target]):
+            continue
+        rule_finding(warnings, reports, cfg, "link-undeclared",
+                     "the facts link the unit %s to %s, and none of %s declares a dependency on "
+                     "any of %s" % (source, target, " and ".join(held[source]),
+                                    " and ".join(held[target])))
+# srs-end: FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
+
+
 # implements: FR-ARCH-630
 def check_code_read(records, edges, reports):
     """Whether this run compared the declared model with anything at all.
@@ -1680,6 +1804,11 @@ def main(argv=None):
     edges, problem = load_edges()
     if problem:
         return fail_setup(problem)
+    # implements: FR-ARCH-740, FR-ARCH-750
+    facts, problem, stale = load_units_file()
+    if problem:
+        return fail_setup(problem)
+    # srs-end: FR-ARCH-740, FR-ARCH-750
 
     if "--drivers" in args:
         return print_drivers(model)
@@ -1729,6 +1858,13 @@ def main(argv=None):
     check_carriers_exist(elements, warnings, reports, cfg)
     check_conformance(elements, edges, warnings, reports, cfg)
     check_code_read(elements, edges, reports)
+    check_units(elements, facts, warnings, reports, cfg)
+    # implements: FR-ARCH-740
+    # Said with the findings rather than swallowed: a run that used no facts must not
+    # read like one that found nothing wrong with them.
+    if stale:
+        reports.append(stale)
+    # srs-end: FR-ARCH-740
     check_cycles(elements, warnings, reports, cfg)
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_layers(elements, edges, errors, warnings, reports, cfg)

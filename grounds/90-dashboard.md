@@ -104,6 +104,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-CI-010 | 4 | 4 | 8 |
 | FR-CI-180 | 2 | 6 | 8 |
 | FR-INIT-320 | 6 | 2 | 8 |
+| IF-ARCH-100 | 6 | 2 | 8 |
 | INV-GND-020 | 6 | 2 | 8 |
 | INV-SKILL-010 | 3 | 5 | 8 |
 | INV-SPEC-080 | 1 | 7 | 8 |
@@ -119,6 +120,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-110 | 5 | 1 | 6 |
 | FR-ARCH-170 | 2 | 4 | 6 |
 | FR-ARCH-360 | 4 | 2 | 6 |
+| FR-ARCH-700 | 4 | 2 | 6 |
 | FR-CHK-050 | 5 | 1 | 6 |
 | FR-CHK-090 | 5 | 1 | 6 |
 | FR-CHK-160 | 3 | 3 | 6 |
@@ -130,7 +132,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-SKILL-100 | 4 | 2 | 6 |
 | FR-SKILL-120 | 3 | 3 | 6 |
 | FR-VIEW-020 | 5 | 1 | 6 |
-| IF-ARCH-100 | 6 | 0 | 6 |
 | INV-SPEC-020 | 4 | 2 | 6 |
 | INV-SPEC-030 | 3 | 3 | 6 |
 | INV-SPEC-040 | 3 | 3 | 6 |
@@ -163,7 +164,6 @@ requirements link to them, plus how many files their `code` field names.
 | NFR-SPEC-020 | 4 | 1 | 5 |
 | FR-ARCH-120 | 3 | 1 | 4 |
 | FR-ARCH-260 | 2 | 2 | 4 |
-| FR-ARCH-700 | 4 | 0 | 4 |
 | FR-CHK-070 | 3 | 1 | 4 |
 | FR-CHK-120 | 3 | 1 | 4 |
 | FR-CHK-200 | 2 | 2 | 4 |
@@ -272,6 +272,11 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-640 | 0 | 2 | 2 |
 | FR-ARCH-680 | 0 | 2 | 2 |
 | FR-ARCH-690 | 0 | 2 | 2 |
+| FR-ARCH-710 | 0 | 2 | 2 |
+| FR-ARCH-720 | 0 | 2 | 2 |
+| FR-ARCH-730 | 0 | 2 | 2 |
+| FR-ARCH-740 | 0 | 2 | 2 |
+| FR-ARCH-750 | 0 | 2 | 2 |
 | FR-CHK-010 | 1 | 1 | 2 |
 | FR-CHK-040 | 1 | 1 | 2 |
 | FR-CHK-060 | 1 | 1 | 2 |
@@ -360,6 +365,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-650 | 0 | 1 | 1 |
 | FR-ARCH-660 | 0 | 1 | 1 |
 | FR-ARCH-670 | 0 | 1 | 1 |
+| FR-ARCH-760 | 0 | 1 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
 | FR-CHK-100 | 0 | 1 | 1 |
@@ -442,10 +448,4 @@ requirements link to them, plus how many files their `code` field names.
 | INV-SPEC-110 | 0 | 1 | 1 |
 | NFR-CHK-010 | 0 | 1 | 1 |
 | NFR-VIEW-010 | 0 | 1 | 1 |
-| FR-ARCH-710 | 0 | 0 | 0 |
-| FR-ARCH-720 | 0 | 0 | 0 |
-| FR-ARCH-730 | 0 | 0 | 0 |
-| FR-ARCH-740 | 0 | 0 | 0 |
-| FR-ARCH-750 | 0 | 0 | 0 |
-| FR-ARCH-760 | 0 | 0 | 0 |
 | INV-SPEC-120 | 0 | 0 | 0 |

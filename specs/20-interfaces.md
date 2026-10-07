@@ -465,14 +465,14 @@ No wildcard on either side: `*` in `to` would make every part reachable only fro
 ### IF-ARCH-100 — The facts about units are a stable format
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 

@@ -1461,14 +1461,14 @@ If an entry under `only` names an element no record defines, omits `to`, `from` 
 ### FR-ARCH-700 — A part says which units it ships in
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [INV-ARCH-010]
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh, tests/arch-doc.sh]
 created: 2026-10-07
 ```
 
@@ -1483,14 +1483,14 @@ A unit is therefore not a record of this layer and has no identifier of its own:
 ### FR-ARCH-710 — A unit the model declares and the facts do not hold is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-700, IF-ARCH-100]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 
@@ -1503,14 +1503,14 @@ A project whose own pipeline produces the facts knows better and can price it up
 ### FR-ARCH-720 — A unit the facts hold and no part declares is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-700, IF-ARCH-100]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 
@@ -1523,14 +1523,14 @@ A note by default, for the reason `FR-ARCH-710` gives.
 ### FR-ARCH-730 — A link in the facts the model does not declare is reported
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-700, IF-ARCH-100]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 
@@ -1545,14 +1545,14 @@ A note by default, for the reason `FR-ARCH-710` gives.
 ### FR-ARCH-740 — Facts past their life are treated as absent
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-630]
 depends_on: [IF-ARCH-100]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 
@@ -1566,14 +1566,14 @@ Used or not, never partly: facts taken together are a single reading of the syst
 ### FR-ARCH-750 — A malformed file of facts is refused
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: []
 depends_on: [IF-ARCH-100]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
 created: 2026-10-07
 ```
 
@@ -1584,14 +1584,14 @@ If the facts about units are not a JSON object, lack `taken`, `source` or `units
 ### FR-ARCH-760 — The document says the units and where the facts came from
 
 ```yaml
-status: deferred
+status: implemented
 verification: T
 derives_from: [FR-ARCH-420]
 depends_on: [FR-ARCH-700, IF-ARCH-100]
 refines: []
 conflicts_with: []
-code: []
-tests: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
 created: 2026-10-07
 ```
 

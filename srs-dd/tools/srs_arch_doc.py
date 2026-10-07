@@ -107,6 +107,41 @@ def parts_section(elements, moves, model, cfg):
 # srs-end: FR-ARCH-420
 
 
+# implements: FR-ARCH-760
+def units_section(elements):
+    """The units the parts ship in, each with what it holds, and where the facts came from.
+
+    The units exist only as names scattered across the records, so the one view in which the
+    pieces of the running system are visible has to be computed. The provenance stands beside
+    them because a reader judging a disagreement needs to know what the model was compared
+    against, and a finding cannot say that on its own.
+    """
+    held = srs_arch.units_of(in_force(elements))
+    if not held:
+        return []
+    out = ["## The units", "",
+           "What this system is deployed or run as, by the names the project uses; what each "
+           "unit holds is computed from the parts that name it.", ""]
+    for name in sorted(held):
+        out.append("- **%s** — %s" % (name, ", ".join(held[name])))
+    out.append("")
+    facts, problem, stale = srs_arch.load_units_file()
+    if problem:
+        out += ["The facts about these units could not be read: %s" % problem, ""]
+    elif stale:
+        out += ["%s." % stale[0].upper() + stale[1:], ""]
+    elif facts:
+        life = ("their producer says they stay true for %d day(s)" % facts["life"]
+                if facts["life"] is not None
+                else "their producer says nothing about how long they stay true")
+        out += ["Facts taken %s from %s; %s." % (facts["taken"], facts["source"], life), ""]
+    else:
+        out += ["No facts about these units were supplied, so nothing here was compared with "
+                "what runs.", ""]
+    return out
+# srs-end: FR-ARCH-760
+
+
 # implements: FR-ARCH-660
 def order_section(elements, cfg):
     """The order of the parts, where the project declared one: the groups in their own sequence,
@@ -372,6 +407,7 @@ def render(elements, moves, model, edges, cfg, rests=None):
            "edit the records and print it again." % __version__, ""]
     out += parts_section(elements, live_moves, model, cfg)
     out += order_section(elements, cfg)
+    out += units_section(elements)
     out += drawing_section(elements)
     out += divergence_section(elements, edges, cfg)
     out += grounds_section(elements, model, cfg, rests)

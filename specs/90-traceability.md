@@ -8,9 +8,9 @@ Total requirements: 401.
 | Status | Requirements |
 |---|---|
 | `draft` | 0 |
-| `deferred` | 9 |
+| `deferred` | 1 |
 | `partial` | 0 |
-| `implemented` | 388 |
+| `implemented` | 396 |
 | `superseded` | 4 |
 | `withdrawn` | 0 |
 
@@ -94,13 +94,13 @@ Total requirements: 401.
 | **FR-ARCH-670** The drawing puts each part at its place in the order | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
 | **FR-ARCH-680** A dependency from a part the allow-list leaves out is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **FR-ARCH-690** A malformed allow-list is refused | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
-| **FR-ARCH-700** A part says which units it ships in | `deferred` | T | — | — |
-| **FR-ARCH-710** A unit the model declares and the facts do not hold is reported | `deferred` | T | — | — |
-| **FR-ARCH-720** A unit the facts hold and no part declares is reported | `deferred` | T | — | — |
-| **FR-ARCH-730** A link in the facts the model does not declare is reported | `deferred` | T | — | — |
-| **FR-ARCH-740** Facts past their life are treated as absent | `deferred` | T | — | — |
-| **FR-ARCH-750** A malformed file of facts is refused | `deferred` | T | — | — |
-| **FR-ARCH-760** The document says the units and where the facts came from | `deferred` | T | — | — |
+| **FR-ARCH-700** A part says which units it ships in | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh`<br>`tests/arch-doc.sh` |
+| **FR-ARCH-710** A unit the model declares and the facts do not hold is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-720** A unit the facts hold and no part declares is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-730** A link in the facts the model does not declare is reported | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-740** Facts past their life are treated as absent | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-750** A malformed file of facts is refused | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
+| **FR-ARCH-760** The document says the units and where the facts came from | `implemented` | T | `srs-dd/tools/srs_arch_doc.py` | `tests/arch-doc.sh` |
 | **FR-CHK-010** Well-formed and unique identifiers | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-020** Exactly one bolded modal verb | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
 | **FR-CHK-030** Links resolve | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/checker-rules.sh` |
@@ -380,7 +380,7 @@ Total requirements: 401.
 | **IF-ARCH-070** The order of parts is a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **IF-ARCH-080** The list of imports forbidden to a part is a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **IF-ARCH-090** The allow-list of a part is a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
-| **IF-ARCH-100** The facts about units are a stable format | `deferred` | T | — | — |
+| **IF-ARCH-100** The facts about units are a stable format | `implemented` | T | `srs-dd/tools/srs_arch.py`<br>`srs-dd/arch.md` | `tests/arch-rules.sh` |
 | **IF-CI-010** Exit codes of the installer | `implemented` | T | `tools/srs_init.py` | `tests/adopt-smoke.sh`<br>`tests/installer-smoke.sh` |
 | **IF-CI-020** Exit codes of the checker | `implemented` | T | `srs-dd/tools/srs_check.py` | `tests/spec-check.sh`<br>`tests/checker-rules.sh` |
 | **IF-GND-010** The register record is a stable format | `implemented` | I | `srs-dd/grounds.md`<br>`srs-dd/tools/srs_grounds.py` | — |
