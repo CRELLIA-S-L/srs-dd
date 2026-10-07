@@ -14,6 +14,7 @@
 # verifies: FR-ARCH-590, FR-ARCH-600, IF-ARCH-070
 # verifies: FR-ARCH-610, FR-ARCH-620, IF-ARCH-080
 # verifies: INV-ARCH-020
+# verifies: FR-ARCH-630, FR-ARCH-640
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -2924,7 +2925,7 @@ printf 'x\n' > "$LAB/src/a.py"
 
 # srs-end: IF-ARCH-080, FR-ARCH-610, FR-ARCH-620
 
-# --- verifies: INV-ARCH-020 — a part inside another. The file belongs to the
+# --- verifies: INV-ARCH-020, FR-ARCH-640 — a part inside another. The file belongs to the
 # --- most specific claim, the order the records are written in decides
 # --- nothing, and a path two parts claim equally belongs to neither. Before
 # --- this the map from file to part was filled per record, so the last record
@@ -3026,11 +3027,64 @@ Claims the same file.
 MD
 printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
 silent "INV-ARCH-020 a path two parts claim belongs to neither" 0 "imports json"
+rule "FR-ARCH-640 and the contest itself is reported" 0 \
+    "src/a.py is carried by E-010 and E-020, so it belongs to none of them"
+printf '{"rules": {"carrier-contested": "report"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-640 lowered to a note" 0 "note: src/a.py is carried by E-010 and E-020"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-640 at its default cost it fails a strict run" 1 "treated as errors" --strict
 
 printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 printf 'x\n' > "$LAB/src/a.py"
 
-# srs-end: INV-ARCH-020
+# srs-end: INV-ARCH-020, FR-ARCH-640
+
+# --- verifies: FR-ARCH-630 — a run that read nothing from the code says so,
+# --- because for every language but the one this checker reads that is the
+# --- default state, and a run with no findings then proves nothing.
+printf 'let x = 1\n' > "$LAB/src/a.swift"
+elements <<'MD'
+# Elements
+
+### E-010 — The only part
+
+```yaml
+status: built
+carries: [src/a.swift]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries a file in a language this checker does not read.
+MD
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-630 nothing was read from the code" 0 \
+    "the declared model was compared with nothing"
+
+# --- One supplied edge is a comparison, and so is one carried file in the
+# --- language it reads: both halves, since either alone would pass a rule
+# --- that only looked at the other.
+printf '[{"from": "src/a.swift", "to": "src/b.swift", "via": "Store:3"}]\n' > "$LAB/arch/edges.json"
+silent "FR-ARCH-630 one supplied edge is a comparison" 0 "compared with nothing"
+rm -f "$LAB/arch/edges.json"
+elements <<'MD'
+# Elements
+
+### E-010 — The only part
+
+```yaml
+status: built
+carries: [src/a.py, src/a.swift]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries a file in the language this checker reads.
+MD
+silent "FR-ARCH-630 a carried file in the language it reads" 0 "compared with nothing"
+rm -f "$LAB/src/a.swift"
+
+# srs-end: FR-ARCH-630
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

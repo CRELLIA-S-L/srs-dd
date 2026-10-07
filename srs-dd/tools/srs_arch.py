@@ -98,7 +98,8 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "dependency-undeclared", "element-cycle", "carrier-missing",
          "requirement-unassigned", "element-built", "move-complete", "move-orphan",
          "dependency-forbidden", "interface-bypassed", "protects-uncarried",
-         "element-ungrounded", "dependency-upward", "import-forbidden")
+         "element-ungrounded", "dependency-upward", "import-forbidden",
+         "carrier-contested")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -1024,6 +1025,44 @@ def check_forbidden(records, edges, errors, warnings, reports, cfg):
 # srs-end: FR-ARCH-470, FR-ARCH-480
 
 
+# implements: FR-ARCH-630
+def check_code_read(records, edges, reports):
+    """Whether this run compared the declared model with anything at all.
+
+    The checker reads one language itself and takes every other one from the edges a project
+    supplies; with neither there is nothing that can ever disagree with the model, and a run with
+    no findings then says only that nothing was read. Not a rule the project prices: it is not a
+    finding about the cut but a statement about what the run proved, and a project able to switch
+    it off would be switching off the line that says its conformance check never ran.
+    """
+    if edges:
+        return
+    by_path, _names = python_modules(records)
+    if by_path:
+        return
+    reports.append("no file an element carries is in a language this checker reads and "
+                   "arch/edges.json is absent, so the declared model was compared with nothing: "
+                   "no dependency was read from the code, which is not the same as finding none")
+# srs-end: FR-ARCH-630
+
+
+# implements: FR-ARCH-640
+def check_contested(records, warnings, reports, cfg):
+    """A path that more than one element in force claims.
+
+    The layer's standard gives such a path to none of them, which is the right answer and a silent
+    one: every rule that needs an owner then says nothing about that file, and the silence reads
+    as conformance. This says why it is silent.
+    """
+    owners = live_carriers(records)
+    for path in sorted(owners):
+        if len(owners[path]) > 1:
+            rule_finding(warnings, reports, cfg, "carrier-contested",
+                         "%s is carried by %s, so it belongs to none of them"
+                         % (path, " and ".join(sorted(owners[path], key=srs_parse.id_key))))
+# srs-end: FR-ARCH-640
+
+
 # implements: FR-ARCH-610, FR-ARCH-620
 def check_forbidden_imports(records, errors, warnings, reports, cfg):
     """A module a part may not import, where the language of its files can be read.
@@ -1585,9 +1624,11 @@ def main(argv=None):
     check_records(elements, model, errors, warnings, reports, cfg)
     check_dependencies_resolve(elements, errors)
     check_ownership(elements, model, warnings, reports, cfg)
+    check_contested(elements, warnings, reports, cfg)
     check_designed_built(elements, model, warnings, reports, cfg)
     check_carriers_exist(elements, warnings, reports, cfg)
     check_conformance(elements, edges, warnings, reports, cfg)
+    check_code_read(elements, edges, reports)
     check_cycles(elements, warnings, reports, cfg)
     check_forbidden(elements, edges, errors, warnings, reports, cfg)
     check_layers(elements, edges, errors, warnings, reports, cfg)

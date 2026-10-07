@@ -1313,3 +1313,47 @@ If an entry under `forbidden_imports` names an element no record defines, or omi
 **The keys were renamed on 2026-10-07, before it was built**, with the narrowing `FR-ARCH-610` records.
 
 **Rationale.** The same argument as `FR-ARCH-480` and `FR-ARCH-600`: a prohibition pointing at no part is not a weaker prohibition, it is a sentence that will be read as one and enforce nothing.
+
+### FR-ARCH-630 — A run that compared the model with nothing says so
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-200]
+depends_on: [FR-ARCH-260]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where no file an element carries is in a language the architecture checker reads and the project supplied no edges, the checker **shall** report that the declared model was compared with nothing.
+
+**Rationale.** The checker reads one language by itself and takes every other one from `arch/edges.json`; a project that has neither gets a declared model and nothing that ever disagrees with it, and the layer's standard says in those words that `Warnings: 0` is then the absence of a verdict rather than a verdict.
+Nothing said it out loud, so the absence of a verdict arrived looking exactly like one — and for every project not written in the one language the checker reads, which is most of them, that is the default state until somebody writes a generator.
+The grounds register already does this for the rules that read its history: it names them and says the run "is not the same as passing".
+Not a rule the project prices, unlike every finding about the layer: this is not a finding about the cut at all but a statement about what the run proved, and a project that could switch it off would be switching off the one line that says its conformance check never ran.
+It says nothing where the checker read something — a carried file in its own language, or one edge the project supplied — because then the comparison happened and what it found is the verdict.
+
+### FR-ARCH-640 — A path two parts claim is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090, INV-ARCH-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where two or more elements in force carry the same path, the architecture checker **shall** report it as a warning named `carrier-contested`, naming the path and the elements that claim it.
+
+**Rationale.** `INV-ARCH-020` resolves a contested path to no element, which is the right answer and a silent one: every rule that needs an owner — the imports read from the code, the edges the project supplied, the prohibitions and the order — then says nothing about that file, and the project reads the silence as conformance.
+It is the shape this project distrusts most, a check that is green because it never ran, and the invariant made it reachable by ordinary mistake rather than by exotic configuration: once a part may sit inside another, two records claiming one path is a typo away.
+A warning the project prices (`FR-ARCH-090`), because a project mid-redraw may knowingly have two claims on one path for a while and the hook should not stop it; under `--strict` it fails, as every warning here does.
+Both ends are named because the finding is useless without them: the point is which two records to look at, and the path alone does not say.
+

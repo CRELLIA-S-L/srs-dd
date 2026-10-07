@@ -143,6 +143,8 @@ How the file is produced is the project's business — an extractor in the proje
 The checker cannot regenerate what it did not compute, so nothing holds the file against the code: a stale list is silent the way an absent one is.
 A project that generates it runs the generator before the checker, in the same pipeline; a project that writes it by hand treats it as any other hand-written record.
 Without the file, a project written in a language other than Python has a declared model and nothing that ever disagrees with it — `Warnings: 0` is then the absence of a verdict, not a verdict.
+The checker says so on such a run: where no carried file is in the language it reads and there are no supplied edges, it notes that the model was compared with nothing.
+That note is not one of the rules and cannot be priced away — it does not report anything about the cut, it reports what the run did not do.
 
 ## Derived requirements
 
@@ -314,6 +316,7 @@ A project that wants its cut closed before any code is written prices it up.
 | `element-ungrounded` | An element carrying a requirement that rests on a `refuted` or `expired` hypothesis, where the project keeps a grounds register |
 | `dependency-upward` | A dependency that runs against the order of groups declared under `layers`, declared by an element or had by the code |
 | `import-forbidden` | A file importing a module the project forbade the part that carries it, where the language can be read |
+| `carrier-contested` | A path more than one element in force carries, which therefore belongs to none of them |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do
