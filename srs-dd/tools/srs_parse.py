@@ -19,7 +19,7 @@ import re
 
 # The framework's version, not this module's, kept in the one file every checker
 # must have beside it; each re-exports it (ADR-0021).
-__version__ = "0.21.0"
+__version__ = "0.23.0"
 
 # implements: INV-SPEC-080, INV-SPEC-090
 # What every identifier grammar shares: a tail of three digits or more, no
