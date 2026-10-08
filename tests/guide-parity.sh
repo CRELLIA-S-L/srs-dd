@@ -12,6 +12,7 @@ unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 # file verifies: INV-SKILL-010, FR-SKILL-380, FR-SKILL-390, FR-SKILL-430, FR-SKILL-440
+# file verifies: FR-SKILL-540, FR-SKILL-550
 python3 - <<'PY'
 import glob, os, re, sys
 
@@ -157,6 +158,24 @@ with open("srs-dd/guide.md", encoding="utf-8") as handle:
 found += region_gaps(guide_text, [(path, open(path, encoding="utf-8").read())
                                   for path in ("AGENTS.md", "skeleton/AGENTS.md")])
 
+# How a report to a person is written is a rule of the shipped guide, and the
+# reason it is held here rather than left to prose: an agent reads this file in
+# every session, and a rule that can be deleted silently is one that will be.
+# The phrases are the rule's own words, not a paraphrase of them.
+PLAINNESS = ("no figure of speech where a plain verb exists",
+             "delete what the reader cannot act on")
+
+
+def plainness_gaps(guide):
+    return [("srs-dd/guide.md", "does not say: %s" % phrase)
+            for phrase in PLAINNESS if phrase not in guide]
+
+
+assert plainness_gaps(" ".join(PLAINNESS)) == []
+assert plainness_gaps(PLAINNESS[0]) == [("srs-dd/guide.md", "does not say: %s" % PLAINNESS[1])]
+assert len(plainness_gaps("")) == 2
+
+
 # What the installer ships keeps sensitive data out of the repository: the
 # guide names the article, and the constitution carries it with each kind
 # of data it names. A guide that drops the line and a constitution that drops
@@ -186,6 +205,7 @@ assert sensitive_gaps("SRS-DD-ART-100", whole.replace("no raw output", "no logs"
 with open("srs-dd/method.md", encoding="utf-8") as method:
     method_text = method.read()
 found += sensitive_gaps(guide_text, method_text)
+found += plainness_gaps(guide_text)
 
 # Every article the framework asserts stands in srs-dd/method.md, spelled
 # apart from a project's own (SRS-DD-ART-*), so none of them takes a number in

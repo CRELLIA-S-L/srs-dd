@@ -1336,3 +1336,49 @@ The procedure that audits an architecture **shall** end every finding in an act 
 `ADR-0045` already refused a number a model assigns per run, and this says the refusal again where somebody would otherwise reach for one: what the audit may put beside a finding is a count anybody can re-derive (`FR-ARCH-570`), never a verdict out of ten.
 Leaving a part alone is an act too, and naming it is what keeps the audit honest: a cut nobody should touch is the commonest finding on a system that works, and an audit with no such line reads as a list of complaints.
 What the audit reads is the procedure's own business — the checker's findings, the document's divergence and silences, the drivers, the price of the cut and what each part stands on — and none of it is restated here.
+
+### FR-SKILL-540 — A report to a person is written in plain statements
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-170]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-09
+```
+
+The agent guide the framework ships **shall** require of a report to a person that it carry what happened and what follows from it in plain statements, with no figure of speech where a plain verb exists, nothing about the work of writing the report, and no clause whose only purpose is to join two of the agent's own thoughts.
+
+**Rationale.** The guide already says how a report is laid out — sentences that follow one another, a list only for what the reader counts — and `FR-SKILL-170` says what may be in it, which is only what follows from something.
+Neither says how the sentence itself is written, and the gap showed: a maintainer reading these reports said the figures of speech in them got in the way of understanding what had happened, and named two of his own examples.
+The cause is worth writing down because it is not carelessness: a figure that stands in for a plain verb is how an agent links its own steps while it works, and what helps the writing leaks into what is sent.
+The guide's own rule on a label with a fragment after it already names this shape — a note to yourself arriving in somebody else's message — and this is its sibling for the sentence rather than the layout.
+Bound on the shipped guide rather than on a procedure, because every procedure ends in a report and the guide is what an agent reads in every session.
+What can be checked is not the message — no file of the project holds it — but that the guide states the rule in its own words, which `tests/guide-parity.sh` now asserts beside the article on sensitive data it already held there: a rule an edit can delete in silence is one an edit will delete.
+
+### FR-SKILL-550 — A report is read once before it is sent
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-540]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-09
+```
+
+The agent guide the framework ships **shall** require that a report be read once before it is sent and that what the reader cannot act on be deleted from it.
+
+**Rationale.** A rule about how a sentence is written is obeyed while the sentence is being written, which is exactly when an agent is still using those sentences to think.
+The re-read is the moment the two uses come apart: what helped the writing is visible as such only after the writing is done.
+It is the discipline `FR-SKILL-370` already asks for in another place — a file that restates a changed requirement is re-read against it rather than remembered — applied to the message instead of the file.
+Deleting rather than rewriting, because the fault is usually a clause that should not be there at all.
+The guide carries it for every session, and the four procedures that end in a report say it again at the moment it applies — `srs`, `srs-audit`, `srs-check` and `srs-arch-audit`, each held to the sentence by its own list in `tests/skill-instructions/` (`FR-SKILL-300`).
+

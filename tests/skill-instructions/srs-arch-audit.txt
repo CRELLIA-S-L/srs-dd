@@ -21,3 +21,6 @@ Leaving a part alone is an act.
 
 # files
 srs-dd/arch.md
+
+# the report is re-read before it is sent (FR-SKILL-550)
+read once before it is sent

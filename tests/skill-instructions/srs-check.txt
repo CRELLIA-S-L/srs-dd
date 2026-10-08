@@ -24,3 +24,6 @@ srs-dd/method.md
 
 # instructions
 offer the whole set again
+
+# the report is re-read before it is sent (FR-SKILL-550)
+Read that report once before sending it

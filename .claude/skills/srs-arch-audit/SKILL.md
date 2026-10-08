@@ -33,4 +33,4 @@ Three parts, and then the act: **what the records say**, **what the code or the 
 
 ## Where it ends
 
-At the report. A redraw the maintainer accepts goes through `.claude/skills/srs-arch/SKILL.md` — the move record, the ADR, the records themselves — and not from here.
+At the report, read once before it is sent and stripped of what the maintainer cannot act on. A redraw the maintainer accepts goes through `.claude/skills/srs-arch/SKILL.md` — the move record, the ADR, the records themselves — and not from here.

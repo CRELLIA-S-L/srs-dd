@@ -24,7 +24,7 @@ Statements, titles and rationales are written in the lexicon of `specs/srs-confi
 4. Found nothing: the behaviour is undescribed. Author a requirement first (`srs-new`); never code silently.
 5. With a `grounds/` directory beside `specs/`: `python3 srs-dd/tools/srs_grounds.py --blast <path>` — what the requirements stand on. `refuted` or `expired` is not a stop; it is said, because the change inherits that ground. Procedure: `srs-bet`.
 6. With an `arch/` directory: `grep -n <path> arch/90-map.md`, or the directory above it, since a directory in `carries` owns what is under it — the row names the element the file belongs to, what else it carries and the requirements it holds. A change that moves a responsibility between parts is said, not left for the checker. Procedure: `srs-arch`.
-7. Report the lookup, not only its outcome — the paths given, the words searched. What you say about a file is read off the file in that report and re-read before sending. Connected prose; a list only for what the reader counts. Every record named to a person is cited at its first mention in the message, from `python3 srs-dd/tools/srs_view.py --cite <ID>…`.
+7. Report the lookup, not only its outcome — the paths given, the words searched. What you say about a file is read off the file in that report and re-read before sending; that re-read is also where a figure of speech standing in for a plain verb comes out, and where a clause the reader cannot act on is deleted. Connected prose; a list only for what the reader counts. Every record named to a person is cited at its first mention in the message, from `python3 srs-dd/tools/srs_view.py --cite <ID>…`.
 
 ## Two acts
 

@@ -36,7 +36,7 @@ The checker proves that every link written resolves and cannot prove that any wa
 4. **Propose one link at a time and let the maintainer settle each** — both ends named as `AGENTS.md` asks, the field and why in a clause, then wait. Twenty approved in one breath are twenty nobody read.
 5. Stop at the proposal; what is approved is written through the everyday procedure, matrix regenerated in the same set of edits (*Boundaries*).
 
-Say what the pass covered — the area, how many requirements, how many links proposed and approved — because the next pass starts there and nothing else records it. A missing link is invisible by construction, so the pass ends with "read once, by somebody", never with "none remain". Linking a realized requirement to a `draft` makes the checker report it: the rule doing its job.
+Read the report once before sending it, and delete the clauses that only joined your own steps. Say what the pass covered — the area, how many requirements, how many links proposed and approved — because the next pass starts there and nothing else records it. A missing link is invisible by construction, so the pass ends with "read once, by somebody", never with "none remain". Linking a realized requirement to a `draft` makes the checker report it: the rule doing its job.
 
 ## Boundaries
 

@@ -44,7 +44,7 @@ Every requirement carries a `verification` method and the paths that verify it, 
    List the commands and ask.
    Where the project has checks of its own that the specification does not name, ask rather than guess.
 
-4. **Run what was approved, all of it,** and report per check: passed, failed with the output, or not run and why.
+4. **Run what was approved, all of it,** and report per check: passed, failed with the output, or not run and why. Read that report once before sending it: a result is a plain statement, and nothing about the running of the checks belongs in it.
 
 5. **After a repair, offer the whole set again.**
    A fix is a change like any other: rerunning the check that was red says it is no longer red and nothing about what the fix broke beside it.
