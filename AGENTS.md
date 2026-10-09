@@ -62,7 +62,7 @@ python3 tools/srs_init.py path/to/project --dry-run
 python3 tools/srs_init.py path/to/project [flags]
 ```
 
-Never run the installer against this repository; it refuses on its own, but do not rely on that.
+Never run the installer against this repository; it refuses on its own (`is_inside`), but do not rely on that.
 
 ## What lives where
 
@@ -80,16 +80,16 @@ Never run the installer against this repository; it refuses on its own, but do n
 ## Two rules that protect other people's repositories
 
 1. **Nothing framework-specific goes into `skeleton/` or `srs-dd/` as a path that exists only here.** A requirement of this repository named in a shipped file lands in every project installed afterwards — a hard checker error on a stranger's first install.
-2. **Annotate the shipped tooling like anything else — the installer takes the annotations out on the way into a target.** Every tool under `srs-dd/tools/` carries `implements:`/`verifies:` lines — the other half of the two-way check — and `tools/srs_init.py` replaces each as it copies (FR-INIT-180), keeping the line so line numbers match. Never mark such a line `srs-ignore`: it marks an example, never a claim.
+2. **Annotate the shipped tooling like anything else — the installer takes the annotations out on the way into a target.** Every tool under `srs-dd/tools/` carries `implements:`/`verifies:` lines — the other half of the two-way check — and `tools/srs_init.py` replaces each as it copies (FR-INIT-180), keeping the line so line numbers match. Never mark such a line `srs-ignore` to quiet something — the exemption is unconditional and `srs-ignore` marks an example, never a claim.
 
 ## Working on the framework
 
-A behavior change here goes through `specs/` exactly as the loop above states it.
+This repository is itself an SRS-DD project: a behavior change here goes through `specs/` exactly as the loop above states it.
 
 - **Generated files** — `specs/90-traceability.md`, `arch/90-map.md` and `grounds/90-dashboard.md` are written by the checkers; never edit them by hand.
-- **Line width** — the rule and its reasons are in `CONTRIBUTING.md` under *Ground rules*. Markdown is not wrapped to a width; where a line may break is INV-SPEC-070. `tests/line-width.sh` refuses a code line wider than 120 columns whose width no string literal accounts for (FR-CI-100).
-- **Whether the guides hold for a fresh agent** — `srs_cite_eval.py` scores how a fresh instance names records (FR-SKILL-290); `srs_proc_eval.py` runs the scenarios in `tests/eval/scenarios/` and reports what each added, burned and met (FR-SKILL-310); `srs_report_eval.py` has one instance report and a second judge it against rule 6 (FR-SKILL-580). All three live in `tools/`, run by hand, never a gate.
+- **Line width** — the rule and its reasons are in `CONTRIBUTING.md` under *Ground rules*; read it before reformatting anything. Markdown is not wrapped to a width; where a line may break is INV-SPEC-070. `tests/line-width.sh` refuses a code line wider than 120 columns whose width no string literal accounts for (FR-CI-100).
+- **Whether the guides hold for a fresh agent** — `python3 tools/srs_cite_eval.py` scores how a fresh instance names records (FR-SKILL-290); `python3 tools/srs_proc_eval.py` runs the scenarios in `tests/eval/scenarios/` and reports what each added, burned and met (FR-SKILL-310); `python3 tools/srs_report_eval.py` has one instance report and a second judge it against rule 6 (FR-SKILL-580). Run by hand, never a gate.
 - **What a procedure may cost** — `tests/skill-budget.sh` holds every procedure and both guides to a budget of words (NFR-SKILL-020); `tests/skill-instructions.sh` holds each procedure to the commands, articles, files and procedures its list in `tests/skill-instructions/` says it must name (FR-SKILL-300).
 - **Local gate** — `tools/ci_selftest.sh` runs the same suites CI does, and `python3 srs-dd/tools/srs_gate.py` the gate a target's hook runs; `git config core.hooksPath .githooks` wires both into `pre-commit`.
 - **Cut a release** — the `srs-release` procedure; it decides nothing about the version or the notes on its own.
-- **Rules for contributing and releasing** — `CONTRIBUTING.md`.
+- **Contribution and release rules** — `CONTRIBUTING.md`.

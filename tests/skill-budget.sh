@@ -73,9 +73,19 @@ cd "$(dirname "$0")/.."
 #               others are beside it (IF-SPEC-050, INV-SPEC-130), and this
 #               repository's guide carries that region too, which left it at
 #               2 042 against a ceiling it already stood eight words under.
+#               2 100 since 2026-10-09: rule 6 gained four clauses written
+#               against a measurement (FR-SKILL-540, FR-SKILL-550,
+#               FR-SKILL-570, FR-SKILL-590), and paying for them out of this
+#               file's own content had begun to remove instructions — the
+#               line telling a reader to read CONTRIBUTING before
+#               reformatting, that the srs-ignore exemption is
+#               unconditional, that this repository is itself a project of
+#               the framework, and the three measurement commands in the
+#               form they are run. Those were put back and the ceiling rose
+#               instead (2 079).
 OWN=1550
 TRANSITIVE=7050
-GUIDE=2060
+GUIDE=2100
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by
