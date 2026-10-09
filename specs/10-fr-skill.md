@@ -1358,7 +1358,7 @@ Neither says how the sentence itself is written, and the gap showed: a maintaine
 The cause is worth writing down because it is not carelessness: a figure that stands in for a plain verb is how an agent links its own steps while it works, and what helps the writing leaks into what is sent.
 The guide's own rule on a label with a fragment after it already names this shape — a note to yourself arriving in somebody else's message — and this is its sibling for the sentence rather than the layout.
 Bound on the shipped guide rather than on a procedure, because every procedure ends in a report and the guide is what an agent reads in every session.
-**Measured on 2026-10-09 and no effect visible.** Three tasks were given to a fresh instance in this repository and to another in a copy with these three clauses taken out of the guide, and both sets of reports were judged by `tools/srs_report_eval.py`: four faults with the rule in place against two without it. One report per task on each side, so the difference is inside the variation between runs and the rule cannot be said to help or to hurt; what it does say is that the effect is smaller than the noise at this sample size. Seeing a real difference needs three runs per task on each side, which is thirty-six agent calls, and that has not been spent. The judge found real things in both sets — a metaphor where a plain statement would do, a sentence restating the one before it — so the instrument is not the limit here; the sample is.
+**Measured on 2026-10-09, and this clause is the one that shows an effect.** Nine reports were taken in this repository and nine in a copy with the four clauses of rule 6 removed, three tasks run three times on each side, and all eighteen were judged by `tools/srs_report_eval.py`. Figures of speech: four with the rule against nine without, and the per-run counts barely overlap — 3, 0, 1 against 4, 3, 2. The faults of every kind came to 3.3 a report with the rule and 4.0 without, which on its own is inside the variation between runs. An earlier reading of one report per task said four against two and was reported here as no effect; it was inside the noise, and it was taken while the rule about unbacked claims could not be judged at all.
 
 What can be checked is not the message — no file of the project holds it — but that the guide states the rule in its own words, which `tests/guide-parity.sh` now asserts beside the article on sensitive data it already held there: a rule an edit can delete in silence is one an edit will delete.
 
@@ -1427,6 +1427,7 @@ What the rule was missing is the moment and the test. The moment is the re-read 
 Actions and numbers rather than every sentence, because those are the two kinds of claim a reader acts on and the two a transcript can settle.
 The form is taken from a critic prompt a maintainer brought from another project on 2026-10-09, where the list of real actions is the tool results and a claimed action absent from them is reported; what transferred is that test, not the rest of that list, which is written for an assistant talking to the public.
 Verified where the other two halves of the rule are: `tests/guide-parity.sh` holds the guide to the rule's own words, because a rule an edit can delete in silence is one an edit will delete.
+**Measured on 2026-10-09 and no effect visible.** Over nine reports on each side this fault came to seventeen with the clause and sixteen without, and it is the commonest of the five by a distance — about two a report either way. The clause tells an agent not to claim what no output shows, and the measurement says telling it does not reduce the claims; what reduced them in this session was running the judge over a report and reading what it found.
 
 ### FR-SKILL-580 — Whether a report follows the rule is measured, not assumed
 
@@ -1452,6 +1453,7 @@ Five criteria, not three: the three the guide states, plus the two from that pro
 A verdict that cannot be read in the shape asked for is reported as unreadable and fails the run rather than counting as zero faults, which is the same refusal the register's checker makes about a history it could not read.
 The same refusal covers the run itself: whether a report claims an action or a number nothing showed is judged against the commands the run made and their output, so a run whose tool use was not captured is not judged at all. Measured on 2026-10-09: the first version handed the judge the words "not captured in this run" in place of that record, and the criterion answered zero in every report for want of evidence rather than for want of a fault.
 Measured by hand before and after a change to the guides, never in a pipeline: the answers vary run to run, and a gate over a varying number is a gate somebody switches off.
+What eighteen reports have produced: a visible difference on figures of speech, none on unbacked claims or off-task subjects, and not one report in which the judge found something the task asked for to be missing — so that fifth count is untested rather than clean.
 
 ### FR-SKILL-590 — A report answers what was asked
 
@@ -1475,4 +1477,5 @@ Two of the three reports added a subject nobody asked about — the requirements
 So the failure is adding, not omitting, and the rule is written against the failure that was measured.
 One line at the end rather than silence, because an agent reading a repository does see things worth a sentence, and a rule that forbids them entirely is a rule that gets ignored on the first useful aside.
 Held where the other three clauses of the guide's sixth rule are held, in `tests/guide-parity.sh`.
+**Measured on 2026-10-09, the same day it was written, and no effect visible.** Six off-task subjects with the clause against seven without, over nine reports each side — about seven in ten reports either way. The three reports it was written from had two, which is the same rate; the rule names a real and frequent fault and does not change it.
 
