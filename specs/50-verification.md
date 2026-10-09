@@ -33,6 +33,7 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/proc-eval-smoke.sh` | The procedure evaluation reads every shipped scenario against the specification as it stands, accounts and scores a trace exactly, refuses a malformed scenario, and stops with no agent to ask |
 | `tests/skill-budget.sh` | Every shipped procedure, and each agent guide, fits its budget of words, on its own and with what it tells the reader to open first |
 | `tests/skill-instructions.sh` | Every shipped procedure still names the commands, articles, files, procedures and instructions its list says it must |
+| `tests/plain-instructions.sh` | No figure of speech this list has taken out of the shipped instructions has come back; a ratchet, which cannot judge a figure nobody has written yet |
 | `tests/guide-parity.sh` | This repository's guides and hook carry every rule their shipped counterparts state, and the decision template has one copy |
 | `tests/pipeline-suites.sh` | The pipeline runs every file in `tests/` as a step of its own, this table names every one of them, and `.gitattributes` pins every file a shipped gate compares byte for byte |
 | `tests/standard-rules.sh` | Each of the three standards names every rule its checker reports by name, with what it reports, and the specification's *Annotations* section every annotation rule |

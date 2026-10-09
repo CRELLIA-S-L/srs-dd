@@ -12,7 +12,7 @@ unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 # file verifies: INV-SKILL-010, FR-SKILL-380, FR-SKILL-390, FR-SKILL-430, FR-SKILL-440
-# file verifies: FR-SKILL-540, FR-SKILL-550
+# file verifies: FR-SKILL-540, FR-SKILL-550, FR-SKILL-570
 python3 - <<'PY'
 import glob, os, re, sys
 
@@ -163,7 +163,8 @@ found += region_gaps(guide_text, [(path, open(path, encoding="utf-8").read())
 # every session, and a rule that can be deleted silently is one that will be.
 # The phrases are the rule's own words, not a paraphrase of them.
 PLAINNESS = ("no figure of speech where a plain verb exists",
-             "delete what the reader cannot act on")
+             "delete what the reader cannot act on",
+             "claim no action and no number that a tool result here does not show")
 
 
 def plainness_gaps(guide):
@@ -172,8 +173,9 @@ def plainness_gaps(guide):
 
 
 assert plainness_gaps(" ".join(PLAINNESS)) == []
-assert plainness_gaps(PLAINNESS[0]) == [("srs-dd/guide.md", "does not say: %s" % PLAINNESS[1])]
-assert len(plainness_gaps("")) == 2
+assert plainness_gaps(" ".join(PLAINNESS[:-1])) \
+    == [("srs-dd/guide.md", "does not say: %s" % PLAINNESS[-1])]
+assert len(plainness_gaps("")) == 3
 
 
 # What the installer ships keeps sensitive data out of the repository: the

@@ -1382,3 +1382,47 @@ It is the discipline `FR-SKILL-370` already asks for in another place — a file
 Deleting rather than rewriting, because the fault is usually a clause that should not be there at all.
 The guide carries it for every session, and the four procedures that end in a report say it again at the moment it applies — `srs`, `srs-audit`, `srs-check` and `srs-arch-audit`, each held to the sentence by its own list in `tests/skill-instructions/` (`FR-SKILL-300`).
 
+### FR-SKILL-560 — The shipped instructions are held to the rule they state
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-540]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tests/plain-instructions.sh]
+tests: [tests/plain-instructions.sh]
+created: 2026-10-09
+```
+
+A suite **shall** hold the guide, the method and every procedure the framework ships to a list of figures of speech taken out of them, and fail where one of those figures is back.
+
+**Rationale.** An agent writes in the register of what it reads, and what it reads in every session is this instruction set; a rule about plain statements beside a text that does not follow it teaches the register rather than the rule.
+Three such sentences were in the shipped files on 2026-10-09 and were taken out — the guide called a pointer to an earlier message a key handed over, the architecture procedure said a layer written to have elements teaches every reader that it is decoration, and the audit said an unresolved observation is paid for by a reader.
+It is a ratchet and claims no more: it holds the figures somebody found and removed, and cannot judge one nobody has written yet, which the suite says in its own first lines so that a green run is not read as a verdict on the prose.
+Worth having anyway, because the agent that writes these files is the one with the habit, and a text cleaned once decays with nothing watching it.
+What it does not do is score a report: the report is a message no file holds, and whether the rule reaches the reports is a measurement, not a suite.
+
+### FR-SKILL-570 — A report claims no action and no number a tool result does not show
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-550]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-09
+```
+
+The agent guide the framework ships **shall** require that a report claim no action and no number which a tool result in that session does not show.
+
+**Rationale.** The guide already says to read the source in the same message rather than from memory, and that rule has failed in practice: on 2026-10-06 a report of mine named the wrong baseline version, read off the tail of a log that is ordered newest first, while the tool's own output in the same session said otherwise.
+What the rule was missing is the moment and the test. The moment is the re-read `FR-SKILL-550` asks for, and the test is narrow enough to apply without judgement: for every action claimed and every number given, there is a tool result in this session that shows it, or the claim does not go in.
+Actions and numbers rather than every sentence, because those are the two kinds of claim a reader acts on and the two a transcript can settle.
+The form is taken from a critic prompt a maintainer brought from another project on 2026-10-09, where the list of real actions is the tool results and a claimed action absent from them is reported; what transferred is that test, not the rest of that list, which is written for an assistant talking to the public.
+Verified where the other two halves of the rule are: `tests/guide-parity.sh` holds the guide to the rule's own words, because a rule an edit can delete in silence is one an edit will delete.
+

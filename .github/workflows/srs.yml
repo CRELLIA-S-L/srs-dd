@@ -103,6 +103,9 @@ jobs:
       - name: Procedure instructions
         run: tests/skill-instructions.sh
 
+      - name: Plain instructions
+        run: tests/plain-instructions.sh
+
       - name: Citation eval smoke
         run: tests/cite-eval-smoke.sh
 
