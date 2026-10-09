@@ -7,9 +7,11 @@
     python3 tools/srs_report_eval.py --score FILE     # score canned reports instead of asking
 
 For each task it asks a fresh instance to do the work and report, then asks a second
-fresh instance to judge that report against the three halves of the guide's sixth
-rule: a figure of speech where a plain verb exists, a clause the reader cannot act
-on, and a claim of an action or a number that the run's own output does not show.
+fresh instance to judge that report on five counts: a figure of speech where a plain
+verb exists, a clause the reader cannot act on, a claim of an action or a number the
+run's own output does not show, an answer to something other than what was asked, and
+something the task asked for being absent. The first three are the guide's sixth rule;
+the last two are what the task itself settles.
 A measurement and not a gate: answers vary run to run, and asking never runs in CI.
 """
 # file implements: FR-SKILL-580, NFR-SPEC-010, CON-SPEC-030
@@ -70,22 +72,70 @@ def read_tasks(path):
                 if line.strip() and not line.startswith("#")]
 
 
+def transcript_of(events, keep=400):
+    """What a run actually did, as one line per command and per result.
+
+    The `unbacked` rule is judged against this and nothing else, so a run whose tool use
+    was not captured must not reach the judge: it would answer zero for want of evidence
+    rather than for want of a fault.
+    """
+    lines = []
+    for event in events:
+        # Every level is checked before it is asked for a key. The stream carries whatever the
+        # client chooses to put on it — a bare string as an event, a string where a message is
+        # expected, text where a list of blocks is expected — and this crashed twice on that,
+        # each time one level deeper than the guard.
+        if not isinstance(event, dict):
+            continue
+        message = event.get("message")
+        if not isinstance(message, dict):
+            continue
+        content = message.get("content")
+        if not isinstance(content, list):
+            continue
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use":
+                lines.append("ran: %s" % str(block.get("input") or "")[:keep])
+            elif block.get("type") == "tool_result":
+                lines.append("got: %s" % str(block.get("content") or "")[:keep])
+    return lines
+
+
+def judgeable(transcript):
+    """Whether a run can be judged at all: the `unbacked` rule is read off its record of what
+    it ran, so a run with no such record is not judged rather than judged as clean."""
+    return bool((transcript or "").strip())
+
+
 def ask(prompt, max_turns, tools=None):
-    """One prompt to a fresh instance, in this repository, reading only."""
-    command = ["claude", "-p", prompt, "--output-format", "json",
+    """One prompt to a fresh instance, in this repository, as (text, transcript, problem).
+
+    Read as a stream rather than as one object, because the judge needs what the run ran and
+    not only what it said at the end.
+    """
+    command = ["claude", "-p", prompt, "--output-format", "stream-json", "--verbose",
                "--max-turns", str(max_turns), "--no-session-persistence"]
     if tools:
         command += ["--allowedTools", tools]
     run = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     if run.returncode != 0:
-        return None, "claude exited %d: %s" % (run.returncode, run.stderr.strip()[:200])
-    try:
-        payload = json.loads(run.stdout)
-    except ValueError:
-        return None, "claude printed something other than JSON"
-    if payload.get("is_error"):
-        return None, "claude reported %s" % (payload.get("subtype") or "an error")
-    return payload.get("result") or "", None
+        return None, None, "claude exited %d: %s" % (run.returncode, run.stderr.strip()[:200])
+    events = []
+    for line in run.stdout.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(event, dict):
+            events.append(event)
+    final = [event for event in events if event.get("type") == "result"]
+    if not final:
+        return None, None, "claude printed no result event"
+    if final[-1].get("is_error"):
+        return None, None, "claude reported %s" % (final[-1].get("subtype") or "an error")
+    return final[-1].get("result") or "", "\n".join(transcript_of(events)), None
 
 
 def verdict_of(text):
@@ -147,16 +197,20 @@ def main(argv=None):
             return 2
         rows = []
         for task in read_tasks(args.tasks):
-            answer, problem = ask(task, args.max_turns,
-                                  "Read,Grep,Glob,Bash(python3 srs-dd/tools/srs_view.py:*)")
+            answer, ran, problem = ask(task, args.max_turns,
+                                       "Read,Grep,Glob,Bash(python3 srs-dd/tools/srs_view.py:*)")
             if problem:
                 sys.stderr.write("srs_report_eval: %s\n" % problem)
                 return 1
-            judged, problem = ask(JUDGE % (task, "(not captured in this run)", answer), 1)
+            if not judgeable(ran):
+                sys.stderr.write("srs_report_eval: the run used no tool, so a claim in its report "
+                                 "could not be checked against anything. Not judged.\n")
+                return 1
+            judged, _ran, problem = ask(JUDGE % (task, ran, answer), 1)
             if problem:
                 sys.stderr.write("srs_report_eval: the judge %s\n" % problem)
                 return 1
-            rows.append({"task": task, "report": answer, "verdict": judged})
+            rows.append({"task": task, "report": answer, "transcript": ran, "verdict": judged})
         if args.save:
             with open(args.save, "a", encoding="utf-8") as handle:
                 for row in rows:

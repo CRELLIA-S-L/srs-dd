@@ -29,7 +29,7 @@ TAKEN_OUT = (
     "teaches every reader",
     "paid for by a reader",
     "a name nobody has found",
-    "is a mention",
+    "in passing is a mention",
 )
 
 

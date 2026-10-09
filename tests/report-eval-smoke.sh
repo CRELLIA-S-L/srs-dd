@@ -13,6 +13,35 @@ unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
+# --- The transcript the judge is given: one line per command and per result, and
+# --- nothing where a run used no tool. The `unbacked` rule is judged against this
+# --- alone, so a run reaching the judge without it would score zero for want of
+# --- evidence rather than for want of a fault.
+python3 - <<'PYRUN'
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, "tools")
+import srs_report_eval as evaluator
+
+events = [{"message": {"content": [{"type": "tool_use", "input": {"command": "ls"}},
+                                   {"type": "tool_result", "content": "a b"}]}},
+          {"type": "result", "result": "done"}]
+assert evaluator.transcript_of(events) == ["ran: {'command': 'ls'}", "got: a b"]
+assert evaluator.transcript_of([{"type": "result", "result": "x"}]) == []
+assert evaluator.transcript_of([{"message": {"content": ["a string, not a block"]}}]) == []
+assert evaluator.transcript_of(["a bare string, not an event"]) == []
+assert evaluator.transcript_of([{"message": "a string, not an object"}]) == []
+assert evaluator.transcript_of([{"message": {"content": "text, not a list"}}]) == []
+assert evaluator.transcript_of([{"message": {}}, {"no": "message"}, {}]) == []
+long = [{"message": {"content": [{"type": "tool_result", "content": "x" * 900}]}}]
+assert len(evaluator.transcript_of(long, keep=10)[0]) == len("got: ") + 10
+assert evaluator.judgeable("ran: ls") is True
+assert evaluator.judgeable("") is False
+assert evaluator.judgeable(None) is False
+assert evaluator.judgeable("   \n  ") is False
+print("report-eval: a captured run, a run with no tool and an oversized result each read as asked, and a run with no record is not judgeable")
+PYRUN
+
 CANNED=/tmp/srs-report-eval.jsonl
 python3 - > "$CANNED" <<'PY'
 import json
