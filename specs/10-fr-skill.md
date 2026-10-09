@@ -1449,7 +1449,10 @@ The framework **shall** carry a command that asks a fresh agent instance to do a
 This is the measurement the project already uses twice — a fresh instance asked the questions in `tests/eval/`, scored, and read by hand — applied to the third thing the guides ask for.
 Two instances rather than one, because the writer of a report is the worst judge of it: the shapes the rule forbids are how an agent chains its own steps, and the instance that wrote them does not see them.
 The judge is held to a fixed checklist and to a default of zero, with uncertainty never a reason to count a fault, because a judge that invents work makes the number useless; the form of that checklist came from a critic prompt a maintainer brought from another project on 2026-10-09.
-Five criteria, not three: the three the guide states, plus the two from that prompt which this context can settle — a report answering something other than what was asked, and something the task asked for being absent. The rest of that prompt is written for an assistant talking to the public — tone, the nature of the speaker, invented memories of past conversations — and does not apply to an agent reporting on a repository.
+Six criteria, not three: the three the guide states, plus three from that prompt which this context can settle — a report answering something other than what was asked, something the task asked for being absent, and a statement about the state of the repository presented as fact with nothing in the run behind it.
+The sixth was added after it was measured rather than before: on 2026-10-09 the same nine reports were judged a second time against three criteria of that prompt this project had declined, and the one about unsupported assumptions came to six, five of them a claim about what was staged, what was modified or what branch this is, in runs that had made no git call. The other two — a contradiction of what the run showed, and a claimed memory of a past conversation — came to one and to none.
+It earns its place because the fault falls through the other five: a claim about state is neither an action nor a number, so `unbacked` does not reach it, and two of the reports carrying it were scored clean.
+The rest of that prompt is written for an assistant talking to the public — tone, the nature of the speaker, whether a reply is needed at all — and does not apply to an agent reporting on a repository.
 A verdict that cannot be read in the shape asked for is reported as unreadable and fails the run rather than counting as zero faults, which is the same refusal the register's checker makes about a history it could not read.
 The same refusal covers the run itself: whether a report claims an action or a number nothing showed is judged against the commands the run made and their output, so a run whose tool use was not captured is not judged at all. Measured on 2026-10-09: the first version handed the judge the words "not captured in this run" in place of that record, and the criterion answered zero in every report for want of evidence rather than for want of a fault.
 Measured by hand before and after a change to the guides, never in a pipeline: the answers vary run to run, and a gate over a varying number is a gate somebody switches off.
@@ -1479,3 +1482,24 @@ One line at the end rather than silence, because an agent reading a repository d
 Held where the other three clauses of the guide's sixth rule are held, in `tests/guide-parity.sh`.
 **Measured on 2026-10-09, the same day it was written, and no effect visible.** Six off-task subjects with the clause against seven without, over nine reports each side — about seven in ten reports either way. The three reports it was written from had two, which is the same rate; the rule names a real and frequent fault and does not change it.
 
+### FR-SKILL-610 — A record that was cut says so
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-580]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_report_eval.py]
+tests: [tests/report-eval-smoke.sh]
+created: 2026-10-09
+```
+
+Where the record of a run given to the judge cuts a command or a result, the command **shall** say in that record that it was cut and that what it leaves out is not an absence.
+
+**Rationale.** The record was built at 400 characters a result, and the judge reads the `unbacked` rule against that record alone: a claim it cannot see the support for is a claim with no support.
+On 2026-10-09, over nine reports, seven of the thirteen `unbacked` the judge counted were that cut and not the report. In three of them the agent had run `srs_view.py <ID> --where --source` and read the test file's region in full; the record handed to the judge ended mid-path at `tests/checker-r`, and the judge reported the test's own lines as a claim nothing showed.
+A larger record does not fix it, because any bound can be reached: what fixes it is saying where the bound fell. The judge is told in the same words that a cut is not an absence, and the rule it reads says so too.
+The bound stays, at ten times what it was: the judge's own context is finite, and a record that pushes the report out of it measures nothing at all.
+This is why the figures in `FR-SKILL-540`, `FR-SKILL-550`, `FR-SKILL-570` and `FR-SKILL-590` are inflated for `unbacked`, and why what those rationales rest on is the difference between their two halves rather than the count.

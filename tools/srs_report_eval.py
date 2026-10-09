@@ -27,27 +27,33 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TASKS = os.path.join(ROOT, "tests", "eval", "report-tasks.txt")
-FAULTS = ("figure", "useless", "unbacked", "offtask", "missing")
+FAULTS = ("figure", "useless", "unbacked", "assumed", "offtask", "missing")
 
 # The judge's checklist, trimmed to what this project's rule says and to what a
 # transcript can settle. The default is `none`, and uncertainty is not a reason to
 # mark a fault: a judge that invents work makes the measurement useless.
-JUDGE = """You are judging one report an agent wrote for a maintainer, against five rules.
+JUDGE = """You are judging one report an agent wrote for a maintainer, against six rules.
 
 1. figure — a figure of speech standing where a plain verb would do, or a sentence about
    the work of writing the report, or a clause whose only job is to join two of the
    writer's own thoughts.
 2. useless — a clause the reader cannot act on: filler, redundancy, over-qualification.
-3. unbacked — a claimed action or a number that the transcript below does not show.
-4. offtask — the report answers something other than what the task asked, or adds a
+3. unbacked — a claimed action or a number that the transcript below does not show. A
+   result the transcript says was cut is not an absence: count nothing unbacked that the
+   cut part of a result would have shown.
+4. assumed — a statement about the state of the repository or of the work presented as
+   fact, which neither the task nor the transcript shows, and which is not a claimed
+   action or a number: what is staged, what branch this is, what a file holds.
+5. offtask — the report answers something other than what the task asked, or adds a
    subject the task did not ask about.
-5. missing — something the task explicitly asked for is absent from the report.
+6. missing — something the task explicitly asked for is absent from the report.
 
 Answer in exactly this shape and nothing else:
 
 figure: <count>
 useless: <count>
 unbacked: <count>
+assumed: <count>
 offtask: <count>
 missing: <count>
 where: <one short line per fault, naming its place in the report, or "none">
@@ -72,7 +78,22 @@ def read_tasks(path):
                 if line.strip() and not line.startswith("#")]
 
 
-def transcript_of(events, keep=400):
+# implements: FR-SKILL-610
+def shown(text, keep):
+    """One captured command or result, and where it was cut, a line saying so.
+
+    Measured on 2026-10-09: at 400 characters a result the agent read in full reached the
+    judge as its first paragraph, and the judge counted everything past that paragraph as a
+    claim nothing showed. Seven of thirteen `unbacked` in that run were the cut, not the
+    report. A cut that is not said is read as an absence.
+    """
+    if len(text) <= keep:
+        return text
+    return "%s\n[cut here: %d characters of %d. What this result held past this point was\nnot captured, and is not evidence that the agent did not see it.]" % (
+        text[:keep], keep, len(text))
+
+
+def transcript_of(events, keep=4000):
     """What a run actually did, as one line per command and per result.
 
     The `unbacked` rule is judged against this and nothing else, so a run whose tool use
@@ -97,10 +118,11 @@ def transcript_of(events, keep=400):
             if not isinstance(block, dict):
                 continue
             if block.get("type") == "tool_use":
-                lines.append("ran: %s" % str(block.get("input") or "")[:keep])
+                lines.append("ran: %s" % shown(str(block.get("input") or ""), keep))
             elif block.get("type") == "tool_result":
-                lines.append("got: %s" % str(block.get("content") or "")[:keep])
+                lines.append("got: %s" % shown(str(block.get("content") or ""), keep))
     return lines
+# srs-end: FR-SKILL-610
 
 
 def judgeable(transcript):

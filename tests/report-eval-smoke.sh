@@ -3,7 +3,7 @@
 # The report measurement, run over canned verdicts: the arithmetic, the shape the
 # judge is held to, and the refusal where there is no agent to ask.
 #
-# file verifies: FR-SKILL-580
+# file verifies: FR-SKILL-580, FR-SKILL-610
 #
 # What is canned here is the judge's answer, not the report: this suite holds the
 # parsing and the totals, which are the parts that can break in silence. Whether
@@ -33,8 +33,19 @@ assert evaluator.transcript_of(["a bare string, not an event"]) == []
 assert evaluator.transcript_of([{"message": "a string, not an object"}]) == []
 assert evaluator.transcript_of([{"message": {"content": "text, not a list"}}]) == []
 assert evaluator.transcript_of([{"message": {}}, {"no": "message"}, {}]) == []
+# verifies: FR-SKILL-610 — the judge reads `unbacked` against this record alone, so a cut
+# it is not told about is read as a claim with no support. Seven of thirteen on 2026-10-09.
 long = [{"message": {"content": [{"type": "tool_result", "content": "x" * 900}]}}]
-assert len(evaluator.transcript_of(long, keep=10)[0]) == len("got: ") + 10
+cut = evaluator.transcript_of(long, keep=10)[0]
+assert cut.startswith("got: " + "x" * 10), cut
+assert "cut here: 10 characters of 900" in cut, cut
+assert "is not evidence that the agent did not see it" in cut, cut
+whole = evaluator.transcript_of(
+    [{"message": {"content": [{"type": "tool_result", "content": "short"}]}}], keep=10)
+assert whole == ["got: short"], whole
+assert "is not an absence" in evaluator.JUDGE
+assert "count nothing unbacked that the" in evaluator.JUDGE
+# srs-end: FR-SKILL-610
 assert evaluator.judgeable("ran: ls") is True
 assert evaluator.judgeable("") is False
 assert evaluator.judgeable(None) is False
@@ -46,9 +57,9 @@ CANNED=/tmp/srs-report-eval.jsonl
 python3 - > "$CANNED" <<'PY'
 import json
 rows = [
-    {"task": "one", "report": "x", "verdict": "figure: 2\nuseless: 1\nunbacked: 0\nofftask: 0\nmissing: 1\nwhere:\n- the second paragraph\n- the closing line"},
-    {"task": "two", "report": "y", "verdict": "figure: 0\nuseless: 0\nunbacked: 1\nofftask: 1\nmissing: 0\nwhere: the count in the first line"},
-    {"task": "three", "report": "z", "verdict": "figure: 0\nuseless: 0\nunbacked: 0\nofftask: 0\nmissing: 0\nwhere: none"},
+    {"task": "one", "report": "x", "verdict": "figure: 2\nuseless: 1\nunbacked: 0\nassumed: 0\nofftask: 0\nmissing: 1\nwhere:\n- the second paragraph\n- the closing line"},
+    {"task": "two", "report": "y", "verdict": "figure: 0\nuseless: 0\nunbacked: 1\nassumed: 2\nofftask: 1\nmissing: 0\nwhere: the count in the first line"},
+    {"task": "three", "report": "z", "verdict": "figure: 0\nuseless: 0\nunbacked: 0\nassumed: 0\nofftask: 0\nmissing: 0\nwhere: none"},
     {"task": "four", "report": "w", "verdict": "The report looks fine to me."},
 ]
 for row in rows:
@@ -56,8 +67,8 @@ for row in rows:
 PY
 rc=0
 python3 tools/srs_report_eval.py --score "$CANNED" > /tmp/srs-report-eval.out || rc=$?
-grep -q "^Reports judged: 3. figure 2, useless 1, unbacked 1, offtask 1, missing 1. 1 verdict(s) unreadable" /tmp/srs-report-eval.out \
-    || { echo "report-eval: the totals are not 2 figure, 1 useless, 1 unbacked, 1 offtask, 1 missing over three readable verdicts"
+grep -q "^Reports judged: 3. figure 2, useless 1, unbacked 1, assumed 2, offtask 1, missing 1. 1 verdict(s) unreadable" /tmp/srs-report-eval.out \
+    || { echo "report-eval: the totals are not 2 figure, 1 useless, 1 unbacked, 2 assumed, 1 offtask, 1 missing over three readable verdicts"
          cat /tmp/srs-report-eval.out; exit 1; }
 [ "$rc" = 1 ] || { echo "report-eval: an unreadable verdict exited $rc, expected 1"; exit 1; }
 grep -q "the judge did not answer in the shape asked for" /tmp/srs-report-eval.out \
