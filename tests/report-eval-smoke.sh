@@ -17,9 +17,9 @@ CANNED=/tmp/srs-report-eval.jsonl
 python3 - > "$CANNED" <<'PY'
 import json
 rows = [
-    {"task": "one", "report": "x", "verdict": "figure: 2\nuseless: 1\nunbacked: 0\nwhere:\n- the second paragraph\n- the closing line"},
-    {"task": "two", "report": "y", "verdict": "figure: 0\nuseless: 0\nunbacked: 1\nwhere: the count in the first line"},
-    {"task": "three", "report": "z", "verdict": "figure: 0\nuseless: 0\nunbacked: 0\nwhere: none"},
+    {"task": "one", "report": "x", "verdict": "figure: 2\nuseless: 1\nunbacked: 0\nofftask: 0\nmissing: 1\nwhere:\n- the second paragraph\n- the closing line"},
+    {"task": "two", "report": "y", "verdict": "figure: 0\nuseless: 0\nunbacked: 1\nofftask: 1\nmissing: 0\nwhere: the count in the first line"},
+    {"task": "three", "report": "z", "verdict": "figure: 0\nuseless: 0\nunbacked: 0\nofftask: 0\nmissing: 0\nwhere: none"},
     {"task": "four", "report": "w", "verdict": "The report looks fine to me."},
 ]
 for row in rows:
@@ -27,8 +27,8 @@ for row in rows:
 PY
 rc=0
 python3 tools/srs_report_eval.py --score "$CANNED" > /tmp/srs-report-eval.out || rc=$?
-grep -q "^Reports judged: 3. figure 2, useless 1, unbacked 1. 1 verdict(s) unreadable" /tmp/srs-report-eval.out \
-    || { echo "report-eval: the totals are not 2 figure, 1 useless, 1 unbacked over three readable verdicts"
+grep -q "^Reports judged: 3. figure 2, useless 1, unbacked 1, offtask 1, missing 1. 1 verdict(s) unreadable" /tmp/srs-report-eval.out \
+    || { echo "report-eval: the totals are not 2 figure, 1 useless, 1 unbacked, 1 offtask, 1 missing over three readable verdicts"
          cat /tmp/srs-report-eval.out; exit 1; }
 [ "$rc" = 1 ] || { echo "report-eval: an unreadable verdict exited $rc, expected 1"; exit 1; }
 grep -q "the judge did not answer in the shape asked for" /tmp/srs-report-eval.out \

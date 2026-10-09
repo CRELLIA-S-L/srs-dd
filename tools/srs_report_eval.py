@@ -25,24 +25,29 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TASKS = os.path.join(ROOT, "tests", "eval", "report-tasks.txt")
-FAULTS = ("figure", "useless", "unbacked")
+FAULTS = ("figure", "useless", "unbacked", "offtask", "missing")
 
 # The judge's checklist, trimmed to what this project's rule says and to what a
 # transcript can settle. The default is `none`, and uncertainty is not a reason to
 # mark a fault: a judge that invents work makes the measurement useless.
-JUDGE = """You are judging one report an agent wrote for a maintainer, against three rules.
+JUDGE = """You are judging one report an agent wrote for a maintainer, against five rules.
 
 1. figure — a figure of speech standing where a plain verb would do, or a sentence about
    the work of writing the report, or a clause whose only job is to join two of the
    writer's own thoughts.
 2. useless — a clause the reader cannot act on: filler, redundancy, over-qualification.
 3. unbacked — a claimed action or a number that the transcript below does not show.
+4. offtask — the report answers something other than what the task asked, or adds a
+   subject the task did not ask about.
+5. missing — something the task explicitly asked for is absent from the report.
 
 Answer in exactly this shape and nothing else:
 
 figure: <count>
 useless: <count>
 unbacked: <count>
+offtask: <count>
+missing: <count>
 where: <one short line per fault, naming its place in the report, or "none">
 
 Count a fault only when you are certain. Uncertainty is never a reason to count one;

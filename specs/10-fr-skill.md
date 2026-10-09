@@ -1442,12 +1442,36 @@ tests: [tests/report-eval-smoke.sh]
 created: 2026-10-09
 ```
 
-The framework **shall** carry a command that asks a fresh agent instance to do a task and report, has a second fresh instance judge that report against the three halves of the guide's rule on reporting, and prints what each report was judged to carry.
+The framework **shall** carry a command that asks a fresh agent instance to do a task and report, has a second fresh instance judge that report against the guide's rule on reporting and against what the task asked for, and prints what each report was judged to carry.
 
 **Rationale.** The rule, the re-read and the clause about tool results are all instructions to an agent, and nothing in the repository can tell whether they reach the reports: a report is a message no file holds.
 This is the measurement the project already uses twice — a fresh instance asked the questions in `tests/eval/`, scored, and read by hand — applied to the third thing the guides ask for.
 Two instances rather than one, because the writer of a report is the worst judge of it: the shapes the rule forbids are how an agent chains its own steps, and the instance that wrote them does not see them.
-The judge is held to a fixed checklist and to a default of zero, with uncertainty never a reason to count a fault, because a judge that invents work makes the number useless; the form of that checklist came from a critic prompt a maintainer brought from another project on 2026-10-09, trimmed to the three rules this guide states.
+The judge is held to a fixed checklist and to a default of zero, with uncertainty never a reason to count a fault, because a judge that invents work makes the number useless; the form of that checklist came from a critic prompt a maintainer brought from another project on 2026-10-09.
+Five criteria, not three: the three the guide states, plus the two from that prompt which this context can settle — a report answering something other than what was asked, and something the task asked for being absent. The rest of that prompt is written for an assistant talking to the public — tone, the nature of the speaker, invented memories of past conversations — and does not apply to an agent reporting on a repository.
 A verdict that cannot be read in the shape asked for is reported as unreadable and fails the run rather than counting as zero faults, which is the same refusal the register's checker makes about a history it could not read.
 Measured by hand before and after a change to the guides, never in a pipeline: the answers vary run to run, and a gate over a varying number is a gate somebody switches off.
+
+### FR-SKILL-590 — A report answers what was asked
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-540]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-09
+```
+
+The agent guide the framework ships **shall** require that a report answer what was asked, and that a subject the task did not ask about be given in one line at the end or left out.
+
+**Rationale.** This rule was written after the measurement rather than before it, which is the order the three rules before it did not follow.
+On 2026-10-09 `tools/srs_report_eval.py` judged three reports against five criteria, two of them taken from a critic prompt a maintainer brought from another project: a report answering something other than what was asked, and something the task asked for being absent.
+Two of the three reports added a subject nobody asked about — the requirements depending on the one in the question, and a neighbour requirement with its size — and none left anything out.
+So the failure is adding, not omitting, and the rule is written against the failure that was measured.
+One line at the end rather than silence, because an agent reading a repository does see things worth a sentence, and a rule that forbids them entirely is a rule that gets ignored on the first useful aside.
+Held where the other three clauses of the guide's sixth rule are held, in `tests/guide-parity.sh`.
 
