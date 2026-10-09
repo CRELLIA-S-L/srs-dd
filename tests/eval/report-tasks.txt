@@ -1,0 +1,5 @@
+# What a fresh instance is asked to do and report. Short tasks: the measurement is
+# about the report, not about the work.
+Name what FR-CHK-050 obliges and where it is realized.
+Say how many requirements the area CHK holds and what the largest one is about.
+Report whether the architecture layer reports anything about this repository today.

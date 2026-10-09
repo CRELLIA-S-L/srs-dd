@@ -11,7 +11,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, tools/srs_init.py, srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_arch_doc.py]
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, tools/srs_init.py, srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/srs_report_eval.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_arch_doc.py]
 tests: []
 created: 2026-08-07
 ```

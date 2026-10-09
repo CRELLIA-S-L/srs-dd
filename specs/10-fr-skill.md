@@ -1426,3 +1426,26 @@ Actions and numbers rather than every sentence, because those are the two kinds 
 The form is taken from a critic prompt a maintainer brought from another project on 2026-10-09, where the list of real actions is the tool results and a claimed action absent from them is reported; what transferred is that test, not the rest of that list, which is written for an assistant talking to the public.
 Verified where the other two halves of the rule are: `tests/guide-parity.sh` holds the guide to the rule's own words, because a rule an edit can delete in silence is one an edit will delete.
 
+### FR-SKILL-580 — Whether a report follows the rule is measured, not assumed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-540]
+depends_on: [FR-SKILL-550, FR-SKILL-570]
+refines: []
+conflicts_with: []
+code: [tools/srs_report_eval.py]
+tests: [tests/report-eval-smoke.sh]
+created: 2026-10-09
+```
+
+The framework **shall** carry a command that asks a fresh agent instance to do a task and report, has a second fresh instance judge that report against the three halves of the guide's rule on reporting, and prints what each report was judged to carry.
+
+**Rationale.** The rule, the re-read and the clause about tool results are all instructions to an agent, and nothing in the repository can tell whether they reach the reports: a report is a message no file holds.
+This is the measurement the project already uses twice — a fresh instance asked the questions in `tests/eval/`, scored, and read by hand — applied to the third thing the guides ask for.
+Two instances rather than one, because the writer of a report is the worst judge of it: the shapes the rule forbids are how an agent chains its own steps, and the instance that wrote them does not see them.
+The judge is held to a fixed checklist and to a default of zero, with uncertainty never a reason to count a fault, because a judge that invents work makes the number useless; the form of that checklist came from a critic prompt a maintainer brought from another project on 2026-10-09, trimmed to the three rules this guide states.
+A verdict that cannot be read in the shape asked for is reported as unreadable and fails the run rather than counting as zero faults, which is the same refusal the register's checker makes about a history it could not read.
+Measured by hand before and after a change to the guides, never in a pipeline: the answers vary run to run, and a gate over a varying number is a gate somebody switches off.
+

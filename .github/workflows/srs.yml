@@ -106,6 +106,9 @@ jobs:
       - name: Plain instructions
         run: tests/plain-instructions.sh
 
+      - name: Report eval smoke
+        run: tests/report-eval-smoke.sh
+
       - name: Citation eval smoke
         run: tests/cite-eval-smoke.sh
 
