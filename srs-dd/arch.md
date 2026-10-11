@@ -157,6 +157,13 @@ Without the file, a project written in a language other than Python has a declar
 The checker says so on such a run: where no carried file is in the language it reads and there are no supplied edges, it notes that the model was compared with nothing.
 That note is not one of the rules and cannot be priced away — it does not report anything about the cut, it reports what the run did not do.
 
+## Naming a part
+
+A part's boundary is drawn from what the part is responsible for, not from the files it holds.
+The responsibility is settled first and written as the record's own sentence; `carries` is then the files that sentence covers, and the requirements come last of the three — named by the record, or derived through those files.
+
+This is the part of the record no tool proposes: a draft cut over the directories nobody carries, and a cut grouped from the links between requirements, are joins over what is already written, read and redrawn by a person before anything is recorded, because neither knows what a part is responsible for.
+
 ## Units, and the facts about them
 
 A part is what the code is divided into; a unit is what is deployed or run as one piece, and the two do not line up — a unit may hold many parts, and one part may ship as two.

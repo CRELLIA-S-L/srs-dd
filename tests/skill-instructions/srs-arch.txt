@@ -18,6 +18,9 @@ srs-dd/tools/srs_view.py --code
 # into (ART-070), so the procedure states the reason instead of the number.
 twenty-five edges against seven real ones
 
+# the rule that lives in the standard, pointed at rather than copied (FR-ARCH-770)
+What a cut is drawn from is in *Naming a part*
+
 # readings and acts the procedure must carry
 renamed, split or merged
 protecting nothing in particular is the answer

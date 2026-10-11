@@ -121,6 +121,9 @@ jobs:
       - name: Standard names every rule
         run: tests/standard-rules.sh
 
+      - name: Standards keep the rules they alone state
+        run: tests/standard-sections.sh
+
       - name: Standards name every value
         run: tests/standard-vocabulary.sh
 

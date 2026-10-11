@@ -51,11 +51,11 @@ The plan is computed and the move is authored: `--plan` is the difference betwee
 
 ## Naming a part
 
-An element is a decision, not a description of the directory tree.
+What a cut is drawn from is in *Naming a part*, `srs-dd/arch.md`.
 
 1. **Name what it is responsible for in one sentence.** An "and" in it is two parts, or one that needs a better name.
-2. **List its files.** A directory in `carries` owns everything under it. Carriers are not only code — a standard, a procedure, a CI template, a payload.
-3. **List the requirements it carries**, from what the specification says realizes those files: `python3 srs-dd/tools/srs_view.py --code <path>`. Where the layer's configuration says the requirements are derived, skip this: the checker counts as carried what the part owns, and the list is on the map; write `requirements:` only for an obligation the part answers for without owning its files, and say so in the rationale — the map marks the entry as written.
+2. **List its files.** Carriers are not only code — a standard, a procedure, a CI template, a payload.
+3. **List the requirements it carries**, from what the specification says realizes those files: `python3 srs-dd/tools/srs_view.py --code <path>`. Where the configuration derives them, *Derived requirements* in `srs-dd/arch.md` says what the record writes instead, and the rationale says why it kept an entry.
 4. **Declare its dependencies** where they are real. `depends_on` is the model a person writes, not derived from the links between requirements — derived that way on the framework's own code it gave twenty-five edges against seven real ones. The checker reads only Python by itself; for any other language the project lists its edges in `arch/edges.json`, or the model has nothing that ever disagrees with it.
 
 Every choice that could have gone another way goes into an ADR in `specs/adr/`: the layer records the cut, the ADR why this cut and not the neighbouring one.

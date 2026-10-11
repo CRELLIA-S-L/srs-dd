@@ -1601,3 +1601,24 @@ Where any part names a unit, the architecture document **shall** state each unit
 The provenance is stated beside them because a reader judging a disagreement needs to know what the model was compared against — a commit of another repository, a cluster, a list somebody typed — and that is exactly what a finding from these facts cannot say on its own.
 Absent where no part names a unit, as every optional section of this document is.
 
+
+### FR-ARCH-770 — The layer's standard says what a cut is drawn from
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-540]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md]
+tests: [tests/standard-sections.sh]
+created: 2026-10-11
+```
+
+The standard the framework ships for the architecture layer **shall** state that a part's boundary is drawn from what the part is responsible for rather than from the files it holds.
+
+**Rationale.** Two of the layer's three readings hand a reader a cut computed from what is already written — a draft over the directories nobody carries (`FR-ARCH-540`) and a grouping over the links between requirements (`FR-ARCH-580`) — and each is a join that knows nothing about responsibility, which is why both only print.
+That the boundary comes from the responsibility was written in one place, `.claude/skills/srs-arch/SKILL.md`, and in the rationale of `FR-ARCH-540`; the standard said only, under *What not to do*, that the parts are not cut as finely as the file tree, which is granularity and not direction.
+Both procedures of the layer open by telling the reader that the standard is the file this needs, so a reader who read it and nothing else was never told what the cut comes from, and one of the two pointed at a section of the standard that was not there.
+`FR-SKILL-020` then settles where the rule lives: the standard states it, and the procedure points at it rather than carrying a second copy.
