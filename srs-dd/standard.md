@@ -63,6 +63,10 @@ The sequence runs in tens and does not break; a number between tens is for a req
 **An identifier is immutable and never reused.** A cancelled requirement is not deleted: it gets status `superseded` and a pointer to its replacement.
 The freed number stays dead forever — otherwise a reference from an old discussion will one day lead to the wrong place.
 
+**A path is not an identifier, and it takes the same care.** Where a file moves, the paths that named it are rewritten with it — and only those.
+An earlier sentence may spell the same path and mean another file, and rewriting that one leaves it instructing a reader to do the opposite of what it said; the spelling is no guide to which file was meant, and only the sentence around it says.
+A path left stale reads as history, where one quietly re-pointed reads as instruction.
+
 ## Binding force
 
 There is no separate priority field: the force is carried by the modal verb, and the verb is set in bold.

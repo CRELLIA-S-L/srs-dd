@@ -208,6 +208,7 @@ Ask for them by name, or describe the task and let the agent pick.
 | any change to behaviour | `srs` — the everyday loop: name the requirements the change belongs to *before* the code, create one where none exists, re-read their statements as the loop closes, fill `code` and `tests` with real paths. |
 | "we have code and no spec" | `srs-harvest` — reads the code area by area, proposes `draft` requirements in batches you approve first, invents no tests. |
 | "check this before I commit" | `srs-check` — names the checks the touched requirements actually call for: the checker, the tests those requirements list, and what a person must look at where the method is not a test. It offers; it never runs a suite unasked. |
+| "get this ready to commit" | `srs-commit` — hands the change to `srs-check` first, establishes whether the message covers the staged set or everything, puts the generated files the gate compares into the index, reads the diff and the untracked files, and writes the message with the identifiers the change implements. It prepares; you commit. |
 | "audit the spec against the code" | `srs-audit` — semantic drift, test adequacy, and the links requirements do not carry. Read-only: it reports which side looks wrong and never picks one. |
 | "freeze the spec" | `srs-baseline` — shows what changed since the last baseline, offers an audit of what the diff touches, settles the version with you, writes the row. |
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
@@ -271,7 +272,7 @@ The architecture layer answers four more questions with its own commands.
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
 | `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
 | `tools/` | `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `srs_report_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
-| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch`, `srs-arch-harvest` and `srs-arch-audit` (with the layer), and `srs-init`, `srs-release` (framework-only) |
+| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-commit`, `srs-bet` (with the register), `srs-arch`, `srs-arch-harvest` and `srs-arch-audit` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `.github/`, `.githooks/` | This repository's own pipeline and the hook that runs the same suites before a commit; targets get the templates in `ci/` instead |

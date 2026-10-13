@@ -67,6 +67,8 @@ Three things outside this repository depend on what is inside it, and all three 
   The installer prints that section and nothing around it, so "see the list above", "the fix described earlier" and their kind reach the reader as dangling references — spell the thing out instead.
 - If your change affects the generated matrix, commit the regenerated `specs/90-traceability.md` in the same change set — CI compares it byte-for-byte.
 - No two sources of truth: if a rule is stated in a standard — `srs-dd/standard.md`, `srs-dd/grounds.md` where a register is kept, `srs-dd/arch.md` where an architecture layer is kept, and `AGENTS.md` for the form of a reference to a requirement — other documents may point at it but must not restate it.
+- **Moving a file rewrites the paths that named it, and only those.** `grep -rn <the old path>` is the candidate list, not the edit: a sentence written releases ago may spell that path and mean another file — the one a project of its own keeps where the framework has a path of the same name, or a file since gone — so each hit is read in its sentence before it is changed.
+  The rule, and why it is verified by inspection rather than by a gate, is in the Identifier section of `srs-dd/standard.md` (INV-SPEC-120).
 - The tooling stays standard-library-only Python ≥ 3.9 (ART-040).
 - **Line width: 120 columns in code, none in markdown, none over what the tools print.**
   Python, shell and YAML wrap at 120 — the hooks included, which are shell without the extension to say so.

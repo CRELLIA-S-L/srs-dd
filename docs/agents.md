@@ -18,6 +18,7 @@ An agent without a skill system reads them directly as workflow guides:
 | `srs-harvest` | Mining a specification out of existing code |
 | `srs-check` | Naming and running the checks a finished change calls for |
 | `srs-page` | Rendering the specification as a page, and opening it |
+| `srs-commit` | Preparing a commit of finished work: checked, covering what is actually staged, naming the requirements it implements |
 | `srs-baseline` | Freezing the specification at a milestone |
 | `srs-upgrade` | Picking up a new framework version |
 | `srs-bet` | The grounds register: a hypothesis, a bet, a measurement, a refutation — installed only where the register is |

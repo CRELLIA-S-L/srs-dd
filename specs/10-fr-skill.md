@@ -32,7 +32,7 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-commit/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
 tests: []
 created: 2026-08-07
 ```
@@ -1503,3 +1503,58 @@ On 2026-10-09, over nine reports, seven of the thirteen `unbacked` the judge cou
 A larger record does not fix it, because any bound can be reached: what fixes it is saying where the bound fell. The judge is told in the same words that a cut is not an absence, and the rule it reads says so too.
 The bound stays, at ten times what it was: the judge's own context is finite, and a record that pushes the report out of it measures nothing at all.
 This is why the figures in `FR-SKILL-540`, `FR-SKILL-550`, `FR-SKILL-570` and `FR-SKILL-590` are inflated for `unbacked`, and why what those rationales rest on is the difference between their two halves rather than the count.
+
+### FR-SKILL-620 — The release procedure offers to tighten the budgets
+
+```yaml
+status: deferred
+verification: I
+derives_from: [INV-SKILL-020]
+depends_on: [FR-SKILL-070, NFR-SKILL-020]
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-11
+```
+
+Before a release is prepared, the `srs-release` procedure **shall** offer a pass that shortens the shipped procedures and guides and lowers each budget of words to where its files then stand, and run no part of it until the maintainer agrees.
+
+**Rationale.** `INV-SKILL-020` lets a budget rise whenever an instruction needs the room, which is right while the work is going on and would be a ratchet with nothing on the other side.
+This is the other side, and it goes at a release because that is when the cost stops being the maintainer's and starts being every reader's: the procedures a release ships are loaded by every session of every project installed from it, and the number each is held to is the number that travels.
+A release is also the last cheap moment in the sense `FR-SKILL-130` gives the baseline — after it the words are in somebody else's repository.
+
+Offered and confirmed, never run on its own, for the reason SRS-DD-ART-030 gives and one more: shortening a procedure is rewriting it, and a rewrite nobody asked for lands in the same release as the version bump, where it is reviewed least.
+Declining is a complete answer, and a release cut on a declined pass is not a defect — which is why the obligation is to offer rather than to shorten.
+
+Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` can prove the file arrives and nothing more, `tests/skill-instructions.sh` can prove a token is named, and whether the step reads as an offer rather than as a thing to do silently is read.
+
+### FR-SKILL-630 — The commit procedure prepares what the maintainer makes
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-100]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-commit/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-13
+```
+
+When a change is ready to be committed, the commit procedure **shall** establish which files the message covers, hand the change to the check procedure before the message is written, name in the message the requirement identifiers the change implements, and stop at the message rather than making the commit.
+
+**Rationale.** The framework ships ten procedures, and the step every change ends at is not one of them.
+Read on 2026-10-13 across the projects that use the framework: the step was driven by a commit procedure of the maintainer's own machine, and the framework had nothing in its place — so the one step where the specification's own gate decides whether work lands was the step it said least about.
+
+Four parts, each for its own reason.
+**Which files**, because a message written from the intent describes what was meant and ships beside a diff that does something else, and because `git diff` never shows an untracked file: a change that is mostly new files comes out of the diff invisible.
+**The check procedure first**, because a commit is the moment after which a red check is somebody else's problem, and `FR-SKILL-100` already derives what the change calls for.
+**The identifiers**, because SRS-DD-ART-060 asks the commit or the pull request for them; they go bare in a trailing parenthesis, the one place a record is named by its number alone, which is the exception `FR-SKILL-200` carves out for a line an upgrade prints whole.
+**Stopping at the message**, because the commit is made with whatever git client the project is driven by, which may not be a console at all — the same reason `srs-baseline` and `srs-release` stop short of it, and the half of `CON-SPEC-030` that holds for a procedure as well as for a tool.
+
+The gate's own refusal belongs to this step and to no other, and every refusal read the same way: a generated file regenerated and left unstaged.
+A procedure that says nothing about the index is a procedure that hands that refusal to the hook.
+
+Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` proves the file arrives in a target and `tests/skill-instructions.sh` that the commands are still named, and whether the sentence around each of them still tells the reader to run it is read.

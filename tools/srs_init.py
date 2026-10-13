@@ -141,10 +141,10 @@ TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_view_model.py",
 # Skills shipped to targets; srs-init and srs-release stay framework-only, and this
 # tuple is where that is kept.
 # implements: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100
-# implements: FR-SKILL-110
+# implements: FR-SKILL-110, FR-SKILL-630
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
-          "srs-baseline", "srs-check", "srs-page")
-# srs-end: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110
+          "srs-baseline", "srs-check", "srs-page", "srs-commit")
+# srs-end: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-630
 
 # Service spec files adopt lays down when (and only when) absent.
 ADOPT_SERVICE_FILES = ("00-glossary.md", "91-open-issues.md", "92-baselines.md")
@@ -1447,6 +1447,7 @@ def run_fresh(args, target, batch):
             "       srs-check    name and run the checks a change calls "
             "for\n"
             "       srs-page     read the specification as a page\n"
+            "       srs-commit   prepare a commit of finished work\n"
             "  2. Replace the placeholder requirement in "
             "specs/10-fr-%s.md; the\n"
             "     rules are in srs-dd/standard.md.\n"

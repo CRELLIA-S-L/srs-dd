@@ -56,7 +56,7 @@ for said in "specs/10-fr-core.md" "srs-dd/tools/srs_check.py" "srs-dd/tools/srs_
         || { echo "FAIL FR-INIT-150 — the first steps do not name $said"; cat /tmp/fresh-steps.log; exit 1; }
 done
 # srs-end: FR-INIT-150
-# verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070
+# verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070, FR-SKILL-630
 # Every skill that ships is named, and none that does not. The last of
 # those is named by its absence: srs-release stays here.
 # Read from the installer rather than written here: a list in the suite is

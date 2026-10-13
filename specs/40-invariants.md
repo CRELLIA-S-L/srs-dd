@@ -665,13 +665,13 @@ The suite is the gate this names as its code, as `INV-SPEC-100` does: what carri
 ### INV-SPEC-120 — A path rewritten because a file moved still names that file
 
 ```yaml
-status: deferred
+status: implemented
 verification: I
 derives_from: [INV-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: []
+code: [srs-dd/standard.md, CONTRIBUTING.md]
 tests: []
 created: 2026-10-01
 ```
@@ -708,3 +708,31 @@ Wherever the framework prints a page `IF-SPEC-050` names, it **shall** carry a l
 The caller names them rather than the page deciding for itself, because only the caller knows which pages it is about to produce: a page that chose its own links from what the repository holds — a `grounds/` directory, an `arch/` one — would promise a sibling nobody printed, and a page printed to stdout cannot even look beside its output to check.
 So a link exists on exactly one ground: somebody said that file will be there. Where nothing was named the page carries no links, which is what a hand-run of a single page gets, and `FR-CI-190`'s step names all three because it is the one place that knows the whole set is being produced.
 The names come from `IF-SPEC-050` and not from the caller's imagination: a name outside that set is a published URL nobody else writes, and the page would be the only thing pointing at it.
+
+### INV-SKILL-020 — A budget rises before an instruction is cut
+
+```yaml
+status: deferred
+verification: I
+derives_from: [NFR-SKILL-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-11
+```
+
+Where a procedure or an agent guide the framework ships must carry an instruction its budget of words has no room for, that budget **shall** be raised, with the reason written beside the number, rather than the room made by cutting an instruction the file already carries.
+
+**Rationale.** The budget is a floor under what the procedures cost, not a design target, and `NFR-SKILL-020` says it "starts where the procedures stand and is lowered as they are shortened".
+Nothing said which way to go when the floor is in the way of an instruction, and the expensive answer is the one that looks disciplined: squeeze the new rule in by spending the file's own words.
+Measured once, on 2026-10-09: paying for the guide's sixth rule out of `AGENTS.md` itself took out the line that says to read `CONTRIBUTING.md` before reformatting anything, the one that makes the `srs-ignore` exemption unconditional, and the one that says this repository lives by the framework it ships.
+All three went back and the number rose from 2 060 to 2 100 instead, which is the act this invariant makes the default rather than a recovery.
+Raising is cheap to review and impossible to miss — the number sits in `tests/skill-budget.sh` with its reason above it, and the commit that moves it says why — while a sentence quietly spent to make room is invisible in a diff that also adds a section.
+
+Three ways out of a full budget, and this one is first because the other two are not always available: a rule that belongs in a standard the procedure already tells the reader to open is moved there and pointed at (`FR-SKILL-020`), which is what `FR-ARCH-770` did for `srs-arch`; and a procedure that has genuinely grown slack is rewritten shorter, which is a pass of its own and is where `FR-SKILL-620` puts it.
+So the numbers do not only ever rise: they rise while the work is going on and are read back down before a release.
+
+**No gate goes with it.** A suite can see that a number moved and that a file is shorter; it cannot see whether the words that left were an instruction or a restatement of one, which is the whole question.
+`FR-SKILL-300` holds the mechanical half — every command, article, file and procedure a list says the file must name is still named — and this is verified by inspection for what that list cannot hold: the sentence around the command that tells the reader to run it, and the reason beside it.

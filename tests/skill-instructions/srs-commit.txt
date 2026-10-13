@@ -1,0 +1,36 @@
+# What the `srs-commit` procedure must name — written off the original on
+# 2026-10-13, as the procedure was first written. One literal token per line;
+# the suite fails when one is missing from the procedure's text. Add a line
+# when the procedure gains an instruction; remove one only with the sentence
+# that says why.
+
+# commands
+git status --short
+git diff --cached --stat
+git diff --cached
+python3 srs-dd/tools/srs_gate.py
+git add
+
+# articles
+SRS-DD-ART-030
+SRS-DD-ART-060
+SRS-DD-ART-100
+
+# the rule that lives in the guide, pointed at rather than copied — and by
+# its words, since a requirement's number points at nothing in a project
+# this procedure is installed into (ART-070).
+the one place a record is named by its number alone
+
+# the generated files the gate compares
+specs/90-traceability.md
+arch/90-map.md
+grounds/90-dashboard.md
+
+# procedures
+.claude/skills/srs-check/SKILL.md
+
+# readings and acts the procedure must carry
+the only one of the three that shows an untracked file
+merge, rebase or cherry-pick is in progress
+--no-verify
+bare, in a trailing parenthesis

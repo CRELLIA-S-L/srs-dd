@@ -83,9 +83,19 @@ cd "$(dirname "$0")/.."
 #               the framework, and the three measurement commands in the
 #               form they are run. Those were put back and the ceiling rose
 #               instead (2 079).
+#               2 220 since 2026-10-13: the framework takes over the three
+#               steps the work was actually driven by — preparing a commit,
+#               the build loop and the review loop (FR-SKILL-630 and the two
+#               that follow it) — and each has to be named in the shipped
+#               guide, since a procedure nothing names is a procedure nobody
+#               invokes (IF-SKILL-010). One bullet each, about forty words,
+#               and both guides carry them (INV-SKILL-010); the number is
+#               raised for the whole set rather than three times, and the
+#               rule that it rises rather than displacing an instruction is
+#               INV-SKILL-020.
 OWN=1550
 TRANSITIVE=7050
-GUIDE=2100
+GUIDE=2220
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by
