@@ -57,6 +57,7 @@ for said in "specs/10-fr-core.md" "srs-dd/tools/srs_check.py" "srs-dd/tools/srs_
 done
 # srs-end: FR-INIT-150
 # verifies: FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-070, FR-SKILL-630
+# verifies: FR-SKILL-640, FR-SKILL-650, FR-SKILL-660
 # Every skill that ships is named, and none that does not. The last of
 # those is named by its absence: srs-release stays here.
 # Read from the installer rather than written here: a list in the suite is

@@ -32,7 +32,7 @@ derives_from: []
 depends_on: [FR-SKILL-010]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-commit/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-page/SKILL.md, .claude/skills/srs-commit/SKILL.md, .claude/skills/srs-build/SKILL.md, .claude/skills/srs-review/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-upgrade/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md]
 tests: []
 created: 2026-08-07
 ```
@@ -478,7 +478,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, srs-dd/standard.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, .claude/skills/srs-release/SKILL.md]
+code: [AGENTS.md, skeleton/AGENTS.md, CLAUDE.md, skeleton/CLAUDE.md, srs-dd/standard.md, .claude/skills/srs/SKILL.md, .claude/skills/srs-audit/SKILL.md, .claude/skills/srs-check/SKILL.md, .claude/skills/srs-new/SKILL.md, .claude/skills/srs-harvest/SKILL.md, .claude/skills/srs-baseline/SKILL.md, .claude/skills/srs-bet/SKILL.md, .claude/skills/srs-arch/SKILL.md, .claude/skills/srs-arch-harvest/SKILL.md, .claude/skills/srs-arch-audit/SKILL.md, .claude/skills/srs-release/SKILL.md, .claude/skills/srs-build/SKILL.md, .claude/skills/srs-review/SKILL.md]
 tests: []
 created: 2026-08-27
 ```
@@ -974,7 +974,7 @@ derives_from: [FR-SKILL-010]
 depends_on: [FR-SKILL-100]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs/SKILL.md]
+code: [.claude/skills/srs/SKILL.md, .claude/skills/srs-build/SKILL.md]
 tests: [tests/skill-instructions.sh]
 created: 2026-09-24
 ```
@@ -1535,7 +1535,7 @@ Verified by inspection, like every other requirement about what a procedure says
 status: implemented
 verification: I
 derives_from: []
-depends_on: [FR-SKILL-100]
+depends_on: [FR-SKILL-100, FR-SKILL-650]
 refines: []
 conflicts_with: []
 code: [.claude/skills/srs-commit/SKILL.md, tools/srs_init.py]
@@ -1543,14 +1543,16 @@ tests: [tests/installer-smoke.sh]
 created: 2026-10-13
 ```
 
-When a change is ready to be committed, the commit procedure **shall** establish which files the message covers, hand the change to the check procedure before the message is written, name in the message the requirement identifiers the change implements, and stop at the message rather than making the commit.
+When a change is ready to be committed, the commit procedure **shall** establish which files the message covers, hand the change to the review procedure and to the check procedure before the message is written, name in the message the requirement identifiers the change implements, and stop at the message rather than making the commit.
 
 **Rationale.** The framework ships ten procedures, and the step every change ends at is not one of them.
 Read on 2026-10-13 across the projects that use the framework: the step was driven by a commit procedure of the maintainer's own machine, and the framework had nothing in its place — so the one step where the specification's own gate decides whether work lands was the step it said least about.
 
 Four parts, each for its own reason.
 **Which files**, because a message written from the intent describes what was meant and ships beside a diff that does something else, and because `git diff` never shows an untracked file: a change that is mostly new files comes out of the diff invisible.
-**The check procedure first**, because a commit is the moment after which a red check is somebody else's problem, and `FR-SKILL-100` already derives what the change calls for.
+**The review and the checks first**, because a commit is the moment after which a red check is somebody else's problem.
+Both, because neither covers the other: `FR-SKILL-100` derives the checks the touched requirements call for and judges nothing about the work, while `FR-SKILL-650` closes on two passes that found nothing and is not a run of those checks.
+The original this step was read off hands the work to its review loop and has no check procedure of its own, which is the half that was missing here until the review procedure existed.
 **The identifiers**, because SRS-DD-ART-060 asks the commit or the pull request for them; they go bare in a trailing parenthesis, the one place a record is named by its number alone, which is the exception `FR-SKILL-200` carves out for a line an upgrade prints whole.
 **Stopping at the message**, because the commit is made with whatever git client the project is driven by, which may not be a console at all — the same reason `srs-baseline` and `srs-release` stop short of it, and the half of `CON-SPEC-030` that holds for a procedure as well as for a tool.
 
@@ -1558,3 +1560,89 @@ The gate's own refusal belongs to this step and to no other, and every refusal r
 A procedure that says nothing about the index is a procedure that hands that refusal to the hook.
 
 Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` proves the file arrives in a target and `tests/skill-instructions.sh` that the commands are still named, and whether the sentence around each of them still tells the reader to run it is read.
+
+### FR-SKILL-640 — A build over several passes is judged against a written list
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-SKILL-010]
+depends_on: [FR-SKILL-100, FR-SKILL-360]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-build/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-13
+```
+
+When a build takes more than one pass, the build procedure **shall** write down before the first pass what has to exist when the work is done, and judge the work against that list rather than against whichever checks came back green.
+
+**Rationale.** `FR-SKILL-010` holds one pass — the requirements a change belongs to, the code, the decisions, the loop closed, the checker — and says nothing about repeating it, which is what every change larger than an afternoon does.
+Read on 2026-10-13 across the projects using the framework: the loop was driven by a general build procedure of the maintainer's own machine, more than by anything else, and the framework had nothing in its place.
+
+The list, and not the checks, because a green set certifies what it covers and says nothing about what it does not.
+What that costs is read off the same projects: `status: draft` is asked about again and again where today there are no drafts at all, so the statuses were flipped when the maintainer asked rather than when the behaviour arrived — a pass that ran its checks, passed them, and left the loop open.
+A list written before the first pass is the only thing in the loop that remembers what the work was for.
+
+It points at `FR-SKILL-010`'s procedure for the pass itself rather than restating it, which is `FR-SKILL-020`; what it adds is the loop, the reading of what came back, and the stop.
+Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` proves the file arrives in a target and `tests/skill-instructions.sh` that the commands and procedures are still named.
+
+### FR-SKILL-650 — A review is done on two passes that found nothing by different means
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-100, FR-SKILL-640]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-review/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-13
+```
+
+When a finished change is reviewed, the review procedure **shall** treat the work as reviewed only after two consecutive passes find nothing, each reached by a different means than the pass before it, and say in its report which two means those were.
+
+**Rationale.** A clean pass proves that the means used found nothing, not that there is nothing to find.
+The two are told apart by one thing only: running a second pass by some other route and seeing it agree.
+Re-reading is not another route — it is the first one run twice, and it agrees with itself; the reading that misses something misses it again for the same reason it missed it first.
+
+Read on 2026-10-13 across the projects using the framework: the step was driven by a review procedure of the maintainer's own machine, more than by any other, and the framework had nothing in its place.
+It is where the work actually converges — it opens the work more often than anything else, and it sits on both sides of the commit step, because that step begins by handing the work to it.
+`FR-SKILL-640` ends at stable and says so: every line of stable was judged by whoever wrote the code, which is the one judgement that cannot close a review.
+This requirement is what that hand-off hands to.
+
+Saying which two means, because the condition is otherwise unfalsifiable from the report: "reviewed twice" is what a procedure that read the same diff twice also writes.
+The means are the project's own — the whole set of checks against a narrowed one, the pipeline against the local commands, a clean state against a warm one, the requirement read forward into the work against the work read outward into its callers, the behaviour deleted to see a check go red.
+What they have in common is that each can disagree with the other.
+
+Not a count of passes: two is the floor, and `FR-SKILL-500`'s question — what the procedure is worth against not having it — is answered by the second pass finding what the first did not, which the report records.
+Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` proves the file arrives in a target and `tests/skill-instructions.sh` that the readings are still named.
+
+### FR-SKILL-660 — A finding is confirmed in the work before it is reported
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: [FR-SKILL-650]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-review/SKILL.md, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-13
+```
+
+Where the review procedure reports a finding, it **shall** have confirmed it in the work itself and give the place and what was seen there, dropping what confirmation did not survive rather than reporting it as a lesser concern.
+
+**Rationale.** A finding is a claim about the work, and nothing in a review ever falsifies one: a suspicion costs a line to write and the reader a real investigation to answer.
+So the bar cannot be the loop's — the loop runs checks, and a claim about the code is not a check.
+
+Dropping rather than downgrading, because the note is where an unconfirmed finding goes to survive.
+A blocker that failed confirmation is not a note; it is nothing, and a report that mixes the two gets skimmed, after which the confirmed ones are read no more carefully than the invented ones.
+This is `FR-SKILL-570` for a finding instead of an action: that requirement holds a report to the tool results of its own session, and the same sentence holds a review to the file it names.
+`srs-audit` already says it from the other end — an observation that cannot finish the sentence *therefore* is dropped rather than passed on — and says it about the specification; this one says it about a change.
+
+The place and what was seen there, because that is the part a reader can act on, and because a finding that cannot name them did not survive confirmation in the first place.
+Two things may be reported without one: something confirmed and deliberately left alone, and something that genuinely could not be checked, each labelled as what it is.
+Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` proves the file arrives in a target and `tests/skill-instructions.sh` that the readings are still named.

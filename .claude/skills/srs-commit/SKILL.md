@@ -1,20 +1,21 @@
 ---
 name: srs-commit
-description: Prepare a commit of finished work — hand it to the check procedure, establish what the message covers, put the generated files in the index, read the diff including untracked files, and write the message with the requirement identifiers the change implements. Invoke when a change is finished and a commit is the next step. It commits nothing itself: the commit is made with whatever git client the project is driven by.
+description: Prepare a commit of finished work — hand it to the review and check procedures, establish what the message covers, put the generated files in the index, read the diff including untracked files, and write the message with the requirement identifiers the change implements. Invoke when a change is finished and a commit is the next step. It commits nothing itself: the commit is made with whatever git client the project is driven by.
 ---
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 # Preparing a commit
 
 The commit is the maintainer's act.
-This procedure is everything that has to be true before it: that the work was checked, that the message covers what is actually being committed, and that what the gate compares is in the index.
+This procedure is everything that has to be true before it: that the work was reviewed and checked, that the message covers what is actually being committed, and that what the gate compares is in the index.
 
 ## Procedure
 
-1. **Check it first.**
-   `.claude/skills/srs-check/SKILL.md` derives what the change calls for from the requirements it touched and offers exactly that; it runs nothing unasked, which is SRS-DD-ART-030 of `srs-dd/method.md`.
+1. **Review it and check it first, both.**
+   `.claude/skills/srs-review/SKILL.md` closes on two consecutive passes that found nothing by different means, and `.claude/skills/srs-check/SKILL.md` derives what the change calls for from the requirements it touched and offers exactly that; neither runs anything unasked, which is SRS-DD-ART-030 of `srs-dd/method.md`.
+   Neither stands in for the other: a review that closed clean is not a run of the suites the touched requirements list, and a green set is no judgement of the work.
    A commit is the moment after which a red check stops being yours.
-   Where that procedure already ran in this session and nothing has changed since, say so rather than running it again; where anything was edited after it finished, it runs again.
+   Where either already ran in this session and nothing has changed since, say which and do not run it again; where anything was edited after it finished, it runs again.
 
 2. **Establish what is being committed.**
 

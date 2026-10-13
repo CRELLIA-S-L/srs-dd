@@ -93,9 +93,14 @@ cd "$(dirname "$0")/.."
 #               raised for the whole set rather than three times, and the
 #               rule that it rises rather than displacing an instruction is
 #               INV-SKILL-020.
+#               2 230 the same day: that raise was made with two of the three
+#               bullets written and forty words assumed for the third, which
+#               came in at forty-nine — the review step has a stop condition
+#               to state and the other two do not. Ten words, for the same
+#               reason as the raise itself.
 OWN=1550
 TRANSITIVE=7050
-GUIDE=2220
+GUIDE=2230
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

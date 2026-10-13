@@ -34,3 +34,4 @@ the only one of the three that shows an untracked file
 merge, rebase or cherry-pick is in progress
 --no-verify
 bare, in a trailing parenthesis
+.claude/skills/srs-review/SKILL.md

@@ -141,10 +141,15 @@ TOOLS = ("srs_check.py", "srs_parse.py", "srs_view.py", "srs_view_model.py",
 # Skills shipped to targets; srs-init and srs-release stay framework-only, and this
 # tuple is where that is kept.
 # implements: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100
-# implements: FR-SKILL-110, FR-SKILL-630
+# implements: FR-SKILL-110, FR-SKILL-630, FR-SKILL-640, FR-SKILL-650
+# implements: FR-SKILL-660
 SKILLS = ("srs", "srs-new", "srs-audit", "srs-harvest", "srs-upgrade",
-          "srs-baseline", "srs-check", "srs-page", "srs-commit")
-# srs-end: FR-SKILL-060, FR-SKILL-070, FR-SKILL-080, FR-SKILL-100, FR-SKILL-110, FR-SKILL-630
+          "srs-baseline", "srs-check", "srs-page", "srs-commit",
+          "srs-build", "srs-review")
+# srs-end: FR-SKILL-060
+# One marker for the whole block: a block ends at the first `srs-end:` naming
+# any one of its requirements (Annotations, srs-dd/standard.md), and the nine
+# above do not fit a line the width rule allows.
 
 # Service spec files adopt lays down when (and only when) absent.
 ADOPT_SERVICE_FILES = ("00-glossary.md", "91-open-issues.md", "92-baselines.md")
@@ -1448,6 +1453,10 @@ def run_fresh(args, target, batch):
             "for\n"
             "       srs-page     read the specification as a page\n"
             "       srs-commit   prepare a commit of finished work\n"
+            "       srs-build    build over several passes, against a "
+            "list\n"
+            "       srs-review   review finished work to two clean "
+            "passes\n"
             "  2. Replace the placeholder requirement in "
             "specs/10-fr-%s.md; the\n"
             "     rules are in srs-dd/standard.md.\n"

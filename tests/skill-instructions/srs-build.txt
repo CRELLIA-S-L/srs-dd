@@ -1,0 +1,31 @@
+# What the `srs-build` procedure must name — written off the original on
+# 2026-10-13, as the procedure was first written. One literal token per line;
+# the suite fails when one is missing from the procedure's text. Add a line
+# when the procedure gains an instruction; remove one only with the sentence
+# that says why.
+
+# articles
+SRS-DD-ART-030
+
+# procedures — the pass itself, what it hands to, and what it is not
+.claude/skills/srs/SKILL.md
+.claude/skills/srs-check/SKILL.md
+.claude/skills/srs-new/SKILL.md
+.claude/skills/srs-audit/SKILL.md
+.claude/skills/srs-commit/SKILL.md
+.claude/skills/srs-review/SKILL.md
+
+# files
+srs-dd/method.md
+srs-dd/standard.md
+AGENTS.md
+
+# readings and acts the procedure must carry
+This list is half the stop condition
+never reported as passing
+Never weaken a check to get past it
+Stable is stricter than green
+One line of log per pass
+at the version installed rather than the newest one
+two passes running do not reduce what is open
+the second time from a clean state
