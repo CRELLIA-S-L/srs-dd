@@ -73,35 +73,35 @@ Counted by quarter, which is what `period` says in the register's configuration.
 | quarter | arrived unclaimed | areas |
 |---|---|---|
 | 2026-Q3 | 291 | ARCH 35, CHK 32, CI 20, DOC 1, GND 67, INIT 27, SKILL 43, SPEC 28, VIEW 38 |
-| 2026-Q4 | 101 | ARCH 65, CHK 1, CI 1, GND 1, INIT 8, SKILL 22, SPEC 3 |
+| 2026-Q4 | 107 | ARCH 71, CHK 1, CI 1, GND 1, INIT 8, SKILL 22, SPEC 3 |
 
 ## Requirements resting on no hypothesis
 
-392 of 422 requirements. Weight is what stands on them: how many
+398 of 428 requirements. Weight is what stands on them: how many
 requirements link to them, plus how many files their `code` field names.
 
 | Requirement | Incoming | Code files | Weight |
 |---|---|---|---|
 | FR-SKILL-200 | 8 | 18 | 26 |
+| FR-ARCH-010 | 24 | 1 | 25 |
 | FR-ARCH-090 | 24 | 1 | 25 |
-| FR-ARCH-010 | 23 | 1 | 24 |
 | FR-VIEW-060 | 22 | 1 | 23 |
 | FR-SKILL-020 | 1 | 20 | 21 |
 | FR-INIT-280 | 1 | 19 | 20 |
 | CON-SPEC-030 | 2 | 17 | 19 |
 | IF-SPEC-010 | 17 | 2 | 19 |
 | NFR-SPEC-010 | 2 | 17 | 19 |
+| FR-ARCH-410 | 12 | 1 | 13 |
 | FR-CI-020 | 9 | 4 | 13 |
 | FR-CI-090 | 0 | 13 | 13 |
 | FR-GND-010 | 12 | 1 | 13 |
 | FR-SKILL-010 | 12 | 1 | 13 |
+| IF-ARCH-010 | 11 | 1 | 12 |
 | IF-GND-010 | 10 | 2 | 12 |
 | FR-INIT-010 | 10 | 1 | 11 |
-| IF-ARCH-010 | 10 | 1 | 11 |
-| FR-ARCH-410 | 9 | 1 | 10 |
+| FR-ARCH-780 | 8 | 2 | 10 |
 | IF-SPEC-040 | 4 | 6 | 10 |
 | INV-SPEC-090 | 0 | 10 | 10 |
-| FR-ARCH-780 | 7 | 2 | 9 |
 | FR-CHK-080 | 7 | 2 | 9 |
 | FR-SKILL-100 | 7 | 2 | 9 |
 | CON-GND-020 | 6 | 2 | 8 |
@@ -112,6 +112,7 @@ requirements link to them, plus how many files their `code` field names.
 | INV-GND-020 | 6 | 2 | 8 |
 | INV-SKILL-010 | 3 | 5 | 8 |
 | INV-SPEC-080 | 1 | 7 | 8 |
+| FR-ARCH-520 | 6 | 1 | 7 |
 | FR-ARCH-700 | 5 | 2 | 7 |
 | FR-CHK-030 | 6 | 1 | 7 |
 | FR-GND-140 | 6 | 1 | 7 |
@@ -127,7 +128,6 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-170 | 2 | 4 | 6 |
 | FR-ARCH-200 | 5 | 1 | 6 |
 | FR-ARCH-360 | 4 | 2 | 6 |
-| FR-ARCH-520 | 5 | 1 | 6 |
 | FR-CHK-050 | 5 | 1 | 6 |
 | FR-CHK-090 | 5 | 1 | 6 |
 | FR-CHK-160 | 3 | 3 | 6 |
@@ -169,6 +169,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-120 | 3 | 1 | 4 |
 | FR-ARCH-260 | 2 | 2 | 4 |
 | FR-ARCH-320 | 2 | 2 | 4 |
+| FR-ARCH-420 | 3 | 1 | 4 |
+| FR-ARCH-430 | 3 | 1 | 4 |
 | FR-ARCH-540 | 3 | 1 | 4 |
 | FR-ARCH-570 | 3 | 1 | 4 |
 | FR-ARCH-590 | 2 | 2 | 4 |
@@ -213,8 +215,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-300 | 0 | 3 | 3 |
 | FR-ARCH-310 | 1 | 2 | 3 |
 | FR-ARCH-340 | 1 | 2 | 3 |
-| FR-ARCH-420 | 2 | 1 | 3 |
-| FR-ARCH-430 | 2 | 1 | 3 |
+| FR-ARCH-370 | 1 | 2 | 3 |
 | FR-ARCH-470 | 1 | 2 | 3 |
 | FR-ARCH-490 | 1 | 2 | 3 |
 | FR-ARCH-500 | 1 | 2 | 3 |
@@ -223,6 +224,7 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-630 | 1 | 2 | 3 |
 | FR-ARCH-640 | 1 | 2 | 3 |
 | FR-ARCH-800 | 1 | 2 | 3 |
+| FR-ARCH-870 | 1 | 2 | 3 |
 | FR-CHK-055 | 2 | 1 | 3 |
 | FR-CHK-210 | 0 | 3 | 3 |
 | FR-CHK-240 | 2 | 1 | 3 |
@@ -277,11 +279,11 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-280 | 1 | 1 | 2 |
 | FR-ARCH-330 | 0 | 2 | 2 |
 | FR-ARCH-350 | 0 | 2 | 2 |
-| FR-ARCH-370 | 0 | 2 | 2 |
 | FR-ARCH-380 | 0 | 2 | 2 |
 | FR-ARCH-390 | 0 | 2 | 2 |
 | FR-ARCH-400 | 0 | 2 | 2 |
 | FR-ARCH-480 | 0 | 2 | 2 |
+| FR-ARCH-530 | 1 | 1 | 2 |
 | FR-ARCH-560 | 0 | 2 | 2 |
 | FR-ARCH-600 | 0 | 2 | 2 |
 | FR-ARCH-620 | 0 | 2 | 2 |
@@ -297,6 +299,8 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-840 | 0 | 2 | 2 |
 | FR-ARCH-850 | 0 | 2 | 2 |
 | FR-ARCH-860 | 0 | 2 | 2 |
+| FR-ARCH-880 | 1 | 1 | 2 |
+| FR-ARCH-910 | 1 | 1 | 2 |
 | FR-CHK-010 | 1 | 1 | 2 |
 | FR-CHK-040 | 1 | 1 | 2 |
 | FR-CHK-060 | 1 | 1 | 2 |
@@ -382,13 +386,15 @@ requirements link to them, plus how many files their `code` field names.
 | FR-ARCH-450 | 0 | 1 | 1 |
 | FR-ARCH-460 | 0 | 1 | 1 |
 | FR-ARCH-510 | 0 | 1 | 1 |
-| FR-ARCH-530 | 0 | 1 | 1 |
 | FR-ARCH-580 | 0 | 1 | 1 |
 | FR-ARCH-650 | 0 | 1 | 1 |
 | FR-ARCH-660 | 0 | 1 | 1 |
 | FR-ARCH-670 | 0 | 1 | 1 |
 | FR-ARCH-760 | 0 | 1 | 1 |
 | FR-ARCH-770 | 0 | 1 | 1 |
+| FR-ARCH-890 | 0 | 1 | 1 |
+| FR-ARCH-900 | 0 | 1 | 1 |
+| FR-ARCH-920 | 0 | 1 | 1 |
 | FR-CHK-020 | 0 | 1 | 1 |
 | FR-CHK-075 | 0 | 1 | 1 |
 | FR-CHK-100 | 0 | 1 | 1 |

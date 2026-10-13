@@ -57,7 +57,74 @@ def responsibility(record):
 
 
 # implements: FR-ARCH-420
-def parts_section(elements, moves, model, cfg):
+def decision_title(adr, model):
+    """The title of a decision, from the heading of its own document. The number alone where the
+    document cannot be read — the checker has already refused one that does not exist."""
+    for path in (model.get("documents") or ()):
+        name = os.path.basename(path)
+        if name == "%s.md" % adr or name.startswith("%s-" % adr):
+            try:
+                with open(os.path.join(srs_arch.ROOT, path), encoding="utf-8") as handle:
+                    for line in handle:
+                        if line.startswith("# "):
+                            head = line[2:].strip()
+                            return head.split("—", 1)[1].strip() if "—" in head else head
+            except (OSError, UnicodeDecodeError):
+                return "_unreadable_"
+    return "_no document_"
+
+
+def first_paragraph(path):
+    """The opening paragraph of a prose file, past its heading. Empty where there is none."""
+    try:
+        with open(os.path.join(srs_arch.ROOT, path), encoding="utf-8") as handle:
+            text = handle.read()
+    except (OSError, UnicodeDecodeError):
+        return ""
+    paragraph = []
+    for line in text.split("\n"):
+        line = line.strip()
+        if line.startswith("#") or line.startswith("<!--"):
+            continue
+        if not line:
+            if paragraph:
+                break
+            continue
+        paragraph.append(line)
+    return " ".join(paragraph)
+
+
+# implements: FR-ARCH-900
+def context_section(model):
+    """What the system is, in the project's own words.
+
+    The document used to begin at the first part, which assumes the reader knows what the system
+    is for — and the reader who most needs this document is the one who does not. Taken from the
+    specification rather than written again here, and the files are named so that a reader who
+    doubts it can go and look (ADR-0053).
+    """
+    documents = model.get("documents") or []
+    wanted = [("01-introduction.md", "introduction"), ("02-overview.md", "overview")]
+    found = []
+    for name, _label in wanted:
+        for path in documents:
+            if os.path.basename(path) == name:
+                paragraph = first_paragraph(path)
+                if paragraph:
+                    found.append((path, paragraph))
+                break
+    if not found:
+        return []
+    out = ["## What the system is", ""]
+    for _path, paragraph in found:
+        out += [paragraph, ""]
+    out += ["In the project's own words, from %s."
+            % " and ".join("`%s`" % path for path, _p in found), ""]
+    return out
+# srs-end: FR-ARCH-900
+
+
+def parts_section(elements, moves, model, cfg, shapes=()):
     """Every element in force: what it is, what it carries, what it answers for, what moves."""
     titles = {r["id"]: r.get("title", "") for r in model["requirements"]}
     written, computed = srs_arch.carried_by(elements, model, cfg)
@@ -96,6 +163,37 @@ def parts_section(elements, moves, model, cfg):
         out.append("- **Answers for %d requirement(s):**" % len(held))
         for rid in held:
             out.append("  - %s — %s" % (rid, titles.get(rid, "_unknown to the specification_")))
+        # implements: FR-ARCH-880
+        # What the part is made of below its files, each form with what it answers for, owns and
+        # holds: this is where a part carrying eighty-one obligations becomes readable, since the
+        # obligations are grouped by the form that answers for each.
+        inside_forms = [s for s in sorted(shapes, key=lambda r: srs_arch.srs_parse.id_key(r.id))
+                        if record.id in srs_arch.as_list(s.fields.get("inside"))
+                        and s.fields.get("status") not in srs_arch.CANCELLED]
+        if inside_forms:
+            out.append("- **Made of inside:**")
+            for form in inside_forms:
+                out.append("  - **%s** %s (`%s`) — answers for %s"
+                           % (form.id, form.title, form.fields.get("status") or "?",
+                              ", ".join(sorted(srs_arch.as_list(
+                                  form.fields.get("requirements")), key=order)) or "_nothing_"))
+                owns = srs_arch.as_list(form.fields.get("owns"))
+                if owns:
+                    out.append("    - owns %s" % ", ".join("`%s`" % name for name in owns))
+                holds = srs_arch.as_list(form.fields.get("holds"))
+                if holds:
+                    out.append("    - holds %s" % ", ".join(holds))
+        # srs-end: FR-ARCH-880
+        # implements: FR-ARCH-890
+        # Why the boundary runs here. A document describing a structure and no reason for it is
+        # the diagram this layer was written to replace; the title stands beside the number
+        # because the reader of an architecture document has no patience for one more lookup.
+        decisions = srs_arch.as_list(record.fields.get("decisions"))
+        if decisions:
+            out.append("- **Decided by:**")
+            for adr in decisions:
+                out.append("  - %s — %s" % (adr, decision_title(adr, model)))
+        # srs-end: FR-ARCH-890
         touching = [m for m in moves
                     if record.id in srs_arch.as_list(m.fields.get("from"))
                     + srs_arch.as_list(m.fields.get("to"))]
@@ -196,6 +294,36 @@ def drawing_section(elements):
             "%d part(s), %d declared dependency(ies)." % (len(live), edges), ""]
     return out
 # srs-end: FR-ARCH-430
+
+
+# implements: FR-ARCH-910
+def composition_section(shapes):
+    """How the forms are composed, as Mermaid: what is made of what, one grain below the parts.
+
+    No section where no form holds another: a drawing of unconnected boxes says less than the
+    list above it, and a section with nothing in it is not printed at all.
+    """
+    live = [record for record in sorted(shapes, key=lambda r: srs_arch.srs_parse.id_key(r.id))
+            if record.fields.get("status") not in srs_arch.CANCELLED]
+    held = dict((record.id, [name for name in srs_arch.as_list(record.fields.get("holds"))])
+                for record in live)
+    if not any(held.values()):
+        return []
+    out = ["## How the forms are composed", "",
+           "What is made of what, inside the parts.", "",
+           "```mermaid", "flowchart TD"]
+    for record in live:
+        out.append('    %s["%s %s"]' % (record.id.replace("-", "_"), record.id, record.title))
+    edges = 0
+    for record in live:
+        for target in sorted(held.get(record.id, ()), key=srs_arch.srs_parse.id_key):
+            if target not in held:
+                continue
+            out.append("    %s --> %s" % (record.id.replace("-", "_"), target.replace("-", "_")))
+            edges += 1
+    out += ["```", "", "%d form(s), %d composition(s)." % (len(live), edges), ""]
+    return out
+# srs-end: FR-ARCH-910
 
 
 # implements: FR-ARCH-440
@@ -345,6 +473,32 @@ def graph_svg(elements, cfg=None):
     else:
         depth = ranks_of(live, declared)
     # srs-end: FR-ARCH-670
+    return layout_svg(live, titles, declared, depth)
+# srs-end: FR-ARCH-530
+
+
+# implements: FR-ARCH-920
+def composition_svg(shapes):
+    """The composition as one drawing, laid out like the dependencies: a node per form in force,
+    an edge per form held, the forms that hold most at the top.
+
+    Empty where no form holds another, which is what the section itself does (ADR-0053).
+    """
+    live = [record for record in sorted(shapes, key=lambda r: srs_arch.srs_parse.id_key(r.id))
+            if record.fields.get("status") not in srs_arch.CANCELLED]
+    ids = [record.id for record in live]
+    titles = dict((record.id, record.title) for record in live)
+    held = dict((record.id, [name for name in srs_arch.as_list(record.fields.get("holds"))
+                             if name in ids]) for record in live)
+    if not any(held.values()):
+        return ""
+    return layout_svg(ids, titles, held, ranks_of(ids, held))
+# srs-end: FR-ARCH-920
+
+
+# implements: FR-ARCH-530, FR-ARCH-920
+def layout_svg(live, titles, declared, depth):
+    """Nodes in rows by depth, edges between them: the one layout both drawings use."""
     rows = {}
     for rid in live:
         rows.setdefault(depth[rid], []).append(rid)
@@ -393,11 +547,11 @@ def graph_svg(elements, cfg=None):
                       x + NODE_W / 2, y + 31, esc(title)))
     out.append("</svg>")
     return "".join(out)
-# srs-end: FR-ARCH-530
+# srs-end: FR-ARCH-530, FR-ARCH-920
 
 
 # implements: FR-ARCH-410
-def render(elements, moves, model, edges, cfg, rests=None):
+def render(elements, moves, model, edges, cfg, rests=None, shapes=()):
     """The whole document, in the order a reader's questions arise."""
     live_moves = [m for m in moves if srs_arch.RE_MOVE.match(m.id)
                   and m.fields.get("status") not in srs_arch.MOVE_CLOSED]
@@ -405,10 +559,12 @@ def render(elements, moves, model, edges, cfg, rests=None):
            "What this project is made of, projected from `arch/` and from what `specs/` says "
            "about it by `srs-dd/tools/srs_arch_doc.py` (srs-dd %s). Generated: do not edit — "
            "edit the records and print it again." % __version__, ""]
-    out += parts_section(elements, live_moves, model, cfg)
+    out += context_section(model)
+    out += parts_section(elements, live_moves, model, cfg, shapes)
     out += order_section(elements, cfg)
     out += units_section(elements)
     out += drawing_section(elements)
+    out += composition_section(shapes)
     out += divergence_section(elements, edges, cfg)
     out += grounds_section(elements, model, cfg, rests)
     out += silences_section(elements, model, cfg)
@@ -416,7 +572,8 @@ def render(elements, moves, model, edges, cfg, rests=None):
             "- The parts, their responsibilities and the moves: the records in `arch/`",
             "- The requirements and their titles: the specification, through "
             "`srs-dd/tools/srs_view.py --json`",
-            "- The disagreement with the code: the architecture checker's own reading"]
+            "- The disagreement with the code: the architecture checker's own reading",
+            "- What the system is: the project's own introduction and overview"]
     if rests is not None:
         out.append("- What the parts stand on: the bets and hypotheses in `grounds/`")
     out.append("")
@@ -550,7 +707,7 @@ def read_links(value):
 # srs-end: INV-SPEC-130
 
 
-def to_html(document, drawing="", named=()):
+def to_html(document, drawings=(), named=()):
     """The document as one page. The markdown is this file's own output, so the grammar is
     closed — headings, two levels of list, paragraphs and the one fenced block, which carries
     the drawing where there is one and its source where there is not."""
@@ -584,11 +741,18 @@ def to_html(document, drawing="", named=()):
         body.append("<li>%s" % spans(text))
         levels[-1] = True
 
+    pending = list([drawings] if isinstance(drawings, str) else drawings)
     for line in document.split("\n"):
         if fence is not None:
             if line.startswith("```"):
+                # implements: FR-ARCH-920
+                # One drawing per fenced block, in the order the document presents them: the
+                # page had one and every block was replaced by it, so a second drawing would
+                # have shown the first twice.
+                drawn = pending.pop(0) if pending else ""
+                # srs-end: FR-ARCH-920
                 body.append('<div class="drawing">%s</div>'
-                            % (drawing or '<pre class="source">%s</pre>'
+                            % (drawn or '<pre class="source">%s</pre>'
                                % esc("\n".join(fence))))
                 fence = None
             else:
@@ -668,13 +832,13 @@ def main(argv=None):
         sys.stderr.write("%s\n" % problem)
         return 2
     unread = []
-    elements, moves, _shapes = srs_arch.partition(srs_arch.read_records(unread), unread)
+    elements, moves, shapes = srs_arch.partition(srs_arch.read_records(unread), unread)
     if unread:
         sys.stderr.write("%d record(s) could not be read and are not in this document; the "
                          "checker names them.\n" % len(unread))
-    document = render(elements, moves, model, edges, cfg, srs_arch.read_grounds())
-    sys.stdout.write(to_html(document, graph_svg(elements, cfg), named) if as_page
-                     else document + "\n")
+    document = render(elements, moves, model, edges, cfg, srs_arch.read_grounds(), shapes)
+    sys.stdout.write(to_html(document, [graph_svg(elements, cfg), composition_svg(shapes)], named)
+                     if as_page else document + "\n")
     return 0
 # srs-end: FR-ARCH-410
 

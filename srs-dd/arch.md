@@ -77,7 +77,12 @@ A key that is neither required nor optional here is not an error — that tolera
 | `interface` | optional | how the part is reached from outside — a name stated here is what another part may enter by, and one it enters by and this does not state is reported |
 | `protects` | optional | the requirements the part was cut to keep, a subset of what it carries |
 | `units` | optional | the units this part ships in, by the names the project uses for them |
+| `decisions` | optional | the decisions this part rests on, by the numbers `specs/adr/` spells — one the specification holds no document named after is an error |
 | `superseded_by` | by status | the successor, where the status is `superseded`; read by a person, not checked |
+
+**Why the cut runs where it does belongs to a decision, and `decisions` is where the part points at it.**
+The layer records the cut; `specs/adr/` records why this cut and not the neighbouring one, and a part that names none sends every later reader to read the directory from one end.
+A number the specification holds no document named after is an error rather than a warning: a reader who follows it concludes the reason was recorded.
 
 `carries` is not limited to source files.
 A requirement's `code` field names whatever realizes it — a standard, a procedure, a CI template, a template shipped to somebody else — and the part that owns those files is a part like any other.

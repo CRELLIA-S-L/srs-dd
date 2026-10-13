@@ -10,6 +10,7 @@
 # file verifies: INV-SPEC-130, FR-ARCH-550
 # file verifies: FR-ARCH-660, FR-ARCH-670
 # file verifies: FR-ARCH-700, FR-ARCH-760
+# file verifies: FR-ARCH-880, FR-ARCH-890, FR-ARCH-900, FR-ARCH-910, FR-ARCH-920
 set -eo pipefail
 unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY
 unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
@@ -920,5 +921,147 @@ doc
 silent "FR-ARCH-760 no units, no section" "## The units"
 
 # srs-end: FR-ARCH-700, FR-ARCH-760
+
+# --- What the system is, what each part is made of inside, and why its boundary
+# --- runs where it does: the three sections a reader was missing, plus the
+# --- second drawing and its layout on the page.
+# verifies: FR-ARCH-880, FR-ARCH-890, FR-ARCH-900, FR-ARCH-910, FR-ARCH-920
+mkdir -p "$LAB/specs/adr"
+cat > "$LAB/specs/adr/ADR-0007-the-engine-leaves-the-store.md" <<'MD'
+# ADR-0007 — The engine leaves the store
+
+- **Status:** accepted
+MD
+cat > "$LAB/specs/01-introduction.md" <<'MD'
+# Introduction
+
+A store of documents and an engine that answers questions about them.
+
+A second paragraph nobody should see here.
+MD
+cat > "$LAB/specs/02-overview.md" <<'MD'
+# Overview
+
+Two parts: the engine reads, the store owns.
+MD
+
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010]
+depends_on: []
+decisions: [ADR-0007]
+```
+
+Answers a question by reading the store.
+MD
+
+shapes_doc() { cat > "$LAB/arch/20-shapes.md"; }
+shapes_doc <<'MD'
+# Shapes
+
+### S-010 — A query
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+names: [Query]
+shape: [parse, run]
+owns: [Query.cursor]
+holds: [S-020]
+```
+
+One question over the store.
+
+### S-020 — A plan
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010]
+owns: [Plan.steps]
+```
+
+What a query turns into before it runs.
+MD
+doc
+says "FR-ARCH-900 the section" "## What the system is"
+says "FR-ARCH-900 the introduction's own words" "A store of documents and an engine that answers questions about them."
+says "FR-ARCH-900 the overview's own words" "Two parts: the engine reads, the store owns."
+silent "FR-ARCH-900 only the opening paragraph" "A second paragraph nobody should see here."
+says "FR-ARCH-900 where it came from" "In the project's own words, from \`specs/01-introduction.md\` and \`specs/02-overview.md\`."
+says "FR-ARCH-880 the heading" "- **Made of inside:**"
+says "FR-ARCH-880 the form with its state and obligations" "  - **S-010** A query (\`proposed\`) — answers for FR-CORE-010"
+says "FR-ARCH-880 what it owns" "    - owns \`Query.cursor\`"
+says "FR-ARCH-880 what it holds" "    - holds S-020"
+says "FR-ARCH-890 the heading" "- **Decided by:**"
+says "FR-ARCH-890 the decision by number and title" "  - ADR-0007 — The engine leaves the store"
+says "FR-ARCH-910 the second drawing" "## How the forms are composed"
+says "FR-ARCH-910 the edge between the forms" "    S_010 --> S_020"
+says "FR-ARCH-910 what it counted" "2 form(s), 1 composition(s)."
+
+# The page lays both drawings out, each in its own place.
+( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html ) > /tmp/srs-arch-doc.page 2>/dev/null
+if [ "$(grep -c '<svg' /tmp/srs-arch-doc.page)" != "2" ]; then
+    echo "FAIL FR-ARCH-920 — the page does not carry both drawings as SVG"; exit 1
+fi
+if grep -qF 'flowchart TD' /tmp/srs-arch-doc.page; then
+    echo "FAIL FR-ARCH-920 — the page shows a drawing's own source"; exit 1
+fi
+passes=$((passes + 2))
+
+# A form that holds nothing: the list says it all, so no drawing and no page SVG for it.
+shapes_doc <<'MD'
+# Shapes
+
+### S-010 — A query
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+One question over the store.
+MD
+doc
+silent "FR-ARCH-910 no composition, no drawing" "## How the forms are composed"
+says "FR-ARCH-880 a form with nothing but its obligations" "  - **S-010** A query (\`proposed\`) — answers for FR-CORE-010"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch_doc.py --html ) > /tmp/srs-arch-doc.page 2>/dev/null
+if [ "$(grep -c '<svg' /tmp/srs-arch-doc.page)" != "1" ]; then
+    echo "FAIL FR-ARCH-920 — the page draws a composition nobody wrote"; exit 1
+fi
+passes=$((passes + 1))
+
+# No forms at all, no decision named, no prose files: every one of the four is silent.
+rm -f "$LAB/arch/20-shapes.md" "$LAB/specs/01-introduction.md" "$LAB/specs/02-overview.md"
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/engine.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Answers a question by reading the store.
+MD
+doc
+silent "FR-ARCH-900 no prose, no section" "In the project's own words, from"
+silent "FR-ARCH-900 no prose, nothing quoted" "A store of documents and an engine"
+silent "FR-ARCH-880 no form, no section" "- **Made of inside:**"
+silent "FR-ARCH-890 no decision named, nothing said" "- **Decided by:**"
+silent "FR-ARCH-910 no form, no drawing" "## How the forms are composed"
+# srs-end: FR-ARCH-880
+
 
 echo "arch-doc: $passes fixtures pass"

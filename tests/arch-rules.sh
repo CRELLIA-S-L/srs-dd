@@ -21,6 +21,7 @@
 # verifies: FR-ARCH-740, FR-ARCH-750, IF-ARCH-100
 # verifies: FR-ARCH-780, FR-ARCH-790, FR-ARCH-800, FR-ARCH-810, FR-ARCH-820
 # verifies: FR-ARCH-830, FR-ARCH-840, FR-ARCH-850, FR-ARCH-860, IF-ARCH-110
+# verifies: FR-ARCH-870
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -3700,6 +3701,66 @@ passes=$((passes + 1))
 # srs-end: FR-ARCH-780
 # One marker for the whole block: a block ends at the first `srs-end:` naming any one of
 # its requirements (Annotations, srs-dd/standard.md), and the ten above do not fit a line.
+
+
+# --- Why a part's boundary runs where it does: the decision it names must exist.
+# verifies: FR-ARCH-870
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+decisions: [ADR-0001]
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+silent "FR-ARCH-870 a decision that exists is not reported" 0 "the specification holds no document named"
+
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+decisions: [ADR-0099]
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+rule "FR-ARCH-870 a decision nobody wrote" 1 "E-010 names ADR-0099, and the specification holds no document named after it"
+# srs-end: FR-ARCH-870
 
 
 echo "arch-rules: $passes fixtures pass"

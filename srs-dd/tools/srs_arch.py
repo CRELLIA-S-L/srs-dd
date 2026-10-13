@@ -731,6 +731,28 @@ def check_shape_cycles(shapes, warnings, reports, cfg):
 # srs-end: FR-ARCH-840
 
 
+# implements: FR-ARCH-870
+def check_decisions(elements, model, errors):
+    """A decision an element names and the specification holds no document named after.
+
+    The layer records the cut; the decision records why this cut and not the neighbouring one,
+    which the procedure has asked for since it was written and no key could point at. Resolved
+    against the documents the viewer publishes, so the layer never learns where a project keeps
+    them — that one is named after the record's value is the whole question (ADR-0053).
+
+    An error for the reason a move's `adr` is one: a name that leads nowhere is worse than no
+    name, because a reader who follows it concludes the reason was recorded.
+    """
+    documents = [os.path.basename(path) for path in (model.get("documents") or ())]
+    for record in elements:
+        for adr in as_list(record.fields.get("decisions")):
+            if not any(name == "%s.md" % adr or name.startswith("%s-" % adr)
+                       for name in documents):
+                errors.append("%s — %s names %s, and the specification holds no document named "
+                              "after it" % (record.where, record.id, adr))
+# srs-end: FR-ARCH-870
+
+
 # implements: FR-ARCH-560
 def check_grounded(records, model, warnings, reports, cfg, rests):
     """A part carrying a requirement that rests on ground the register has lost. `refuted` and
@@ -2127,6 +2149,7 @@ def main(argv=None):
     check_shape_empty(shapes, warnings, reports, cfg)
     check_state_contested(shapes, warnings, reports, cfg)
     check_shape_cycles(shapes, warnings, reports, cfg)
+    check_decisions(elements, model, errors)
 
     for text in warnings:
         sys.stdout.write("warning: %s\n" % text)

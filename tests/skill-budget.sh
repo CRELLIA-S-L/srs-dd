@@ -62,6 +62,10 @@ cd "$(dirname "$0")/.."
 #               reader to open that standard whole and once, stood at
 #               7 812 with it. Raised rather than paid for by cutting an
 #               instruction, which is INV-SKILL-020.
+#               7 950 the same day, when the same standard gained the key a
+#               part names its decisions by (FR-ARCH-870) with the reason
+#               that an unresolvable number is worse than none, and
+#               `srs-arch` stood at 7 919 with it.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -107,7 +111,7 @@ cd "$(dirname "$0")/.."
 #               to state and the other two do not. Ten words, for the same
 #               reason as the raise itself.
 OWN=1550
-TRANSITIVE=7850
+TRANSITIVE=7950
 GUIDE=2230
 
 # What is measured: every shipped procedure, and the two agent guides —

@@ -1803,3 +1803,123 @@ When asked for the drivers of one named element, the architecture command **shal
 
 **Rationale.** `FR-ARCH-210` computes the drivers of the cut because architecture is designed against a handful of obligations rather than against the whole specification, and the same is true one grain down: a part carrying eighty-one obligations is not designed inside by reading all eighty-one.
 Computed rather than chosen, for the reason the element rule gives — a list chosen by taste is a list that agrees with whoever wrote it.
+
+### FR-ARCH-870 — A decision an element names exists
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-370]
+depends_on: [FR-ARCH-010, IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where an element names a decision in `decisions` and the specification holds no document named after it, the architecture checker **shall** report it as an error naming the element and the decision.
+
+**Rationale.** The layer records the cut and the decision records why this cut and not the neighbouring one, which the architecture procedure has asked for since it was written — and until this there was no key to point at it: only a move could name a decision, so a part's own reason had to be found by reading `specs/adr/` from one end.
+
+Measured in the field on 2026-10-13: an answer about the form inside a part had to recover the two decisions behind it through the requirements, because the record of that part named neither.
+
+An error rather than a warning, for the reason `FR-ARCH-370` gives about a move: a name that leads nowhere is worse than no name, because a reader who follows it concludes the reason was recorded.
+Resolved against the documents the viewer publishes, so the layer never learns where a project keeps them — that one is named after the record's value is the whole question.
+
+### FR-ARCH-880 — The document states what each part is made of inside
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-420]
+depends_on: [FR-ARCH-410, FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the layer holds forms, the architecture document **shall** state under every part the forms inside it, each with what it answers for, what it owns, what it holds and the state it is in.
+
+**Rationale.** `FR-ARCH-420` says what the system is made of at the grain of parts; this says it at the grain below, and the document is where a person reads the layer rather than in the records.
+Without it the grain exists for the checker and for nobody else: a part's obligations are grouped by the form that answers for each, and that grouping is the whole reason a part carrying eighty-one of them can be read at all.
+
+### FR-ARCH-890 — The document names the decisions behind each part
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-870]
+depends_on: [FR-ARCH-410]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where an element names decisions, the architecture document **shall** name each of them under that part by its identifier and the title of its document.
+
+**Rationale.** A document describing a structure and no reason for it is the diagram the layer was written to replace: the reader can see what the parts are and has to guess why the boundary runs there.
+The title and not the number alone, because a number sends the reader to a directory listing, and the one thing a person reading an architecture document is short of is the patience for one more lookup.
+
+### FR-ARCH-900 — The document opens with what the system is
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-410]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the specification carries an introduction or an overview, the architecture document **shall** open with what they say the system is, and name them as where that came from.
+
+**Rationale.** The document begins at the first part, which assumes the reader already knows what the system is for — and the reader who most needs an architecture document is the one who does not.
+Taken from the specification rather than written here, because the project has already said it in its own words and a second telling is a second thing to keep true.
+Conditional, because a project need not carry either file, and a section with nothing in it is what `FR-ARCH-460` refuses.
+
+### FR-ARCH-910 — The document draws how the forms are composed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-430]
+depends_on: [FR-ARCH-880]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the layer holds forms that hold one another, the architecture document **shall** draw that composition beside the drawing of how the parts depend on each other.
+
+**Rationale.** `FR-ARCH-430` draws the parts because a dependency between a dozen of them is read from a picture and not from a table, and composition is the same claim one grain down: what is made of what.
+Conditional on a form holding another, because a drawing of unconnected boxes says less than the list above it.
+
+### FR-ARCH-920 — The composition on the page is laid out by the command
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-910]
+depends_on: [FR-ARCH-520, FR-ARCH-530]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the architecture document is printed as a page and the layer holds forms that hold one another, the command **shall** draw that composition as an SVG inside the file, a node per form in force and an edge per form held.
+
+**Rationale.** The split `FR-ARCH-430` and `FR-ARCH-530` already make: the document hands a reader's renderer a diagram as text, and the page carries no renderer, so the page is laid out here or it shows its own source.
+
+It is a separate requirement rather than part of `FR-ARCH-910` because it is a separate obligation on a separate output, and because the page had one drawing and now has two: until this, every fenced block on the page was replaced by the same drawing, so a second one would have shown the first twice.
