@@ -736,3 +736,22 @@ So the numbers do not only ever rise: they rise while the work is going on and a
 
 **No gate goes with it.** A suite can see that a number moved and that a file is shorter; it cannot see whether the words that left were an instruction or a restatement of one, which is the whole question.
 `FR-SKILL-300` holds the mechanical half — every command, article, file and procedure a list says the file must name is still named — and this is verified by inspection for what that list cannot hold: the sentence around the command that tells the reader to run it, and the reason beside it.
+
+### INV-ARCH-030 — A shape is recorded in one direction only
+
+```yaml
+status: implemented
+verification: I
+derives_from: [INV-SPEC-020]
+depends_on: [IF-ARCH-110]
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md]
+tests: []
+created: 2026-10-13
+```
+
+The architecture layer **shall** record which requirements a shape answers for in the shape alone, leaving what answers for a requirement to be computed.
+
+**Rationale.** The rule `INV-ARCH-010` states for a part, at the grain below it and for the same reason: a link written at both ends eventually disagrees with itself, and only one of the two copies is ever updated.
+It is also what keeps the grain optional — nothing in `specs/` mentions a shape, so a project that writes none is described exactly as it was.

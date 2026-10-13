@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 
 # file implements: INV-SPEC-110
 # file verifies: FR-SPEC-070, FR-VIEW-390, FR-VIEW-050, INV-SPEC-110, FR-SKILL-450
-# file verifies: IF-ARCH-050, IF-SPEC-050
+# file verifies: IF-ARCH-050, IF-SPEC-050, IF-ARCH-110
 python3 - <<'PY'
 import re, sys
 
@@ -106,7 +106,7 @@ config = config[:config.find("**Rules.**")] if "**Rules.**" in config else confi
 found += both_ways("srs-dd/grounds.md, the configuration table", table_keys(config), srs_grounds.DEFAULTS)
 
 # The layer: its statuses on the status row, and a row for each required key —
-# per kind of record, since the layer holds two and each table is read inside
+# per kind of record, since the layer holds three and each table is read inside
 # the section that owns it. Read over the whole file, the move's keys would
 # arrive as the element's and every one of them would read as invented.
 arch = read("srs-dd/arch.md")
@@ -129,6 +129,11 @@ move = section(arch, "The move record")
 found += both_ways("srs-dd/arch.md, the move status row", status_values(move),
                    srs_arch.MOVE_STATUSES)
 found += both_ways("srs-dd/arch.md, the move keys", keys_of(move), srs_arch.MOVE_KEYS)
+shape = section(arch, "What a part is made of inside")
+found += both_ways("srs-dd/arch.md, the shape status row", status_values(shape),
+                   srs_arch.STATUSES)
+found += both_ways("srs-dd/arch.md, the shape keys", keys_of(shape), srs_arch.SHAPE_REQUIRED)
+found += both_ways("srs-dd/arch.md, every shape key", table_keys(shape), srs_arch.SHAPE_KEYS)
 
 # The viewer keeps its own tables of the checker's vocabulary: a method it
 # cannot name, a link it cannot label backwards, a status with no colour,

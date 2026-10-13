@@ -54,6 +54,14 @@ cd "$(dirname "$0")/.."
 #               since 2026-09-30, when the standard and the procedure each
 #               gained the line saying whose they are (FR-INIT-280) and
 #               `srs-bet` with the standard stood at 7 014.
+#               7 850 since 2026-10-13, when the architecture layer's
+#               standard gained the section on what a part is made of
+#               inside — the record of a form, what closes its design and
+#               the guard against writing one per class (IF-ARCH-110 and
+#               the ten rules with it) — and `srs-arch`, which tells the
+#               reader to open that standard whole and once, stood at
+#               7 812 with it. Raised rather than paid for by cutting an
+#               instruction, which is INV-SKILL-020.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -99,7 +107,7 @@ cd "$(dirname "$0")/.."
 #               to state and the other two do not. Ten words, for the same
 #               reason as the raise itself.
 OWN=1550
-TRANSITIVE=7050
+TRANSITIVE=7850
 GUIDE=2230
 
 # What is measured: every shipped procedure, and the two agent guides —

@@ -483,3 +483,33 @@ Names and not identifiers of this layer: the file speaks the project's own vocab
 `taken` and `source` are required because a fact whose age and origin are unknown cannot be weighed against a model, and `life` is optional because a project may have no idea how fast its own answer rots — that admission is better recorded than guessed at.
 `links` is optional: a project may know what it runs long before it knows what talks to what.
 
+
+### IF-ARCH-110 — The shape record is a stable format
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md, srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh, tests/standard-vocabulary.sh]
+created: 2026-10-13
+```
+
+A shape record **shall** be written as a level-three heading carrying an `S-<NNN>` identifier, a fenced `yaml` metadata block whose keys are `status`, `inside`, `requirements`, `names`, `shape`, `owns` and `holds`, a statement and an optional rationale, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The finest grain this layer had was a path: `carries` names files and directories, and `INV-ARCH-020` resolves a file to a part by the specificity of its path.
+Everything below a path — a type, the state it owns, the operations anything of its kind answers to, what is composed of what — had nowhere to go, so a question about the form inside one part met a layer with nothing to say and every rule green.
+A nested element does not reach it either: an element's carriers are paths too.
+
+A second kind of record rather than a key on the element, because `IF-ARCH-050` already set that precedent in this layer and because the two kinds answer different questions: a part is what the code is divided into, a shape is what one part is made of.
+
+The keys, each for its own reason.
+`inside` is the one part the shape belongs to, and the join points up exactly as the element's points at requirements.
+`requirements` is the obligations the shape answers for, and it is the key the design is built from: a form is designed from what its part carries, never read off the code.
+`owns` is the state the shape owns, which is checked at once and without reading anything: two owners of one state is one field answering two questions whose owners differ.
+`holds` is what the shape is composed of.
+`names` and `shape` are the symbols the form is and the operations it answers to, by the names the code uses; nothing reads them until the project supplies facts about its symbols, which is the position `interface` held before `FR-ARCH-490` existed.
+`status` takes the same four an element takes, and `proposed` is what the whole grain exists for: a form that is designed and not yet written.

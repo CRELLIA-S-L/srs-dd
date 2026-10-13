@@ -72,6 +72,9 @@ RE_ID = re.compile(r"^E-%s$" % srs_parse.NUMBER)   # implements: INV-SPEC-080
 # implements: IF-ARCH-050
 RE_MOVE = re.compile(r"^M-%s$" % srs_parse.NUMBER)
 # srs-end: IF-ARCH-050
+# implements: IF-ARCH-110
+RE_SHAPE = re.compile(r"^S-%s$" % srs_parse.NUMBER)
+# srs-end: IF-ARCH-110
 
 REQUIRED_KEYS = ("status", "carries", "requirements")
 STATUSES = ("proposed", "built", "superseded", "withdrawn")
@@ -96,6 +99,15 @@ MOVE_STATUSES = ("planned", "moving", "done", "abandoned")
 MOVE_CLOSED = ("done", "abandoned")
 # srs-end: IF-ARCH-050
 
+# implements: IF-ARCH-110
+# A shape's keys. The three required are what every rule below reads: the part it is inside, the
+# obligations it answers for, and the state it is in. The four optional ones are the form itself —
+# the symbols, the operations, the state it owns and what it is composed of — and a shape that
+# names none of them is still a design, which is what the grain exists for (ADR-0053).
+SHAPE_REQUIRED = ("status", "inside", "requirements")
+SHAPE_KEYS = SHAPE_REQUIRED + ("names", "shape", "owns", "holds")
+# srs-end: IF-ARCH-110
+
 # implements: IF-ARCH-030
 # Published names: a project writes them into arch/arch-config.json, so one is never renamed and
 # never given to a different rule.
@@ -105,7 +117,8 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "dependency-forbidden", "interface-bypassed", "protects-uncarried",
          "element-ungrounded", "dependency-upward", "import-forbidden",
          "carrier-contested", "dependency-unpermitted", "unit-absent",
-         "unit-unclaimed", "link-undeclared")
+         "unit-unclaimed", "link-undeclared", "requirement-unshaped",
+         "requirement-undesigned", "shape-empty", "state-contested", "shape-cycle")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -500,22 +513,25 @@ def as_list(value):
     return [value]
 
 
-# implements: FR-ARCH-020, FR-ARCH-360
+# implements: FR-ARCH-020, FR-ARCH-360, FR-ARCH-780
 def partition(records, errors):
     """The layer's records by kind, told apart by the prefix of the identifier.
 
-    A heading that is neither is reported here and reaches no check.
+    A heading that is none of them is reported here and reaches no check.
     """
-    elements, moves = [], []
+    elements, moves, shapes = [], [], []
     for record in records:
         if RE_ID.match(record.id):
             elements.append(record)
         elif RE_MOVE.match(record.id):
             moves.append(record)
+        elif RE_SHAPE.match(record.id):
+            shapes.append(record)
         else:
-            errors.append("%s — identifier does not match E-<NNN> or M-<NNN>" % record.where)
-    return elements, moves
-# srs-end: FR-ARCH-020, FR-ARCH-360
+            errors.append("%s — identifier does not match E-<NNN>, M-<NNN> or S-<NNN>"
+                          % record.where)
+    return elements, moves, shapes
+# srs-end: FR-ARCH-020, FR-ARCH-360, FR-ARCH-780
 
 
 # implements: FR-ARCH-360, IF-ARCH-050
@@ -537,6 +553,182 @@ def check_moves(moves, errors):
             errors.append("%s — status %r is not one of %s"
                           % (record.where, status, ", ".join(MOVE_STATUSES)))
 # srs-end: FR-ARCH-360, IF-ARCH-050
+
+
+# implements: FR-ARCH-780, IF-ARCH-110
+def check_shapes(shapes, errors):
+    """An identifier used twice, a required key absent, a status outside the four — the readings
+    an element's record gets, and errors for the same reason: every rule below reads them."""
+    seen = {}
+    for record in shapes:
+        if record.id in seen:
+            errors.append("%s — %s is already used at %s"
+                          % (record.where, record.id, seen[record.id]))
+            continue
+        seen[record.id] = record.where
+        for key in SHAPE_REQUIRED:
+            if key not in record.fields:
+                errors.append("%s — required key %r is missing" % (record.where, key))
+        status = record.fields.get("status")
+        if status is not None and status not in STATUSES:
+            errors.append("%s — status %r is not one of %s"
+                          % (record.where, status, ", ".join(STATUSES)))
+# srs-end: FR-ARCH-780, IF-ARCH-110
+
+
+# implements: FR-ARCH-790
+def check_shapes_resolve(shapes, elements, errors):
+    """`inside` and `holds`, both errors: the closure of a part's inside groups by the first and
+    the circle walks the second, so a name that leads nowhere makes every rule below meaningless.
+
+    Exactly one part, because two would make one form answer to both and the closure of each
+    would read as satisfied (ADR-0053). A missing `inside` is already reported as a missing key.
+    """
+    known_elements = set(record.id for record in elements)
+    known_shapes = set(record.id for record in shapes)
+    for record in shapes:
+        if "inside" in record.fields:
+            inside = as_list(record.fields.get("inside"))
+            if len(inside) != 1:
+                errors.append("%s — inside names %d elements, and a shape is inside exactly one"
+                              % (record.where, len(inside)))
+            for name in inside:
+                if name not in known_elements:
+                    errors.append("%s — inside names %s, which no element defines"
+                                  % (record.where, name))
+        for name in as_list(record.fields.get("holds")):
+            if name not in known_shapes:
+                errors.append("%s — holds names %s, which no shape defines"
+                              % (record.where, name))
+# srs-end: FR-ARCH-790
+
+
+def shapes_of(shapes):
+    """Which forms each part holds, as element -> [shapes], over the forms in force.
+
+    A cancelled form holds nothing up: the part reads as it did before anybody wrote it.
+    """
+    held = {}
+    for record in shapes:
+        if record.fields.get("status") in CANCELLED:
+            continue
+        for name in as_list(record.fields.get("inside")):
+            held.setdefault(name, []).append(record)
+    return held
+
+
+# implements: FR-ARCH-800, FR-ARCH-810
+def check_shape_closure(elements, shapes, model, warnings, reports, cfg):
+    """Every obligation a part carries, answered by some form inside it.
+
+    The rule the grain exists for, and it reads no code at all: a form is designed from what its
+    part carries, never from what the code turned out to be. Conditional on the part holding a
+    form, because the grain is adopted a part at a time and a rule firing on every project that
+    has not adopted it is a rule somebody prices to `off` (ADR-0053).
+
+    Two rules rather than one with two prices: a built obligation nobody answers for is a
+    warning, and an approved one nobody has designed for is the backlog of the design.
+    """
+    status = dict((entry["id"], entry.get("status")) for entry in model["requirements"])
+    written, derived = carried_by(elements, model, cfg)
+    held = shapes_of(shapes)
+    for record in elements:
+        if record.id not in held or record.fields.get("status") in CANCELLED:
+            continue
+        answered = set()
+        for shape in held[record.id]:
+            answered |= set(as_list(shape.fields.get("requirements")))
+        carries = (written.get(record.id) or set()) | (derived.get(record.id) or set())
+        for rid in sorted(carries - answered, key=srs_parse.id_key):
+            if status.get(rid) in REALIZED:
+                rule_finding(warnings, reports, cfg, "requirement-unshaped",
+                             "%s — %s carries %s and no shape inside it answers for it"
+                             % (record.where, record.id, rid))
+            elif status.get(rid) in APPROVED:
+                rule_finding(warnings, reports, cfg, "requirement-undesigned",
+                             "%s — %s carries %s and no shape inside it is designed for it"
+                             % (record.where, record.id, rid))
+# srs-end: FR-ARCH-800, FR-ARCH-810
+
+
+# implements: FR-ARCH-820
+def check_shape_empty(shapes, warnings, reports, cfg):
+    """A form that answers for nothing: either a form nobody needed or an obligation nobody
+    wrote, and which of the two it is depends on what the project meant — so a warning.
+
+    It is also the guard against what this grain invites: a record for every class in the part.
+    """
+    for record in shapes:
+        if record.fields.get("status") in CANCELLED:
+            continue
+        if as_list(record.fields.get("requirements")):
+            continue
+        inside = ", ".join(as_list(record.fields.get("inside"))) or "no part"
+        rule_finding(warnings, reports, cfg, "shape-empty",
+                     "%s — %s inside %s answers for no requirement, so nothing says what it "
+                     "is for" % (record.where, record.id, inside))
+# srs-end: FR-ARCH-820
+
+
+# implements: FR-ARCH-830
+def check_state_contested(shapes, warnings, reports, cfg):
+    """One piece of state with two owners is one field answering two questions whose owners
+    differ: both answers are right, and the field cannot serve both without one of them drifting.
+
+    The reading `check_contested` makes of a path two parts claim, at the grain where state lives.
+    """
+    owners = {}
+    for record in shapes:
+        if record.fields.get("status") in CANCELLED:
+            continue
+        for state in as_list(record.fields.get("owns")):
+            owners.setdefault(state, []).append(record.id)
+    for state in sorted(owners):
+        if len(owners[state]) > 1:
+            rule_finding(warnings, reports, cfg, "state-contested",
+                         "%s is owned by %s, so one piece of state answers to more than one form"
+                         % (state, " and ".join(sorted(owners[state], key=srs_parse.id_key))))
+# srs-end: FR-ARCH-830
+
+
+# implements: FR-ARCH-840
+def check_shape_cycles(shapes, warnings, reports, cfg):
+    """Forms that hold each other in a circle: either the form is wrong and two are one, or one
+    `holds` is composition in name only. A warning, for the reason the element rule gives —
+    nothing the checker computes is broken by a circle.
+    """
+    held = {}
+    where = {}
+    for record in shapes:
+        if record.fields.get("status") in CANCELLED:
+            continue
+        held[record.id] = as_list(record.fields.get("holds"))
+        where[record.id] = record.where
+    colour, stack = {}, []
+
+    def walk(node):
+        colour[node] = "grey"
+        stack.append(node)
+        for target in sorted(held.get(node, ()), key=srs_parse.id_key):
+            if target not in held:
+                continue
+            if colour.get(target) == "grey":
+                circle = stack[stack.index(target):]
+                if len(circle) == 1:
+                    text = "%s — %s holds itself" % (where[node], node)
+                else:
+                    text = ("%s — shapes hold each other in a circle: %s"
+                            % (where[target], " → ".join(circle + [target])))
+                rule_finding(warnings, reports, cfg, "shape-cycle", text)
+            elif target not in colour:
+                walk(target)
+        stack.pop()
+        colour[node] = "black"
+
+    for node in sorted(held, key=srs_parse.id_key):
+        if node not in colour:
+            walk(node)
+# srs-end: FR-ARCH-840
 
 
 # implements: FR-ARCH-560
@@ -1645,9 +1837,12 @@ def propose_cut(model, seeds):
 # srs-end: FR-ARCH-580
 
 
-# implements: FR-ARCH-210
-def print_drivers(model, limit=10):
+# implements: FR-ARCH-210, FR-ARCH-860
+def print_drivers(model, limit=10, element=None, elements=(), cfg=None):
     """The requirements that lead, by what makes a requirement drive structure.
+
+    Over one part, the same ranking over the obligations that part carries: a part carrying
+    eighty-one of them is not designed inside by reading all eighty-one (ADR-0053).
 
     Incoming links first — over this repository the ones that took part in an architecture
     decision carry three times as many — and the type as the tie-break, because an interface or
@@ -1656,21 +1851,34 @@ def print_drivers(model, limit=10):
     """
     incoming = model.get("incoming", {})
     weight = {"IF": 0, "INV": 1, "CON": 2, "NFR": 3, "FR": 4}
-    ranked = sorted(model["requirements"],
+    pool = model["requirements"]
+    if element is not None:
+        record = next((r for r in elements if r.id == element), None)
+        if record is None:
+            return fail_setup("no element %s\nusage: srs_arch.py --drivers [E-NNN]" % element)
+        written, derived = carried_by(elements, model, cfg)
+        carries = (written.get(element) or set()) | (derived.get(element) or set())
+        pool = [entry for entry in pool if entry["id"] in carries]
+    ranked = sorted(pool,
                     key=lambda r: (-len(incoming.get(r["id"], [])),
                                    weight.get(r["id"].split("-")[0], 9), r["id"]))
-    sys.stdout.write("Architectural drivers, most constrained first. "
-                     "A design is worked against a few of these, not all of them.\n\n")
+    if element is not None:
+        sys.stdout.write("What most constrains the form inside %s — %s, of the %d obligation(s) "
+                         "it carries.\nA form is designed against a few of these, not all of "
+                         "them.\n\n" % (element, record.title, len(pool)))
+    else:
+        sys.stdout.write("Architectural drivers, most constrained first. "
+                         "A design is worked against a few of these, not all of them.\n\n")
     for entry in ranked[:limit]:
         sys.stdout.write("%s — %s (%s, %s)\n    %d incoming, type %s\n"
                          % (entry["id"], entry["title"], entry["path"], entry["status"],
                             len(incoming.get(entry["id"], [])), entry["id"].split("-")[0]))
     return 0
-# srs-end: FR-ARCH-210
+# srs-end: FR-ARCH-210, FR-ARCH-860
 
 
 # implements: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
-def render_map(records, model, cfg, moves=()):
+def render_map(records, model, cfg, moves=(), shapes=()):
     """The map, generated from the records and never edited by hand.
 
     Under `derived` an entry the record names is bold and one computed from what the element
@@ -1731,6 +1939,29 @@ def render_map(records, model, cfg, moves=()):
                                     for path in as_list(record.fields.get("moves"))) or "—"))
         out.append("")
     # srs-end: FR-ARCH-400
+
+    # implements: FR-ARCH-850
+    # What each part is made of inside; no section where the layer holds no form, so a layer
+    # that has not adopted the grain reads exactly as it did (ADR-0053).
+    live = [record for record in sorted(shapes, key=lambda r: srs_parse.id_key(r.id))
+            if record.fields.get("status") not in CANCELLED]
+    if live:
+        out += ["## What the parts are made of inside", "",
+                "| Shape | Status | Inside | Answers for | Owns | Holds |",
+                "|---|---|---|---|---|---|"]
+        for record in sorted(live, key=lambda r: (srs_parse.id_key(
+                as_list(r.fields.get("inside"))[0] if as_list(r.fields.get("inside")) else "E-0"),
+                srs_parse.id_key(r.id))):
+            out.append("| **%s** %s | `%s` | %s | %s | %s | %s |"
+                       % (record.id, record.title, record.fields.get("status") or "?",
+                          ", ".join("**%s**" % name
+                                    for name in as_list(record.fields.get("inside"))) or "—",
+                          ", ".join(as_list(record.fields.get("requirements"))) or "—",
+                          ", ".join("`%s`" % name
+                                    for name in as_list(record.fields.get("owns"))) or "—",
+                          ", ".join(as_list(record.fields.get("holds"))) or "—"))
+        out.append("")
+    # srs-end: FR-ARCH-850
     return "\n".join(out)
 # srs-end: FR-ARCH-110, FR-ARCH-250, CON-ARCH-020
 
@@ -1780,11 +2011,21 @@ def main(argv=None):
                               "usage: srs_arch.py --price parts|areas|proposed")
         priced = rest[0]
         args = args[:cut] + rest[1:]
+    # implements: FR-ARCH-860
+    # --drivers takes one element, or none and speaks about the whole cut.
+    inside = None
+    if "--drivers" in args:
+        cut = args.index("--drivers")
+        rest = args[cut + 1:]
+        if rest and RE_ID.match(rest[0]):
+            inside = rest[0]
+            args = args[:cut + 1] + rest[1:]
+    # srs-end: FR-ARCH-860
     unknown = sorted(set(args) - {"--no-write", "--strict", "--drivers", "--plan", "--draft"})
     if unknown:
         return fail_setup("unknown flag(s): %s\n"
-                          "usage: srs_arch.py [--no-write] [--strict] [--drivers] [--plan] "
-                          "[--draft] [--price parts|areas|proposed] [--cite E-NNN…]"
+                          "usage: srs_arch.py [--no-write] [--strict] [--drivers [E-NNN]] "
+                          "[--plan] [--draft] [--price parts|areas|proposed] [--cite E-NNN…]"
                           % " ".join(unknown))
     strict = "--strict" in args
     write = "--no-write" not in args
@@ -1811,7 +2052,11 @@ def main(argv=None):
     # srs-end: FR-ARCH-740, FR-ARCH-750
 
     if "--drivers" in args:
-        return print_drivers(model)
+        if inside is None:
+            return print_drivers(model)
+        unread = []
+        elements = partition(read_records(unread), unread)[0]
+        return print_drivers(model, element=inside, elements=elements, cfg=cfg)
 
     # A reading and not a check: nothing about the layer is held to anything here.
     if "--plan" in args:
@@ -1849,7 +2094,7 @@ def main(argv=None):
 
     errors, warnings, reports = [], [], []
     records = read_records(errors)
-    elements, moves = partition(records, errors)
+    elements, moves, shapes = partition(records, errors)
     check_records(elements, model, errors, warnings, reports, cfg)
     check_dependencies_resolve(elements, errors)
     check_ownership(elements, model, warnings, reports, cfg)
@@ -1876,6 +2121,12 @@ def main(argv=None):
     check_moves(moves, errors)
     check_moves_resolve(moves, elements, model, errors)
     check_move_state(moves, elements, warnings, reports, cfg)
+    check_shapes(shapes, errors)
+    check_shapes_resolve(shapes, elements, errors)
+    check_shape_closure(elements, shapes, model, warnings, reports, cfg)
+    check_shape_empty(shapes, warnings, reports, cfg)
+    check_state_contested(shapes, warnings, reports, cfg)
+    check_shape_cycles(shapes, warnings, reports, cfg)
 
     for text in warnings:
         sys.stdout.write("warning: %s\n" % text)
@@ -1884,7 +2135,8 @@ def main(argv=None):
     for text in errors:
         sys.stdout.write("error: %s\n" % text)
 
-    moved = " Moves: %d." % len(moves) if moves else ""
+    moved = (" Moves: %d." % len(moves) if moves else "") + \
+            (" Shapes: %d." % len(shapes) if shapes else "")
     if errors:
         sys.stdout.write("\nElements: %d.%s Errors: %d. (srs_arch %s)\n"
                          % (len(elements), moved, len(errors), __version__))
@@ -1892,7 +2144,7 @@ def main(argv=None):
 
     if write:
         with open(MAP, "w", encoding="utf-8") as handle:
-            handle.write(render_map(elements, model, cfg, moves))
+            handle.write(render_map(elements, model, cfg, moves, shapes))
 
     sys.stdout.write("Elements: %d.%s Errors: 0. Warnings: %d.%s (srs_arch %s)\n"
                      % (len(elements), moved, len(warnings),

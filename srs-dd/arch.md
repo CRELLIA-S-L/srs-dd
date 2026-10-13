@@ -304,6 +304,56 @@ That act is the design instead: the new part stands `proposed`, its carriers nam
 `--plan` says what the difference between the two cuts is; a move record says what somebody agreed to do about it, and survives the commits that carry it out.
 Neither replaces the decision: the layer records that the cut is changing, and `specs/adr/` records why.
 
+## What a part is made of inside
+
+A part is files; a form is what one part is made of below them.
+Everything a reader asks about encapsulation — which types a part holds, what they have in common, which of them owns a piece of state, what is composed of what — is below a path, and `carries` cannot reach it.
+A nested element does not reach it either: its carriers are paths too.
+So a form is the third kind of record this layer holds.
+
+````markdown
+### S-010 — A query over the index
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-020]
+names: [Query, QueryPlan]
+shape: [parse, plan, run]
+owns: [Query.cursor]
+holds: [S-020]
+```
+
+One query over the index: how it is read, how it is planned and how far it has got.
+
+**Rationale.** The cursor was on the store and answered two questions at once — where a query had reached, and where the writer was appending.
+````
+
+| Key | | |
+|---|---|---|
+| `status` | required | `proposed`, `built`, `superseded`, `withdrawn` — the same four an element takes |
+| `inside` | required | the one element this form belongs to |
+| `requirements` | required | the obligations this form answers for, from what its part carries |
+| `names` | optional | the symbols this form is, by the names the code uses |
+| `shape` | optional | the operations anything of this form answers to |
+| `owns` | optional | the state this form owns, and no other form may |
+| `holds` | optional | the forms this one is composed of |
+
+**A form is designed from the obligations its part carries, never read off the code.**
+That is the order the whole framework is built on — the register carries what the requirements rest on, the requirements say what the system must do, the layer says what it is made of, and the code comes last — and it is why the rules about a form need no reading of the code at all: every one of them is computed from the records and the specification.
+Recovering forms from code that has none is adoption, and it belongs to the harvest procedure rather than to the everyday order.
+
+**What closes the design.** Where a part holds at least one form, every obligation that part carries is answered by one of them: a built obligation no form answers for is reported, and an approved one no form is designed for is a note, which is the backlog of the design.
+A part that holds no form at all is silent, because the grain is adopted a part at a time.
+`proposed` is what the grain exists for: a form can be designed, closed against the obligations and read by everybody before a line of its code is written, and only a person turns that status into `built`.
+
+**What is checked without reading anything.** An identifier that is malformed or repeated, a missing required key and a status outside the four, reported as an element's are; an `inside` that does not name exactly one element the layer defines, or a `holds` naming a form it does not define, which are errors because every rule below reads those two keys; a form answering for no obligation; one piece of state owned by two forms; and forms holding each other in a circle.
+`names` and `shape` are declarations that nothing reads yet — the position `interface` held before a part could be reported for being entered by a name it does not state.
+
+**Write a form where there is a boundary somebody could cross without noticing, not where there is a class.**
+The advice against cutting the parts as finely as the file tree holds twice over here: a record for every type says nothing the file did not, and it teaches every reader that this grain is decoration.
+The question is the layer's own — is there a boundary somebody could cross without noticing — asked of the inside of one part.
+
 ## What a part was cut to keep
 
 `requirements` is flat: everything a part answers for, the behaviour it happens to hold and the property that would be lost if its boundary moved, in one list.
@@ -376,6 +426,11 @@ A project that wants its cut closed before any code is written prices it up.
 | `unit-absent` | A unit a part names that the facts the project supplied do not hold |
 | `unit-unclaimed` | A unit the facts hold that no part names |
 | `link-undeclared` | A link the facts hold between two units whose parts declare no dependency |
+| `requirement-unshaped` | A realized requirement a part carries that no form inside it answers for, where the part holds at least one |
+| `requirement-undesigned` | A `deferred` requirement a part carries that no form inside it is designed for — a note, the backlog of the design |
+| `shape-empty` | A form in force that answers for no requirement |
+| `state-contested` | One piece of state that two forms in force own |
+| `shape-cycle` | Forms that hold each other in a circle |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do

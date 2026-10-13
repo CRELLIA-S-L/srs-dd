@@ -1622,3 +1622,184 @@ The standard the framework ships for the architecture layer **shall** state that
 That the boundary comes from the responsibility was written in one place, `.claude/skills/srs-arch/SKILL.md`, and in the rationale of `FR-ARCH-540`; the standard said only, under *What not to do*, that the parts are not cut as finely as the file tree, which is granularity and not direction.
 Both procedures of the layer open by telling the reader that the standard is the file this needs, so a reader who read it and nothing else was never told what the cut comes from, and one of the two pointed at a section of the standard that was not there.
 `FR-SKILL-020` then settles where the rule lives: the standard states it, and the procedure points at it rather than carrying a second copy.
+
+### FR-ARCH-780 — Shapes are read and reported on
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, IF-ARCH-110]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where a project's architecture layer holds shape records, the architecture checker **shall** read every one of them, reporting a malformed or repeated identifier, a missing required key and a status outside the four the standard names as it reports an element's.
+
+**Rationale.** The entry the grain hangs from, and the same sentence `FR-ARCH-360` makes for the move record: a second kind of record is read by the checker that reads the first, with the readings that make the rest meaningless reported the same way, so that a project has one tool and one set of exit codes rather than two.
+A layer that holds no shape is described exactly as it was: the reading is conditional, as the move record's is.
+
+### FR-ARCH-790 — A shape names exactly one part, and shapes that exist
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where a shape's `inside` does not name exactly one element the layer defines, or its `holds` names a shape the layer does not define, the architecture checker **shall** report it as an error naming the record and the key at fault.
+
+**Rationale.** The reading `FR-ARCH-370` makes of a move: a name that leads nowhere is an error rather than a warning, because every rule below reads these two keys — the closure of a part's inside asks `inside`, and the circle asks `holds`.
+Exactly one, because `inside` is what every rule below groups by: two parts would make one form answer to both and the closure of each would read as satisfied.
+A shape whose part does not exist can be neither designed against nor built, and one held by nothing is not reported here: a form nothing is composed of is ordinary.
+
+### FR-ARCH-800 — A realized requirement no shape inside its part answers for is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-320]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where an element holds at least one shape, the architecture checker **shall** report as a warning named `requirement-unshaped` every `implemented` or `partial` requirement that element carries which no shape inside it answers for, naming the element and the requirement.
+
+**Rationale.** This is the rule the grain exists for, and it reads no code at all.
+The chain the framework describes runs from the grounds to the requirements to the architecture to the code: a form is designed from the obligations its part carries, and what closes the design is the same thing that closes the cut one grain up — `FR-ARCH-320` reports an approved requirement no part answers for, and while that list is not empty the design is unfinished.
+
+Conditional on the part holding a shape at all, because the grain is adopted a part at a time: a layer of thirteen parts and no shapes would otherwise report every obligation it carries at once, and a rule that fires on every project that has not yet adopted it is a rule somebody prices to `off`.
+
+Measured in the field on 2026-10-13: a question about the form inside one part met a layer reporting no error and no warning about that part, because the finest grain it had was a path.
+Green there was the absence of a verdict, and the sentence the standard already uses for a model compared with nothing is the sentence this rule removes the need for.
+
+### FR-ARCH-810 — A deferred requirement no shape is designed for is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-800]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where an element holds at least one shape, the architecture checker **shall** report as a note named `requirement-undesigned` every `deferred` requirement that element carries which no shape inside it answers for, naming the element and the requirement.
+
+**Rationale.** The same reading as `FR-ARCH-800` at a different status, and the price is the whole point: an approved obligation nobody has designed a form for is the backlog of the design, which every project has and no gate should refuse.
+`requirement-unassigned` is a note one grain up for that reason, and this is its twin.
+Two rules rather than one with two prices, because a project tightens them at different moments: a team that wants the form closed before any code is written prices this one up, and one that merely wants no built obligation unowned leaves it alone.
+
+### FR-ARCH-820 — A shape answering for no requirement is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-080]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where a shape that is not cancelled answers for no requirement, the architecture checker **shall** report it as a warning named `shape-empty` naming the shape and the part it is inside.
+
+**Rationale.** The reading `FR-ARCH-080` makes of a part, one grain down: a form that answers to nothing is either a form nobody needed or an obligation nobody wrote, and which of the two it is depends on what the project meant — so it is a warning and not an error.
+It is also the guard against the failure this grain invites: a record written for every class in the part, which would make the layer a retelling of the code.
+
+### FR-ARCH-830 — A state more than one shape owns is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-640]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where two or more shapes in force name the same state in `owns`, the architecture checker **shall** report it as a warning named `state-contested`, naming the state and the shapes that claim it.
+
+**Rationale.** The reading `FR-ARCH-640` makes of a path two parts claim, at the grain where state lives.
+One piece of state with two owners is one field answering two questions whose owners differ, and that is a defect of form rather than of code: both answers are correct, and the field cannot serve both without one of them drifting.
+Measured in the field on 2026-10-13, this was the finding a person had to make by reading five places; nothing in the layer could name it.
+
+### FR-ARCH-840 — Shapes that hold each other in a circle are reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-220]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where shapes hold each other in a circle, the architecture checker **shall** report the circle as a warning named `shape-cycle`, naming every shape on it.
+
+**Rationale.** The reading `FR-ARCH-220` makes of parts that depend on each other in a circle, one grain down: either the form is wrong and two shapes are one, or one `holds` is composition in name only.
+A warning, because nothing the checker computes is broken by a circle — the same reason the element rule gives.
+
+### FR-ARCH-850 — The map states what each part is made of inside
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where the layer holds shapes, the generated map **shall** state for every one of them what it answers for, what it owns, what it holds and what state it is in, under the part it is inside.
+
+**Rationale.** The map is what a reader is told to read rather than the records, and a grain the map does not show is a grain nobody reads.
+It is also the only place the projection can live: nothing is written back into a record, for the reason derived requirements are not written back either.
+
+Our own layer is the case: the row of one part holds eighty-one obligations in a single list, which is the unreadable form of exactly this problem — the obligations are grouped by nothing, because until now there was nothing to group them by.
+
+### FR-ARCH-860 — The obligations that most constrain the form inside a part are computed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-210]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+When asked for the drivers of one named element, the architecture command **shall** rank the obligations that element carries by what makes an obligation drive form and print the few that lead.
+
+**Rationale.** `FR-ARCH-210` computes the drivers of the cut because architecture is designed against a handful of obligations rather than against the whole specification, and the same is true one grain down: a part carrying eighty-one obligations is not designed inside by reading all eighty-one.
+Computed rather than chosen, for the reason the element rule gives — a list chosen by taste is a list that agrees with whoever wrote it.

@@ -19,6 +19,8 @@
 # verifies: FR-ARCH-680, FR-ARCH-690, IF-ARCH-090
 # verifies: FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
 # verifies: FR-ARCH-740, FR-ARCH-750, IF-ARCH-100
+# verifies: FR-ARCH-780, FR-ARCH-790, FR-ARCH-800, FR-ARCH-810, FR-ARCH-820
+# verifies: FR-ARCH-830, FR-ARCH-840, FR-ARCH-850, FR-ARCH-860, IF-ARCH-110
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -1872,7 +1874,7 @@ adr: ADR-0001
 
 Hands the file over.
 MD
-rule "FR-ARCH-360 malformed identifier" 1 "identifier does not match E-<NNN> or M-<NNN>"
+rule "FR-ARCH-360 malformed identifier" 1 "identifier does not match E-<NNN>, M-<NNN> or S-<NNN>"
 
 moves <<'MD'
 # Moves
@@ -3338,6 +3340,367 @@ rm -f "$LAB/arch/units.json"
 silent "FR-ARCH-700 no facts, no findings about units" 0 "the unit"
 
 # srs-end: IF-ARCH-100, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730, FR-ARCH-740, FR-ARCH-750
+
+# --- What a part is made of inside. A clean layer of two parts first, so that a
+# fixture breaks one thing and the rest of the reading stays right.
+# verifies: FR-ARCH-780, FR-ARCH-790, FR-ARCH-800, FR-ARCH-810, FR-ARCH-820
+# verifies: FR-ARCH-830, FR-ARCH-840, FR-ARCH-850, FR-ARCH-860, IF-ARCH-110
+rm -f "$LAB/arch/10-moves.md" "$LAB/arch/units.json" "$LAB/arch/edges.json"
+shapes() { cat > "$LAB/arch/20-shapes.md"; }
+
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+
+silent "FR-ARCH-800 a part with no form is silent" 0 "no shape inside it"
+
+shapes <<'MD'
+# Shapes
+
+### S-01 — Two digits short
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-780 malformed identifier" 1 "identifier does not match E-<NNN>, M-<NNN> or S-<NNN>"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+
+### S-010 — The same number again
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for it too.
+MD
+rule "FR-ARCH-780 duplicate identifier" 1 "S-010 is already used at"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that says nothing about its obligations
+
+```yaml
+status: proposed
+inside: E-010
+```
+
+Answers for something unnamed.
+MD
+rule "FR-ARCH-780 missing key" 1 "required key 'requirements' is missing"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A state of its own invention
+
+```yaml
+status: designed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-780 a status outside the four" 1 "status 'designed' is not one of"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — Inside a part nobody has
+
+```yaml
+status: proposed
+inside: E-999
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-790 inside names no element" 1 "inside names E-999, which no element defines"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — Inside two parts at once
+
+```yaml
+status: proposed
+inside: [E-010, E-020]
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-790 inside names more than one" 1 "inside names 2 elements, and a shape is inside exactly one"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — Holding a form nobody wrote
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+holds: [S-999]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-790 holds names no shape" 1 "holds names S-999, which no shape defines"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form inside the first part
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-020]
+```
+
+Answers for an obligation its part does not carry.
+MD
+rule "FR-ARCH-800 a realized obligation no form answers for" 0 \
+     "E-010 carries FR-CORE-010 and no shape inside it answers for it"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that answers for nothing
+
+```yaml
+status: proposed
+inside: E-010
+requirements: []
+```
+
+Nothing says what it is for.
+MD
+rule "FR-ARCH-820 a form answering for no obligation" 0 \
+     "S-010 inside E-010 answers for no requirement"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+owns: [Query.cursor]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: proposed
+inside: E-020
+requirements: [FR-CORE-020]
+owns: [Query.cursor]
+```
+
+Answers for the second, and owns the same state.
+MD
+rule "FR-ARCH-830 one state with two owners" 0 \
+     "Query.cursor is owned by S-010 and S-020, so one piece of state answers to more than one form"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+holds: [S-020]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: proposed
+inside: E-020
+requirements: [FR-CORE-020]
+holds: [S-010]
+```
+
+Answers for the second, and holds the one that holds it.
+MD
+rule "FR-ARCH-840 forms in a circle" 0 "shapes hold each other in a circle"
+
+# A cancelled form holds nothing up: the part reads as it did before anybody wrote it.
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that was dissolved
+
+```yaml
+status: withdrawn
+inside: E-010
+requirements: []
+```
+
+Answers for nothing, and is gone.
+MD
+silent "FR-ARCH-820 a cancelled form is not reported" 0 "answers for no requirement"
+silent "FR-ARCH-800 a part whose only form is cancelled is silent" 0 "no shape inside it"
+
+# --- A layer whose forms close over everything their parts carry says nothing at all.
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+names: [First]
+shape: [act]
+owns: [First.state]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+holds: [S-010]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-800 a closed design says nothing about its obligations" 0 "no shape inside it"
+silent "FR-ARCH-820 a form that answers for something is not reported" 0 "answers for no requirement"
+silent "FR-ARCH-830 one owner per state is not reported" 0 "answers to more than one form"
+silent "FR-ARCH-840 a form held once is not a circle" 0 "hold each other in a circle"
+
+# --- The backlog of the design: an approved obligation no form is designed for.
+cat >> "$LAB/specs/10-fr-core.md" <<'MD'
+
+### FR-CORE-030 — The third
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-13
+```
+
+The system **shall** act a third time.
+MD
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file and answers for an obligation nobody has built.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+rule "FR-ARCH-810 an approved obligation no form is designed for" 0 \
+     "E-010 carries FR-CORE-030 and no shape inside it is designed for it"
+
+# --- The drivers of one part, and a part nobody has.
+rule "FR-ARCH-860 the drivers of one part" 0 "What most constrains the form inside E-010" --drivers E-010
+rule "FR-ARCH-860 the drivers of a part nobody has" 2 "no element E-999" --drivers E-999
+rule "FR-ARCH-210 the drivers of the whole cut" 0 "Architectural drivers, most constrained first" --drivers
+
+# --- The map says what each part is made of inside, and says nothing where no form exists.
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py > /tmp/srs-arch.log 2>&1 ) || true
+if ! grep -qF "## What the parts are made of inside" "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-850 — the map does not state what the parts are made of inside"
+    cat /tmp/srs-arch.log; exit 1
+fi
+if ! grep -qF "**S-010** The first form" "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-850 — the map does not name the form"; exit 1
+fi
+passes=$((passes + 1))
+
+rm -f "$LAB/arch/20-shapes.md"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py > /tmp/srs-arch.log 2>&1 ) || true
+if grep -qF "## What the parts are made of inside" "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-850 — the map keeps a section for forms nobody wrote"; exit 1
+fi
+passes=$((passes + 1))
+# srs-end: FR-ARCH-780
+# One marker for the whole block: a block ends at the first `srs-end:` naming any one of
+# its requirements (Annotations, srs-dd/standard.md), and the ten above do not fit a line.
+
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

@@ -668,7 +668,7 @@ def main(argv=None):
         sys.stderr.write("%s\n" % problem)
         return 2
     unread = []
-    elements, moves = srs_arch.partition(srs_arch.read_records(unread), unread)
+    elements, moves, _shapes = srs_arch.partition(srs_arch.read_records(unread), unread)
     if unread:
         sys.stderr.write("%d record(s) could not be read and are not in this document; the "
                          "checker names them.\n" % len(unread))
