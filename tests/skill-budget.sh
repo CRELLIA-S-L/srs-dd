@@ -36,6 +36,16 @@ cd "$(dirname "$0")/.."
 #               installer cannot make that judgement: it finds the region by
 #               a border, and a border shown as an example reads to it like
 #               the real one, so what is left is a reading of the document.
+#               1 850 since 2026-10-14: `srs-arch` gained designing the form
+#               inside a part (FR-SKILL-670), which is six steps and not a
+#               clause — where the obligations come from, the guard against
+#               a record per class, what closes the design, which keys the
+#               code is compared against, what the move costs and who flips
+#               the status — and stands at 1 794 with them. The grain is the
+#               one an agent with the code in front of it gets wrong by
+#               default, so the procedure is where it is stated; raised
+#               rather than paid for out of the cut's own steps, which is
+#               INV-SKILL-020.
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
@@ -76,6 +86,9 @@ cd "$(dirname "$0")/.."
 #               rather than paid for by cutting an instruction out of the
 #               one file this procedure tells its reader to open whole,
 #               which is INV-SKILL-020.
+#               8 900 since 2026-10-14, when OWN rose by three hundred for
+#               the same procedure: this ceiling counts those words too, and
+#               `srs-arch` with the standard stands at 8 868.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -115,14 +128,20 @@ cd "$(dirname "$0")/.."
 #               raised for the whole set rather than three times, and the
 #               rule that it rises rather than displacing an instruction is
 #               INV-SKILL-020.
+#               2 290 since 2026-10-14: the shipped guide's line on the
+#               architecture layer gained the grain below a path — a part
+#               may say what it is made of inside, designed from the
+#               obligations it carries and compared with what the code
+#               declares (FR-ARCH-780, FR-ARCH-980) — and both guides carry
+#               it (INV-SKILL-010), which left this repository's at 2 259.
 #               2 230 the same day: that raise was made with two of the three
 #               bullets written and forty words assumed for the third, which
 #               came in at forty-nine — the review step has a stop condition
 #               to state and the other two do not. Ten words, for the same
 #               reason as the raise itself.
-OWN=1550
-TRANSITIVE=8600
-GUIDE=2230
+OWN=1850
+TRANSITIVE=8900
+GUIDE=2290
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

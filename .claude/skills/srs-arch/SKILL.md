@@ -1,6 +1,6 @@
 ---
 name: srs-arch
-description: Working with the architecture layer — naming the parts a system is cut into, designing a cut against the specification before the code exists, recording a redraw as a move, and reading the disagreements the checker computes between that description, the specification, the dependencies and the files. Invoke when the user asks what the system is made of, wants to design, add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
+description: Working with the architecture layer — naming the parts a system is cut into, designing a cut against the specification before the code exists, designing what a part is made of inside, recording a redraw as a move, and reading the disagreements the checker computes between that description, the specification, the dependencies and the files. Invoke when the user asks what the system is made of, wants to design, add or redraw a part, or when a change moved files between parts. For requirements themselves use srs and srs-new.
 ---
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
@@ -40,6 +40,18 @@ A part designed and not yet built is `proposed`, and the layer reads that status
 4. **Close the holes.** The checker lists every approved requirement no part answers for; while that list is not empty the design is unfinished, and each entry is a conversation, not a line to add. A `draft` requirement is not in it and is not designed against.
 5. **Read what the move would cost** before touching anything: `python3 srs-dd/tools/srs_arch.py --plan` prints the files that change hands with both ends, the obligations that change part, the dependencies the design adds, and the parts it empties.
 6. **Flip the status when it is built.** The checker says which designed part has all its files and all its obligations in place; changing `proposed` to `built` is a person's act, and the layer never does it.
+
+## Designing the form inside a part
+
+A part is files; a form is what one part is made of below them — the types it holds, the operations they answer to, the state one of them owns.
+The record is `S-<NNN>`, in `arch/20-shapes.md` by convention, and its rules are in *What a part is made of inside*.
+
+1. **Start from the obligations, never from the code.** `python3 srs-dd/tools/srs_arch.py --drivers E-NNN` says which of that part's obligations most constrain the form inside it, and a part carrying eighty is designed against a few of them. A form read off the code describes what is there, which is the one direction this framework does not run in; recovering forms from code that has none is `srs-arch-harvest`.
+2. **Write a form where a boundary could be crossed without noticing, not where there is a class.** A record per type says nothing the file did not, and a layer written that way is read as decoration.
+3. **Close the design.** Where a part holds one form, every obligation it carries is answered by one of them; the checker lists what is left, and each entry is a conversation rather than a line to add.
+4. **Name the symbols, the operations and the state where they are real.** `names`, `shape` and `owns` are compared with what the code declares, and `shape` is what another part may enter by — a form stating none is entered by anything.
+5. **Read what the move would cost** before any code is written: `python3 srs-dd/tools/srs_arch.py --plan` prints, for every form still `proposed`, the symbols nothing declares yet, the operations its types do not answer to, and the state another form owns today.
+6. **Flip the status when it is built.** The checker says when every symbol a design names exists; turning `proposed` into `built` is a person's act, and the layer never does it.
 
 ## Recording a move
 

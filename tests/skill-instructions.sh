@@ -14,6 +14,7 @@ cd "$(dirname "$0")/.."
 # file verifies: FR-SKILL-480, FR-SKILL-490
 # file verifies: FR-SKILL-510, FR-SKILL-340, FR-SKILL-350, FR-SKILL-360, FR-SKILL-370, FR-SKILL-400
 # file verifies: FR-SKILL-410, FR-SKILL-420, FR-SKILL-460
+# file verifies: FR-SKILL-670, FR-SKILL-680, FR-SKILL-690
 # The lists live in tests/skill-instructions/<procedure>.txt, one literal
 # token per line, `#` for a comment. A command token is `tools/x.py` or
 # `tools/x.py --flag`; the second holds when some invocation of the tool

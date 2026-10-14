@@ -24,9 +24,9 @@ An agent without a skill system reads them directly as workflow guides:
 | `srs-baseline` | Freezing the specification at a milestone |
 | `srs-upgrade` | Picking up a new framework version |
 | `srs-bet` | The grounds register: a hypothesis, a bet, a measurement, a refutation — installed only where the register is |
-| `srs-arch` | The architecture layer: what the parts are, what each carries, and where that description and the specification disagree — installed only where the layer is |
-| `srs-arch-harvest` | Recovering the architecture of a project that has one: the parts read out of the code in approved batches — installed only where the layer is |
-| `srs-arch-audit` | Auditing a cut: against the specification, the code, its cost and its ground, every finding ending in an act — installed only where the layer is |
+| `srs-arch` | The architecture layer: what the parts are, what each carries, what a part is made of inside, and where that description and the specification disagree — installed only where the layer is |
+| `srs-arch-harvest` | Recovering the architecture of a project that has one: the parts, and the forms inside a part, read out of the code in approved batches — installed only where the layer is |
+| `srs-arch-audit` | Auditing a cut and the forms inside its parts: against the specification, the code, its cost and its ground, every finding ending in an act — installed only where the layer is |
 | `srs-init`, `srs-release` | Setup and releases — stay in the framework repository, never installed |
 
 ## If your tool wants its own rules file

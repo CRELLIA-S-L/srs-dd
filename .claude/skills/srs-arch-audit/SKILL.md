@@ -1,6 +1,6 @@
 ---
 name: srs-arch-audit
-description: Audit the architecture of a project that has one — the cut against the specification, against the code, against what it stands on, and against what it costs — and end every finding in an act. Invoke when the user asks whether the architecture is any good, whether a part should be split or merged, or for a review of the cut. For writing or redrawing a part use srs-arch; for recovering a cut that was never written down use srs-arch-harvest.
+description: Audit the architecture of a project that has one — the cut and the forms inside its parts against the specification, against the code, against what it stands on, and against what it costs — and end every finding in an act. Invoke when the user asks whether the architecture is any good, whether a part should be split or merged, or for a review of the cut. For writing or redrawing a part use srs-arch; for recovering a cut that was never written down use srs-arch-harvest.
 ---
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
@@ -22,6 +22,12 @@ Every element and requirement named to a person is cited at its first mention, a
 ## The five readings
 
 Each part, against the readings `.claude/skills/srs-arch/SKILL.md` carries: the responsibility that needs no "and", the obligations it answers for, the boundary its interface states, what it protects, and what it depends on. A part failing one of them is renamed, split or merged — never documented into looking better.
+
+## The form inside a part
+
+Every form a part holds, against the same readings and ending in the same acts: the obligations it answers for, the boundary its `shape` states, the state it owns alone, and what it is composed of.
+The checker's comparisons with the code — a symbol nothing declares, a type no form claims, a form entered past its operations, a design the code has caught up with — are already said and are not re-reported.
+What an audit adds is whether the form is a boundary at all: a record per class is the failure this grain invites, and it passes every check.
 
 ## How a finding is written
 

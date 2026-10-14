@@ -124,10 +124,13 @@ The pre-commit hook says which bets the files in your commit are standing on.
 The dashboard states how old the confirmed core is, what each frame has refused, and which requirements rest on no hypothesis at all — because a requirement nobody can say why the product has is the signal this layer exists to protect, and demanding a bet for every one of them would destroy it.
 
 The **architecture layer** is the other optional sibling, and it answers the other question a specification does not: not what the system must do, but what it is made of.
-This repository keeps one on itself — twelve parts, an order declared over them, and the page published beside the specification's own.
+This repository keeps one on itself — thirteen parts, an order declared over them, eight forms inside one of them, and the page published beside the specification's own.
 
 - A **part** has a responsibility in one sentence, the files that are it, what it leans on, how it is reached from outside, and the requirements it carries — written by hand or derived from the files it owns.
   A part may sit inside another, and a file belongs to the innermost part that claims it, by one rule used everywhere.
+- A **form** is what one part is made of below its files: the types it holds, the operations anything of it answers to, the state it owns alone, and the forms it is composed of.
+  It is designed from the obligations its part carries rather than read off the code, so a form can be written, closed against those obligations and read by everybody before a line of its code exists — and where a part holds one form, every obligation it carries has to be answered by some form inside it.
+  Nothing obliges a part to hold a form: the grain is adopted a part at a time.
 - The project sets **policy over the parts**, and the checker holds the code to it: an order of levels, where a dependency running upward is a finding; a pair that must not exist; a module a part may not import; and an allow-list — only these parts may reach that one — which otherwise takes one prohibition per part in the system.
 - A **unit** is what gets deployed or run as one piece.
   It is a name the parts claim, so one unit may hold many parts and one part may ship as two, and what a unit holds is computed rather than written down.
@@ -137,6 +140,7 @@ What that buys is one thing in three directions: **the description is held again
 `srs_arch.py` reports a file the specification claims and no part owns, a requirement built and belonging to no part, a part that answers to nothing, a dependency the code has and the model does not declare, a circle, a part entered by a name its own interface does not state, and every policy above.
 Where facts about the units are supplied it reports a unit that is not there, one nobody wrote down, and a link no part's dependencies account for.
 Where those facts are older than their own stated life it uses none of them and says so, because a run that compared nothing must not read like one that found nothing.
+Where a part says what it is made of inside, it reports an obligation no form answers for, a form that answers for nothing, one piece of state two forms own, forms holding each other in a circle, a symbol a form names that nothing declares, a type no form claims, a form entered past the operations it states, and a design the code has already caught up with.
 The layer also prints itself as a document for a person — the parts, the drawing of the dependencies, the units, and where every claim came from.
 
 **When not to keep the layer.** Where the parts are obvious and few — a single script, a library with one public module, a service whose whole structure fits in the first paragraph of its README.
@@ -215,7 +219,7 @@ Ask for them by name, or describe the task and let the agent pick.
 | "freeze the spec" | `srs-baseline` — shows what changed since the last baseline, offers an audit of what the diff touches, settles the version with you, writes the row. |
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
 | "why do we do X" / a measurement came in | `srs-bet` — the grounds register: write a hypothesis, stake a requirement on it, record a measurement, settle what happens when one is refuted. |
-| "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, and read the disagreements the checker computes between that description, the specification and the code. |
+| "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, design what a part is made of inside, and read the disagreements the checker computes between that description, the specification and the code. |
 | "is our architecture any good" / "should this part be split" | `srs-arch-audit` — reads the cut against the specification, the code, what it costs and what it stands on, and ends every finding in an act. |
 | "we have the code and no architecture" | `srs-arch-harvest` — recovers the parts from the code and from whatever the project already says about itself, in batches you approve. |
 | "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, rewrites `srs-dd/` and the procedures, and nothing of yours. |
@@ -261,7 +265,7 @@ The viewer never writes to `specs/` and never gates anything.
 Where a project keeps a register, `python3 srs-dd/tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
 Each layer's checker cites its own records in the same form — `srs_arch.py --cite E-NNN…`, `srs_grounds.py --cite H-NNN…` — because the viewer reads the specification and nothing else.
 The architecture layer answers four more questions with its own commands.
-`srs_arch.py --drivers` ranks the requirements a cut should form around, `--draft` proposes one from the files no part carries, and `--price parts|areas|proposed` says what a cut costs in links inside it, leaving it and arriving.
+`srs_arch.py --drivers` ranks the requirements a cut should form around — `--drivers E-NNN` the obligations of one part, which is what a form inside it is designed against — `--draft` proposes a cut from the files no part carries, `--plan` says what moving to a designed part or form requires, and `--price parts|areas|proposed` says what a cut costs in links inside it, leaving it and arriving.
 `srs_arch_doc.py` prints the whole layer as a document, and `--html` as a page beside the specification's own.
 
 ## Where things are

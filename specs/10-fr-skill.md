@@ -1646,3 +1646,61 @@ This is `FR-SKILL-570` for a finding instead of an action: that requirement hold
 The place and what was seen there, because that is the part a reader can act on, and because a finding that cannot name them did not survive confirmation in the first place.
 Two things may be reported without one: something confirmed and deliberately left alone, and something that genuinely could not be checked, each labelled as what it is.
 Verified by inspection, like every other requirement about what a procedure says: `tests/installer-smoke.sh` proves the file arrives in a target and `tests/skill-instructions.sh` that the readings are still named.
+
+### FR-SKILL-670 — The architecture procedure says how the form inside a part is designed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-480]
+depends_on: [FR-ARCH-780, FR-ARCH-860]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-arch/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-14
+```
+
+The architecture procedure **shall** say that a form is designed from the obligations its part carries rather than read off the code, name the command that prints which of those obligations most constrain it, and say that a form is written where a boundary could be crossed without noticing and not where there is a class.
+
+**Rationale.** The reading `FR-SKILL-480` asks for of a part, at the grain `FR-ARCH-780` added: the order the whole framework runs in — grounds, requirements, architecture, code — is the one thing a procedure about this grain has to carry, because an agent with the code in front of it will otherwise describe what is there.
+The command is named because the obligations of one part are commonly dozens and a form is designed against a few of them (`FR-ARCH-860`), and an agent given no way to narrow will either read all of them or guess.
+The guard against a record per class is in the statement rather than left to the standard, for the reason `FR-SKILL-480` states a reading the standard also states: the procedure is what an agent reads first, and the failure this grain invites is cheap to commit and expensive to undo.
+
+### FR-SKILL-680 — Recovering the forms inside a part proposes, the maintainer approves
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-520]
+depends_on: [FR-ARCH-780, FR-ARCH-980]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-arch-harvest/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-14
+```
+
+The procedure that recovers an architecture from a project that already has one **shall** write the forms inside a part only in batches shown to the maintainer beforehand, one part at a time.
+
+**Rationale.** The discipline `FR-SKILL-520` sets for a cut, at the grain of a form, and the one place in the framework where the code-first direction is the right one: a project adopting this grain has code and no records, and recovering the forms from what is declared is what the standard says belongs to a harvest rather than to the everyday order.
+One part at a time because that is how the closure rules read the grain — a part holding no form is silent, and a part holding one is held to all its obligations — so a batch that covers half a part leaves the project worse off than before it started.
+
+### FR-SKILL-690 — The architecture audit judges the form inside a part
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-530]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [.claude/skills/srs-arch-audit/SKILL.md]
+tests: [tests/skill-instructions.sh]
+created: 2026-10-14
+```
+
+The procedure that audits an architecture **shall** judge every form a part holds as it judges the part — against the readings the architecture procedure carries, and ending each finding in an act.
+
+**Rationale.** An audit that reads the parts and not what they are made of inside reports on the half of the model the checker already covers best, and leaves unjudged the half that was added because a maintainer's finding about a form could not be named at all.
+The same acts and the same prohibition on a score carry down from `FR-SKILL-530`: what differs at this grain is what is read, not how a finding is written.

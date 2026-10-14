@@ -22,3 +22,7 @@ srs-dd/arch.md
 arch/00-elements.md
 arch/90-map.md
 specs/adr/
+
+# the forms inside a part, recovered one part at a time (FR-SKILL-680)
+one part at a time
+arch/20-shapes.md

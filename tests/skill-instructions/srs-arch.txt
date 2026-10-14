@@ -33,3 +33,8 @@ srs-dd/arch.md
 arch/edges.json
 arch/10-moves.md
 specs/adr/
+
+# the grain below a path, and the guard a procedure has to carry (FR-SKILL-670)
+Start from the obligations, never from the code
+not where there is a class
+arch/20-shapes.md

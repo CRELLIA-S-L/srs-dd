@@ -1,6 +1,6 @@
 ---
 name: srs-arch-harvest
-description: Recover an architecture from a project that already has one — for a codebase adopting the layer with an empty arch/, or one whose records describe a cut it has outgrown. Reads the code, and an architecture document where the project keeps one, and proposes element records in approved batches. Invoke when the user wants to recover, reconstruct, import or backfill the architecture of an existing project. For maintaining a cut that is already written down use srs-arch; for mining requirements out of code use srs-harvest.
+description: Recover an architecture from a project that already has one — for a codebase adopting the layer with an empty arch/, or one whose records describe a cut it has outgrown. Reads the code, and an architecture document where the project keeps one, and proposes element records, and the forms inside a part, in approved batches. Invoke when the user wants to recover, reconstruct, import or backfill the architecture of an existing project. For maintaining a cut that is already written down use srs-arch; for mining requirements out of code use srs-harvest.
 ---
 <!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
@@ -24,6 +24,15 @@ Every record named to a person is cited at its first mention, as `AGENTS.md` ask
 5. **Show the batch, then write it.** The records go into `arch/00-elements.md` only after the maintainer has seen them — the whole batch, as it would be written, in the message that asks.
 6. **Run the checker after every batch**: `python3 srs-dd/tools/srs_arch.py --no-write`. The three readings it prints — a carrier no part claims, a realized requirement no part carries, a part answering to nothing — are the remaining work, and the dependency findings say where the cut you proposed disagrees with the imports.
 7. **Repeat** until no carrier is unclaimed and no realized requirement is uncarried. Then write the decision: why this cut and not the neighbouring one, in `specs/adr/`.
+
+## Recovering the forms inside a part
+
+Only where the project is adopting that grain, and one part at a time: a part holding no form is silent, and a part holding one is held to every obligation it carries — so a batch covers one part whole or it leaves the project worse off than before.
+
+1. **Take the part first.** `python3 srs-dd/tools/srs_arch.py --drivers E-NNN` says what its obligations most constrain, which is what the forms have to answer for between them.
+2. **Read what the code declares** — the types, the operations they answer to, the state they own — and group them by the obligations they answer for rather than by file. This is the one place the code-first direction is the right one, and `srs-dd/arch.md` says so.
+3. **Show the batch, then write it.** The forms go into `arch/20-shapes.md` only after the maintainer has seen them, as a cut's batches are shown.
+4. **Run the checker after every part.** A built form naming a symbol nothing declares, a type no form claims, and an obligation no form answers for are the remaining work.
 
 ## What this procedure does not do
 
