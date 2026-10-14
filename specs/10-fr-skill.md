@@ -1704,3 +1704,72 @@ The procedure that audits an architecture **shall** judge every form a part hold
 
 **Rationale.** An audit that reads the parts and not what they are made of inside reports on the half of the model the checker already covers best, and leaves unjudged the half that was added because a maintainer's finding about a form could not be named at all.
 The same acts and the same prohibition on a score carry down from `FR-SKILL-530`: what differs at this grain is what is read, not how a finding is written.
+
+### FR-SKILL-700 — The procedure the project names is the one used
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-SKILL-440, FR-SKILL-630, FR-SKILL-640, FR-SKILL-650]
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-14
+```
+
+Where the project names a procedure for an act, the agent guide the framework ships **shall** require that procedure be used unless the instruction named another.
+
+**Rationale.** The guide names a procedure for every act the framework has one for, and until this rule nothing said that the naming was binding.
+What that costs is already recorded in `FR-SKILL-640`: the loop was driven by a general build procedure of the maintainer's own machine while the framework had nothing in its place.
+The three procedures it had nothing in its place for exist since 2026-10-13, and a general procedure of the same kind keeps being the one invoked, because a list of names is not an instruction to prefer what it names.
+Measured here on 2026-10-14: the architecture stage of this repository was built through a general procedure, and the set of checks was assembled from the files that had been edited instead of derived from the requirements the change touched, which is what `FR-SKILL-100` exists to do and the one thing the two procedures do differently.
+
+A prescription and not a prohibition, because an instruction that names a procedure is the maintainer's to give; what the guide can ask is that the named procedure be the project's wherever the instruction left the choice open.
+Held by `tests/guide-parity.sh`, which finds the rule's own words in both guides: the rule travels into a project inside the region `FR-SKILL-440` keeps verbatim, and a rule that can be deleted silently is one that will be.
+
+### FR-SKILL-710 — Where another procedure is named, the project's is named too
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-700]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-14
+```
+
+Where an instruction names a procedure other than the one the project names for that act, the agent guide the framework ships **shall** require that the project's procedure for the act be named before the instruction is followed.
+
+**Rationale.** `FR-SKILL-700` prescribes and forbids nothing, so it is silent at the one point where it is overridden — and that is the point at which the substitution stops being visible.
+Measured here on 2026-10-14: an instruction named a general procedure, it was followed to its end, the project had a procedure for the same act, and the maintainer found that out by asking afterwards.
+Naming it costs a clause and leaves the decision where it was: the instruction still stands, and what the maintainer gets is the chance to say that it was given without knowing there was an alternative.
+
+Not a question to be asked, because an instruction that names a procedure has already answered it; the obligation is to say what the project holds for that act, in the same message, and go on.
+
+### FR-SKILL-720 — A report is not sent inside a code fence
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-270]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/guide.md]
+tests: [tests/guide-parity.sh]
+created: 2026-10-14
+```
+
+When a procedure reports to a person, it **shall not** send the report inside a code fence.
+
+**Rationale.** `FR-SKILL-270` asks for sentences that follow one another, and a fence defeats it without touching a word: the text inside can be connected prose and still arrive as characters, with every heading, every emphasis and every path printed as the markup that was meant to produce them.
+Measured here on 2026-10-14: the reports of two stages were sent that way, and the maintainer read them as raw markup and said so — against the same session's ordinary messages, where the three distinctions a reader actually has are visible, the two kinds of emphasis and the mark a renderer puts on a path written as code.
+A fence removes all three at once, which is why this is a rule of its own rather than a clause of `FR-SKILL-270`: that rule is about what the sentences are, and this one is about whether the reader is shown any.
+
+The fence arrived from the report template of a general procedure, which is the gap `FR-SKILL-700` was written for.
+The prohibition is narrow on purpose — a fence around what is quoted for the reader, a statement to be approved or a message to be pasted, is what a fence is for, and nothing here touches it.

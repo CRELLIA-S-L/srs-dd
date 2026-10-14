@@ -38,3 +38,6 @@ specs/adr/
 Start from the obligations, never from the code
 not where there is a class
 arch/20-shapes.md
+
+# the half of a part the checker cannot read, and how it gets the comparison back (CON-ARCH-040)
+arch/symbols.json

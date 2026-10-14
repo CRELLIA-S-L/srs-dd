@@ -1930,7 +1930,7 @@ It is a separate requirement rather than part of `FR-ARCH-910` because it is a s
 status: implemented
 verification: T
 derives_from: [FR-ARCH-710]
-depends_on: [FR-ARCH-780, IF-ARCH-120]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030, CON-ARCH-040]
 refines: []
 conflicts_with: []
 code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
@@ -1938,11 +1938,12 @@ tests: [tests/arch-rules.sh]
 created: 2026-10-14
 ```
 
-Where a `built` shape names a symbol in `names` or `owns` that the facts about symbols do not hold, the architecture checker **shall** report it as a warning named `symbol-missing`, naming the shape and the symbol.
+Where a `built` shape names a symbol in `names` or `owns` that the facts about symbols hold for no file the element that shape is inside carries, the architecture checker **shall** report it as a warning named `symbol-missing`, naming the shape and the symbol.
 
 **Rationale.** The reading `FR-ARCH-710` makes of a unit the model declares and the facts do not, at the grain of a symbol: until this, `names` and `owns` were declarations nothing read, which is the position `interface` held before `FR-ARCH-490`.
 `built` and not every shape in force, because a `proposed` shape naming symbols nobody has written yet is the whole point of designing a form before its code — `FR-ARCH-960` is the rule for that half.
 A warning and not an error: the symbol may have been renamed, the facts may be stale, and which of the two it is the checker cannot tell.
+Narrowed on 2026-10-14 to the files the part itself carries (`CON-ARCH-030`) and to a part whose code was read whole (`CON-ARCH-040`): as first written it compared a form with every name the run read, which left it unfalsifiable wherever a neighbour declared the same name, and wrong about a part carrying a language the checker does not read.
 
 ### FR-ARCH-940 — A type the facts hold that no shape claims is reported
 
@@ -1970,7 +1971,7 @@ A note rather than a warning, and the condition on the part holding a shape, bec
 status: implemented
 verification: T
 derives_from: [FR-ARCH-490]
-depends_on: [FR-ARCH-780, IF-ARCH-120]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030]
 refines: []
 conflicts_with: []
 code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
@@ -1990,7 +1991,7 @@ From outside the element and not from outside the form, because a form is not a 
 status: implemented
 verification: T
 derives_from: [FR-ARCH-330]
-depends_on: [FR-ARCH-780, IF-ARCH-120]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030]
 refines: []
 conflicts_with: []
 code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
@@ -1998,11 +1999,12 @@ tests: [tests/arch-rules.sh]
 created: 2026-10-14
 ```
 
-Where a shape still `proposed` names symbols and the facts about symbols hold every one of them, the architecture checker **shall** report it as a warning named `shape-built`, naming the shape.
+Where a shape still `proposed` names symbols and the facts about symbols hold every one of them for a file the element that shape is inside carries, the architecture checker **shall** report it as a warning named `shape-built`, naming the shape.
 
 **Rationale.** The reading `FR-ARCH-330` makes of a designed part whose files all exist, at the grain of a form: the code is written and only the status still says it is a design.
 Turning the status is a person's act and the layer never does it, which is why this says what it found rather than editing the record (`ADR-0042`).
 A shape naming no symbol is not reported: there is nothing that could have been found, and a form designed down to its obligations alone is a legitimate design.
+Narrowed with `FR-ARCH-930` to the files the part itself carries (`CON-ARCH-030`), and deliberately not by `CON-ARCH-040`: this concludes from what is there rather than from what is missing, and going silent on a part whose language the checker cannot read would lose the finding on the day the code is written.
 
 ### FR-ARCH-970 — What moving to the designed form requires is computed
 
@@ -2010,7 +2012,7 @@ A shape naming no symbol is not reported: there is nothing that could have been 
 status: implemented
 verification: T
 derives_from: [FR-ARCH-350]
-depends_on: [FR-ARCH-780, IF-ARCH-120]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030, CON-ARCH-040]
 refines: []
 conflicts_with: []
 code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
@@ -2018,11 +2020,12 @@ tests: [tests/arch-rules.sh]
 created: 2026-10-14
 ```
 
-When asked what moving to the designed parts requires, the architecture command **shall** print, for every shape still `proposed`, the symbols the facts do not hold yet, the operations its named types do not answer to, and the state another shape owns today.
+When asked what moving to the designed parts requires, the architecture command **shall** print, for every shape still `proposed`, the symbols its own part does not declare yet, the operations its named types do not answer to, and the state another shape owns today.
 
 **Rationale.** The twin of `FR-ARCH-350` at the grain of a form, and the figure a person counted by hand in the case this grain came from: what it costs to get to the designed form is the one question a design is read for.
 Printed and reported as nothing, for the reason `FR-ARCH-350` gives: a designed form differing from the built code is the normal state of designing, and a warning there would price the design itself.
 State another shape owns today is in the list because that is the move the design usually is — a field leaving the form that answered two questions with it.
+Its own part and not the project since `CON-ARCH-030`, and where that part's code was not read whole the line is `CON-ARCH-040`'s to withhold and `FR-ARCH-995`'s to explain — a plan that says a function nobody can see is missing is wrong in the one direction a plan is read for.
 
 ### FR-ARCH-980 — The checker reads a language's own declarations
 
@@ -2063,3 +2066,24 @@ Where the layer holds a shape and the run read no declaration at all — no file
 **Rationale.** The statement `FR-ARCH-630` makes about a run that compared the model with nothing, for the four rules this grain adds: with no declarations read, every one of them is silent, and silence here reads as conformance.
 It is the trap this layer's own standard names about `Warnings: 0` — the absence of a verdict taken for a verdict — and the reason it is not a rule a project prices is the reason `FR-ARCH-630` is not: switching it off would switch off the line saying the check never ran.
 Separate from `FR-ARCH-630` because the two readings fail apart: a project whose edges file carries its dependencies has had the model compared with something and its shapes compared with nothing.
+Read as it is written since 2026-10-14: the condition is a readable file of those parts and not a declaration found in one — a file read that declares nothing was read, and `CON-ARCH-040` concludes an absence from it, so a run saying both would contradict itself.
+
+### FR-ARCH-995 — A part whose code was not read whole is named
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-990]
+depends_on: [CON-ARCH-040, FR-ARCH-930]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where an element holding shapes carries a code file the architecture checker does not read itself and the project supplied no facts about its symbols, the architecture command **shall** name that element and how many of its files were not read.
+
+**Rationale.** What keeps `CON-ARCH-040` from trading a false warning for a false silence: the gate leaves a part's forms unfalsifiable, and a run that says nothing about them reads as a run that found nothing — the trap `FR-ARCH-990` is written against, one grain down from the whole run.
+Numbered beside `FR-ARCH-990` rather than after it because it is the same sentence about a smaller subject, and unpriced for the same reason: a project able to switch it off would be switching off the line that says which parts were never checked.
+`FR-ARCH-990` keeps the whole-run reading, and this says nothing when that one speaks: a run that read no declaration at all would otherwise name every part holding a form and say the same thing as many times.

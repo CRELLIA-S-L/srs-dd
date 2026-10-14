@@ -48,3 +48,6 @@ That is a limit of the reading and not of the rule, and the standard says so whe
 
 Native reading stops at what another part could reach: a class brings its methods, its fields and the types nested in it, each under a dotted name, and a name declared inside a function is read by nothing.
 Only a type at the top level of its file is one the unclaimed rule asks for a form about, since a nested type is part of what encloses it; a project that wants more can say more in its own facts.
+
+What this decision did not settle, and `ADR-0055` did: where a name is looked for, and on what terms a name not found is reported as absent.
+As taken here, the comparison pooled every declaration the run read, and the absence was concluded from whatever that pool happened to hold.

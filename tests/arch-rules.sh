@@ -3766,6 +3766,7 @@ rule "FR-ARCH-870 a decision nobody wrote" 1 "E-010 names ADR-0099, and the spec
 # --- The facts about symbols: what the checker reads itself and what a project supplies.
 # verifies: FR-ARCH-930, FR-ARCH-940, FR-ARCH-950, FR-ARCH-960, FR-ARCH-970
 # verifies: FR-ARCH-980, FR-ARCH-990, IF-ARCH-120
+# verifies: CON-ARCH-030, CON-ARCH-040, FR-ARCH-995
 elements <<'MD'
 # Elements
 
@@ -3820,8 +3821,12 @@ requirements: [FR-CORE-020]
 
 Answers for the second.
 MD
-rule "FR-ARCH-990 a run that read no declaration" 0 "the forms were compared with nothing"
-silent "FR-ARCH-930 nothing read means nothing is missing" 0 "no declaration this run read holds it"
+# Read and declaring nothing is not the same as unread: the file was read, so the name the form
+# claims is absent, and the run that read it says nothing about having compared nothing.
+rule "FR-ARCH-930 a file read and declaring nothing leaves the name absent" 0 \
+     "S-010 names First and no file E-010 carries declares it"
+silent "FR-ARCH-990 a file read that declares nothing was still read" 0 \
+     "the forms were compared with nothing"
 
 # Now the files declare something, read by the checker itself.
 cat > "$LAB/src/a.py" <<'PY'
@@ -3849,7 +3854,7 @@ def use():
 PY
 
 silent "FR-ARCH-990 a run that read declarations is silent" 0 "the forms were compared with nothing"
-silent "FR-ARCH-930 a name the code declares is not reported" 0 "no declaration this run read holds it"
+silent "FR-ARCH-930 a name the code declares is not reported" 0 "no file E-010 carries declares it"
 silent "FR-ARCH-940 a type the form names is not reported" 0 "declares the type First"
 
 shapes <<'MD'
@@ -3877,8 +3882,9 @@ requirements: [FR-CORE-020]
 
 Answers for the second.
 MD
-rule "FR-ARCH-930 a name nothing declares" 0 "S-010 names Missing and no declaration this run read holds it"
-rule "FR-ARCH-930 state nothing declares" 0 "S-010 names First.state and no declaration this run read holds it"
+rule "FR-ARCH-930 a name nothing declares" 0 "S-010 names Missing and no file E-010 carries declares it"
+rule "FR-ARCH-930 state nothing declares" 0 \
+     "S-010 names First.state and no file E-010 carries declares it"
 
 shapes <<'MD'
 # Shapes
@@ -3904,8 +3910,9 @@ requirements: [FR-CORE-020]
 
 Answers for the second.
 MD
-silent "FR-ARCH-930 a designed form names what nobody wrote yet" 0 "no declaration this run read holds it"
-rule "FR-ARCH-970 the symbols a design still needs" 0 "symbol Missing — nothing declares it yet" --plan
+silent "FR-ARCH-930 a designed form names what nobody wrote yet" 0 "no file E-010 carries declares it"
+rule "FR-ARCH-970 the symbols a design still needs" 0 \
+     "symbol Missing — E-010 does not declare it yet" --plan
 
 shapes <<'MD'
 # Shapes
@@ -4118,7 +4125,8 @@ requirements: [FR-CORE-020]
 
 Answers for the second.
 MD
-silent "FR-ARCH-980 a nested type resolves by its dotted name" 0 "names First.Inner and no declaration"
+silent "FR-ARCH-980 a nested type resolves by its dotted name" 0 \
+     "names First.Inner and no file E-010 carries declares it"
 silent "FR-ARCH-940 a nested type is not asked for a form of its own" 0 "declares the type First.Inner"
 
 shapes <<'MD'
@@ -4146,9 +4154,37 @@ requirements: [FR-CORE-020]
 Answers for the second.
 MD
 rule "FR-ARCH-930 a nested name nothing declares" 0 \
-     "S-010 names First.Missing and no declaration this run read holds it"
+     "S-010 names First.Missing and no file E-010 carries declares it"
 
 # --- The facts a project supplies, for a language the checker does not read.
+# The part carries the file the facts describe: a symbol belongs to the part whose file declares
+# it, and one declared in a file no part carries belongs to nobody.
+printf 'struct Second {}\n' > "$LAB/src/c.swift"
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py, src/c.swift]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file and one in another language.
+MD
 cat > "$LAB/arch/symbols.json" <<'JSON'
 {"taken": "2026-10-14",
  "source": "a reader of another language",
@@ -4204,6 +4240,232 @@ JSON
 rule "IF-ARCH-120 facts past the life their producer gave them" 0 \
      "no form here was compared with a symbol that file holds"
 rm -f "$LAB/arch/symbols.json"
+
+# --- A part this checker reads in half: shell is code in this project, and one part carries some.
+cat > "$LAB/specs/srs-config.json" <<'JSON'
+{
+  "areas": ["CORE"],
+  "code_roots": ["src"],
+  "test_roots": ["t"],
+  "code_extensions": [".py", ".sh"]
+}
+JSON
+printf 'rule() { :; }\nsilent() { :; }\n' > "$LAB/src/c.sh"
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The part read in half
+
+```yaml
+status: built
+carries: [src/b.py, src/c.sh]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds one file in a language this checker reads and one in a language it does not.
+MD
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, Missing]
+```
+
+Answers for the first, and names what nobody wrote.
+
+### S-020 — A form over the shell
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+names: [rule, silent]
+```
+
+Answers for the second, naming what its shell file declares.
+MD
+silent "CON-ARCH-040 nothing is missing from a part read in half" 0 "S-020 names rule"
+rule "FR-ARCH-995 the part read in half is named" 0 \
+     "E-020 holds 1 shape(s) and carries 1 file(s) in a language this checker does not read"
+silent "FR-ARCH-995 a part read whole is not named" 0 "E-010 holds 1 shape(s)"
+rule "CON-ARCH-040 the part read whole is compared as before" 0 \
+     "S-010 names Missing and no file E-010 carries declares it"
+rule "FR-ARCH-995 the plan names the part it could not cost" 0 \
+     "E-020 holds 1 shape(s) and carries 1 file(s)" --plan
+
+# The project supplies the facts, which is its claim that they are complete (CON-ARCH-040): the
+# gate opens, and the one name they do not hold is reported.
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2026-10-14",
+ "source": "a reader of shell",
+ "symbols": [{"name": "rule", "kind": "operation", "path": "src/c.sh"}]}
+JSON
+rule "CON-ARCH-040 facts open the gate again" 0 \
+     "S-020 names silent and no file E-020 carries declares it"
+silent "CON-ARCH-040 a name the facts hold is not missing" 0 "S-020 names rule"
+silent "FR-ARCH-995 a part the facts speak for is not named" 0 "E-020 holds 1 shape(s)"
+rm -f "$LAB/arch/symbols.json"
+
+# --- A name only the neighbour declares. Matched over the whole project it is satisfied by the
+#     neighbour's copy, which is what CON-ARCH-030 narrows.
+cat > "$LAB/src/b.py" <<'SRC'
+class Alone:
+    def other(self):
+        return 1
+
+
+def use():
+    return First.plan
+
+
+def neighbour_use():
+    return Alone.other
+SRC
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form naming the neighbour's type
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [Alone]
+shape: [act]
+```
+
+Answers for the first, and names a type the other part declares.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "CON-ARCH-030 a name only the neighbour declares is missing" 0 \
+     "S-010 names Alone and no file E-010 carries declares it"
+silent "CON-ARCH-030 an entry into the neighbour's own name is not a bypass here" 0 \
+     "its shape does not state other"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A design naming the neighbour's type
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [Alone]
+```
+
+Answers for the first, and names a type the other part declares.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "CON-ARCH-030 the neighbour's code does not build this design" 0 \
+     "every symbol it names is declared"
+rule "CON-ARCH-030 the plan asks the design's own part" 0 \
+     "symbol Alone — E-010 does not declare it yet" --plan
+
+# --- A run with no readable file of the parts holding forms: the whole-run reading speaks, and
+#     speaks alone.
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file, and holds no form.
+
+### E-020 — The part in a language this checker does not read
+
+```yaml
+status: built
+carries: [src/c.sh]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the shell file.
+MD
+shapes <<'MD'
+# Shapes
+
+### S-020 — The only form, over a language this checker does not read
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+names: [rule]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-990 no readable file of the parts holding forms" 0 \
+     "the forms were compared with nothing"
+silent "FR-ARCH-995 the whole-run reading speaks alone" 0 "E-020 holds 1 shape(s)"
 # srs-end: FR-ARCH-930
 
 

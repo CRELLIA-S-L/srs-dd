@@ -59,3 +59,12 @@ Architecture layer
 # SRS-DD-ART-100 — nothing sensitive goes into the repository
 SRS-DD-ART-100
 srs-dd/tools/srs_gate.py
+
+# the procedure the project names is the one used (FR-SKILL-700)
+only where the instruction named that one
+
+# where another procedure is named, the project's is named too (FR-SKILL-710)
+name the project's procedure for that act
+
+# a report is not sent inside a code fence (FR-SKILL-720)
+inside a code fence

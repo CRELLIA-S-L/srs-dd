@@ -89,6 +89,15 @@ cd "$(dirname "$0")/.."
 #               8 900 since 2026-10-14, when OWN rose by three hundred for
 #               the same procedure: this ceiling counts those words too, and
 #               `srs-arch` with the standard stands at 8 868.
+#               9 150 since 2026-10-14, when the same standard gained where
+#               a form is looked for and on what terms a name not found is
+#               absent (CON-ARCH-030, CON-ARCH-040, FR-ARCH-995), and
+#               `srs-arch` the sentence saying a part read in half is
+#               compared with nothing until the facts cover that half.
+#               7 297 of the 9 139 are the standard's. Raised rather than
+#               paid for by cutting an instruction, which is INV-SKILL-020:
+#               the rule it states is the one a reader meets as silence, and
+#               a silence nobody explained is what the paragraph is for.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -139,9 +148,25 @@ cd "$(dirname "$0")/.."
 #               came in at forty-nine — the review step has a stop condition
 #               to state and the other two do not. Ten words, for the same
 #               reason as the raise itself.
+#               2 320 since 2026-10-14: the shipped guide gained rule 12 —
+#               the procedure the project names for an act is the one used,
+#               and where an instruction named a general procedure of the
+#               agent's own, the project's procedure for that act is named
+#               before the instruction is followed (FR-SKILL-700,
+#               FR-SKILL-710) — and both guides carry it (INV-SKILL-010),
+#               which leaves this repository's at 2 316. Fifty-five words
+#               for a rule the measurement in FR-SKILL-640's rationale
+#               costed at 135 invocations of a procedure the framework now
+#               ships its own version of; raised rather than paid for by
+#               cutting an instruction, which is INV-SKILL-020.
+#               2 340 the same day: rule 6 gained the sentence that a report
+#               is not sent inside a code fence (FR-SKILL-720), which leaves
+#               this repository's at 2 330. Fourteen words, written after the
+#               maintainer read two reports of this session as raw markup —
+#               a fence renders none of what the rule above it asks for.
 OWN=1850
-TRANSITIVE=8900
-GUIDE=2290
+TRANSITIVE=9150
+GUIDE=2340
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by

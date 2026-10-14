@@ -545,6 +545,47 @@ The layer's map **shall** be produced by the architecture checker from the eleme
 **Rationale.** A hand-kept map is a second copy of what the records already say, and the copy that gets edited is never the one that gets read.
 Generated, it is also diffable: a committed map that no longer matches what the records produce is a change somebody made without looking at the parts.
 
+### CON-ARCH-030 — A shape is compared with its own part's code
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-ARCH-020]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+The architecture command **shall** compare the symbols a shape names only with what was read from the files the element that shape is inside carries, resolving which element a file belongs to as the rest of the layer does.
+
+**Rationale.** A symbol is a name in a file, and a file belongs to one part by `INV-ARCH-020`; a comparison that pools every name a run read answers a question nobody asked — whether the project declares that name anywhere at all.
+Measured on this repository before the narrowing: 44 names were declared in more than one part and `main` in thirteen modules, so a form naming `main` could not be falsified — delete it from the file the form is about and the neighbour's copy answers for it.
+A constraint rather than a clause inside each rule, because four rules compare a shape with the code and a fifth will be written later: the one that forgets the clause is the one nobody reads twice.
+
+### CON-ARCH-040 — An absence is concluded only where the code was read whole
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-710]
+depends_on: [CON-ARCH-030, FR-ARCH-980]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+The architecture command **shall** say a symbol a shape names is absent only where every code file the element that shape is inside carries was read by the checker itself or the project supplied facts about its symbols.
+
+**Rationale.** Every other rule of this layer concludes from what it saw — a dependency read, an entry read, a type read — and `FR-ARCH-710`, the one rule that concludes an absence, may do so because a project supplying facts about its units claims they are complete.
+`FR-ARCH-930` lost that condition when the checker learned to read a language itself, and reading a language is completeness per file and not per part: on this repository one part carries thirty-two shell files, and a form naming two of its functions was reported twice for naming what is there.
+The facts file is taken as the claim of completeness, as `arch/units.json` is, rather than a list of the files it was produced from: a project with nothing to supply has nothing to write, and a key naming the files a producer read can be added to `IF-ARCH-120` afterwards without breaking a producer, which the reverse order cannot.
+A code file and not every carrier, because a part carries a standard, a procedure and a CI template as readily as code, and what counts as code is what the project already declared for the two-way check.
+
 ### INV-SPEC-080 — A number widens, and nothing is renamed
 
 ```yaml

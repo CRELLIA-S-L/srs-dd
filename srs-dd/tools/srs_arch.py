@@ -65,6 +65,11 @@ SYMBOLS_REL = os.path.join("arch", "symbols.json")
 # from Swift, Kotlin or Go has one word for each and not a translation of Python's.
 SYMBOL_KINDS = ("type", "operation", "state")
 # srs-end: IF-ARCH-120
+# implements: CON-ARCH-040
+# What the project calls code, asked of the specification's own configuration rather than kept a
+# second time here: one list already answers that question for the two-way check.
+SPEC_CONFIG = os.path.join(ROOT, "specs", "srs-config.json")
+# srs-end: CON-ARCH-040
 MAP = os.path.join(ARCH, "90-map.md")
 MAP_REL = os.path.join("arch", "90-map.md")
 VIEWER = os.path.join(ROOT, "srs-dd", "tools", "srs_view.py")
@@ -913,31 +918,155 @@ def symbols_model(elements, facts):
 # srs-end: FR-ARCH-980
 
 
+# implements: CON-ARCH-030
+def symbols_by_part(elements, symbols):
+    """The names each part's own files declare, as element -> names.
+
+    Which part a file belongs to is asked of `element_of`, the one resolution the layer states.
+    A declaration in a file no element owns belongs to no part, and a shape is
+    never compared with it: the question this grain asks is what a part declares, and a name
+    pooled over the project answers whether anybody anywhere declares it.
+    """
+    owners = live_carriers(elements)
+    out = {}
+    for item in symbols:
+        element = element_of(item["path"], owners)
+        if element is not None:
+            out.setdefault(element, set()).add(item["name"])
+    return out
+# srs-end: CON-ARCH-030
+
+
+# implements: CON-ARCH-030
+def modules_by_part(elements):
+    """The module names each part's own files answer to, as element -> names.
+
+    What an import reaches is the file and not a declaration inside it, so the entry read from
+    `from x import y` names `x` — a name its part answers to and no symbol anybody declared.
+    Read natively only: a project supplying facts writes the crossing it means into `entries`.
+    """
+    owners = live_carriers(elements)
+    _by_path, modules = python_modules(elements)
+    out = {}
+    for name, path in modules.items():
+        element = element_of(path, owners)
+        if element is not None:
+            out.setdefault(element, set()).add(name)
+    return out
+# srs-end: CON-ARCH-030
+
+
+# implements: CON-ARCH-030
+def shape_scope(record, by_part):
+    """What was read from the files of the part a shape is inside — the only code it is compared
+    with."""
+    names = set()
+    for element in as_list(record.fields.get("inside")):
+        names |= by_part.get(element, set())
+    return names
+# srs-end: CON-ARCH-030
+
+
+# implements: CON-ARCH-040
+def carried_files(record):
+    """Every file one record claims, a directory in `carries` standing for everything under it."""
+    out = []
+    for path in as_list(record.fields.get("carries")):
+        full = os.path.join(ROOT, path)
+        if os.path.isfile(full):
+            out.append(path)
+        elif os.path.isdir(full):
+            for current, dirs, files in os.walk(full):
+                dirs[:] = [d for d in dirs if not d.startswith(".")]
+                for name in sorted(files):
+                    out.append(os.path.relpath(os.path.join(current, name), ROOT))
+    return out
+# srs-end: CON-ARCH-040
+
+
+# implements: CON-ARCH-040
+def code_extensions():
+    """The extensions this project calls code, or None where it says nothing.
+
+    Unknown means every file this checker does not read itself counts as possibly declaring, which
+    leaves `unread_code` concluding nothing rather than concluding it wrongly.
+    """
+    try:
+        with open(SPEC_CONFIG, encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    value = raw.get("code_extensions")
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        return None
+    return set(value)
+# srs-end: CON-ARCH-040
+
+
+# implements: CON-ARCH-040
+def unread_code(elements, facts):
+    """Per part, how many of its own code files this run did not read, as element -> count.
+
+    A project that supplies facts about its symbols claims they are complete, as `check_units`
+    takes `arch/units.json` to be, so with that file there is nothing unread. Without it, a part
+    carrying a file in a language this checker cannot read holds an absence nobody can prove —
+    and a part is the grain, because a form names a symbol and not the file it expects it in.
+    """
+    if facts is not None:
+        return {}
+    exts = code_extensions()
+    owners = live_carriers(elements)
+    native, _modules = python_modules(elements)
+    out = {}
+    for record in elements:
+        if not RE_ID.match(record.id) or record.fields.get("status") in NOT_OWNING:
+            continue
+        count = 0
+        for path in carried_files(record):
+            if path in native or element_of(path, owners) != record.id:
+                continue
+            if exts is None or os.path.splitext(path)[1] in exts:
+                count += 1
+        if count:
+            out[record.id] = count
+    return out
+# srs-end: CON-ARCH-040
+
+
 def symbols_named(record):
     """The symbols one shape record names, both the names it is and the state it owns."""
     return as_list(record.fields.get("names")) + as_list(record.fields.get("owns"))
 
 
 # implements: FR-ARCH-930
-def check_symbols_declared(shapes, symbols, warnings, reports, cfg):
-    """A built form naming a symbol no declaration holds: renamed, or the facts are stale, and
-    which of the two it is the checker cannot tell — so a warning.
+def check_symbols_declared(elements, shapes, symbols, facts, warnings, reports, cfg):
+    """A built form naming a symbol its own part does not declare: renamed, or the facts are
+    stale, and which of the two it is the checker cannot tell — so a warning.
 
     The reading `check_units` makes of a unit the model declares and the facts do not, at the
     grain of a symbol. Only a `built` form: a design naming what nobody has written yet is what
     `proposed` is for, and `check_shape_built` is the rule for that half.
+
+    Compared with the part's own files, and drawn only where every code file of that part was
+    read. The second is what makes this an absence at all: reading a
+    language natively is completeness per file, and a part whose other half is a language this
+    checker cannot see has nothing anybody could call missing.
     """
-    if not symbols:
-        return
-    held = set(item["name"] for item in symbols)
+    by_part = symbols_by_part(elements, symbols)
+    holes = unread_code(elements, facts)
     for record in shapes:
         if record.fields.get("status") != "built":
             continue
+        inside = as_list(record.fields.get("inside"))
+        if any(holes.get(element) for element in inside):
+            continue
+        held = shape_scope(record, by_part)
         for name in symbols_named(record):
             if name not in held:
                 rule_finding(warnings, reports, cfg, "symbol-missing",
-                             "%s — %s names %s and no declaration this run read holds it"
-                             % (record.where, record.id, name))
+                             "%s — %s names %s and no file %s carries declares it"
+                             % (record.where, record.id, name,
+                                " or ".join(inside) or "its part"))
 # srs-end: FR-ARCH-930
 
 
@@ -971,15 +1100,21 @@ def check_symbols_claimed(elements, shapes, symbols, warnings, reports, cfg):
 
 
 # implements: FR-ARCH-950
-def check_shape_entries(elements, shapes, entries, warnings, reports, cfg):
+def check_shape_entries(elements, shapes, symbols, entries, warnings, reports, cfg):
     """A form reached from another part by a name its operations do not state.
 
     What gives `shape` teeth, and the reading `check_interfaces` makes of a part reached by a
     name its interface does not state. Only where the form states its operations, the silence a
     part declaring no interface is left in; and only from outside the part, because a part
     reaching its own insides is how a part is built.
+
+    The name reached has to be one the form's own part declares or answers to:
+    matched on the bare name, an entry into a neighbour's class of the same name would be reported
+    against a form whose code the caller never touched.
     """
     owners = live_carriers(elements)
+    by_part = symbols_by_part(elements, symbols)
+    modules = modules_by_part(elements)
     for record in shapes:
         if record.fields.get("status") in CANCELLED:
             continue
@@ -988,8 +1123,11 @@ def check_shape_entries(elements, shapes, entries, warnings, reports, cfg):
             continue
         names = set(as_list(record.fields.get("names")))
         inside = as_list(record.fields.get("inside"))
+        reach = shape_scope(record, by_part) | shape_scope(record, modules)
         for entry in entries:
             if entry["symbol"] not in names or entry["by"] in operations:
+                continue
+            if entry["symbol"] not in reach:
                 continue
             if element_of(entry["from"], owners) in inside:
                 continue
@@ -1001,19 +1139,22 @@ def check_shape_entries(elements, shapes, entries, warnings, reports, cfg):
 
 
 # implements: FR-ARCH-960
-def check_shape_built(shapes, symbols, warnings, reports, cfg):
+def check_shape_built(elements, shapes, symbols, warnings, reports, cfg):
     """A designed form whose every symbol exists: the code is written and only the status still
     says it is a design. Turning it is a person's act and the layer never does it (ADR-0042).
 
     A form naming no symbol is not reported: nothing could have been found, and a form designed
     down to its obligations alone is a legitimate design.
+
+    Scoped to the part and deliberately not gated on its code being read whole: this concludes
+    from what is there, so a part whose other half is a language this checker cannot read loses
+    nothing by being asked, and gating it would drop the finding on the day the code is written.
     """
-    if not symbols:
-        return
-    held = set(item["name"] for item in symbols)
+    by_part = symbols_by_part(elements, symbols)
     for record in shapes:
         if record.fields.get("status") not in DESIGNED:
             continue
+        held = shape_scope(record, by_part)
         named = symbols_named(record)
         if named and all(name in held for name in named):
             rule_finding(warnings, reports, cfg, "shape-built",
@@ -1023,23 +1164,54 @@ def check_shape_built(shapes, symbols, warnings, reports, cfg):
 
 
 # implements: FR-ARCH-990
-def check_symbols_read(shapes, symbols, reports):
-    """Whether this run compared the forms with anything at all.
+def check_symbols_read(elements, shapes, facts, reports):
+    """Whether this run compared the forms with anything at all, and whether it said so.
 
-    With no declaration read, all four rules about a symbol are silent, and silence reads as
+    With no file of those parts read, every rule about a symbol is silent, and silence reads as
     conformance — the trap this layer's standard names about `Warnings: 0`. Not a rule the
     project prices, for the reason `check_code_read` is not: switching it off would switch off
     the line saying the check never ran.
+
+    A readable file of those parts and not a declaration found in one: a file read that declares
+    nothing was read, and `check_symbols_declared` concludes an absence from it — the distinction
+    the gate on an absence turns on, and the sentence this statement was always written in.
     """
     live = [record for record in shapes if record.fields.get("status") not in CANCELLED]
-    if not live or symbols:
-        return
+    if not live or facts is not None:
+        return False
+    holders = set()
+    for record in live:
+        holders |= set(as_list(record.fields.get("inside")))
+    by_path, _modules = python_modules(elements)
+    if any(element in holders for element in by_path.values()):
+        return False
     reports.append("the layer holds %d shape(s) and this run read no declaration at all — no "
                    "file of the parts holding them is in a language this checker reads and %s "
                    "is absent — so the forms were compared with nothing: no symbol was read "
                    "from the code, which is not the same as finding none"
                    % (len(live), SYMBOLS_REL))
+    return True
 # srs-end: FR-ARCH-990
+
+
+# implements: FR-ARCH-995
+def check_shape_parts_read(elements, shapes, facts, reports):
+    """Which parts holding forms this run could conclude no absence about.
+
+    The gate on an absence leaves those forms unfalsifiable, and a run that said nothing about them would
+    read as a run that found nothing — the trap `check_symbols_read` names for the whole run, one
+    grain down. Not a rule the project prices, for the reason that one is not.
+    """
+    holes = unread_code(elements, facts)
+    held = shapes_of(shapes)
+    for element in sorted(held, key=srs_parse.id_key):
+        count = holes.get(element)
+        if not count:
+            continue
+        reports.append("%s holds %d shape(s) and carries %d file(s) in a language this checker "
+                       "does not read, with %s absent, so no symbol of it could be read as "
+                       "missing" % (element, len(held[element]), count, SYMBOLS_REL))
+# srs-end: FR-ARCH-995
 
 
 # implements: FR-ARCH-870
@@ -1980,7 +2152,7 @@ def print_draft(records, model, cfg, unread=()):
 
 
 # implements: FR-ARCH-350
-def print_plan(records, model, cfg, unread=(), shapes=(), symbols=()):
+def print_plan(records, model, cfg, unread=(), shapes=(), symbols=(), facts=None):
     """What moving to the designed parts requires: files changing hands with both ends named,
     obligations changing part, and the dependencies the design adds and drops.
 
@@ -1993,6 +2165,12 @@ def print_plan(records, model, cfg, unread=(), shapes=(), symbols=()):
     if unread:
         out.write("%d record(s) could not be read and are not in this plan; the checker names "
                   "them.\n" % len(unread))
+    # implements: FR-ARCH-995
+    plan_reports = []
+    check_shape_parts_read(records, shapes, facts, plan_reports)
+    for text in plan_reports:
+        out.write("note: %s\n" % text)
+    # srs-end: FR-ARCH-995
     if not designed and not designed_shapes:
         out.write("No part and no form is designed and unbuilt, so there is nothing to move.\n")
         return 0
@@ -2042,11 +2220,14 @@ def print_plan(records, model, cfg, unread=(), shapes=(), symbols=()):
     # The same question one grain down, and the one a design is read for: what it would cost to
     # get to the designed form. Printed with the parts, because a design is commonly both.
     if designed_shapes:
-        held = set(item["name"] for item in symbols)
+        by_part = symbols_by_part(records, symbols)
+        holes = unread_code(records, facts)
+        shape_owners = live_carriers(records)
         answered = {}
         for item in symbols:
             if item.get("kind") == "type":
-                answered[item["name"]] = set(item.get("operations") or ())
+                element = element_of(item["path"], shape_owners)
+                answered[(element, item["name"])] = set(item.get("operations") or ())
         owners = {}
         for record in shapes:
             if record.fields.get("status") in CANCELLED:
@@ -2056,12 +2237,21 @@ def print_plan(records, model, cfg, unread=(), shapes=(), symbols=()):
         out.write("\nWhat moving to the designed forms requires.\n")
         for record in sorted(designed_shapes, key=lambda r: srs_parse.id_key(r.id)):
             out.write("\n%s — %s\n" % (record.id, record.title))
-            for name in symbols_named(record):
-                if name not in held:
-                    out.write("    symbol %s — nothing declares it yet\n" % name)
+            inside = as_list(record.fields.get("inside"))
+            held = shape_scope(record, by_part)
+            # implements: CON-ARCH-040
+            # Nothing is said to be missing from a part this run read only half of: the plan is
+            # read to decide what to write, and a function it calls absent is there.
+            if not any(holes.get(element) for element in inside):
+                for name in symbols_named(record):
+                    if name not in held:
+                        out.write("    symbol %s — %s does not declare it yet\n"
+                                  % (name, " or ".join(inside) or "its part"))
+            # srs-end: CON-ARCH-040
             for operation in as_list(record.fields.get("shape")):
                 missing = [name for name in as_list(record.fields.get("names"))
-                           if operation not in answered.get(name, ())]
+                           if not any(operation in answered.get((element, name), ())
+                                      for element in inside)]
                 if missing:
                     out.write("    answers %s — %s does not answer to it yet\n"
                               % (operation, ", ".join(missing)))
@@ -2439,7 +2629,7 @@ def main(argv=None):
         unread = []
         elements, _moves, shapes = partition(read_records(unread), unread)
         symbols, _entries = symbols_model(elements, declarations)
-        return print_plan(elements, model, cfg, unread, shapes, symbols)
+        return print_plan(elements, model, cfg, unread, shapes, symbols, declarations)
 
     # implements: FR-ARCH-570, FR-ARCH-580
     if priced is not None:
@@ -2505,11 +2695,14 @@ def main(argv=None):
     check_state_contested(shapes, warnings, reports, cfg)
     check_shape_cycles(shapes, warnings, reports, cfg)
     symbols, entries = symbols_model(elements, declarations)
-    check_symbols_declared(shapes, symbols, warnings, reports, cfg)
+    check_symbols_declared(elements, shapes, symbols, declarations, warnings, reports, cfg)
     check_symbols_claimed(elements, shapes, symbols, warnings, reports, cfg)
-    check_shape_entries(elements, shapes, entries, warnings, reports, cfg)
-    check_shape_built(shapes, symbols, warnings, reports, cfg)
-    check_symbols_read(shapes, symbols, reports)
+    check_shape_entries(elements, shapes, symbols, entries, warnings, reports, cfg)
+    check_shape_built(elements, shapes, symbols, warnings, reports, cfg)
+    # The whole-run reading speaks alone: with no file of those parts read, every part holding a
+    # form is in the list below and the sentence is the same one.
+    if not check_symbols_read(elements, shapes, declarations, reports):
+        check_shape_parts_read(elements, shapes, declarations, reports)
     if stale_symbols:
         reports.append(stale_symbols)
     check_decisions(elements, model, errors)
