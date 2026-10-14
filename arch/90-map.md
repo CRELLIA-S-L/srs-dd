@@ -21,3 +21,16 @@ What each part of this project is, what it carries and what state it is in.
 | **E-130** The architecture document | `built` | level 0 | `srs-dd/tools/srs_arch_doc.py` | **FR-ARCH-410**, **FR-ARCH-420**, **FR-ARCH-430**, **FR-ARCH-440**, **FR-ARCH-450**, **FR-ARCH-460**, **FR-ARCH-510**, **FR-ARCH-520**, **FR-ARCH-530**, **FR-ARCH-550**, **FR-ARCH-660**, **FR-ARCH-670**, **FR-ARCH-760**, **IF-SPEC-050**, **INV-SPEC-130**, **CON-ARCH-010**, **CON-SPEC-030**, **FR-INIT-280**, **INV-SPEC-090**, **NFR-SPEC-010**, **FR-ARCH-880**, **FR-ARCH-890**, **FR-ARCH-900**, **FR-ARCH-910**, **FR-ARCH-920** (25 realized) |
 
 13 elements, carrying 426 of the 432 requirements this specification holds.
+
+## What the parts are made of inside
+
+| Shape | Status | Inside | Answers for | Owns | Holds |
+|---|---|---|---|---|---|
+| **S-010** The model the viewer publishes | `built` | **E-110** | FR-VIEW-040, FR-VIEW-210, FR-VIEW-310, FR-VIEW-390, IF-VIEW-010, INV-SPEC-090 | `INCOMING_LABEL` | S-040 |
+| **S-020** A query over the model | `built` | **E-110** | FR-VIEW-220 | — | — |
+| **S-030** What a path and a line answer for | `built` | **E-110** | FR-VIEW-020, FR-VIEW-300 | — | — |
+| **S-040** The prose beside the requirements | `built` | **E-110** | FR-VIEW-260, FR-VIEW-270, FR-VIEW-280 | `PROSE_EXCLUDED`, `PROSE_EXPECTED` | — |
+| **S-050** A decision read from its own file | `built` | **E-110** | FR-VIEW-330, IF-SPEC-030 | `RE_ADR_HEADING`, `RE_ADR_STATUS` | — |
+| **S-060** A revision of the specification and its baselines | `built` | **E-110** | FR-VIEW-050, FR-VIEW-100, FR-VIEW-120, INV-SPEC-040 | `BASELINE_LOG`, `DIFF_FIELDS` | S-070 |
+| **S-070** Reading without writing | `built` | **E-110** | CON-SPEC-030, FR-VIEW-080 | — | — |
+| **S-080** The module as a file the framework ships | `built` | **E-110** | FR-INIT-280, NFR-SPEC-010 | — | — |

@@ -1,7 +1,7 @@
 # Elements
 
 The parts this framework is made of.
-The format is `README.md` in this directory; the map is generated into `90-map.md`.
+The format is `srs-dd/arch.md`; the map is generated into `90-map.md`.
 
 ### E-010 — The specification checker
 
