@@ -66,6 +66,16 @@ cd "$(dirname "$0")/.."
 #               part names its decisions by (FR-ARCH-870) with the reason
 #               that an unresolvable number is worse than none, and
 #               `srs-arch` stood at 7 919 with it.
+#               8 600 since 2026-10-14, when the same standard gained the
+#               facts about symbols — the format a project writes for a
+#               language the checker does not read, what it reads natively
+#               for one that it does, the four rules comparing a form with
+#               what the code declares and the limit of what a crossing can
+#               be read from (IF-ARCH-120 and FR-ARCH-930 through
+#               FR-ARCH-990). `srs-arch` stood at 8 529 with it. Raised
+#               rather than paid for by cutting an instruction out of the
+#               one file this procedure tells its reader to open whole,
+#               which is INV-SKILL-020.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
@@ -111,7 +121,7 @@ cd "$(dirname "$0")/.."
 #               to state and the other two do not. Ten words, for the same
 #               reason as the raise itself.
 OWN=1550
-TRANSITIVE=7950
+TRANSITIVE=8600
 GUIDE=2230
 
 # What is measured: every shipped procedure, and the two agent guides —

@@ -513,3 +513,24 @@ The keys, each for its own reason.
 `holds` is what the shape is composed of.
 `names` and `shape` are the symbols the form is and the operations it answers to, by the names the code uses; nothing reads them until the project supplies facts about its symbols, which is the position `interface` held before `FR-ARCH-490` existed.
 `status` takes the same four an element takes, and `proposed` is what the whole grain exists for: a form that is designed and not yet written.
+
+### IF-ARCH-120 — The facts about symbols are a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Facts about a project's symbols **shall** be written in `arch/symbols.json` as a JSON object whose `taken` is the date they were read, `source` the text saying where from, `symbols` the list of objects naming a symbol, its `kind` as `type`, `operation` or `state`, the path declaring it and the operations a type of its own declares, `entries` the list of objects standing for a path reaching a symbol by a name, and `life` the number of days the producer says they stay true, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The argument `IF-ARCH-100` makes for the units and `IF-ARCH-040` for the edges, one grain down: the project writes this file, so its shape is an interface whether or not it was meant as one.
+`kind` is the layer's own three words rather than a language's, because a shape record names types, operations and state, and a file speaking Swift, Kotlin or Go has its own word for each of them — a format that said `class` would be readable by one language's producer and a translation for everybody else.
+`taken` and `source` are required and `life` optional for the reason `IF-ARCH-100` gives: facts whose age and origin are unknown cannot be weighed against a model, and a producer may have no idea how long they hold.
+`entries` is separate from `symbols` because a declaration and a crossing are different facts about the same name, and a project can produce the first long before it can produce the second.

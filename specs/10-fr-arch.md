@@ -1923,3 +1923,143 @@ Where the architecture document is printed as a page and the layer holds forms t
 **Rationale.** The split `FR-ARCH-430` and `FR-ARCH-530` already make: the document hands a reader's renderer a diagram as text, and the page carries no renderer, so the page is laid out here or it shows its own source.
 
 It is a separate requirement rather than part of `FR-ARCH-910` because it is a separate obligation on a separate output, and because the page had one drawing and now has two: until this, every fenced block on the page was replaced by the same drawing, so a second one would have shown the first twice.
+
+### FR-ARCH-930 — A symbol a built shape names and nothing declares is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-710]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a `built` shape names a symbol in `names` or `owns` that the facts about symbols do not hold, the architecture checker **shall** report it as a warning named `symbol-missing`, naming the shape and the symbol.
+
+**Rationale.** The reading `FR-ARCH-710` makes of a unit the model declares and the facts do not, at the grain of a symbol: until this, `names` and `owns` were declarations nothing read, which is the position `interface` held before `FR-ARCH-490`.
+`built` and not every shape in force, because a `proposed` shape naming symbols nobody has written yet is the whole point of designing a form before its code — `FR-ARCH-960` is the rule for that half.
+A warning and not an error: the symbol may have been renamed, the facts may be stale, and which of the two it is the checker cannot tell.
+
+### FR-ARCH-940 — A type the facts hold that no shape claims is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-720]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where the facts about symbols hold a type declared in a file an element carries, that element holds at least one shape, and no shape inside it names that type, the architecture checker **shall** report it as a note named `symbol-unclaimed`, naming the type, the file declaring it and the element.
+
+**Rationale.** The other direction of `FR-ARCH-930`, kept apart for the reason `FR-ARCH-060` and `FR-ARCH-070` are: a form describing a symbol that is gone and a type nobody described are different problems with different answers.
+A type and not every symbol, because that is where this grain is about encapsulation: a project would be told about every helper function it ever wrote, the forms would be written to quiet the rule, and the layer would become the retelling of the code `FR-ARCH-820` guards against.
+A note rather than a warning, and the condition on the part holding a shape, because this is the backlog of adopting the grain one part at a time and not a defect — the reading `FR-ARCH-800` and `FR-ARCH-810` already give the obligations.
+
+### FR-ARCH-950 — A shape entered by an operation it does not state is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-490]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a shape states its operations and the facts about symbols hold an entry into one of its names, from a file outside the element that shape is inside, by a name `shape` does not state, the architecture checker **shall** report it as a warning named `shape-bypassed`, naming the shape, the name reached and the file reaching it.
+
+**Rationale.** What gives `shape` teeth, and the reading `FR-ARCH-490` makes of a part reached by a name its interface does not state, one grain down.
+Only where the shape states its operations: a form that declares none has said nothing to be crossed, the silence `FR-ARCH-490` leaves to `FR-ARCH-450` at the grain above, and reporting it here would make every form without that key look breached by its own callers.
+From outside the element and not from outside the form, because a form is not a compilation unit and the code of one part reaching its own insides is how a part is built; what the layer can say something about is somebody else's code reaching past the operations this form published.
+
+### FR-ARCH-960 — A designed shape that is already built is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-330]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a shape still `proposed` names symbols and the facts about symbols hold every one of them, the architecture checker **shall** report it as a warning named `shape-built`, naming the shape.
+
+**Rationale.** The reading `FR-ARCH-330` makes of a designed part whose files all exist, at the grain of a form: the code is written and only the status still says it is a design.
+Turning the status is a person's act and the layer never does it, which is why this says what it found rather than editing the record (`ADR-0042`).
+A shape naming no symbol is not reported: there is nothing that could have been found, and a form designed down to its obligations alone is a legitimate design.
+
+### FR-ARCH-970 — What moving to the designed form requires is computed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-350]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+When asked what moving to the designed parts requires, the architecture command **shall** print, for every shape still `proposed`, the symbols the facts do not hold yet, the operations its named types do not answer to, and the state another shape owns today.
+
+**Rationale.** The twin of `FR-ARCH-350` at the grain of a form, and the figure a person counted by hand in the case this grain came from: what it costs to get to the designed form is the one question a design is read for.
+Printed and reported as nothing, for the reason `FR-ARCH-350` gives: a designed form differing from the built code is the normal state of designing, and a warning there would price the design itself.
+State another shape owns today is in the list because that is the move the design usually is — a field leaving the form that answered two questions with it.
+
+### FR-ARCH-980 — The checker reads a language's own declarations
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-200]
+depends_on: [IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a file an element carries is in a language the architecture checker reads itself, the checker **shall** take the symbols it compares a shape against from that file, and take them from `arch/symbols.json` for every file in a language it does not.
+
+**Rationale.** The arrangement `FR-ARCH-200` already made for the dependencies: one language read natively so that the common case needs no file, every other language supplied by the project, and the two never in competition over the same file.
+Read and not configured, because a declaration is the one fact about a symbol that cannot drift from the code — it is the code — and a file the project maintains by hand about its own language would be a second source for something already in the repository.
+The facts a project supplies are not merged into a language the checker reads: a file it can read is read, which keeps a symbol from being held by two readings that disagree.
+
+### FR-ARCH-990 — A run that compared no shape with any symbol says so
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-630]
+depends_on: [FR-ARCH-980]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where the layer holds a shape and the run read no declaration at all — no file of the elements holding shapes in a language the checker reads, and no facts about symbols — the architecture checker **shall** report that the shapes were compared with nothing.
+
+**Rationale.** The statement `FR-ARCH-630` makes about a run that compared the model with nothing, for the four rules this grain adds: with no declarations read, every one of them is silent, and silence here reads as conformance.
+It is the trap this layer's own standard names about `Warnings: 0` — the absence of a verdict taken for a verdict — and the reason it is not a rule a project prices is the reason `FR-ARCH-630` is not: switching it off would switch off the line saying the check never ran.
+Separate from `FR-ARCH-630` because the two readings fail apart: a project whose edges file carries its dependencies has had the model compared with something and its shapes compared with nothing.

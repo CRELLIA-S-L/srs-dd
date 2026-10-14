@@ -1818,7 +1818,7 @@ depends_on: []
 Carries all of it.
 MD
 rule "FR-ARCH-350 nothing designed" 0 \
-    "No part is designed and unbuilt, so there is nothing to move." --plan
+    "No part and no form is designed and unbuilt, so there is nothing to move." --plan
 
 # srs-end: FR-ARCH-350
 
@@ -3761,6 +3761,450 @@ Holds the second file.
 MD
 rule "FR-ARCH-870 a decision nobody wrote" 1 "E-010 names ADR-0099, and the specification holds no document named after it"
 # srs-end: FR-ARCH-870
+
+
+# --- The facts about symbols: what the checker reads itself and what a project supplies.
+# verifies: FR-ARCH-930, FR-ARCH-940, FR-ARCH-950, FR-ARCH-960, FR-ARCH-970
+# verifies: FR-ARCH-980, FR-ARCH-990, IF-ARCH-120
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+
+# A run with a form and nothing to compare it against says so: the files carry no declaration
+# and the project supplied none.
+printf 'pass\n' > "$LAB/src/a.py"
+printf 'pass\n' > "$LAB/src/b.py"
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-990 a run that read no declaration" 0 "the forms were compared with nothing"
+silent "FR-ARCH-930 nothing read means nothing is missing" 0 "no declaration this run read holds it"
+
+# Now the files declare something, read by the checker itself.
+cat > "$LAB/src/a.py" <<'PY'
+STATE = 1
+
+
+def act():
+    return STATE
+
+
+def inside_use():
+    return First.plan
+
+
+class First:
+    def act(self):
+        return STATE
+
+    def plan(self):
+        return STATE
+PY
+cat > "$LAB/src/b.py" <<'PY'
+def use():
+    return First.plan
+PY
+
+silent "FR-ARCH-990 a run that read declarations is silent" 0 "the forms were compared with nothing"
+silent "FR-ARCH-930 a name the code declares is not reported" 0 "no declaration this run read holds it"
+silent "FR-ARCH-940 a type the form names is not reported" 0 "declares the type First"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, Missing]
+owns: [First.state]
+```
+
+Answers for the first, and names what nobody wrote.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-930 a name nothing declares" 0 "S-010 names Missing and no declaration this run read holds it"
+rule "FR-ARCH-930 state nothing declares" 0 "S-010 names First.state and no declaration this run read holds it"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form still being designed
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, Missing]
+```
+
+Answers for the first, and is not built yet.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-930 a designed form names what nobody wrote yet" 0 "no declaration this run read holds it"
+rule "FR-ARCH-970 the symbols a design still needs" 0 "symbol Missing — nothing declares it yet" --plan
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A design the code has caught up with
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+```
+
+Answers for the first, and every symbol it names exists.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-960 a design the code has caught up with" 0 \
+     "S-010 is still proposed and every symbol it names is declared"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A design that names no symbol
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+```
+
+Answers for the first, down to its obligations alone.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-960 a design naming no symbol is not reported" 0 "every symbol it names is declared"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form nobody claims the type of
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [act]
+```
+
+Answers for the first, and names the operation rather than the type.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-940 a type no form claims" 0 \
+     "src/a.py declares the type First, which E-010 carries and no shape inside it names"
+silent "FR-ARCH-940 an operation is not reported as unclaimed" 0 "declares the type act"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form with operations of its own
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+shape: [act]
+```
+
+Answers for the first, and states one operation.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-950 a form entered past its operations" 0 \
+     "S-010 is reached on First.plan by src/b.py, and its shape does not state plan"
+silent "FR-ARCH-950 a part reaching its own insides is not reported" 0 "by src/a.py"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that states both operations
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+shape: [act, plan]
+```
+
+Answers for the first, and states what the other part enters by.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-950 an operation the form states is not a bypass" 0 "its shape does not state"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that states no operation
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+```
+
+Answers for the first, and declares no operation to be crossed.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-950 a form stating no operation is not reported" 0 "its shape does not state"
+rule "FR-ARCH-970 the operations a design still needs" 0 "No part and no form is designed" --plan
+
+# --- A type inside a type comes with what encloses it, under its dotted name.
+cat > "$LAB/src/a.py" <<'PY'
+STATE = 1
+
+
+def act():
+    return STATE
+
+
+def inside_use():
+    return First.plan
+
+
+class First:
+    class Inner:
+        def run(self):
+            return STATE
+
+    def act(self):
+        return STATE
+
+    def plan(self):
+        return STATE
+PY
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form naming a type inside a type
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, First.Inner]
+```
+
+Answers for the first, and names what is nested in it.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-980 a nested type resolves by its dotted name" 0 "names First.Inner and no declaration"
+silent "FR-ARCH-940 a nested type is not asked for a form of its own" 0 "declares the type First.Inner"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form naming a type that was never nested
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, First.Missing]
+```
+
+Answers for the first, and names what nobody nested in it.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-930 a nested name nothing declares" 0 \
+     "S-010 names First.Missing and no declaration this run read holds it"
+
+# --- The facts a project supplies, for a language the checker does not read.
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2026-10-14",
+ "source": "a reader of another language",
+ "symbols": [{"name": "Second", "kind": "type", "path": "src/c.swift", "operations": ["run"]},
+             {"name": "Ghost", "kind": "type", "path": "src/a.py"}],
+ "entries": [{"from": "src/c.swift", "symbol": "First", "by": "plan"}]}
+JSON
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+shape: [act]
+```
+
+Answers for the first.
+
+### S-020 — A form in another language
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+names: [Second]
+```
+
+Answers for the second, in a language this checker does not read.
+MD
+silent "FR-ARCH-980 a symbol the facts hold is not missing" 0 "S-020 names Second"
+silent "FR-ARCH-980 a file read natively is not taken from the facts" 0 "declares the type Ghost"
+rule "FR-ARCH-950 an entry the facts hold" 0 \
+     "S-010 is reached on First.plan by src/c.swift, and its shape does not state plan"
+
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2026-10-14",
+ "source": "a reader of another language",
+ "symbols": [{"name": "Second", "kind": "class", "path": "src/c.swift"}]}
+JSON
+rule "IF-ARCH-120 a kind the format does not have" 2 \
+     "is 'class', expected one of type, operation, state"
+
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2020-01-01",
+ "source": "a reader of another language",
+ "life": 14,
+ "symbols": [{"name": "Second", "kind": "type", "path": "src/c.swift"}]}
+JSON
+rule "IF-ARCH-120 facts past the life their producer gave them" 0 \
+     "no form here was compared with a symbol that file holds"
+rm -f "$LAB/arch/symbols.json"
+# srs-end: FR-ARCH-930
 
 
 echo "arch-rules: $passes fixtures pass"

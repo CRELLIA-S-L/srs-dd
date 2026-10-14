@@ -58,6 +58,13 @@ EDGES_REL = os.path.join("arch", "edges.json")
 UNITS = os.path.join(ARCH, "units.json")
 UNITS_REL = os.path.join("arch", "units.json")
 # srs-end: IF-ARCH-100
+# implements: IF-ARCH-120
+SYMBOLS = os.path.join(ARCH, "symbols.json")
+SYMBOLS_REL = os.path.join("arch", "symbols.json")
+# The layer's own three words for what a shape record names, so that a producer writing this file
+# from Swift, Kotlin or Go has one word for each and not a translation of Python's.
+SYMBOL_KINDS = ("type", "operation", "state")
+# srs-end: IF-ARCH-120
 MAP = os.path.join(ARCH, "90-map.md")
 MAP_REL = os.path.join("arch", "90-map.md")
 VIEWER = os.path.join(ROOT, "srs-dd", "tools", "srs_view.py")
@@ -118,7 +125,8 @@ RULES = ("element-cancelled", "carrier-unclaimed", "requirement-uncarried", "ele
          "element-ungrounded", "dependency-upward", "import-forbidden",
          "carrier-contested", "dependency-unpermitted", "unit-absent",
          "unit-unclaimed", "link-undeclared", "requirement-unshaped",
-         "requirement-undesigned", "shape-empty", "state-contested", "shape-cycle")
+         "requirement-undesigned", "shape-empty", "state-contested", "shape-cycle",
+         "symbol-missing", "symbol-unclaimed", "shape-bypassed", "shape-built")
 # srs-end: IF-ARCH-030
 
 # `warn` fails a --strict run, `report` is printed and fails nothing, `off` is not printed at all.
@@ -130,8 +138,12 @@ SEVERITIES = ("warn", "report", "off")
 # The facts about units usually come from a repository this one does not own, so a
 # disagreement with them is a conversation between two teams and not a build to fail;
 # a project whose own pipeline produces them knows better and can price them up.
+# implements: FR-ARCH-940
+# A type nobody claimed is the backlog of adopting the grain, and a backlog is a note.
 DEFAULT_SEVERITY = {"requirement-unassigned": "report", "unit-absent": "report",
-                    "unit-unclaimed": "report", "link-undeclared": "report"}
+                    "unit-unclaimed": "report", "link-undeclared": "report",
+                    "symbol-unclaimed": "report"}
+# srs-end: FR-ARCH-940
 # srs-end: FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
 # srs-end: FR-ARCH-320
 
@@ -330,6 +342,80 @@ def load_units_file(today=None):
                                 % (UNITS_REL, raw["source"], raw["taken"], age, life))
     return facts, None, None
 # srs-end: IF-ARCH-100, FR-ARCH-750, FR-ARCH-740
+
+
+# implements: IF-ARCH-120, FR-ARCH-980
+def load_symbols_file(today=None):
+    """The facts the project supplied about its symbols, as (facts, problem, note).
+
+    Read exactly as the facts about units are, and for the same reasons: `facts` is None where
+    there are none to use, which is both an absent file and one whose own stated life has run
+    out, and a shape this cannot read is a setup fault rather than a finding.
+    """
+    if not os.path.exists(SYMBOLS):
+        return None, None, None
+    try:
+        with open(SYMBOLS, encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except (OSError, ValueError) as exc:
+        return None, "%s: %s" % (SYMBOLS_REL, exc), None
+    if not isinstance(raw, dict):
+        return None, "%s: the top level must be a JSON object" % SYMBOLS_REL, None
+    for key in ("taken", "source"):
+        if not isinstance(raw.get(key), str) or not raw[key].strip():
+            return None, "%s: `%s` must be text" % (SYMBOLS_REL, key), None
+    try:
+        taken = datetime.date(*[int(part) for part in raw["taken"].split("-")])
+    except (TypeError, ValueError):
+        return None, ("%s: `taken` is %r, expected a date as YYYY-MM-DD"
+                      % (SYMBOLS_REL, raw["taken"])), None
+    declared = raw.get("symbols")
+    if not isinstance(declared, list):
+        return None, "%s: `symbols` must be a JSON list" % SYMBOLS_REL, None
+    symbols = []
+    for index, item in enumerate(declared):
+        where = "%s: symbol %d" % (SYMBOLS_REL, index)
+        if not isinstance(item, dict):
+            return None, "%s must be an object with `name`, `kind` and `path`" % where, None
+        for key in ("name", "path"):
+            if not isinstance(item.get(key), str) or not item[key].strip():
+                return None, "%s: `%s` must be text" % (where, key), None
+        if item.get("kind") not in SYMBOL_KINDS:
+            return None, ("%s: `kind` is %r, expected one of %s"
+                          % (where, item.get("kind"), ", ".join(SYMBOL_KINDS))), None
+        operations = item.get("operations", [])
+        if not isinstance(operations, list) or any(not isinstance(op, str) or not op.strip()
+                                                   for op in operations):
+            return None, "%s: `operations` must be a JSON list of names" % where, None
+        symbols.append({"name": item["name"], "kind": item["kind"], "path": item["path"],
+                        "operations": sorted(set(operations))})
+    crossings = raw.get("entries", [])
+    if not isinstance(crossings, list):
+        return None, "%s: `entries` must be a JSON list" % SYMBOLS_REL, None
+    entries = []
+    for index, item in enumerate(crossings):
+        where = "%s: entry %d" % (SYMBOLS_REL, index)
+        if not isinstance(item, dict):
+            return None, "%s must be an object with `from`, `symbol` and `by`" % where, None
+        for key in ("from", "symbol", "by"):
+            if not isinstance(item.get(key), str) or not item[key].strip():
+                return None, "%s: `%s` must be text" % (where, key), None
+        entries.append({"from": item["from"], "symbol": item["symbol"], "by": item["by"]})
+    life = raw.get("life")
+    if life is not None and (isinstance(life, bool) or not isinstance(life, int) or life < 0):
+        return None, ("%s: `life` is %r, expected a whole number of days"
+                      % (SYMBOLS_REL, life)), None
+    facts = {"taken": taken, "source": raw["source"], "life": life,
+             "symbols": symbols, "entries": entries}
+    if life is not None:
+        age = ((today or datetime.date.today()) - taken).days
+        if age > life:
+            return None, None, ("the facts in %s, taken from %s on %s, are %d days old and their "
+                                "producer says they stay true for %d, so none of them was used: "
+                                "no form here was compared with a symbol that file holds"
+                                % (SYMBOLS_REL, raw["source"], raw["taken"], age, life))
+    return facts, None, None
+# srs-end: IF-ARCH-120, FR-ARCH-980
 
 
 # implements: FR-ARCH-700
@@ -729,6 +815,231 @@ def check_shape_cycles(shapes, warnings, reports, cfg):
         if node not in colour:
             walk(node)
 # srs-end: FR-ARCH-840
+
+
+# implements: FR-ARCH-980
+def declarations_in(path):
+    """Every symbol one Python file declares, in the layer's three words.
+
+    A class is a type and its own body is read with it — a method as an operation and an assigned
+    field as state, both under the dotted name a shape record owns them by. Nothing below the
+    top level of the file or the top level of a class: a name declared inside a function is not
+    something another part can reach, so the layer has nothing to say about it.
+    """
+    try:
+        with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
+            tree = ast.parse(handle.read())
+    except (OSError, UnicodeDecodeError, SyntaxError):
+        return []
+    functions = (ast.FunctionDef, ast.AsyncFunctionDef)
+    out = []
+
+    def assigned(node):
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        return [t.id for t in targets if isinstance(t, ast.Name)]
+
+    def read_class(node, prefix):
+        name = prefix + node.name
+        operations = sorted(child.name for child in node.body if isinstance(child, functions))
+        out.append({"name": name, "kind": "type", "path": path, "operations": operations})
+        for child in node.body:
+            if isinstance(child, functions):
+                out.append({"name": "%s.%s" % (name, child.name), "kind": "operation",
+                            "path": path, "operations": []})
+            elif isinstance(child, ast.ClassDef):
+                read_class(child, name + ".")
+            elif isinstance(child, (ast.Assign, ast.AnnAssign)):
+                for field in assigned(child):
+                    out.append({"name": "%s.%s" % (name, field), "kind": "state",
+                                "path": path, "operations": []})
+
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef):
+            read_class(node, "")
+        elif isinstance(node, functions):
+            out.append({"name": node.name, "kind": "operation", "path": path, "operations": []})
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            for name in assigned(node):
+                out.append({"name": name, "kind": "state", "path": path, "operations": []})
+    return out
+# srs-end: FR-ARCH-980
+
+
+# implements: FR-ARCH-980
+def entries_in(path):
+    """Every name one Python file reaches on another name, as the facts about symbols write it.
+
+    What can be read without knowing a type: a name reached on a name — a module's or a type's
+    own — and a name imported out of a module. A field reached through a variable holding an
+    instance is not here, because nothing in the file says what that variable is; a project whose
+    own tooling knows the types produces better entries into `arch/symbols.json`, which is the
+    reason that file takes them at all.
+    """
+    try:
+        with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
+            tree = ast.parse(handle.read())
+    except (OSError, UnicodeDecodeError, SyntaxError):
+        return []
+    out = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            out.append({"from": path, "symbol": node.value.id, "by": node.attr})
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            for alias in node.names:
+                out.append({"from": path, "symbol": node.module.split(".")[-1],
+                            "by": alias.name})
+    return out
+# srs-end: FR-ARCH-980
+
+
+# implements: FR-ARCH-980
+def symbols_model(elements, facts):
+    """What the run compared the forms against: (symbols, entries).
+
+    A file in a language this checker reads is read, and the facts the project supplied cover
+    every other file. Never the same file twice: a symbol held by two readings that disagree is
+    the thing this split exists to prevent.
+    """
+    by_path, _names = python_modules(elements)
+    native = set(by_path)
+    symbols, entries = [], []
+    for path in sorted(native):
+        symbols.extend(declarations_in(path))
+        entries.extend(entries_in(path))
+    if facts:
+        symbols.extend(item for item in facts["symbols"] if item["path"] not in native)
+        entries.extend(item for item in facts["entries"] if item["from"] not in native)
+    return symbols, entries
+# srs-end: FR-ARCH-980
+
+
+def symbols_named(record):
+    """The symbols one shape record names, both the names it is and the state it owns."""
+    return as_list(record.fields.get("names")) + as_list(record.fields.get("owns"))
+
+
+# implements: FR-ARCH-930
+def check_symbols_declared(shapes, symbols, warnings, reports, cfg):
+    """A built form naming a symbol no declaration holds: renamed, or the facts are stale, and
+    which of the two it is the checker cannot tell — so a warning.
+
+    The reading `check_units` makes of a unit the model declares and the facts do not, at the
+    grain of a symbol. Only a `built` form: a design naming what nobody has written yet is what
+    `proposed` is for, and `check_shape_built` is the rule for that half.
+    """
+    if not symbols:
+        return
+    held = set(item["name"] for item in symbols)
+    for record in shapes:
+        if record.fields.get("status") != "built":
+            continue
+        for name in symbols_named(record):
+            if name not in held:
+                rule_finding(warnings, reports, cfg, "symbol-missing",
+                             "%s — %s names %s and no declaration this run read holds it"
+                             % (record.where, record.id, name))
+# srs-end: FR-ARCH-930
+
+
+# implements: FR-ARCH-940
+def check_symbols_claimed(elements, shapes, symbols, warnings, reports, cfg):
+    """A type declared in a part that holds forms and named by none of them.
+
+    The other direction of `check_symbols_declared`, kept apart because a form describing a
+    symbol that is gone and a type nobody described are different problems. A type and not every
+    symbol: told about every helper it ever wrote, a project would write a record for each, and
+    the layer would become the retelling of the code `check_shape_empty` guards against.
+    """
+    held = shapes_of(shapes)
+    owners = live_carriers(elements)
+    claimed = {}
+    for eid, records in held.items():
+        names = set()
+        for record in records:
+            names |= set(as_list(record.fields.get("names")))
+        claimed[eid] = names
+    for item in sorted(symbols, key=lambda i: (i["path"], i["name"])):
+        if item.get("kind") != "type" or "." in item["name"]:
+            continue
+        element = element_of(item["path"], owners)
+        if element is None or element not in claimed or item["name"] in claimed[element]:
+            continue
+        rule_finding(warnings, reports, cfg, "symbol-unclaimed",
+                     "%s declares the type %s, which %s carries and no shape inside it names"
+                     % (item["path"], item["name"], element))
+# srs-end: FR-ARCH-940
+
+
+# implements: FR-ARCH-950
+def check_shape_entries(elements, shapes, entries, warnings, reports, cfg):
+    """A form reached from another part by a name its operations do not state.
+
+    What gives `shape` teeth, and the reading `check_interfaces` makes of a part reached by a
+    name its interface does not state. Only where the form states its operations, the silence a
+    part declaring no interface is left in; and only from outside the part, because a part
+    reaching its own insides is how a part is built.
+    """
+    owners = live_carriers(elements)
+    for record in shapes:
+        if record.fields.get("status") in CANCELLED:
+            continue
+        operations = set(as_list(record.fields.get("shape")))
+        if not operations:
+            continue
+        names = set(as_list(record.fields.get("names")))
+        inside = as_list(record.fields.get("inside"))
+        for entry in entries:
+            if entry["symbol"] not in names or entry["by"] in operations:
+                continue
+            if element_of(entry["from"], owners) in inside:
+                continue
+            rule_finding(warnings, reports, cfg, "shape-bypassed",
+                         "%s — %s is reached on %s.%s by %s, and its shape does not state %s"
+                         % (record.where, record.id, entry["symbol"], entry["by"],
+                            entry["from"], entry["by"]))
+# srs-end: FR-ARCH-950
+
+
+# implements: FR-ARCH-960
+def check_shape_built(shapes, symbols, warnings, reports, cfg):
+    """A designed form whose every symbol exists: the code is written and only the status still
+    says it is a design. Turning it is a person's act and the layer never does it (ADR-0042).
+
+    A form naming no symbol is not reported: nothing could have been found, and a form designed
+    down to its obligations alone is a legitimate design.
+    """
+    if not symbols:
+        return
+    held = set(item["name"] for item in symbols)
+    for record in shapes:
+        if record.fields.get("status") not in DESIGNED:
+            continue
+        named = symbols_named(record)
+        if named and all(name in held for name in named):
+            rule_finding(warnings, reports, cfg, "shape-built",
+                         "%s — %s is still proposed and every symbol it names is declared"
+                         % (record.where, record.id))
+# srs-end: FR-ARCH-960
+
+
+# implements: FR-ARCH-990
+def check_symbols_read(shapes, symbols, reports):
+    """Whether this run compared the forms with anything at all.
+
+    With no declaration read, all four rules about a symbol are silent, and silence reads as
+    conformance — the trap this layer's standard names about `Warnings: 0`. Not a rule the
+    project prices, for the reason `check_code_read` is not: switching it off would switch off
+    the line saying the check never ran.
+    """
+    live = [record for record in shapes if record.fields.get("status") not in CANCELLED]
+    if not live or symbols:
+        return
+    reports.append("the layer holds %d shape(s) and this run read no declaration at all — no "
+                   "file of the parts holding them is in a language this checker reads and %s "
+                   "is absent — so the forms were compared with nothing: no symbol was read "
+                   "from the code, which is not the same as finding none"
+                   % (len(live), SYMBOLS_REL))
+# srs-end: FR-ARCH-990
 
 
 # implements: FR-ARCH-870
@@ -1669,7 +1980,7 @@ def print_draft(records, model, cfg, unread=()):
 
 
 # implements: FR-ARCH-350
-def print_plan(records, model, cfg, unread=()):
+def print_plan(records, model, cfg, unread=(), shapes=(), symbols=()):
     """What moving to the designed parts requires: files changing hands with both ends named,
     obligations changing part, and the dependencies the design adds and drops.
 
@@ -1677,12 +1988,13 @@ def print_plan(records, model, cfg, unread=()):
     """
     designed = [r for r in records
                 if RE_ID.match(r.id) and r.fields.get("status") in DESIGNED]
+    designed_shapes = [r for r in shapes if r.fields.get("status") in DESIGNED]
     out = sys.stdout
     if unread:
         out.write("%d record(s) could not be read and are not in this plan; the checker names "
                   "them.\n" % len(unread))
-    if not designed:
-        out.write("No part is designed and unbuilt, so there is nothing to move.\n")
+    if not designed and not designed_shapes:
+        out.write("No part and no form is designed and unbuilt, so there is nothing to move.\n")
         return 0
 
     owners = live_carriers(records)          # built parts only: a design owns nothing yet
@@ -1700,8 +2012,11 @@ def print_plan(records, model, cfg, unread=()):
         for path in as_list(record.fields.get("carries")):
             designed_carriers.setdefault(path.rstrip("/"), []).append(record.id)
 
-    out.write("What moving to the designed parts requires. Printed, never decided: the records "
-              "stay the author's.\n")
+    if not designed:
+        out.write("No part is designed and unbuilt, so no file and no obligation changes hands.\n")
+    else:
+        out.write("What moving to the designed parts requires. Printed, never decided: the "
+                  "records stay the author's.\n")
     order = spec_order(model)
     for record in sorted(designed, key=lambda r: srs_parse.id_key(r.id)):
         out.write("\n%s — %s\n" % (record.id, record.title))
@@ -1722,6 +2037,40 @@ def print_plan(records, model, cfg, unread=()):
                       % (rid, "from %s" % where if where else "no part carries it today"))
         for target in sorted(declared.get(record.id, ()), key=srs_parse.id_key):
             out.write("    needs %s — a dependency the built parts do not have\n" % target)
+
+    # implements: FR-ARCH-970
+    # The same question one grain down, and the one a design is read for: what it would cost to
+    # get to the designed form. Printed with the parts, because a design is commonly both.
+    if designed_shapes:
+        held = set(item["name"] for item in symbols)
+        answered = {}
+        for item in symbols:
+            if item.get("kind") == "type":
+                answered[item["name"]] = set(item.get("operations") or ())
+        owners = {}
+        for record in shapes:
+            if record.fields.get("status") in CANCELLED:
+                continue
+            for state in as_list(record.fields.get("owns")):
+                owners.setdefault(state, []).append(record.id)
+        out.write("\nWhat moving to the designed forms requires.\n")
+        for record in sorted(designed_shapes, key=lambda r: srs_parse.id_key(r.id)):
+            out.write("\n%s — %s\n" % (record.id, record.title))
+            for name in symbols_named(record):
+                if name not in held:
+                    out.write("    symbol %s — nothing declares it yet\n" % name)
+            for operation in as_list(record.fields.get("shape")):
+                missing = [name for name in as_list(record.fields.get("names"))
+                           if operation not in answered.get(name, ())]
+                if missing:
+                    out.write("    answers %s — %s does not answer to it yet\n"
+                              % (operation, ", ".join(missing)))
+            for state in as_list(record.fields.get("owns")):
+                others = [eid for eid in owners.get(state, ()) if eid != record.id]
+                if others:
+                    out.write("    state  %s — owned by %s today\n"
+                              % (state, ", ".join(sorted(others, key=srs_parse.id_key))))
+    # srs-end: FR-ARCH-970
 
     # A built part the design claims every file of is being dissolved, and its edges go with it.
     dissolving = []
@@ -2072,6 +2421,11 @@ def main(argv=None):
     if problem:
         return fail_setup(problem)
     # srs-end: FR-ARCH-740, FR-ARCH-750
+    # implements: IF-ARCH-120
+    declarations, problem, stale_symbols = load_symbols_file()
+    if problem:
+        return fail_setup(problem)
+    # srs-end: IF-ARCH-120
 
     if "--drivers" in args:
         if inside is None:
@@ -2083,8 +2437,9 @@ def main(argv=None):
     # A reading and not a check: nothing about the layer is held to anything here.
     if "--plan" in args:
         unread = []
-        elements = partition(read_records(unread), unread)[0]
-        return print_plan(elements, model, cfg, unread)
+        elements, _moves, shapes = partition(read_records(unread), unread)
+        symbols, _entries = symbols_model(elements, declarations)
+        return print_plan(elements, model, cfg, unread, shapes, symbols)
 
     # implements: FR-ARCH-570, FR-ARCH-580
     if priced is not None:
@@ -2149,6 +2504,14 @@ def main(argv=None):
     check_shape_empty(shapes, warnings, reports, cfg)
     check_state_contested(shapes, warnings, reports, cfg)
     check_shape_cycles(shapes, warnings, reports, cfg)
+    symbols, entries = symbols_model(elements, declarations)
+    check_symbols_declared(shapes, symbols, warnings, reports, cfg)
+    check_symbols_claimed(elements, shapes, symbols, warnings, reports, cfg)
+    check_shape_entries(elements, shapes, entries, warnings, reports, cfg)
+    check_shape_built(shapes, symbols, warnings, reports, cfg)
+    check_symbols_read(shapes, symbols, reports)
+    if stale_symbols:
+        reports.append(stale_symbols)
     check_decisions(elements, model, errors)
 
     for text in warnings:

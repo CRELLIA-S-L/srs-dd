@@ -353,11 +353,42 @@ A part that holds no form at all is silent, because the grain is adopted a part 
 `proposed` is what the grain exists for: a form can be designed, closed against the obligations and read by everybody before a line of its code is written, and only a person turns that status into `built`.
 
 **What is checked without reading anything.** An identifier that is malformed or repeated, a missing required key and a status outside the four, reported as an element's are; an `inside` that does not name exactly one element the layer defines, or a `holds` naming a form it does not define, which are errors because every rule below reads those two keys; a form answering for no obligation; one piece of state owned by two forms; and forms holding each other in a circle.
-`names` and `shape` are declarations that nothing reads yet — the position `interface` held before a part could be reported for being entered by a name it does not state.
+`names`, `shape` and `owns` are compared with the code separately, in *The facts about symbols* below, which is also where the reading that makes those comparisons possible is described.
 
 **Write a form where there is a boundary somebody could cross without noticing, not where there is a class.**
 The advice against cutting the parts as finely as the file tree holds twice over here: a record for every type says nothing the file did not, and it teaches every reader that this grain is decoration.
 The question is the layer's own — is there a boundary somebody could cross without noticing — asked of the inside of one part.
+
+## The facts about symbols
+
+The rules above read nothing but the records and the specification, which is what lets a form be designed before its code exists.
+Four more compare a form with what the code actually declares, and they need facts of a kind this layer does not hold: which symbols exist, where they are declared, what a type's own operations are, and which names one file reaches on another.
+
+**A language the checker reads it takes from the file itself.** It reads Python's own declarations as it already reads Python's imports: a class is a type and its methods, fields and nested types come with it under the dotted name a record owns them by, a function at the top level is an operation, and a name assigned at the top level is state.
+Nothing declared inside a function, because a name there is not something another part can reach; and only a type written at the top level of its file is one the unclaimed rule asks for a form about, since a nested type is part of what encloses it.
+
+
+**Every other language the project supplies**, in `arch/symbols.json`, produced however it can — from a compiler's own index, from a language server, from its own pipeline:
+
+```json
+{"taken": "2026-10-14",
+ "source": "swift-symbolgraph at 4f21a0c",
+ "life": 14,
+ "symbols": [{"name": "Query", "kind": "type", "path": "Sources/Index/Query.swift",
+              "operations": ["parse", "plan", "run"]},
+             {"name": "Query.cursor", "kind": "state", "path": "Sources/Index/Query.swift"}],
+ "entries": [{"from": "Sources/Report/Page.swift", "symbol": "Query", "by": "cursor"}]}
+```
+
+`kind` is one of `type`, `operation` and `state` — the layer's own three words, matching `names`, `shape` and `owns`, so that a producer in any language has one word for each rather than a translation of somebody else's.
+`taken`, `source` and `life` are read exactly as the facts about units are, and for the same reasons; `entries` is separate from `symbols` because a declaration and a crossing are different facts, and a project can produce the first long before the second.
+A file the checker reads itself is never also taken from this file: a symbol held by two readings that disagree is what that split prevents.
+
+**What the four rules say.** A `built` form naming a symbol nothing declares, which is a rename or a stale fact; a type declared in a part that holds forms and named by none of them, a note and the backlog of adopting the grain; a form reached from another part by a name its `shape` does not state, which is what gives that key teeth; and a form still `proposed` whose every symbol already exists, which says the code is written and only the status still says otherwise.
+A run that read no declaration at all says so, for the reason a run that compared the model with nothing says so: with nothing read, all four are silent, and silence reads as conformance.
+
+**What a crossing can and cannot be read from.** A name reached on a name — a module's or a type's own — is in the code; a field reached through a variable holding an instance is not, because nothing in the file says what that variable is.
+That is the limit of the native reading and not a limit of the rule: a project whose own tooling knows the types produces better entries, which is the reason the file takes them.
 
 ## What a part was cut to keep
 
@@ -436,6 +467,10 @@ A project that wants its cut closed before any code is written prices it up.
 | `shape-empty` | A form in force that answers for no requirement |
 | `state-contested` | One piece of state that two forms in force own |
 | `shape-cycle` | Forms that hold each other in a circle |
+| `symbol-missing` | A symbol a `built` form names in `names` or `owns` that no declaration holds |
+| `symbol-unclaimed` | A type the declarations hold that no form inside the part carrying it names — a note, the backlog of the grain |
+| `shape-bypassed` | A form reached from another part by a name its own `shape` does not state |
+| `shape-built` | A `proposed` form whose every named symbol is already declared |
 A rule name the checker has published keeps its meaning: names are never renamed and never given to a different rule, because this file is written against them.
 
 ## What not to do
