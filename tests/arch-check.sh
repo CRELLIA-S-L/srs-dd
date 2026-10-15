@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The gate for this repository's own architecture layer: it passes its
 # checker strictly, and the committed map is what the elements say now.
 #
@@ -18,20 +19,20 @@ cd "$(dirname "$0")/.."
 
 [ -d arch ] || { echo "arch-check: no architecture layer in this repository"; exit 1; }
 
-python3 tools/srs_arch.py --no-write --strict
+python3 srs-dd/tools/srs_arch.py --no-write --strict
 
 LAB=/tmp/srs-arch-check
 rm -rf "$LAB"; mkdir -p "$LAB"
 tar --exclude ./.git --exclude ./.srs-site --exclude ./public \
     --exclude ./__pycache__ -cf - . | tar -xf - -C "$LAB"
-( cd "$LAB" && python3 tools/srs_arch.py > /tmp/arch-check.log 2>&1 ) || {
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py > /tmp/arch-check.log 2>&1 ) || {
     echo "arch-check: the copy does not pass its own checker:"
     cat /tmp/arch-check.log; exit 1; }
 
 if [ -f arch/90-map.md ]; then
     cmp -s arch/90-map.md "$LAB/arch/90-map.md" || {
         echo "arch-check: arch/90-map.md is stale — run"
-        echo "python3 tools/srs_arch.py and commit the result"
+        echo "python3 srs-dd/tools/srs_arch.py and commit the result"
         diff arch/90-map.md "$LAB/arch/90-map.md" | head -20
         exit 1; }
 else

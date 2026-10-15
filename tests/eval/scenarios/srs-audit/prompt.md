@@ -5,7 +5,7 @@
 procedure: srs-audit
 max_turns: 24
 check: skill srs-audit
-check: ran python3 tools/srs_view.py
+check: ran python3 srs-dd/tools/srs_view.py
 check: answer FR-VIEW-240 — A citation is printed, not typed \(specs/10-fr-view\.md, implemented\)
 check: answer (?i)uncovered|covered
 check: answer tests/view-smoke\.sh

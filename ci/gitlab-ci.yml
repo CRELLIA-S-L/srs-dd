@@ -16,25 +16,11 @@ spec-check:
   variables:
     GIT_DEPTH: 0
   script:
-    # Add --strict to fail on warnings as well.
-    - python3 tools/srs_check.py
-    - git add -N specs/90-traceability.md
-    - git diff --exit-code -- specs/90-traceability.md || { echo "specs/90-traceability.md is stale — run python3 tools/srs_check.py and commit the result"; exit 1; }
-    # Only where the project keeps a grounds register; inert elsewhere.
-    - |
-      if [ -f grounds/grounds-config.json ]; then
-        python3 tools/srs_grounds.py
-        git add -N grounds/90-dashboard.md
-        git diff --exit-code -- grounds/90-dashboard.md || { echo "grounds/90-dashboard.md is stale — run python3 tools/srs_grounds.py and commit the result"; exit 1; }
-      fi
-
-    # Only where the project keeps an architecture layer; inert elsewhere.
-    - |
-      if [ -f arch/arch-config.json ]; then
-        python3 tools/srs_arch.py
-        git add -N arch/90-map.md
-        git diff --exit-code -- arch/90-map.md || { echo "arch/90-map.md is stale — run python3 tools/srs_arch.py and commit the result"; exit 1; }
-      fi
+    # The gate is srs-dd/tools/srs_gate.py, refreshed with the rest of the
+    # tooling: the checker, and the grounds register's and the architecture
+    # layer's where the project keeps them, then every generated file
+    # compared with the one committed. Add --strict to fail on warnings.
+    - python3 srs-dd/tools/srs_gate.py
 
 # The readable specification as a build artifact: one self-contained
 # HTML file, no Pages setup required. Delete this job if you do not
@@ -47,7 +33,25 @@ spec-site:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - python3 tools/srs_view.py --html public/index.html --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+    # The specification, and the page of each optional layer this project keeps
+    # beside it, each told which others will be there. `if` rather than
+    # `[ -d x ] && …`, which under `set -e` fails the job where it is absent.
+    - |
+      beside=""
+      if [ -d arch ]; then beside="arch.html"; fi
+      if [ -d grounds ]; then beside="${beside:+$beside,}grounds.html"; fi
+      python3 srs-dd/tools/srs_view.py --html public/index.html ${beside:+--link "$beside"} \
+        --repo-url "$CI_PROJECT_URL/-/blob/$CI_COMMIT_SHA"
+      if [ -d arch ]; then
+        others="index.html"
+        if [ -d grounds ]; then others="index.html,grounds.html"; fi
+        python3 srs-dd/tools/srs_arch_doc.py --html --link "$others" > public/arch.html
+      fi
+      if [ -d grounds ]; then
+        others="index.html"
+        if [ -d arch ]; then others="index.html,arch.html"; fi
+        python3 srs-dd/tools/srs_grounds.py --html --link "$others" > public/grounds.html
+      fi
   artifacts:
     paths:
       - public

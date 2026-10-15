@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# tools/srs_view.py against a freshly installed target: every query mode,
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-dd/tools/srs_view.py against a freshly installed target: every query mode,
 # and the self-contained page (no CDN, deterministic, no bytecode).
 set -eo pipefail
 
@@ -24,7 +25,7 @@ rm -rf /tmp/srs-view
 python3 tools/srs_init.py /tmp/srs-view --defaults --ci none >/dev/null
 
 # srs-end: FR-CI-090
-# verifies: FR-VIEW-160
+# verifies: FR-VIEW-160, INV-SPEC-130
 # Two linked requirements, one of them the target of a refinement, and one
 # dependency across them: enough to exercise the tree, the incoming links,
 # and a graph that draws every kind of link (FR-VIEW-160).
@@ -136,7 +137,7 @@ mkdir -p tests && printf 'true\n' > tests/probe.sh
 # srs-ignore: written into the target, not a claim about this repository.
 printf '# implements: FR-CORE-030\n' > src/extra.py  # srs-ignore
 
-python3 tools/srs_view.py --list > /tmp/v-list.log
+python3 srs-dd/tools/srs_view.py --list > /tmp/v-list.log
 grep -q "FR-CORE-030" /tmp/v-list.log
 
 # srs-end: FR-VIEW-020
@@ -146,14 +147,14 @@ grep -q "FR-CORE-030" /tmp/v-list.log
 # and not the ones in use, which is the half a project reads to see where
 # it drew a partition and has not filled it; and `absent` is what catches
 # an --areas that delegated to --list and printed requirements instead.
-python3 tools/srs_view.py --areas > /tmp/v-areas.log
+python3 srs-dd/tools/srs_view.py --areas > /tmp/v-areas.log
 grep -qE "CORE +[0-9]+" /tmp/v-areas.log
 grep -qE "SEC +0" /tmp/v-areas.log
 absent "FR-CORE-030" /tmp/v-areas.log
 
 # The flag is one spelling; what the requirement binds is the line beside
 # the count, which prints before an answer nobody asked to filter.
-python3 tools/srs_view.py --coverage > /tmp/v-areas-sum.log
+python3 srs-dd/tools/srs_view.py --coverage > /tmp/v-areas-sum.log
 grep -qE "CORE +[0-9]+" /tmp/v-areas-sum.log
 echo "view-smoke: the areas are named with what each holds"
 
@@ -163,7 +164,7 @@ echo "view-smoke: the areas are named with what each holds"
 # template with no terms in it: a fixture asserting a word only the
 # glossary carries has to put one there first.
 printf '| Zarquon | A word no requirement uses |\n' >> specs/00-glossary.md
-python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose.log
+python3 srs-dd/tools/srs_view.py --grep Zarquon > /tmp/v-prose.log
 grep -q "specs/00-glossary.md:" /tmp/v-prose.log
 
 # The three registers the requirement excludes, and nothing else here
@@ -178,7 +179,7 @@ for reg in 90-traceability 91-open-issues 92-baselines; do
     printf '\nQuuxword appears only here.\n' >> "specs/$reg.md"
 done
 grep -q Quuxword specs/91-open-issues.md
-python3 tools/srs_view.py --grep Quuxword > /tmp/v-registers.log
+python3 srs-dd/tools/srs_view.py --grep Quuxword > /tmp/v-registers.log
 absent Quuxword /tmp/v-registers.log
 for reg in 90-traceability 91-open-issues 92-baselines; do
     mv "/tmp/v-$reg.md" "specs/$reg.md"
@@ -190,17 +191,17 @@ done
 # fails silently: a suppression nobody is told about reads as "the prose
 # holds nothing", a missing document reads the same, and a truncated list
 # reads as complete.
-python3 tools/srs_view.py --grep Zarquon --area CORE > /tmp/v-prose-f.log
+python3 srs-dd/tools/srs_view.py --grep Zarquon --area CORE > /tmp/v-prose-f.log
 absent "specs/00-glossary.md:" /tmp/v-prose-f.log
 grep -q "prose not searched" /tmp/v-prose-f.log
 # Asking about a file is the same statement, and it is the one of the five
 # a later reader would most plausibly not count as a filter.
-python3 tools/srs_view.py --grep Zarquon --code src/app.py > /tmp/v-prose-p.log
+python3 srs-dd/tools/srs_view.py --grep Zarquon --code src/app.py > /tmp/v-prose-p.log
 absent "specs/00-glossary.md:" /tmp/v-prose-p.log
 grep -q "prose not searched" /tmp/v-prose-p.log
 
 mv specs/02-overview.md /tmp/v-overview.md
-python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-m.log
+python3 srs-dd/tools/srs_view.py --grep Zarquon > /tmp/v-prose-m.log
 grep -q "the project has no 02-overview.md" /tmp/v-prose-m.log
 mv /tmp/v-overview.md specs/02-overview.md
 
@@ -210,7 +211,7 @@ with open('specs/03-notes.md', 'w', encoding='utf-8') as handle:
     for n in range(60):
         handle.write('Zarquon line %d.\n' % n)
 PY2
-python3 tools/srs_view.py --grep Zarquon > /tmp/v-prose-c.log
+python3 srs-dd/tools/srs_view.py --grep Zarquon > /tmp/v-prose-c.log
 grep -q "more line(s) in the prose are not shown" /tmp/v-prose-c.log
 rm -f specs/03-notes.md
 
@@ -220,19 +221,19 @@ rm -f specs/03-notes.md
 # addition rather than instead, because a needle can be a path and a word
 # at once and a hint that replaced the answer would drop the one asked for.
 printf '# implements: FR-CORE-020\n' > src/pathprobe.py  # srs-ignore
-python3 tools/srs_view.py --grep src/pathprobe.py > /tmp/v-path.log
+python3 srs-dd/tools/srs_view.py --grep src/pathprobe.py > /tmp/v-path.log
 grep -q -- "--code src/pathprobe.py" /tmp/v-path.log
-python3 tools/srs_view.py --grep Zarquon > /tmp/v-path2.log
+python3 srs-dd/tools/srs_view.py --grep Zarquon > /tmp/v-path2.log
 grep -q "specs/00-glossary.md:" /tmp/v-path2.log
 # An index of decisions is commonly named README.md, and it is not the
 # standard: the exclusions are whole paths, so only the one at the top of
 # specs/ is skipped.
 # The same word goes into both, so the two halves tell them apart.
 printf 'Decisions about Zarquon.\n' > specs/adr/README.md
-printf '\nThe standard does not discuss Zarquon.\n' >> specs/README.md
-python3 tools/srs_view.py --grep Zarquon > /tmp/v-adr.log
+printf '\nThe standard does not discuss Zarquon.\n' >> srs-dd/standard.md
+python3 srs-dd/tools/srs_view.py --grep Zarquon > /tmp/v-adr.log
 grep -q "specs/adr/README.md:" /tmp/v-adr.log
-absent "specs/README.md:[0-9]" /tmp/v-adr.log
+absent "srs-dd/standard.md:[0-9]" /tmp/v-adr.log
 rm -f specs/adr/README.md
 # And not for a name the project does not carry. Run from somewhere else
 # in the tree, the hint used to fire on whatever file happened to sit in
@@ -242,16 +243,16 @@ rm -rf /tmp/srs-view-elsewhere
 mkdir -p /tmp/srs-view-elsewhere
 : > /tmp/srs-view-elsewhere/decoy.md
 (cd /tmp/srs-view-elsewhere \
- && python3 /tmp/srs-view/tools/srs_view.py --grep decoy.md) > /tmp/v-path3.log
+ && python3 /tmp/srs-view/srs-dd/tools/srs_view.py --grep decoy.md) > /tmp/v-path3.log
 absent "--code decoy.md" /tmp/v-path3.log
 # Nor spelled in full from here: joining an absolute path onto the root
 # drops the root, so that route reached outside the project as well.
-python3 tools/srs_view.py --grep /tmp/srs-view-elsewhere/decoy.md \
+python3 srs-dd/tools/srs_view.py --grep /tmp/srs-view-elsewhere/decoy.md \
     > /tmp/v-path4.log
 absent "is a path" /tmp/v-path4.log
 rm -rf /tmp/srs-view-elsewhere
 echo "view-smoke: a search reaches the prose and says what it left out"
-python3 tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
+python3 srs-dd/tools/srs_view.py FR-CORE-020 > /tmp/v-card.log
 grep -q "refined by" /tmp/v-card.log
 # srs-end: FR-VIEW-290
 # verifies: FR-VIEW-010
@@ -264,29 +265,29 @@ grep -qE "status implemented +verification T" /tmp/v-card.log
 grep -q "carry a link" /tmp/v-card.log
 grep -qE "derives_from +-> +FR-CORE-010" /tmp/v-card.log
 grep -qE "depends_on +-> +FR-CORE-030" /tmp/v-card.log
-python3 tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log
+python3 srs-dd/tools/srs_view.py --tree FR-CORE-010 > /tmp/v-tree.log
 grep -q "FR-CORE-030" /tmp/v-tree.log
 # srs-end: FR-VIEW-010
 # verifies: FR-VIEW-030
 # And the opposite direction under the upward flag (FR-VIEW-030). Only the
 # downward walk was asserted, so `--up` could have printed the same tree, or
 # nothing, without this suite noticing.
-python3 tools/srs_view.py --tree FR-CORE-020 --up > /tmp/v-up.log
+python3 srs-dd/tools/srs_view.py --tree FR-CORE-020 --up > /tmp/v-up.log
 grep -q "FR-CORE-010" /tmp/v-up.log
 absent "FR-CORE-030" /tmp/v-up.log
-python3 tools/srs_view.py --code src/app.py --list > /tmp/v-code.log
+python3 srs-dd/tools/srs_view.py --code src/app.py --list > /tmp/v-code.log
 grep -q "FR-CORE-020" /tmp/v-code.log
 # A directory as well as a file (FR-VIEW-020): the statement offers both and
 # only the file was ever passed.
-python3 tools/srs_view.py --code src --list > /tmp/v-dir.log
+python3 srs-dd/tools/srs_view.py --code src --list > /tmp/v-dir.log
 grep -q "FR-CORE-020" /tmp/v-dir.log
 # The other two ways the statement offers to find a requirement from a path,
 # each with its own file so that neither can be answered by the other. Both
 # could have been deleted from requirements_for_path while src/app.py — which
 # is listed in `code` *and* annotated — kept answering for all three.
-python3 tools/srs_view.py --code src/extra.py --list > /tmp/v-annot.log
+python3 srs-dd/tools/srs_view.py --code src/extra.py --list > /tmp/v-annot.log
 grep -q "FR-CORE-030" /tmp/v-annot.log
-python3 tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
+python3 srs-dd/tools/srs_view.py --code tests/probe.sh --list > /tmp/v-tests.log
 grep -q "FR-CORE-080" /tmp/v-tests.log
 # srs-end: FR-VIEW-030
 # verifies: FR-VIEW-300
@@ -296,10 +297,10 @@ grep -q "FR-CORE-080" /tmp/v-tests.log
 # in no `code` field: src/app.py is listed by FR-CORE-020, and a path mode
 # narrowed to one annotation would still answer that one from the field.
 printf '# implements: FR-CORE-020\n\n\n\n# implements: FR-CORE-030\n\n\n' > src/lines.py  # srs-ignore
-python3 tools/srs_view.py --code src/lines.py:2 --list > /tmp/v-line1.log
+python3 srs-dd/tools/srs_view.py --code src/lines.py:2 --list > /tmp/v-line1.log
 grep -q "FR-CORE-020" /tmp/v-line1.log
 absent "FR-CORE-030" /tmp/v-line1.log
-python3 tools/srs_view.py --code src/lines.py:6 --list > /tmp/v-line2.log
+python3 srs-dd/tools/srs_view.py --code src/lines.py:6 --list > /tmp/v-line2.log
 grep -q "FR-CORE-030" /tmp/v-line2.log
 absent "FR-CORE-020" /tmp/v-line2.log
 # The count beside the answer is the file's, not the line's: whoever is
@@ -307,13 +308,13 @@ absent "FR-CORE-020" /tmp/v-line2.log
 grep -q "answers for 2 requirement" /tmp/v-line2.log
 # The wide answer did not narrow. This is the probe that reddens the day
 # somebody "simplifies" the line mode into a filter on the path mode.
-python3 tools/srs_view.py --code src/lines.py --list > /tmp/v-whole.log
+python3 srs-dd/tools/srs_view.py --code src/lines.py --list > /tmp/v-whole.log
 grep -q "FR-CORE-020" /tmp/v-whole.log
 grep -q "FR-CORE-030" /tmp/v-whole.log
 # A directory before the colon is not a file with lines.
-python3 tools/srs_view.py --code src:1 --list > /tmp/v-dirline.log
+python3 srs-dd/tools/srs_view.py --code src:1 --list > /tmp/v-dirline.log
 grep -q "a line belongs to a file" /tmp/v-dirline.log
-python3 tools/srs_view.py --coverage > /tmp/v-cov.log
+python3 srs-dd/tools/srs_view.py --coverage > /tmp/v-cov.log
 grep -q "Realized without listed tests" /tmp/v-cov.log
 # srs-end: FR-VIEW-300
 # verifies: FR-VIEW-040
@@ -343,7 +344,7 @@ code: [src/dropped.py]
 The system **shall** have done something dropped.
 MD
 printf 'print("left behind")\n' > src/dropped.py
-python3 tools/srs_view.py --coverage > /tmp/v-cov2.log
+python3 srs-dd/tools/srs_view.py --coverage > /tmp/v-cov2.log
 python3 - <<'PY2'
 import re
 n_before = int(open('/tmp/v-cov-before').read())
@@ -360,9 +361,9 @@ PY2
 # `withdrawn` — the checker accepts it with no `superseded_by`, and the page
 # still carries it, under that status. The half of the invariant a suite can
 # hold; that nobody deletes one instead is the other half, read in review.
-python3 tools/srs_check.py --no-write > /tmp/v-withdrawn.log 2>&1 \
+python3 srs-dd/tools/srs_check.py --no-write > /tmp/v-withdrawn.log 2>&1 \
     || { echo "FAIL INV-SPEC-050 — the checker refused a withdrawn requirement"; cat /tmp/v-withdrawn.log; exit 1; }
-python3 tools/srs_view.py --html >/dev/null
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 grep -q '<article id="FR-CORE-090" data-id="FR-CORE-090" data-status="withdrawn"' .srs-site/index.html \
     || { echo "FAIL INV-SPEC-050 — the page does not keep the withdrawn requirement as withdrawn"; exit 1; }
 # Put the fixture back: everything below reads a specification of four.
@@ -406,7 +407,7 @@ code: [src/app.py]
 
 The system **shall** stand on a requirement nobody approved.
 MD
-python3 tools/srs_view.py --coverage > /tmp/v-cov3.log
+python3 srs-dd/tools/srs_view.py --coverage > /tmp/v-cov3.log
 python3 - <<'PY2'
 log = open('/tmp/v-cov3.log', encoding='utf-8').read()
 for heading, entry in (
@@ -426,10 +427,10 @@ text = open(path, encoding='utf-8').read()
 open(path, 'w', encoding='utf-8').write(
     text[:text.index('### FR-CORE-091')].rstrip('\n') + '\n')
 PY2
-python3 tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
+python3 srs-dd/tools/srs_view.py --diff spec/v0.0.1 > /tmp/v-diff.log
 # The same baseline named by version rather than by tag (FR-VIEW-050): a
 # baseline need not have been tagged to be compared against.
-python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-version.log
+python3 srs-dd/tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-version.log
 cmp <(tail -n +2 /tmp/v-diff.log) <(tail -n +2 /tmp/v-diff-version.log)
 grep -q "status .*draft -> deferred" /tmp/v-diff.log
 # All three lists the statement names, not the changed one alone.
@@ -457,7 +458,7 @@ open(path, 'w', encoding='utf-8').write(
     head + sep + before + fence + line[:cut] + '\n' + line[cut + 1:] + nl
     + remainder + sep2 + tail)
 PY2
-python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-reflow.log
+python3 srs-dd/tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-reflow.log
 absent "~ FR-CORE-010" /tmp/v-diff-reflow.log
 
 # And a word that actually changed is still reported.
@@ -468,7 +469,7 @@ head, sep, rest = text.partition('### FR-CORE-010')
 open(path, 'w', encoding='utf-8').write(
     head + sep + rest.replace('**shall**', '**shall** promptly', 1))
 PY2
-python3 tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-word.log
+python3 srs-dd/tools/srs_view.py --diff 0.0.1 > /tmp/v-diff-word.log
 grep -q "~ FR-CORE-010" /tmp/v-diff-word.log \
     || { echo "view-smoke: a changed word is no longer reported as a change"
          exit 1; }
@@ -480,7 +481,7 @@ echo "view-smoke: a reflowed statement is not a change, a changed word is"
 # check that guards CON-SPEC-020 — so what it promises is asserted rather
 # than assumed: the block's own fields, where the requirement was read
 # from, and the incoming links, which exist in no source file.
-python3 tools/srs_view.py --json /tmp/model.json >/dev/null
+python3 srs-dd/tools/srs_view.py --json /tmp/model.json >/dev/null
 python3 - <<'PY2'
 import json
 model = json.load(open('/tmp/model.json'))
@@ -506,32 +507,32 @@ PY2
 # ask for the intersection, and a union would return more than either
 # alone. Over the metadata and over the text, because both questions
 # arrive in the same breath.
-python3 tools/srs_view.py --list --status implemented > /tmp/v-f1.log
+python3 srs-dd/tools/srs_view.py --list --status implemented > /tmp/v-f1.log
 grep -q "FR-CORE-020" /tmp/v-f1.log
 absent "FR-CORE-030" /tmp/v-f1.log
-python3 tools/srs_view.py --list --verification D > /tmp/v-f2.log
+python3 srs-dd/tools/srs_view.py --list --verification D > /tmp/v-f2.log
 grep -q "FR-CORE-010" /tmp/v-f2.log
 absent "FR-CORE-020" /tmp/v-f2.log
 # Every field a requirement carries, not the two that were easiest to
 # write: the statement says metadata, and a fixture for half of it leaves
 # the other half deletable. Area and type match everything in this fixture,
 # so what proves them is that a wrong value matches nothing.
-python3 tools/srs_view.py --list --area CORE > /tmp/v-f2a.log
+python3 srs-dd/tools/srs_view.py --list --area CORE > /tmp/v-f2a.log
 grep -q "FR-CORE-020" /tmp/v-f2a.log
-python3 tools/srs_view.py --list --area NOPE > /tmp/v-f2b.log
+python3 srs-dd/tools/srs_view.py --list --area NOPE > /tmp/v-f2b.log
 absent "FR-CORE-" /tmp/v-f2b.log
-python3 tools/srs_view.py --list --type FR > /tmp/v-f2c.log
+python3 srs-dd/tools/srs_view.py --list --type FR > /tmp/v-f2c.log
 grep -q "FR-CORE-020" /tmp/v-f2c.log
-python3 tools/srs_view.py --list --type INV > /tmp/v-f2d.log
+python3 srs-dd/tools/srs_view.py --list --type INV > /tmp/v-f2d.log
 absent "FR-CORE-" /tmp/v-f2d.log
 # A word out of the statement, not out of the title.
-python3 tools/srs_view.py --list --grep "carry a link" > /tmp/v-f3.log
+python3 srs-dd/tools/srs_view.py --list --grep "carry a link" > /tmp/v-f3.log
 grep -q "FR-CORE-020" /tmp/v-f3.log
 absent "FR-CORE-010" /tmp/v-f3.log
 # Two at once, and the intersection is smaller than either. Each filter on
 # its own matches something; together they match nothing, which a union
 # could not produce.
-python3 tools/srs_view.py --list --status implemented --verification D > /tmp/v-f4.log
+python3 srs-dd/tools/srs_view.py --list --status implemented --verification D > /tmp/v-f4.log
 absent "FR-CORE-" /tmp/v-f4.log
 
 # srs-end: FR-VIEW-220
@@ -539,7 +540,7 @@ absent "FR-CORE-" /tmp/v-f4.log
 # One self-contained file: content, a graph, escaping, and nothing fetched
 # over the network. The other four things the statement names are asserted
 # further down, each where its own machinery lives.
-python3 tools/srs_view.py --html
+python3 srs-dd/tools/srs_view.py --html
 grep -q "FR-CORE-030" .srs-site/index.html
 grep -q "<svg" .srs-site/index.html
 grep -q "&amp;" .srs-site/index.html          # SVG/HTML escaping
@@ -575,7 +576,7 @@ test -f .srs-site/.gitignore
 # command line wins over the configuration, since the pipeline knows the
 # commit and the configuration names a branch.
 absent 'href="https://example.invalid' .srs-site/index.html
-python3 tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
+python3 srs-dd/tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
 grep -q 'href="https://example.invalid/blob/abc123/src/app.py"' .srs-site/index.html
 grep -qE 'href="https://example.invalid/blob/abc123/specs/10-fr-core.md#L[0-9]+"' .srs-site/index.html
 python3 - <<'PY_URL'
@@ -585,9 +586,9 @@ cfg = json.load(open(path))
 cfg['repo_url'] = 'https://example.invalid/blob/main/'
 json.dump(cfg, open(path, 'w'), indent=2)
 PY_URL
-python3 tools/srs_view.py --html
+python3 srs-dd/tools/srs_view.py --html
 grep -q 'href="https://example.invalid/blob/main/src/app.py"' .srs-site/index.html
-python3 tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
+python3 srs-dd/tools/srs_view.py --html --repo-url https://example.invalid/blob/abc123
 grep -q 'href="https://example.invalid/blob/abc123/src/app.py"' .srs-site/index.html
 absent 'blob/main/' .srs-site/index.html
 python3 - <<'PY_URL'
@@ -597,7 +598,7 @@ cfg = json.load(open(path))
 cfg.pop('repo_url', None)
 json.dump(cfg, open(path, 'w'), indent=2)
 PY_URL
-python3 tools/srs_view.py --html
+python3 srs-dd/tools/srs_view.py --html
 
 # srs-end: FR-VIEW-310
 # --- verifies: FR-VIEW-260 — every file that carries no requirements is offered.
@@ -607,6 +608,11 @@ python3 tools/srs_view.py --html
 # about the list. The named ones are what the page never offered while its
 # list was a hand-made copy of the checker's skipped set; 10-fr-core.md is
 # the one file the target carries requirements in, and it must stay out.
+# The constitution is the project's own file and the framework ships none, so
+# the target writes one here: what the page owes is every prose file it finds.
+printf '# Constitution\n\n- **Version:** 1.0.0\n\n## ART-010 — Ours\n\nSomething this project decided.\n' \
+    > specs/constitution.md
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 python3 - <<'PY2'
 page = open('.srs-site/index.html', encoding='utf-8').read()
 listing = page[page.index('<h2>Documents</h2>'):]
@@ -624,7 +630,7 @@ PY2
 printf '# Context\n\nWhat this project sits inside.\n' > specs/03-context.md
 mkdir -p specs/archive
 printf '# Old\n\nAbsorbed.\n' > specs/archive/absorbed.md
-python3 tools/srs_view.py --html >/dev/null
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 python3 - <<'PY2'
 page = open('.srs-site/index.html', encoding='utf-8').read()
 listing = page[page.index('<h2>Documents</h2>'):]
@@ -633,7 +639,7 @@ assert '03-context.md' in listing, 'a file added to specs/ is not offered'
 assert 'absorbed.md' not in listing, 'the archive reached the list'
 PY2
 rm -f specs/03-context.md specs/archive/absorbed.md
-python3 tools/srs_view.py --html >/dev/null
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 echo "view-smoke: the page offers every file that carries no requirements"
 
 # Search and filters are two of the five things FR-VIEW-060 names, and
@@ -663,7 +669,7 @@ PY2
 mkdir -p specs/one specs/two
 printf '### FR-CORE-910 — In one\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe system **shall** be in one.\n' > specs/one/storage.md
 printf '### FR-CORE-920 — In two\n\n```yaml\nstatus: deferred\nverification: T\ndepends_on: [FR-CORE-910]\n```\n\nThe system **shall** be in two.\n' > specs/two/storage.md
-python3 tools/srs_view.py --html >/dev/null
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 python3 - <<'PY2'
 import re
 page = open('.srs-site/index.html', encoding='utf-8').read()
@@ -677,14 +683,14 @@ for rid, key in (('FR-CORE-910', 'one/storage.md'), ('FR-CORE-920', 'two/storage
         '%s does not carry the key of its file' % rid
 PY2
 rm -rf specs/one specs/two
-python3 tools/srs_view.py --html >/dev/null
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 echo "view-smoke: the filter by file names every file by its path under specs/"
 
 # srs-end: FR-VIEW-410
 # verifies: FR-VIEW-070
 # Deterministic output: no timestamps, so two runs must be identical.
 cp .srs-site/index.html /tmp/first.html
-python3 tools/srs_view.py --html >/dev/null
+python3 srs-dd/tools/srs_view.py --html >/dev/null
 cmp /tmp/first.html .srs-site/index.html
 
 # srs-end: FR-VIEW-070
@@ -771,7 +777,7 @@ PY3
 git add -A
 git -c user.email=ci@example.com -c user.name=CI commit -qm second
 git tag spec/v0.0.2
-python3 tools/srs_view.py --html
+python3 srs-dd/tools/srs_view.py --html
 
 # srs-end: FR-VIEW-200
 # verifies: FR-VIEW-090
@@ -779,7 +785,7 @@ python3 tools/srs_view.py --html
 grep -q "baseline 0.0.2" .srs-site/index.html
 # The version that generated it, not any version: a fixed "srs_check " is
 # in the footer whatever number follows.
-version=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); import srs_parse; print(srs_parse.__version__)")
+version=$(python3 -c "import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools'); import srs_parse; print(srs_parse.__version__)")
 grep -qF "srs_check $version" .srs-site/index.html \
     || { echo "FAIL FR-VIEW-090 — the page does not name the version that generated it ($version)"; exit 1; }
 
@@ -797,8 +803,8 @@ import json, re, sys, importlib.util
 # resolves the module, and the assertion below forbids leaving any in
 # the target — the same rule CONTRIBUTING states for the tools.
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
-spec = importlib.util.spec_from_file_location('v', 'tools/srs_view.py')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
+spec = importlib.util.spec_from_file_location('v', 'srs-dd/tools/srs_view.py')
 v = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(v)
 
@@ -1096,7 +1102,7 @@ printf '%s' "$1" > /tmp/v-opened
 SH
 chmod +x /tmp/srs-open-recorder
 rm -f /tmp/v-open.html /tmp/v-opened
-BROWSER=/tmp/srs-open-recorder python3 tools/srs_view.py \
+BROWSER=/tmp/srs-open-recorder python3 srs-dd/tools/srs_view.py \
     --html /tmp/v-open.html --open > /tmp/v-open.log
 grep -q 'Page written' /tmp/v-open.log
 test -s /tmp/v-open.html
@@ -1106,7 +1112,7 @@ test "$(cat /tmp/v-opened)" = "file:///tmp/v-open.html"
 # working directory here is reached through a symlink on macOS, and the
 # tool resolves it while the shell does not.
 rm -rf .srs-site; rm -f /tmp/v-opened
-BROWSER=/tmp/srs-open-recorder python3 tools/srs_view.py --open > /tmp/v-open2.log
+BROWSER=/tmp/srs-open-recorder python3 srs-dd/tools/srs_view.py --open > /tmp/v-open2.log
 test -s .srs-site/index.html
 grep -qE '^file:///.*/\.srs-site/index\.html$' /tmp/v-opened
 rm -f /tmp/srs-open-recorder
@@ -1119,7 +1125,7 @@ rm -rf /tmp/srs-view-shallow
 git clone --quiet --depth 1 --no-tags "file:///tmp/srs-view" /tmp/srs-view-shallow
 (
   cd /tmp/srs-view-shallow
-  python3 tools/srs_view.py --html shallow/index.html >/dev/null
+  python3 srs-dd/tools/srs_view.py --html shallow/index.html >/dev/null
   grep -q 'baselines are recorded' shallow/index.html
   grep -q 'fetch-depth: 0' shallow/index.html
   # No picker, and no snapshot data to compare with.
@@ -1129,11 +1135,11 @@ git clone --quiet --depth 1 --no-tags "file:///tmp/srs-view" /tmp/srs-view-shall
   # The current baseline is read from the log, which needs no history.
   grep -q 'baseline 0.0.2' shallow/index.html
   python3 - <<'PY0'
-import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools')
-import srs_view
-assert srs_view.logged_baselines() == ['0.0.1', '0.0.2'], 'the log still reads'
-assert all(srs_view.baseline_revision(v) is None
-           for v in srs_view.logged_baselines()), \
+import sys; sys.dont_write_bytecode = True; sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
+import srs_view_model
+assert srs_view_model.logged_baselines() == ['0.0.1', '0.0.2'], 'the log still reads'
+assert all(srs_view_model.baseline_revision(v) is None
+           for v in srs_view_model.logged_baselines()), \
     'a shallow checkout cannot locate a baseline, and must not claim to'
 PY0
 )
@@ -1181,7 +1187,7 @@ MD
 (
   cd /tmp/srs-view-resting
   mkdir -p src && printf 'x\n' > src/app.py && printf 'y\n' > src/ahead.py
-  python3 tools/srs_view.py --coverage > /tmp/v-resting.log
+  python3 srs-dd/tools/srs_view.py --coverage > /tmp/v-resting.log
   # One requirement, both of its links. Counting the lines said two.
   grep -q "^Realized but resting on a draft: 1$" /tmp/v-resting.log
   grep -q "FR-CORE-040 *derives_from FR-CORE-050" /tmp/v-resting.log
@@ -1190,7 +1196,7 @@ MD
   # anything in them: the main fixture turns every draft into a deferred
   # before the page is rendered, so there the two are checked by their
   # headings alone and could be emitted empty without failing (FR-VIEW-200).
-  python3 tools/srs_view.py --html >/dev/null
+  python3 srs-dd/tools/srs_view.py --html >/dev/null
   python3 - <<'PY3'
 page = open('.srs-site/index.html', encoding='utf-8').read()
 sec = page[page.index('<section id="view-dash"'):]
@@ -1246,7 +1252,7 @@ MD
   mkdir -p src && printf 'x\n' > src/dropped.py
   # srs-ignore: fixtures written into the target, not claims about this repo
   printf '# implements: FR-CORE-080\n# implements: FR-CORE-070\n' > src/live.py  # srs-ignore
-  python3 tools/srs_view.py --html >/dev/null
+  python3 srs-dd/tools/srs_view.py --html >/dev/null
   python3 - <<'PY3'
 page = open('.srs-site/index.html', encoding='utf-8').read()
 sec = page[page.index('<section id="view-dash"'):]
@@ -1270,7 +1276,7 @@ PY3
 
 # The baseline row is printed ready to paste, and names the previous
 # baseline it was computed against.
-python3 tools/srs_view.py --baseline 0.0.3 --date 2026-01-02 > /tmp/v-row.log
+python3 srs-dd/tools/srs_view.py --baseline 0.0.3 --date 2026-01-02 > /tmp/v-row.log
 grep -q '^| 0.0.3 | 2026-01-02 | `spec/v0.0.3` |' /tmp/v-row.log
 # It names the baseline it was computed against — whether anything
 # changed since it or not.
@@ -1303,7 +1309,7 @@ PY2
 
 # srs-end: FR-VIEW-210
 # verifies: FR-VIEW-230
-# The page reaches a reader who has neither specs/README.md nor
+# The page reaches a reader who has neither srs-dd/standard.md nor
 # specs/50-verification.md, so every mark on a card answers for itself or is
 # named where the marks are listed. Asserted over what the page actually
 # draws rather than against a list written here: a mark added to the cards
@@ -1360,7 +1366,7 @@ for mode in "--list" "FR-CORE-010" "--tree FR-CORE-010" "--up FR-CORE-020" \
     # are not swallowed: a mode that fails writes nothing, so tolerating it
     # would leave this comparison passing for exactly the mode that broke.
     # shellcheck disable=SC2086
-    python3 tools/srs_view.py $mode >/dev/null 2>&1
+    python3 srs-dd/tools/srs_view.py $mode >/dev/null 2>&1
 done
 find specs -type f | sort | xargs cksum > /tmp/v-specs-after
 diff /tmp/v-specs-before /tmp/v-specs-after \
@@ -1378,8 +1384,9 @@ test -z "$(find . -name __pycache__)" \
 # --- block's fields, and the register beside specs/ reads requirements
 # --- through this and nothing else.
 UNK=/tmp/srs-view-unknown
-rm -rf "$UNK"; mkdir -p "$UNK/tools" "$UNK/specs"
-cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$UNK/tools/"
+rm -rf "$UNK"; mkdir -p "$UNK/srs-dd/tools" "$UNK/specs"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$UNK/srs-dd/tools/"
 printf '{"areas": ["CORE"], "rules": {"unknown-key": "off"}}\n' \
     > "$UNK/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — X\n\n'
@@ -1388,7 +1395,7 @@ printf '{"areas": ["CORE"], "rules": {"unknown-key": "off"}}\n' \
   printf 'tests: []\ncreated: 2026-08-21\n```\n\n'
   printf 'The system **shall** act.\n'
 } > "$UNK/specs/10-fr-core.md"
-( cd "$UNK" && python3 tools/srs_view.py --json ) > /tmp/unknown-key.json 2>/dev/null
+( cd "$UNK" && python3 srs-dd/tools/srs_view.py --json ) > /tmp/unknown-key.json 2>/dev/null
 python3 - <<'PY'
 import json
 r = json.load(open('/tmp/unknown-key.json'))['requirements'][0]
@@ -1406,8 +1413,9 @@ echo "view-smoke: an unknown block key reaches the published model"
 # --- that can be done. A cancelled requirement is here because the status
 # --- is in the citation for the plan that names one.
 CITE=/tmp/srs-view-cite
-rm -rf "$CITE"; mkdir -p "$CITE/tools" "$CITE/specs"
-cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$CITE/tools/"
+rm -rf "$CITE"; mkdir -p "$CITE/srs-dd/tools" "$CITE/specs"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$CITE/srs-dd/tools/"
 printf '{"areas": ["CORE"]}\n' > "$CITE/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — A live one\n\n'
   printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
@@ -1422,7 +1430,7 @@ printf '{"areas": ["CORE"]}\n' > "$CITE/specs/srs-config.json"
   printf 'The system **shall** have acted.\n'
 } > "$CITE/specs/10-fr-core.md"
 
-( cd "$CITE" && python3 tools/srs_view.py --cite FR-CORE-010 FR-CORE-020 ) \
+( cd "$CITE" && python3 srs-dd/tools/srs_view.py --cite FR-CORE-010 FR-CORE-020 ) \
     > /tmp/srs-cite.out
 cat > /tmp/srs-cite.want <<'WANT'
 FR-CORE-010 — A live one (specs/10-fr-core.md, implemented)
@@ -1437,7 +1445,7 @@ echo "view-smoke: --cite prints both requirements ready to paste"
 # requirement view refuses it: a line on stderr and a non-zero exit, so that
 # a plan built from a citation cannot be built from a silent blank.
 rc=0
-( cd "$CITE" && python3 tools/srs_view.py --cite FR-CORE-010 FR-CORE-990 ) \
+( cd "$CITE" && python3 srs-dd/tools/srs_view.py --cite FR-CORE-010 FR-CORE-990 ) \
     > /tmp/srs-cite-bad.out 2>/tmp/srs-cite-bad.err || rc=$?
 [ "$rc" = 1 ] \
     || { echo "an unknown identifier left --cite with exit $rc"; exit 1; }
@@ -1451,7 +1459,7 @@ echo "view-smoke: --cite refuses an identifier the specification does not carry"
 # --- verifies: FR-VIEW-320 — a listed requirement is named where it is
 # --- written: identifier, status, title, file on one line, in that order,
 # --- the path alone and never the line.
-( cd "$CITE" && python3 tools/srs_view.py --list ) > /tmp/srs-list-file.out
+( cd "$CITE" && python3 srs-dd/tools/srs_view.py --list ) > /tmp/srs-list-file.out
 grep -qE "^FR-CORE-010 +implemented +A live one +specs/10-fr-core.md$" \
     /tmp/srs-list-file.out \
     || { echo "--list did not print the file after the title"; cat /tmp/srs-list-file.out; exit 1; }
@@ -1480,7 +1488,7 @@ mkdir -p "$STMT/src"
 # srs-ignore: a fixture written into the lab, not a claim about this repository.
 printf '# implements: FR-CORE-010\n' > "$STMT/src/a.py"  # srs-ignore
 
-( cd "$STMT" && python3 tools/srs_view.py --list --statements ) > /tmp/srs-stmt.out
+( cd "$STMT" && python3 srs-dd/tools/srs_view.py --list --statements ) > /tmp/srs-stmt.out
 cat > /tmp/srs-stmt.want <<'WANT'
 FR-CORE-010     implemented  A live one  specs/10-fr-core.md
     The system **shall** act.
@@ -1499,25 +1507,25 @@ echo "view-smoke: --list --statements prints the statement beneath each line and
 # Without the flag the listing is the line of FR-VIEW-320 and nothing
 # beneath it — the flag is the request, and a list that grew statements
 # unasked would be the wrong answer to most questions the list is asked.
-( cd "$STMT" && python3 tools/srs_view.py --list ) > /tmp/srs-stmt-plain.out
+( cd "$STMT" && python3 srs-dd/tools/srs_view.py --list ) > /tmp/srs-stmt-plain.out
 absent "^    " /tmp/srs-stmt-plain.out
 absent "shall" /tmp/srs-stmt-plain.out
 echo "view-smoke: without --statements a listing prints lines only"
 
 # Every listing, not only --list: the mode for a path, from the fields and
 # from the annotations, and the mode for a line of a file.
-( cd "$STMT" && python3 tools/srs_view.py --code src/a.py --statements ) > /tmp/srs-stmt-code.out
+( cd "$STMT" && python3 srs-dd/tools/srs_view.py --code src/a.py --statements ) > /tmp/srs-stmt-code.out
 grep -qF "    The system **shall** act." /tmp/srs-stmt-code.out \
     || { echo "--code --statements did not print the statement beneath the line"; cat /tmp/srs-stmt-code.out; exit 1; }
-( cd "$STMT" && python3 tools/srs_view.py --code src/a.py:1 --statements ) > /tmp/srs-stmt-line.out
+( cd "$STMT" && python3 srs-dd/tools/srs_view.py --code src/a.py:1 --statements ) > /tmp/srs-stmt-line.out
 grep -qF "    The system **shall** act." /tmp/srs-stmt-line.out \
     || { echo "--code PATH:LINE --statements did not print the statement beneath the line"; cat /tmp/srs-stmt-line.out; exit 1; }
 # A filter that matches nothing says so exactly as it did, flag or no flag.
-( cd "$STMT" && python3 tools/srs_view.py --list --status withdrawn --statements ) > /tmp/srs-stmt-none.out
+( cd "$STMT" && python3 srs-dd/tools/srs_view.py --list --status withdrawn --statements ) > /tmp/srs-stmt-none.out
 grep -q "^nothing matches$" /tmp/srs-stmt-none.out \
     || { echo "--statements over an empty selection printed something other than 'nothing matches'"; cat /tmp/srs-stmt-none.out; exit 1; }
 # Twice, the same bytes (FR-VIEW-070).
-( cd "$STMT" && python3 tools/srs_view.py --list --statements ) > /tmp/srs-stmt-again.out
+( cd "$STMT" && python3 srs-dd/tools/srs_view.py --list --statements ) > /tmp/srs-stmt-again.out
 cmp -s /tmp/srs-stmt.out /tmp/srs-stmt-again.out \
     || { echo "--list --statements is not deterministic"; exit 1; }
 echo "view-smoke: --statements holds in the path mode, the line mode and over an empty selection"
@@ -1529,7 +1537,7 @@ echo "view-smoke: --statements holds in the path mode, the line mode and over an
 # --- declares. Asserted character for character in the lab, whose
 # --- configuration declares one area and no verbs — so the verbs are the
 # --- checker's defaults, and the areas are the project's.
-( cd "$CITE" && python3 tools/srs_view.py --vocabulary ) > /tmp/srs-vocab.out
+( cd "$CITE" && python3 srs-dd/tools/srs_view.py --vocabulary ) > /tmp/srs-vocab.out
 cat > /tmp/srs-vocab.want <<'WANT'
 types         FR NFR IF INV CON
 statuses      draft deferred partial implemented superseded withdrawn
@@ -1548,7 +1556,7 @@ echo "view-smoke: --vocabulary prints the checker's vocabulary with the project'
 VOCAB=/tmp/srs-view-vocab
 rm -rf "$VOCAB"; cp -R "$CITE" "$VOCAB"
 printf '{"areas": ["ZWEI", "EINS"], "modal_verbs": ["muss", "soll"]}\n' > "$VOCAB/specs/srs-config.json"
-( cd "$VOCAB" && python3 tools/srs_view.py --vocabulary ) > /tmp/srs-vocab-de.out
+( cd "$VOCAB" && python3 srs-dd/tools/srs_view.py --vocabulary ) > /tmp/srs-vocab-de.out
 grep -q "^areas         ZWEI EINS$" /tmp/srs-vocab-de.out \
     || { echo "--vocabulary did not print the project's areas in the order declared"; cat /tmp/srs-vocab-de.out; exit 1; }
 grep -q "^modal verbs   muss soll$" /tmp/srs-vocab-de.out \
@@ -1561,7 +1569,7 @@ echo "view-smoke: --vocabulary prints the lexicon the project declared, not the 
 # standard, in its order, and the fields and the required ones are the
 # rows of its Fields table. Read off the framework's own copy — the one
 # every target receives.
-python3 - "$FRAMEWORK/specs/README.md" /tmp/srs-vocab.out <<'PY'
+python3 - "$FRAMEWORK/srs-dd/standard.md" /tmp/srs-vocab.out <<'PY'
 import re, sys
 readme = open(sys.argv[1], encoding="utf-8").read()
 printed = dict(re.match(r"(\S+(?: \S+)?)\s+(.*)", line).groups()
@@ -1593,8 +1601,9 @@ echo "view-smoke: --vocabulary agrees with the Lifecycle section and the Fields 
 # --- annotated, a directory named whose files carry nothing, and an
 # --- annotation for the requirement in a source file no field names.
 WHERE=/tmp/srs-view-where
-rm -rf "$WHERE"; mkdir -p "$WHERE/tools" "$WHERE/specs" "$WHERE/src/pkg" "$WHERE/tests" "$WHERE/data"
-cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$WHERE/tools/"
+rm -rf "$WHERE"; mkdir -p "$WHERE/srs-dd/tools" "$WHERE/specs" "$WHERE/src/pkg" "$WHERE/tests" "$WHERE/data"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$WHERE/srs-dd/tools/"
 printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["tests"], "code_extensions": [".py", ".sh"]}\n' > "$WHERE/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — Realized in places\n\n'
   printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
@@ -1629,7 +1638,7 @@ open(os.path.join(lab, "tests/app.sh"), "w").write("\n".join([
 open(os.path.join(lab, "tests/long.sh"), "w").write("\n".join(
     ["#!/usr/bin/env bash", ann("verifies", "FR-CORE-010")] + ["echo %d" % i for i in range(1, 100)]) + "\n")
 PY
-( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where ) > /tmp/srs-where.out
+( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 --where ) > /tmp/srs-where.out
 cat > /tmp/srs-where.want <<'WANT'
 src/plain.py  named in the fields, no annotation for FR-CORE-010
 data  named in the fields, no annotation for FR-CORE-010
@@ -1646,14 +1655,14 @@ echo "view-smoke: --where prints where a requirement is realized, by line, and w
 
 # A requirement realized nowhere says so in one line; an unknown one is
 # refused as the card refuses it.
-( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-020 --where ) > /tmp/srs-where-none.out
+( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-020 --where ) > /tmp/srs-where-none.out
 grep -q "^src/app.py:18  implements$" /tmp/srs-where-none.out && grep -q "^tests/app.sh:5  verifies$" /tmp/srs-where-none.out \
     || { echo "--where missed an annotation for a requirement whose fields name nothing"; cat /tmp/srs-where-none.out; exit 1; }
 printf '### FR-CORE-030 — Nothing at all\n\n```yaml\nstatus: deferred\nverification: T\n```\n\nThe system **shall** idle.\n' >> "$WHERE/specs/10-fr-core.md"
-( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-030 --where ) > /tmp/srs-where-nil.out
+( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-030 --where ) > /tmp/srs-where-nil.out
 grep -q "^FR-CORE-030 names no file and no annotation names it$" /tmp/srs-where-nil.out \
     || { echo "--where over a requirement realized nowhere did not say so"; cat /tmp/srs-where-nil.out; exit 1; }
-rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-990 --where ) > /dev/null 2>/tmp/srs-where-bad.err || rc=$?
+rc=0; ( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-990 --where ) > /dev/null 2>/tmp/srs-where-bad.err || rc=$?
 [ "$rc" = 1 ] && grep -q "no requirement FR-CORE-990" /tmp/srs-where-bad.err \
     || { echo "--where over an unknown identifier did not refuse it with exit 1"; exit 1; }
 echo "view-smoke: --where says when nothing realizes a requirement, and refuses an unknown one"
@@ -1662,12 +1671,12 @@ echo "view-smoke: --where says when nothing realizes a requirement, and refuses 
 # --- than the card shows: answered with one sentence that names both and
 # --- says what to do, exit 2 — not the usage block. Any other stray
 # --- argument is refused as before.
-rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 FR-CORE-020 --where ) > /tmp/srs-two.out 2>&1 || rc=$?
+rc=0; ( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 FR-CORE-020 --where ) > /tmp/srs-two.out 2>&1 || rc=$?
 [ "$rc" = 2 ] || { echo "two identifiers left the viewer with exit $rc, expected 2"; cat /tmp/srs-two.out; exit 1; }
 grep -q "^srs_view.py shows one requirement at a time — FR-CORE-010 FR-CORE-020 is 2; call it once per identifier, or --cite FR-CORE-010 FR-CORE-020 for the citations$" /tmp/srs-two.out \
     || { echo "two identifiers were not answered with the one-sentence refusal"; cat /tmp/srs-two.out; exit 1; }
 absent "usage:" /tmp/srs-two.out
-rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --bogus ) > /tmp/srs-bogus.out 2>&1 || rc=$?
+rc=0; ( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 --bogus ) > /tmp/srs-bogus.out 2>&1 || rc=$?
 [ "$rc" = 2 ] && grep -q "unrecognized arguments: --bogus" /tmp/srs-bogus.out \
     || { echo "a stray flag is no longer refused as unrecognized"; cat /tmp/srs-bogus.out; exit 1; }
 echo "view-smoke: two identifiers get one sentence and exit 2; a stray flag is refused as before"
@@ -1676,7 +1685,7 @@ echo "view-smoke: two identifiers get one sentence and exit 2; a stray flag is r
 # --- verifies: IF-SPEC-040 — an identifier whose area joins two words with an
 # --- underscore is read as one identifier, so the second on the line gets the
 # --- same sentence rather than the usage block.
-rc=0; ( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 FR-MAP_ILAND-020 ) > /tmp/srs-two-und.out 2>&1 || rc=$?
+rc=0; ( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 FR-MAP_ILAND-020 ) > /tmp/srs-two-und.out 2>&1 || rc=$?
 [ "$rc" = 2 ] && grep -q "^srs_view.py shows one requirement at a time — FR-CORE-010 FR-MAP_ILAND-020 is 2;" /tmp/srs-two-und.out \
     || { echo "IF-SPEC-040 — an identifier with an underscore in its area was not read as one"; cat /tmp/srs-two-und.out; exit 1; }
 echo "view-smoke: an area of two words is read as one segment"
@@ -1689,10 +1698,11 @@ echo "view-smoke: an area of two words is read as one segment"
 # --- the file. A line is answered from the narrowest region holding it.
 # --- The lab is Swift, YAML and shell, assembled from parts so that this
 # --- suite carries no annotation or end marker of its own.
-( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source.out
+( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source.out
 REG=/tmp/srs-view-regions
-rm -rf "$REG"; mkdir -p "$REG/tools" "$REG/specs" "$REG/src" "$REG/t"
-cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$REG/tools/"
+rm -rf "$REG"; mkdir -p "$REG/srs-dd/tools" "$REG/specs" "$REG/src" "$REG/t"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$REG/srs-dd/tools/"
 printf '{"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"], "code_extensions": [".swift", ".yaml", ".sh"]}\n' > "$REG/specs/srs-config.json"
 python3 - "$REG" <<'PY'
 import os, sys
@@ -1734,7 +1744,7 @@ long = ["#!/usr/bin/env bash", ann("verifies", 100, lead="# ")] + ["echo %d" % i
 open(os.path.join(lab, "t/long.sh"), "w").write("\n".join(long) + "\n")
 PY
 for n in 010 030 040 050 060 070 080 090 100; do
-    ( cd "$REG" && python3 tools/srs_view.py FR-CORE-$n --where --source ) > /tmp/srs-reg-$n.out
+    ( cd "$REG" && python3 srs-dd/tools/srs_view.py FR-CORE-$n --where --source ) > /tmp/srs-reg-$n.out
 done
 python3 - <<'PY'
 import re
@@ -1787,7 +1797,7 @@ for n in ("010", "030", "040", "050", "060", "070", "080", "090", "100"):
 assert all("—" not in l for l in out("010") if l.startswith("src/"))
 PY
 echo "view-smoke: --where --source prints the region an annotation marks, the same in every language, and says in its header where no marker ended it"
-line() { ( cd "$REG" && python3 tools/srs_view.py --code "$1" --list ) > /tmp/srs-reg-line.out; }
+line() { ( cd "$REG" && python3 srs-dd/tools/srs_view.py --code "$1" --list ) > /tmp/srs-reg-line.out; }
 has()  { grep -q "$1" /tmp/srs-reg-line.out || { echo "FR-VIEW-300 — $2 lacks $1"; cat /tmp/srs-reg-line.out; exit 1; }; }
 hasnt(){ ! grep -q "$1" /tmp/srs-reg-line.out || { echo "FR-VIEW-300 — $2 carries $1"; cat /tmp/srs-reg-line.out; exit 1; }; }
 line src/Cart.swift:10; has FR-CORE-040 "a line of the inner block"; hasnt FR-CORE-020 "a line of the inner block"; hasnt FR-CORE-010 "a line of the inner block"
@@ -1797,7 +1807,7 @@ line src/Cart.swift:15; has FR-CORE-050 "a line with an annotation after code"; 
 line src/Cart.swift:16; has FR-CORE-010 "a line of the outer block only"; hasnt FR-CORE-050 "a line of the outer block only"
 line src/Cart.swift:2;  has "no annotation covers" "a line in no region"
 # Asked from inside the project, with the path from there.
-( cd "$REG/src" && python3 ../tools/srs_view.py --code Cart.swift:10 --list ) > /tmp/srs-reg-line.out 2>&1
+( cd "$REG/src" && python3 ../srs-dd/tools/srs_view.py --code Cart.swift:10 --list ) > /tmp/srs-reg-line.out 2>&1
 has FR-CORE-040 "a line asked for from a subdirectory"; has "is in the region of the annotation at line 9" "a line asked for from a subdirectory"
 line src/Cart.swift:21; has FR-CORE-060 "a line of a region no marker ends"; has "no srs-end: stops at the next annotation, line 24" "a line of a region no marker ends"
 line src/config.yaml:65; has FR-CORE-090 "a line past the bound of a file annotation"; has "is in no region; the file carries these as a whole" "a line past the bound of a file annotation"
@@ -1806,7 +1816,7 @@ echo "view-smoke: a line is answered from the narrowest region holding it, or el
 grep -q "def first" /tmp/srs-source.out \
     || { echo "FR-VIEW-380 — --source did not print the code under the annotation"; exit 1; }
 absent "def first" /tmp/srs-where.out
-( cd "$WHERE" && python3 tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source-again.out
+( cd "$WHERE" && python3 srs-dd/tools/srs_view.py FR-CORE-010 --where --source ) > /tmp/srs-source-again.out
 cmp -s /tmp/srs-source.out /tmp/srs-source-again.out || { echo "--where --source is not deterministic"; exit 1; }
 echo "view-smoke: --where prints no source unasked, and --source is deterministic"
 
@@ -1838,7 +1848,7 @@ printf -- '---\nstatus: принято\ndate: 2026-09-17\n---\n\n# ADR-0019 — 
 printf -- '---\nstatus: draft\n---\n# ADR-0021 — Both places\n\n- **Status:** accepted\n' \
     > "$CITE/specs/adr/0021-both.md"
 
-( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0007 FR-CORE-010 ADR-0009 ADR-0019 ADR-0021 ) \
+( cd "$CITE" && python3 srs-dd/tools/srs_view.py --cite ADR-0007 FR-CORE-010 ADR-0009 ADR-0019 ADR-0021 ) \
     > /tmp/srs-cite-adr.out 2>/tmp/srs-cite-adr.err \
     || { echo "--cite refused a decision the log carries"; cat /tmp/srs-cite-adr.err; exit 1; }
 cat > /tmp/srs-cite-adr.want <<'WANT'
@@ -1851,7 +1861,7 @@ WANT
 diff -u /tmp/srs-cite-adr.want /tmp/srs-cite-adr.out \
     || { echo "--cite did not print a decision in the form, or lost the order"; exit 1; }
 rc=0
-( cd "$CITE" && python3 tools/srs_view.py --cite ADR-0008 ) \
+( cd "$CITE" && python3 srs-dd/tools/srs_view.py --cite ADR-0008 ) \
     > /tmp/srs-cite-adr-bad.out 2>/tmp/srs-cite-adr-bad.err || rc=$?
 [ "$rc" = 1 ] || { echo "an unknown decision left --cite with exit $rc"; exit 1; }
 grep -q "no decision ADR-0008" /tmp/srs-cite-adr-bad.err \
@@ -1866,8 +1876,9 @@ echo "view-smoke: --cite prints a decision by the number in its heading"
 # Its own lab: the citation fixture carries no link field the graph draws,
 # and the graph is about links.
 GRAPH=/tmp/srs-view-graph
-rm -rf "$GRAPH"; mkdir -p "$GRAPH/tools" "$GRAPH/specs"
-cp tools/srs_check.py tools/srs_parse.py tools/srs_view.py "$GRAPH/tools/"
+rm -rf "$GRAPH"; mkdir -p "$GRAPH/srs-dd/tools" "$GRAPH/specs"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py srs-dd/tools/srs_view_page.py "$GRAPH/srs-dd/tools/"
 printf '{"areas": ["CORE"]}\n' > "$GRAPH/specs/srs-config.json"
 { printf '# c\n\n### FR-CORE-010 — The root\n\n'
   printf '```yaml\nstatus: implemented\nverification: T\nderives_from: []\n'
@@ -1881,7 +1892,7 @@ printf '{"areas": ["CORE"]}\n' > "$GRAPH/specs/srs-config.json"
   printf 'tests: []\ncreated: 2026-09-01\n```\n\n'
   printf 'The system **shall** have acted.\n'
 } > "$GRAPH/specs/10-fr-core.md"
-( cd "$GRAPH" && python3 tools/srs_view.py --svg /tmp/srs-graph-1.svg ) > /tmp/srs-svg.out \
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --svg /tmp/srs-graph-1.svg ) > /tmp/srs-svg.out \
     || { echo "--svg refused a specification with a link in it"; cat /tmp/srs-svg.out; exit 1; }
 grep -q "Graph written: /tmp/srs-graph-1.svg (2 requirements)" /tmp/srs-svg.out \
     || { echo "--svg did not report the file and the count"; cat /tmp/srs-svg.out; exit 1; }
@@ -1897,7 +1908,7 @@ if "var(--" in text:
 if not text.startswith('<?xml version="1.0"'):
     sys.exit("the image does not open as an XML document")
 PY
-( cd "$GRAPH" && python3 tools/srs_view.py --svg /tmp/srs-graph-2.svg ) > /dev/null
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --svg /tmp/srs-graph-2.svg ) > /dev/null
 cmp -s /tmp/srs-graph-1.svg /tmp/srs-graph-2.svg \
     || { echo "two runs of --svg on an unchanged specification differ"; exit 1; }
 echo "view-smoke: --svg writes the graph as one self-contained, deterministic image"
@@ -1905,7 +1916,7 @@ echo "view-smoke: --svg writes the graph as one self-contained, deterministic im
 # --- Widened by one step: the implemented one alone has no link to draw,
 # --- and with --around it brings the one that derives from it — and no
 # --- more, since one step is the promise.
-( cd "$GRAPH" && python3 tools/srs_view.py --status implemented --around --svg /tmp/srs-graph-4.svg ) \
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --status implemented --around --svg /tmp/srs-graph-4.svg ) \
     > /tmp/srs-svg-around.out \
     || { echo "--around did not widen a linkless selection to its neighbour"; cat /tmp/srs-svg-around.out; exit 1; }
 grep -q "(2 requirements)" /tmp/srs-svg-around.out \
@@ -1914,7 +1925,7 @@ grep -q "FR-CORE-020" /tmp/srs-graph-4.svg \
     || { echo "the widened image lacks the neighbour"; exit 1; }
 # The other direction: select the one that derives, and --around brings
 # what it derives from.
-( cd "$GRAPH" && python3 tools/srs_view.py --status superseded --around --svg /tmp/srs-graph-5.svg ) \
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --status superseded --around --svg /tmp/srs-graph-5.svg ) \
     > /tmp/srs-svg-around2.out \
     || { echo "--around did not widen to what the selection links to"; cat /tmp/srs-svg-around2.out; exit 1; }
 grep -q "(2 requirements)" /tmp/srs-svg-around2.out \
@@ -1925,7 +1936,7 @@ echo "view-smoke: --around widens the selection by one link in either direction"
 # --- viewer says so, exits 1, and writes no file.
 rm -f /tmp/srs-graph-3.svg
 rc=0
-( cd "$GRAPH" && python3 tools/srs_view.py --status implemented --svg /tmp/srs-graph-3.svg ) \
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --status implemented --svg /tmp/srs-graph-3.svg ) \
     > /tmp/srs-svg-none.out 2>&1 || rc=$?
 [ "$rc" = 1 ] || { echo "--svg over a linkless selection exited $rc, expected 1"; exit 1; }
 grep -q "nothing to draw: 1 requirement(s) selected" /tmp/srs-svg-none.out \
@@ -1933,3 +1944,82 @@ grep -q "nothing to draw: 1 requirement(s) selected" /tmp/srs-svg-none.out \
 [ -f /tmp/srs-graph-3.svg ] && { echo "--svg wrote a file for a selection with nothing to draw"; exit 1; }
 echo "view-smoke: --svg writes nothing and says so where the selection has no link"
 # srs-end: FR-VIEW-340
+
+# --- verifies: INV-SPEC-130 — the page links exactly the published pages its
+# --- caller named: nothing unasked, nothing outside the set, never itself.
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --html plain.html ) >/dev/null
+grep -q 'nav class="pages"' "$GRAPH/plain.html" \
+    && { echo "INV-SPEC-130 — nothing was named and the page links something"; exit 1; }
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --html linked.html \
+      --link grounds.html,arch.html ) >/dev/null
+python3 - <<'PYNAV'
+import re, sys
+page = open("/tmp/srs-view-graph/linked.html", encoding="utf-8").read()
+strip = re.search(r'<nav class="pages">(.*?)</nav>', page, re.S)
+if not strip:
+    sys.exit("INV-SPEC-130 — the page carries no strip of links")
+order = re.findall(r'href="([^"]+)"', strip.group(1))
+if order != ["arch.html", "grounds.html"]:
+    sys.exit("INV-SPEC-130 — the links read %s, not the set's own order" % order)
+if "the architecture document" not in strip.group(1):
+    sys.exit("INV-SPEC-130 — a link does not read by what the page it points at holds")
+PYNAV
+for bad in nope.html index.html; do
+    rc=0
+    ( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --html refused.html --link "$bad" ) \
+        >/dev/null 2>/tmp/srs-view-link.err || rc=$?
+    [ "$rc" = 2 ] || { echo "INV-SPEC-130 — --link $bad exited $rc, expected 2"; exit 1; }
+    grep -qF -- "$bad" /tmp/srs-view-link.err \
+        || { echo "INV-SPEC-130 — the refusal does not name $bad"; cat /tmp/srs-view-link.err; exit 1; }
+    [ -f "$GRAPH/refused.html" ] \
+        && { echo "INV-SPEC-130 — a refused --link still wrote a page"; exit 1; }
+done
+rc=0
+( cd "$GRAPH" && python3 srs-dd/tools/srs_view.py --link arch.html ) >/dev/null 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "INV-SPEC-130 — --link without --html exited $rc, expected 2"; exit 1; }
+# A specification past the graph's node limit, where the page's own note about
+# what it dropped is built: the strip of links is read from the same call, and a
+# name reused between the two would leave the page linking nothing. The bug this
+# fixture exists for was invisible in a lab of two requirements.
+NAV=/tmp/srs-view-nav
+rm -rf "$NAV"; mkdir -p "$NAV/srs-dd/tools" "$NAV/specs"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py srs-dd/tools/srs_view_page.py "$NAV/srs-dd/tools/"
+cp "$GRAPH/specs/srs-config.json" "$NAV/specs/"
+python3 - <<'PYBIG'
+lines = ["# Functional requirements — core", ""]
+total = 160
+for index in range(total):
+    number = (index + 1) * 10
+    nxt = (index + 2) * 10
+    lines += ["### FR-CORE-%03d — Requirement %d" % (number, number), "",
+              "```yaml", "status: implemented", "verification: T",
+              "derives_from: []",
+              "depends_on: [FR-CORE-%03d]" % nxt if index + 1 < total else "depends_on: []",
+              "refines: []", "conflicts_with: []", "code: []", "tests: []",
+              "created: 2026-10-06", "```", "",
+              "The system **shall** act %d." % number, ""]
+open("/tmp/srs-view-nav/specs/10-fr-core.md", "w", encoding="utf-8").write("\n".join(lines))
+PYBIG
+( cd "$NAV" && python3 srs-dd/tools/srs_view.py --html big.html --link arch.html ) >/dev/null
+grep -q "are not drawn" "$NAV/big.html" \
+    || { echo "INV-SPEC-130 — the lab did not reach the graph's limit, so the case is untested"; exit 1; }
+grep -q '<a href="arch.html">the architecture document</a>' "$NAV/big.html" \
+    || { echo "INV-SPEC-130 — the page dropped its links where the graph dropped nodes"; exit 1; }
+echo "view-smoke: the links survive a page whose graph had to drop nodes"
+
+# --- verifies: FR-VIEW-050 — a baseline whose row is written and whose commit is
+# --- not made yet: the version resolves to nothing, and the sentence says which
+# --- of the two is missing rather than handing over git's own error.
+printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n| 9.9.9 | 2026-10-06 | — | written, never committed |\n' \
+    > "$NAV/specs/92-baselines.md"
+rc=0
+( cd "$NAV" && python3 srs-dd/tools/srs_view.py --diff 9.9.9 ) >/tmp/srs-view-nocommit.out 2>&1 || rc=$?
+[ "$rc" = 2 ] || { echo "FR-VIEW-050 — a baseline with no revision exited $rc, expected 2"; exit 1; }
+grep -qF "9.9.9 is in the log and nothing in git history holds it" /tmp/srs-view-nocommit.out \
+    || { echo "FR-VIEW-050 — it does not say the log holds the baseline and git does not"; cat /tmp/srs-view-nocommit.out; exit 1; }
+echo "view-smoke: a baseline the log holds and git does not is said, not handed to git"
+# srs-end: FR-VIEW-050
+
+echo "view-smoke: the page links exactly the published pages its caller named"
+# srs-end: INV-SPEC-130

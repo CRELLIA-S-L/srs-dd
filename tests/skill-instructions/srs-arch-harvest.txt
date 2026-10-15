@@ -1,0 +1,28 @@
+# What the `srs-arch-harvest` procedure must name — written with the procedure on
+# 2026-10-06. One literal token per line; the suite fails when one is missing
+# from the procedure's text. Add a line when a procedure gains an instruction;
+# remove one only with the sentence that says why.
+
+# commands
+srs-dd/tools/srs_arch.py --draft
+srs-dd/tools/srs_arch.py --no-write
+srs-dd/tools/srs_arch.py --cite
+srs-dd/tools/srs_view.py --cite
+
+# the discipline that makes a recovery a proposal
+only after the maintainer has seen them
+One batch per candidate
+
+# readings and acts
+a part whose sentence needs an "and" is two
+protects nothing in particular
+
+# files
+srs-dd/arch.md
+arch/00-elements.md
+arch/90-map.md
+specs/adr/
+
+# the forms inside a part, recovered one part at a time (FR-SKILL-680)
+one part at a time
+arch/20-shapes.md

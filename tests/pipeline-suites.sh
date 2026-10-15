@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The pipeline runs every suite the local gate runs. The local gate lists
 # tests/ by itself; the pipeline names its suites one step each, so that a
 # failure carries the suite's name, and a list written by hand is the one a
@@ -68,7 +69,10 @@ print("pipeline-suites: a suite with no step or no row, a row saying nothing, a 
 
 # A file a shipped gate compares byte for byte is one autocrlf can turn
 # stale on a checkout that changed nothing, so the .gitattributes the
-# framework ships pins each of them to LF. The list is read off the gates.
+# framework ships pins each of them to LF. The list is read off the gates:
+# the files srs-dd/tools/srs_gate.py compares, which is where the hook and the CI
+# templates now leave the comparison, and anything a template still compares
+# itself.
 RE_GATED = re.compile(r"git diff --exit-code -- ([\w./-]+)")
 RE_PINNED = re.compile(r"^(\S+)\s+text eol=lf\s*$", re.M)
 
@@ -90,6 +94,11 @@ gates = []
 for path in sorted(glob.glob("ci/*.yml")) + ["ci/pre-commit"]:
     with open(path, encoding="utf-8") as handle:
         gates.append(handle.read())
+sys.dont_write_bytecode = True
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
+import srs_gate
+assert srs_gate.GENERATED, "srs-dd/tools/srs_gate.py compares nothing"
+gates.append("".join("git diff --exit-code -- %s\n" % written for _c, written, _cfg in srs_gate.GENERATED))
 with open(".gitattributes", encoding="utf-8") as handle:
     found += [".gitattributes does not pin %s to LF, and a shipped gate compares it byte for byte" % name
               for name in unpinned(gates, handle.read())]

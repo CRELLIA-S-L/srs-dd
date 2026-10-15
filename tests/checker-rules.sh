@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Every rule the checker enforces, one fixture each.
 #
 # The other suites prove that the checker accepts a valid specification and
 # that the tools behave. None of them proved that a broken specification is
 # *rejected*: a duplicate identifier, a dangling link, a cycle, a second
 # modal verb could each have been deleted from srs_check.py and the pipeline
-# would have stayed green. ART-050 does not allow a `verification: T`
+# would have stayed green. SRS-DD-ART-050 does not allow a `verification: T`
 # requirement to sit with an empty `tests` field, and ten FR-CHK-* did.
 #
 # Each fixture writes one broken specification into a throwaway project and
@@ -25,8 +26,8 @@ cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-rules
 rm -rf "$LAB"
-mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/src" "$LAB/t"
-cp tools/srs_check.py tools/srs_parse.py "$LAB/tools/"
+mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/src" "$LAB/t"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py "$LAB/srs-dd/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {
@@ -66,7 +67,7 @@ passes=0
 rule() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_check.py --no-write "$@" ) \
+    ( cd "$LAB" && python3 srs-dd/tools/srs_check.py --no-write "$@" ) \
         > /tmp/srs-rules.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-rules.log
@@ -93,7 +94,7 @@ as_warning() {
 
 silent() {
     local name=$1 want=$2 msg=$3 rc=0
-    ( cd "$LAB" && python3 tools/srs_check.py --no-write ) \
+    ( cd "$LAB" && python3 srs-dd/tools/srs_check.py --no-write ) \
         > /tmp/srs-rules.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-rules.log
@@ -514,7 +515,7 @@ rc=0
 ( cd "$LAB" && python3 -c "
 import sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
 import srs_check
 srs_check.RETIRED_FIELDS['depends'] = ('depends_on', '9.9.9')
 sys.exit(srs_check.main())
@@ -536,7 +537,7 @@ rc=0
 ( cd "$LAB" && python3 -c "
 import sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
 import srs_check
 srs_check.RETIRED_FIELDS['depends'] = (None, '9.9.9')
 sys.exit(srs_check.main())
@@ -663,6 +664,16 @@ verification: I'
 config() { printf '%s\n' "$1" > "$LAB/specs/srs-config.json"; }
 BASE='"areas": ["CORE"], "code_roots": ["src"], "test_roots": ["t"]'
 
+# --- verifies: FR-CHK-300 — an area named like a directory the checker skips
+# --- is refused at the configuration, before any file is read: grouped into
+# --- its folder it would vanish whole.
+for reserved in ADR ARCHIVE; do
+    config "{\"areas\": [\"$reserved\"], \"code_roots\": [\"src\"], \"test_roots\": [\"t\"]}"
+    rule "FR-CHK-300 area $reserved" 2 "is named like a directory the checker skips"
+done
+config "{$BASE}"
+# srs-end: FR-CHK-300
+
 spec < <(block FR-CORE-010 "Carries a key nobody knows" "$UNKNOWN" \
                'The system **shall** act.'
          block FR-CORE-020 "The partner" "$PARTNER" \
@@ -727,15 +738,15 @@ config "{$BASE}"
 # --- checker's findings to stdout, so a caller redirecting one of the two
 # --- used to be told that something was wrong and never what.
 LAB2=/tmp/srs-refusal
-rm -rf "$LAB2"; mkdir -p "$LAB2/tools" "$LAB2/specs"
-cp tools/srs_baseline.py tools/srs_view.py tools/srs_check.py \
-   tools/srs_parse.py "$LAB2/tools/"
+rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools" "$LAB2/specs"
+cp srs-dd/tools/srs_baseline.py srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py \
+   srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py "$LAB2/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB2/specs/"
 printf '# Baselines\n\n| Version | Date | Tag | What changed |\n|---|---|---|---|\n' \
     > "$LAB2/specs/92-baselines.md"
 printf '### FR-CORE-010 — No metadata at all\n' > "$LAB2/specs/10-fr-core.md"
 rc=0
-( cd "$LAB2" && python3 tools/srs_baseline.py 1.0.0 ) \
+( cd "$LAB2" && python3 srs-dd/tools/srs_baseline.py 1.0.0 ) \
     > /dev/null 2> /tmp/srs-refusal.log || rc=$?
 test "$rc" -eq 2 || { echo "FAIL refusal — exit $rc, expected 2"
                       cat /tmp/srs-refusal.log; exit 1; }
@@ -825,7 +836,7 @@ rule "FR-CHK-210 a file only a withdrawn requirement names" 0 \
 # --- one place nothing looked. Counted from every requirement, the withdrawn
 # --- one above covered src/dropped.py and the matrix called it referenced
 # --- while the rule above called it unclaimed, in the same run.
-( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
     || { echo "FAIL FR-CHK-230 — the checker refused the fixture, so no"
          echo "matrix was written and the assertions below have nothing to"
          echo "read"; cat /tmp/srs-rules.log; exit 1; }
@@ -999,7 +1010,7 @@ spec < <(block FR-CORE-010 "Names nothing" "$META" 'The system **shall** act.')
 ( cd "$LAB" && python3 -c "
 import sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
 import srs_check
 
 published = (
@@ -1029,10 +1040,10 @@ rule "IF-CI-020 unknown flag" 2 "unknown flag(s): --bogus" --bogus
 # directory: the lab above has a specs/ by construction, and the helper
 # always runs inside it.
 LAB3=/tmp/srs-nospecs
-rm -rf "$LAB3"; mkdir -p "$LAB3/tools"
-cp tools/srs_check.py tools/srs_parse.py "$LAB3/tools/"
+rm -rf "$LAB3"; mkdir -p "$LAB3/srs-dd/tools"
+cp srs-dd/tools/srs_check.py srs-dd/tools/srs_parse.py "$LAB3/srs-dd/tools/"
 rc=0
-( cd "$LAB3" && python3 tools/srs_check.py --no-write ) \
+( cd "$LAB3" && python3 srs-dd/tools/srs_check.py --no-write ) \
     > /tmp/srs-rules.log 2>&1 || rc=$?
 test "$rc" -eq 2 || { echo "FAIL IF-CI-020 no specs — exit $rc, expected 2"
                       cat /tmp/srs-rules.log; exit 1; }
@@ -1212,7 +1223,7 @@ rule "FR-CHK-220 unreadable history is said to be unread" 0 \
 
 # A note and not a warning: --strict must not fail for want of git, which
 # this framework does not require of a project.
-( cd "$LAB" && python3 tools/srs_check.py --no-write --strict ) \
+( cd "$LAB" && python3 srs-dd/tools/srs_check.py --no-write --strict ) \
     > /tmp/srs-rules-nogit.log 2>&1
 grep -q "no readable history" /tmp/srs-rules-nogit.log \
     || { echo "FAIL FR-CHK-220 — --strict lost the note"; exit 1; }
@@ -1274,7 +1285,7 @@ printf '# implements: FR-CORE-1000\n' > "$LAB/src/wide.py"    # srs-ignore
 python3 - "$LAB" <<'PY' || { echo "FAIL INV-SPEC-080 — the annotation grammar did not read a wide number whole"; exit 1; }
 import os, sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, os.path.join(sys.argv[1], "tools"))
+sys.path.insert(0, os.path.join(sys.argv[1], "srs-dd", "tools"))
 import srs_check
 found = srs_check.read_annotations(os.path.join(sys.argv[1], "src/wide.py"))
 assert found == [(1, "implements", "FR-CORE-1000")], found
@@ -1297,7 +1308,7 @@ code: [src/a.py]' 'The system **shall** b.'
 verification: T
 depends_on: [FR-CORE-100]
 code: [src/a.py]' 'The system **shall** c.')
-( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
     || { echo "FAIL INV-SPEC-090 — the fixture does not pass the checker"; cat /tmp/srs-rules.log; exit 1; }
 python3 - "$LAB/specs/90-traceability.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the matrix orders identifiers as strings"; exit 1; }
 import re, sys
@@ -1330,7 +1341,7 @@ verification: I
 depends_on: [FR-CORE-010]' 'The system **shall** c.'; } > "$LAB/specs/10-fr-core/deeper/notes.md"
 { printf '# About this directory\n\n'
   block FR-CORE-030 "Must not be read" "$PARTNER" 'The system **shall** hide.'; } > "$LAB/specs/10-fr-core/README.md"
-( cd "$LAB" && python3 tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_check.py ) > /tmp/srs-rules.log 2>&1 \
     || { echo "FAIL FR-CHK-250 — a directory area does not pass the checker"; cat /tmp/srs-rules.log; exit 1; }
 grep -q "Requirements: 3\." /tmp/srs-rules.log \
     || { echo "FAIL FR-CHK-250 — a directory area was not read as three requirements"; cat /tmp/srs-rules.log; exit 1; }
@@ -1338,12 +1349,12 @@ grep -q "FR-CORE-030" "$LAB/specs/90-traceability.md" \
     && { echo "FAIL FR-CHK-250 — a README.md inside the area was read as requirements"; exit 1; }
 # The file each requirement is written in is the viewer's to print (FR-VIEW-320);
 # the viewer is copied in for this one fixture.
-cp tools/srs_view.py "$LAB/tools/"
-( cd "$LAB" && python3 tools/srs_view.py --list ) > /tmp/srs-rules-list.log 2>&1
+cp srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$LAB/srs-dd/tools/"
+( cd "$LAB" && python3 srs-dd/tools/srs_view.py --list ) > /tmp/srs-rules-list.log 2>&1
 grep -q "FR-CORE-1000 .*specs/10-fr-core/1000-1999.md" /tmp/srs-rules-list.log \
     && grep -q "FR-CORE-020 .*specs/10-fr-core/deeper/notes.md" /tmp/srs-rules-list.log \
     || { echo "FAIL FR-CHK-250 — the listing does not name the files of a directory area"; cat /tmp/srs-rules-list.log; exit 1; }
-rm -f "$LAB/tools/srs_view.py"
+rm -f "$LAB/srs-dd/tools/srs_view.py" "$LAB/srs-dd/tools/srs_view_model.py"
 passes=$((passes + 1))
 
 # srs-end: FR-CHK-250
@@ -1409,7 +1420,7 @@ printf '# implements: FR-MAP_ILAND-010\nISLAND = 1\n# srs-end: FR-MAP_ILAND-010\
 silent "IF-SPEC-040 a two-word area is a requirement" 0 "identifier does not match"
 silent "IF-SPEC-040 its annotation is read" 0 "does not carry"
 silent "IF-SPEC-040 its end marker is read" 0 "ends nothing"
-( cd "$LAB" && python3 tools/srs_check.py --no-write ) > /tmp/srs-rules.log 2>&1 || true
+( cd "$LAB" && python3 srs-dd/tools/srs_check.py --no-write ) > /tmp/srs-rules.log 2>&1 || true
 grep -q "Requirements: 2\." /tmp/srs-rules.log \
     || { echo "FAIL IF-SPEC-040 — the requirement in the area of two words was not counted"; cat /tmp/srs-rules.log; exit 1; }
 passes=$((passes + 1))
@@ -1428,11 +1439,11 @@ config "{$BASE}"
 # The fourth way the checker cannot run: its parser is not beside it, as a
 # copy by hand leaves it. Exit 2 and the file named, not a traceback.
 NOPARSE=/tmp/srs-no-parser
-rm -rf "$NOPARSE"; mkdir -p "$NOPARSE/tools" "$NOPARSE/specs"
-cp tools/srs_check.py "$NOPARSE/tools/"
-rc=0; ( cd "$NOPARSE" && python3 tools/srs_check.py --no-write ) > /tmp/srs-noparse.log 2>&1 || rc=$?
+rm -rf "$NOPARSE"; mkdir -p "$NOPARSE/srs-dd/tools" "$NOPARSE/specs"
+cp srs-dd/tools/srs_check.py "$NOPARSE/srs-dd/tools/"
+rc=0; ( cd "$NOPARSE" && python3 srs-dd/tools/srs_check.py --no-write ) > /tmp/srs-noparse.log 2>&1 || rc=$?
 [ "$rc" = 2 ] || { echo "FAIL IF-CI-020 — without its parser the checker exited $rc, expected 2"; cat /tmp/srs-noparse.log; exit 1; }
-grep -qF "tools/srs_parse.py: missing" /tmp/srs-noparse.log \
+grep -qF "srs-dd/tools/srs_parse.py: missing" /tmp/srs-noparse.log \
     || { echo "FAIL IF-CI-020 — the refusal does not name the missing parser"; cat /tmp/srs-noparse.log; exit 1; }
 grep -q "Traceback" /tmp/srs-noparse.log \
     && { echo "FAIL IF-CI-020 — a missing parser crashed the checker"; exit 1; }

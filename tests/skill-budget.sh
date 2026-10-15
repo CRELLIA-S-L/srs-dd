@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Every shipped procedure, and each agent guide, fits a budget of words —
 # the file itself, and the file together with what it tells the reader to
 # open before its first step. A procedure is read by an agent at every
@@ -24,6 +25,27 @@ cd "$(dirname "$0")/.."
 #               2026-09-29: passages cut from `srs` to stay under 1 300 had
 #               taken criteria and reasons with them, and were put back
 #               (1 344), which the maintainer chose over cutting others.
+#               1 450 since 2026-09-30: `srs-init` gained the wiring of the
+#               gate into whatever runs a project's hooks and pipelines
+#               (FR-SKILL-410, FR-SKILL-420), a section the report the
+#               installer prints cannot replace — the procedure is what
+#               says to read that report and finish what it names.
+#               1 550 since 2026-10-02: both installing procedures gained
+#               the look at where the region of `AGENTS.md` landed
+#               (FR-SKILL-460), and `srs-init` with it stands at 1 532. The
+#               installer cannot make that judgement: it finds the region by
+#               a border, and a border shown as an example reads to it like
+#               the real one, so what is left is a reading of the document.
+#               1 850 since 2026-10-14: `srs-arch` gained designing the form
+#               inside a part (FR-SKILL-670), which is six steps and not a
+#               clause — where the obligations come from, the guard against
+#               a record per class, what closes the design, which keys the
+#               code is compared against, what the move costs and who flips
+#               the status — and stands at 1 794 with them. The grain is the
+#               one an agent with the code in front of it gets wrong by
+#               default, so the procedure is where it is stated; raised
+#               rather than paid for out of the cut's own steps, which is
+#               INV-SKILL-020.
 #   TRANSITIVE  OWN plus the words of every file the preamble — the text
 #               before the first `## ` heading — tells the reader to open:
 #               a line beginning `Read` that names a file in backticks, or
@@ -38,21 +60,113 @@ cd "$(dirname "$0")/.."
 #               what a procedure sends the reader to, not a verdict on
 #               reading it. 7 000 since 2026-09-24, when the register's
 #               standard gained the table of its checker's rules
-#               (FR-GND-560) and `srs-bet` with it stood at 6 944.
+#               (FR-GND-560) and `srs-bet` with it stood at 6 944. 7 050
+#               since 2026-09-30, when the standard and the procedure each
+#               gained the line saying whose they are (FR-INIT-280) and
+#               `srs-bet` with the standard stood at 7 014.
+#               7 850 since 2026-10-13, when the architecture layer's
+#               standard gained the section on what a part is made of
+#               inside — the record of a form, what closes its design and
+#               the guard against writing one per class (IF-ARCH-110 and
+#               the ten rules with it) — and `srs-arch`, which tells the
+#               reader to open that standard whole and once, stood at
+#               7 812 with it. Raised rather than paid for by cutting an
+#               instruction, which is INV-SKILL-020.
+#               7 950 the same day, when the same standard gained the key a
+#               part names its decisions by (FR-ARCH-870) with the reason
+#               that an unresolvable number is worse than none, and
+#               `srs-arch` stood at 7 919 with it.
+#               8 600 since 2026-10-14, when the same standard gained the
+#               facts about symbols — the format a project writes for a
+#               language the checker does not read, what it reads natively
+#               for one that it does, the four rules comparing a form with
+#               what the code declares and the limit of what a crossing can
+#               be read from (IF-ARCH-120 and FR-ARCH-930 through
+#               FR-ARCH-990). `srs-arch` stood at 8 529 with it. Raised
+#               rather than paid for by cutting an instruction out of the
+#               one file this procedure tells its reader to open whole,
+#               which is INV-SKILL-020.
+#               8 900 since 2026-10-14, when OWN rose by three hundred for
+#               the same procedure: this ceiling counts those words too, and
+#               `srs-arch` with the standard stands at 8 868.
+#               9 150 since 2026-10-14, when the same standard gained where
+#               a form is looked for and on what terms a name not found is
+#               absent (CON-ARCH-030, CON-ARCH-040, FR-ARCH-995), and
+#               `srs-arch` the sentence saying a part read in half is
+#               compared with nothing until the facts cover that half.
+#               7 297 of the 9 139 are the standard's. Raised rather than
+#               paid for by cutting an instruction, which is INV-SKILL-020:
+#               the rule it states is the one a reader meets as silence, and
+#               a silence nobody explained is what the paragraph is for.
 #   GUIDE       OWN for the two agent guides, which carry more than a
 #               procedure does: every session reads them, whatever it was
 #               asked. 1 500 is where this repository's guide stands on
 #               2026-09-23 once it carries every rule the shipped guide
 #               states (INV-SKILL-010) — the constitution, the generated
-#               files, ART-030, three procedures — beside its own. 1 600
+#               files, SRS-DD-ART-030, three procedures — beside its own. 1 600
 #               since 2026-09-24, when the shipped guide gained the date
 #               command and the two optional layers and this repository's
 #               had to carry them too (1 575), ADR-0030's note says why.
 #               1 650 since 2026-09-29, for the reason OWN rose: passages
-#               cut to fit were put back (1 639).
-OWN=1350
-TRANSITIVE=7000
-GUIDE=1650
+#               cut to fit were put back (1 639). 2 000 since 2026-10-01:
+#               the guide carries the framework's guide verbatim as its
+#               region (FR-SKILL-440) beside the repository's own rules,
+#               so what the shipped guide holds is counted here once more
+#               (1 960). 2 060 since 2026-10-06: the shipped guide gained the
+#               published set of pages and the flag that tells a page which
+#               others are beside it (IF-SPEC-050, INV-SPEC-130), and this
+#               repository's guide carries that region too, which left it at
+#               2 042 against a ceiling it already stood eight words under.
+#               2 100 since 2026-10-09: rule 6 gained four clauses written
+#               against a measurement (FR-SKILL-540, FR-SKILL-550,
+#               FR-SKILL-570, FR-SKILL-590), and paying for them out of this
+#               file's own content had begun to remove instructions — the
+#               line telling a reader to read CONTRIBUTING before
+#               reformatting, that the srs-ignore exemption is
+#               unconditional, that this repository is itself a project of
+#               the framework, and the three measurement commands in the
+#               form they are run. Those were put back and the ceiling rose
+#               instead (2 079).
+#               2 220 since 2026-10-13: the framework takes over the three
+#               steps the work was actually driven by — preparing a commit,
+#               the build loop and the review loop (FR-SKILL-630 and the two
+#               that follow it) — and each has to be named in the shipped
+#               guide, since a procedure nothing names is a procedure nobody
+#               invokes (IF-SKILL-010). One bullet each, about forty words,
+#               and both guides carry them (INV-SKILL-010); the number is
+#               raised for the whole set rather than three times, and the
+#               rule that it rises rather than displacing an instruction is
+#               INV-SKILL-020.
+#               2 290 since 2026-10-14: the shipped guide's line on the
+#               architecture layer gained the grain below a path — a part
+#               may say what it is made of inside, designed from the
+#               obligations it carries and compared with what the code
+#               declares (FR-ARCH-780, FR-ARCH-980) — and both guides carry
+#               it (INV-SKILL-010), which left this repository's at 2 259.
+#               2 230 the same day: that raise was made with two of the three
+#               bullets written and forty words assumed for the third, which
+#               came in at forty-nine — the review step has a stop condition
+#               to state and the other two do not. Ten words, for the same
+#               reason as the raise itself.
+#               2 320 since 2026-10-14: the shipped guide gained rule 12 —
+#               the procedure the project names for an act is the one used,
+#               and where an instruction named a general procedure of the
+#               agent's own, the project's procedure for that act is named
+#               before the instruction is followed (FR-SKILL-700,
+#               FR-SKILL-710) — and both guides carry it (INV-SKILL-010),
+#               which leaves this repository's at 2 316. Fifty-five words
+#               for a rule the measurement in FR-SKILL-640's rationale
+#               costed at 135 invocations of a procedure the framework now
+#               ships its own version of; raised rather than paid for by
+#               cutting an instruction, which is INV-SKILL-020.
+#               2 340 the same day: rule 6 gained the sentence that a report
+#               is not sent inside a code fence (FR-SKILL-720), which leaves
+#               this repository's at 2 330. Fourteen words, written after the
+#               maintainer read two reports of this session as raw markup —
+#               a fence renders none of what the rule above it asks for.
+OWN=1850
+TRANSITIVE=9150
+GUIDE=2340
 
 # What is measured: every shipped procedure, and the two agent guides —
 # this repository's and the one the installer ships — which are loaded by
@@ -78,7 +192,7 @@ def preamble(text):
 def told_to_open(text):
     """The files the preamble tells the reader to open, in order, once
     each: named on a line that begins `Read` (bold or not) — `Read
-    `specs/README.md` first…` — or on a `Read first:` line. A mention on
+    `srs-dd/standard.md` first…` — or on a `Read first:` line. A mention on
     any other line is a mention, not an instruction, and is not counted;
     a `Read it` line that names no file counts nothing, which is why a
     procedure says `Read first:` with the path on that line."""
@@ -134,14 +248,14 @@ lab = tempfile.mkdtemp()
 os.makedirs(os.path.join(lab, ".claude/skills/fat"))
 os.makedirs(os.path.join(lab, ".claude/skills/lean"))
 os.makedirs(os.path.join(lab, ".claude/skills/lost"))
-os.makedirs(os.path.join(lab, "specs"))
-with open(os.path.join(lab, "specs/README.md"), "w") as handle:
+os.makedirs(os.path.join(lab, "srs-dd"))
+with open(os.path.join(lab, "srs-dd/standard.md"), "w") as handle:
     handle.write("word " * (transitive_budget - 10) + "\n")
 with open(os.path.join(lab, ".claude/skills/fat/SKILL.md"), "w") as handle:
     handle.write("---\ndescription: x\n---\n\n# Fat\n\n" + "word " * (own_budget + 1) + "\n")
 with open(os.path.join(lab, ".claude/skills/lean/SKILL.md"), "w") as handle:
-    handle.write("---\ndescription: x\n---\n\n# Lean\n\nRead `specs/README.md` first.\n"
-                 "See also `specs/README.md` and `specs/other.md`, mentioned only.\n\n## Step\n\n"
+    handle.write("---\ndescription: x\n---\n\n# Lean\n\nRead `srs-dd/standard.md` first.\n"
+                 "See also `srs-dd/standard.md` and `specs/other.md`, mentioned only.\n\n## Step\n\n"
                  + "word " * 20 + "\n")
 with open(os.path.join(lab, ".claude/skills/lost/SKILL.md"), "w") as handle:
     handle.write("---\ndescription: x\n---\n\n# Lost\n\nRead `specs/gone.md` first.\n\n## Step\n\nword\n")
@@ -152,12 +266,12 @@ with open(os.path.join(lab, "skeleton/AGENTS.md"), "w") as handle:  # past a gui
     handle.write("word " * (guide_budget + 1) + "\n")
 lab_rows = {name: (own, tr, opens, missing) for name, own, tr, opens, missing in measure(lab)}
 assert lab_rows["fat"][0] == own_budget + 1 + 6, lab_rows["fat"]      # the frontmatter and the heading count too
-assert lab_rows["lean"][2] == ["specs/README.md"], lab_rows["lean"]  # once, and not the mention
+assert lab_rows["lean"][2] == ["srs-dd/standard.md"], lab_rows["lean"]  # once, and not the mention
 assert lab_rows["lean"][1] == lab_rows["lean"][0] + transitive_budget - 10, lab_rows["lean"]
 assert lab_rows["lost"][3] == ["specs/gone.md"], lab_rows["lost"]
 lab_over = judge(measure(lab))
 assert any(l.startswith("fat: ") and "of its own" in l for l in lab_over), lab_over
-assert any(l.startswith("lean: ") and "with specs/README.md" in l for l in lab_over), lab_over
+assert any(l.startswith("lean: ") and "with srs-dd/standard.md" in l for l in lab_over), lab_over
 assert any(l.startswith("lost: ") and "does not exist" in l for l in lab_over), lab_over
 assert not any(l.startswith("lean: ") and "of its own" in l for l in lab_over), lab_over
 assert any(l.startswith("skeleton/AGENTS.md: ") and "of its own" in l for l in lab_over), lab_over

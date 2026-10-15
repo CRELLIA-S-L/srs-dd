@@ -13,7 +13,7 @@ derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
 created: 2026-08-20
 ```
@@ -38,7 +38,7 @@ derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -59,7 +59,7 @@ derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -78,7 +78,7 @@ derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -103,7 +103,7 @@ derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -122,7 +122,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -142,7 +142,7 @@ derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -153,7 +153,7 @@ The grounds checker **shall** take the hypothesis that decides a requirement to 
 Where the hypotheses are alternatives the reading inverts — any one of them carries it, so the strongest decides.
 Collapsing the two into one rule produces a number wrong in the optimistic direction, which is the direction that gets nobody's attention.
 
-One act over two cases rather than two requirements, in the reading `specs/README.md` gives for a rule that covers the cases it names: the obligation is the reduction, and half of it computed is not half the obligation met.
+One act over two cases rather than two requirements, in the reading `srs-dd/standard.md` gives for a rule that covers the cases it names: the obligation is the reduction, and half of it computed is not half the obligation met.
 
 Which hypothesis decides, rather than what is read off it.
 The status is what this is reduced over first, because that is what the debt reading in `FR-GND-130` needs; a grade reduces the same way and along the same edges once there is one.
@@ -170,7 +170,7 @@ derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -190,7 +190,7 @@ derives_from: []
 depends_on: [INV-GND-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -214,7 +214,7 @@ derives_from: []
 depends_on: [INV-GND-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -236,7 +236,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -258,7 +258,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -279,7 +279,7 @@ derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -304,7 +304,7 @@ derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -332,7 +332,7 @@ derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -357,7 +357,7 @@ derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -379,7 +379,7 @@ derives_from: []
 depends_on: [FR-GND-110]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -401,7 +401,7 @@ derives_from: []
 depends_on: [INV-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -420,7 +420,7 @@ derives_from: []
 depends_on: [FR-GND-140]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -441,7 +441,7 @@ derives_from: []
 depends_on: [CON-GND-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -464,7 +464,7 @@ derives_from: []
 depends_on: [FR-GND-160]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -483,7 +483,7 @@ derives_from: []
 depends_on: [INV-GND-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -510,7 +510,7 @@ derives_from: []
 depends_on: [FR-GND-220]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -541,7 +541,7 @@ derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -560,7 +560,7 @@ derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -579,7 +579,7 @@ derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -598,7 +598,7 @@ derives_from: []
 depends_on: [FR-GND-190]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -647,7 +647,7 @@ derives_from: []
 depends_on: [FR-GND-280]
 refines: []
 conflicts_with: []
-code: [tools/srs_init.py, tools/srs_upgrade.py]
+code: [tools/srs_init.py, srs-dd/tools/srs_upgrade.py]
 tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh]
 created: 2026-08-20
 ```
@@ -658,7 +658,7 @@ An upgrade **shall** refresh the grounds register's tooling only where the regis
 The ones it would surprise are exactly the ones the scope note excludes: they did not decline the register, they never heard of it.
 
 Asking has to be possible with the command a project actually has.
-`tools/srs_upgrade.py` is the one command a target runs to pick up a new framework version, and a register that could only be added by reaching for the framework's own installer would be a register most projects never add.
+`srs-dd/tools/srs_upgrade.py` is the one command a target runs to pick up a new framework version, and a register that could only be added by reaching for the framework's own installer would be a register most projects never add.
 
 Presence is read from the register itself rather than from a setting, so there is nothing to disagree with what is on disk.
 The same reading the installer already makes when it decides between a fresh install and an upgrade.
@@ -693,12 +693,12 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit, tools/srs_grounds.py]
+code: [ci/pre-commit, .githooks/pre-commit, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-08-20
 ```
 
-Where a project carries a grounds register, the installed hook **shall** report, without failing the commit, the bets on the requirements whose files the commit changes.
+Where a project carries a grounds register, the gate, run before a commit, **shall** report, without failing the commit, the bets on the requirements whose files the commit changes.
 
 **Rationale.** The register's promise is that a stale hypothesis becomes visible where the code is, and a dashboard nobody is obliged to open does not keep it.
 The hook is the one place the framework already reaches everyone who opted into the gate, and the moment it reaches them is the moment they are touching the code in question.
@@ -835,8 +835,8 @@ derives_from: []
 depends_on: [CON-GND-020]
 refines: []
 conflicts_with: []
-code: [.github/workflows/srs.yml, ci/github-workflow.yml, ci/gitlab-ci.yml]
-tests: [tests/grounds-check.sh]
+code: [.github/workflows/srs.yml, ci/github-workflow.yml, ci/gitlab-ci.yml, srs-dd/tools/srs_gate.py]
+tests: [tests/grounds-check.sh, tests/installer-smoke.sh]
 created: 2026-08-20
 ```
 
@@ -889,7 +889,7 @@ derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -917,7 +917,7 @@ derives_from: []
 depends_on: [FR-GND-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -939,7 +939,7 @@ derives_from: []
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -967,7 +967,7 @@ derives_from: []
 depends_on: [FR-GND-070]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -993,7 +993,7 @@ derives_from: []
 depends_on: [FR-GND-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -1048,7 +1048,7 @@ derives_from: []
 depends_on: [FR-GND-410]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -1078,7 +1078,7 @@ derives_from: []
 depends_on: [FR-GND-180]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -1103,7 +1103,7 @@ derives_from: []
 depends_on: [FR-GND-170]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -1125,7 +1125,7 @@ derives_from: [FR-GND-230]
 depends_on: [FR-GND-280]
 refines: []
 conflicts_with: []
-code: [tools/srs_init.py, tools/srs_upgrade.py]
+code: [tools/srs_init.py, srs-dd/tools/srs_upgrade.py]
 tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh, tests/adopt-smoke.sh]
 created: 2026-08-21
 ```
@@ -1150,7 +1150,7 @@ derives_from: []
 depends_on: [FR-GND-150]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-21
 ```
@@ -1174,7 +1174,7 @@ derives_from: [INV-GND-030]
 depends_on: [FR-GND-330]
 refines: []
 conflicts_with: []
-code: [.claude/skills/srs-bet/SKILL.md, grounds/README.md]
+code: [.claude/skills/srs-bet/SKILL.md, srs-dd/grounds.md]
 tests: []
 created: 2026-08-23
 ```
@@ -1209,7 +1209,7 @@ derives_from: []
 depends_on: [FR-GND-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-23
 ```
@@ -1225,7 +1225,7 @@ A finding under `rules` costs a warning, and a warning is what `--strict` fails 
 
 Narrowing is silent, and deliberately: the concept prices it cheap, so a rule reporting it would be charging for the move the asymmetry exists to make free.
 The gap is elsewhere and it is worth naming, because a later reader who finds narrowing unwatched will be tempted to close it here.
-Narrowing carried far enough is the concept's other failure — closure, the set narrowed until nothing can move the ideology at all — and the only answer to that is a minimum no procedure may amend, which a repository can make loud and cannot prevent — decided as the whole of the layer's promise on 2026-09-21, and said in the *`I` — ideology* section of `grounds/README.md`.
+Narrowing carried far enough is the concept's other failure — closure, the set narrowed until nothing can move the ideology at all — and the only answer to that is a minimum no procedure may amend, which a repository can make loud and cannot prevent — decided as the whole of the layer's promise on 2026-09-21, and said in the *`I` — ideology* section of `srs-dd/grounds.md`.
 So this rule covers one of the two failures, and reporting narrowings would not cover the second; it would only make the first look covered twice.
 
 Read from history for the reason FR-GND-190 is: the ordering exists nowhere else.
@@ -1240,7 +1240,7 @@ derives_from: []
 depends_on: [FR-GND-510]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-23
 ```
@@ -1295,7 +1295,7 @@ derives_from: []
 depends_on: [FR-GND-010, FR-SKILL-200]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-09-17
 ```
@@ -1314,15 +1314,17 @@ An unknown identifier is refused in the same run, naming it.
 status: implemented
 verification: T
 derives_from: [FR-GND-160]
-depends_on: [FR-GND-140]
+depends_on: []
 refines: [FR-GND-140]
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-09-21
 ```
 
 Where a hypothesis is of class III, the grounds checker **shall not** compel the verdict of a measurement from how far its sample can miss, reporting a row only where it cannot be compared at all, where its verdict is not a word a measurement can reach, or where the verdict contradicts the threshold's own words — a refutation on the safe side of the bound, or on a sample smaller than the threshold names.
+
+**The duplicate `depends_on: [FR-GND-140]` went on 2026-10-06**, by the audit before the 0.22.0 baseline: `refines` says the whole of the relation, and the same end under two fields drew the link twice wherever anything reads the radius.
 
 **Rationale.** `FR-GND-140` compels a verdict from the threshold so that it stops being an opinion, and for a number an instrument or an experiment produced that is right.
 A class III measurement is a person's reading of interviews, observation and judgement, and its populations are small by nature: at `n = 2` the interval `FR-GND-150` computes reaches 0.575 even when both answers were no, so the arithmetic compels `supported` for every threshold a claim about two people could carry — a maintainer who talked to both, concluded it does not hold and wrote `refuted` was told the opposite by a comparison nobody could have won.
@@ -1340,7 +1342,7 @@ derives_from: [FR-GND-110]
 depends_on: [IF-GND-030]
 refines: []
 conflicts_with: []
-code: [grounds/README.md]
+code: [srs-dd/grounds.md]
 tests: [tests/standard-rules.sh]
 created: 2026-09-24
 ```
@@ -1348,7 +1350,7 @@ created: 2026-09-24
 The register's standard **shall** name every rule its checker reports by name, with what it reports.
 
 **Rationale.** A project sets what a finding costs in `rules` by the finding's name (`FR-GND-110`), and the names are a published contract (`IF-GND-030`); on 2026-09-24 the standard named none of the fifteen, and said only that the checker lists them when given one it does not know.
-The same gap `FR-SPEC-050` closed in the specification's standard, found by looking for it in the other two standards the day that one was closed; the suite that holds that table holds this one against `RULES` in `tools/srs_grounds.py`.
+The same gap `FR-SPEC-050` closed in the specification's standard, found by looking for it in the other two standards the day that one was closed; the suite that holds that table holds this one against `RULES` in `srs-dd/tools/srs_grounds.py`.
 
 ### FR-GND-570 — The hook refuses a stale dashboard
 
@@ -1359,14 +1361,34 @@ derives_from: [FR-GND-370]
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit]
+code: [ci/pre-commit, .githooks/pre-commit, srs-dd/tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-29
 ```
 
-Where a project carries a grounds register, the installed hook **shall** regenerate the dashboard and refuse the commit while the copy being committed differs from it.
+Where a project carries a grounds register, the gate, run before a commit, **shall** regenerate the dashboard and refuse the commit while the copy being committed differs from it.
 
 **Rationale.** `FR-GND-370` makes the pipeline refuse a stale dashboard, and a gate that only exists in the pipeline teaches people to push and wait — the reason `FR-CI-020` put the matrix's gate in the hook.
 The dashboard reads the specification as well as the register — a requirement changing status moves it — so a commit that touches only `specs/` can leave it stale, and an agent that ran the specification checker and stopped there was told so only by the pipeline.
 A refusal rather than a report, unlike the bets the hook reports under `FR-GND-310`: a stale dashboard is a file somebody forgot to regenerate, which the committer can always fix, while a refuted hypothesis may be exactly what they are in the middle of repairing.
 Whether the project carries a register is read at every commit from `grounds/grounds-config.json`, as the pipeline reads it, so a register added later is gated from its first commit without the hook being installed again.
+
+### FR-GND-580 — The dashboard can be read as a page
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-GND-010]
+depends_on: [CON-GND-020]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_grounds.py]
+tests: [tests/grounds-rules.sh]
+created: 2026-10-06
+```
+
+When asked for the dashboard as a page, a command of the register's own **shall** print it as a single self-contained HTML file that requests nothing over the network.
+
+**Rationale.** The readings the dashboard carries are specified without a form — `FR-GND-130` and its neighbours say what it states — so this adds the form alone.
+Printed and not written: `CON-GND-010` leaves the register's commands nothing to write outside it, and the markdown dashboard the gate compares byte for byte (`FR-GND-370`) stays the one generated file.
+Self-contained for the reason `FR-ARCH-520` gives.

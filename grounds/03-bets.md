@@ -296,3 +296,23 @@ all_of: [H-040]
 ```
 
 The region under an annotation, printed, replaces the read that follows the search; the same hypothesis, the same measurement.
+
+### B-290 — Raising the number costs less than losing an instruction
+
+```yaml
+status: active
+requirement: INV-SKILL-020
+all_of: [H-040]
+```
+
+Letting a budget rise rather than paying for a new instruction out of the words a procedure already carries is the trade this project takes, and it is the one bet here that is permission to grow; whether the runs then stay within their cost is what H-040 measures, release after release, where a procedure that grew back is the row that crosses the line.
+
+### B-300 — A release is where the numbers are read back down
+
+```yaml
+status: active
+requirement: FR-SKILL-620
+all_of: [H-040]
+```
+
+A pass over the shipped procedures and their budgets before a release is what keeps B-290 from being a ratchet; the same hypothesis, and the rows of two successive releases are where a pass that was declined every time would show.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_cite_eval.py scores canned answers exactly, and refuses to run
 # where there is no agent to ask. The test asks nobody: the live run is a
 # measurement for the register, not a suite.
@@ -15,7 +16,7 @@ CANNED=/tmp/srs-cite-eval.jsonl
 python3 - > "$CANNED" <<'PY'
 import json, subprocess
 def cite(tool, rid):
-    return subprocess.check_output(["python3", "tools/" + tool, "--cite", rid], text=True).strip()
+    return subprocess.check_output(["python3", "srs-dd/tools/" + tool, "--cite", rid], text=True).strip()
 rows = [
     {"question": "one", "answer": "Governed by %s; later FR-VIEW-240 again is fine. Also %s, while FR-CHK-010 is bare."
                                    % (cite("srs_view.py", "FR-VIEW-240"), cite("srs_arch.py", "E-020"))},

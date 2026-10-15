@@ -74,12 +74,14 @@ document.
 the most common source of lost work reports.
 ````
 
-`python3 tools/srs_check.py` regenerates `specs/90-traceability.md` — requirement → code → verification, in both directions — and fails on a dangling link, a status of `implemented` without code paths, a path that does not exist, a cycle in the derivation or the dependency graph, or an annotation naming a requirement that was never written.
+`python3 srs-dd/tools/srs_check.py` regenerates `specs/90-traceability.md` — requirement → code → verification, in both directions — and fails on a dangling link, a status of `implemented` without code paths, a path that does not exist, a cycle in the derivation or the dependency graph, or an annotation naming a requirement that was never written.
 Softer drift is a warning: a file a requirement names that does not name it back, a requirement verified by test that lists none, a requirement no link touches.
 `--strict` turns warnings into failures too.
 
-`python3 tools/srs_view.py --html` writes one self-contained page: search, filters, a status dashboard, the coverage gaps, a graph of every kind of link that you can narrow to one requirement's surroundings, pan, zoom and pull apart, and a comparison of any two frozen baselines.
+`python3 srs-dd/tools/srs_view.py --html` writes one self-contained page: search, filters, a status dashboard, the coverage gaps, a graph of every kind of link that you can narrow to one requirement's surroundings, pan, zoom and pull apart, and a comparison of any two frozen baselines.
 No CDN, no network, opens straight from `file://`.
+Where a project keeps the optional layers, the same holds for their two pages — `python3 srs-dd/tools/srs_arch_doc.py --html` draws the architecture, dependency diagram and all, and `python3 srs-dd/tools/srs_grounds.py --html` prints the grounds dashboard.
+The three are published side by side under fixed names, each linking the others, and the pipeline starters do it for whichever layers you keep.
 
 ## What you get back
 
@@ -93,6 +95,9 @@ No CDN, no network, opens straight from `file://`.
   The `srs-audit` procedure derives cases from the statement's own EARS parts, builds a decision table where conditions combine, and refuses to call a case covered until it can name the change to the code that would turn that test red.
 - **Already have code and no spec?**
   `srs-harvest` reads it area by area and proposes draft requirements in batches you approve, never writing a status or inventing a test that does not exist.
+- **An architecture you can be wrong about in public.**
+  Declare the order your parts stand in, who may reach what, what a part may not import, and the units you deploy.
+  The checker reads the code, and whatever facts you supply about what runs, and reports where the description and the thing have come apart — including the case where it could compare nothing at all.
 - **Agent-agnostic, and optional.**
   `AGENTS.md` is read natively by Cursor, Codex, Gemini CLI and Copilot; the skills are plain Markdown any agent can follow; a team working entirely by hand loses nothing.
 
@@ -104,7 +109,6 @@ Delete a requirement's rationale and a strict run reports nothing at all.
 
 The **grounds register** is the optional sibling of `specs/` where that reasoning goes, and it is the largest area this framework specifies itself in.
 It holds three kinds of ground, and one record that joins them to the specification.
-The **architecture layer** is the other optional sibling: which parts the system is cut into, what each one carries — written by hand or derived from the files it owns — and a checker that reports a file the specification claims and no part owns.
 
 - A **hypothesis** is a claim about the world that could turn out false — who needs the thing, what they will pay for, what they do today instead.
   It carries a bounded population, a threshold that says what would refute it, a term, and an owner who answers for measuring it.
@@ -118,6 +122,30 @@ What that buys is one thing: **when an assumption is refuted, everything built o
 `srs_grounds.py` reports a hypothesis past its term, one built on and never measured, a verdict that does not follow from its own threshold, a threshold moved after the first measurement, evidence deleted.
 The pre-commit hook says which bets the files in your commit are standing on.
 The dashboard states how old the confirmed core is, what each frame has refused, and which requirements rest on no hypothesis at all — because a requirement nobody can say why the product has is the signal this layer exists to protect, and demanding a bet for every one of them would destroy it.
+
+The **architecture layer** is the other optional sibling, and it answers the other question a specification does not: not what the system must do, but what it is made of.
+This repository keeps one on itself — thirteen parts, an order declared over them, eight forms inside one of them, and the page published beside the specification's own.
+
+- A **part** has a responsibility in one sentence, the files that are it, what it leans on, how it is reached from outside, and the requirements it carries — written by hand or derived from the files it owns.
+  A part may sit inside another, and a file belongs to the innermost part that claims it, by one rule used everywhere.
+- A **form** is what one part is made of below its files: the types it holds, the operations anything of it answers to, the state it owns alone, and the forms it is composed of.
+  It is designed from the obligations its part carries rather than read off the code, so a form can be written, closed against those obligations and read by everybody before a line of its code exists — and where a part holds one form, every obligation it carries has to be answered by some form inside it.
+  Nothing obliges a part to hold a form: the grain is adopted a part at a time.
+- The project sets **policy over the parts**, and the checker holds the code to it: an order of levels, where a dependency running upward is a finding; a pair that must not exist; a module a part may not import; and an allow-list — only these parts may reach that one — which otherwise takes one prohibition per part in the system.
+- A **unit** is what gets deployed or run as one piece.
+  It is a name the parts claim, so one unit may hold many parts and one part may ship as two, and what a unit holds is computed rather than written down.
+  What the project knows about its units — which exist, what talks to what, when that was read and from where — goes in one small file the project produces itself, from deployment descriptors that may live in another repository, from its pipeline, from traces, or by hand.
+
+What that buys is one thing in three directions: **the description is held against something that can contradict it.**
+`srs_arch.py` reports a file the specification claims and no part owns, a requirement built and belonging to no part, a part that answers to nothing, a dependency the code has and the model does not declare, a circle, a part entered by a name its own interface does not state, and every policy above.
+Where facts about the units are supplied it reports a unit that is not there, one nobody wrote down, and a link no part's dependencies account for.
+Where those facts are older than their own stated life it uses none of them and says so, because a run that compared nothing must not read like one that found nothing.
+Where a part says what it is made of inside, it reports an obligation no form answers for, a form that answers for nothing, one piece of state two forms own, forms holding each other in a circle, a symbol a form names that nothing declares, a type no form claims, a form entered past the operations it states, and a design the code has already caught up with.
+The layer also prints itself as a document for a person — the parts, the drawing of the dependencies, the units, and where every claim came from.
+
+**When not to keep the layer.** Where the parts are obvious and few — a single script, a library with one public module, a service whose whole structure fits in the first paragraph of its README.
+There the description is a second copy of the file tree, and a description that adds nothing teaches every reader that the directory is decoration.
+The question is not "could we list our parts" but "is there a boundary somebody could cross without noticing".
 
 **When not to keep a register.** Where the basis of the work is fixed outside the project and does not move — avionics, a protocol implementation, a compliance obligation, a component whose contract is somebody else's specification.
 There the requirement tree already carries everything, the hypotheses would be invented to fill the file, and a register of invented entries teaches every reader that the register is decoration.
@@ -138,8 +166,8 @@ Then it lays out `specs/`, writes the config, generates a placeholder requiremen
 
 **Already have an SRS?** The installer detects it and switches to adopt mode:
 your spec is validated against the proposed configuration *before* anything is touched, and on failure the target is left byte-identical, but for a crashed earlier run's temporary copy of the checker, which is removed.
-Your requirements are never modified; your own `specs/README.md`, if you had one, is set aside in `specs/archive/` and the standard takes its place.
-Where its requirements carry no `created` dates, you are offered `tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
+Your requirements are never modified, and a README of your own under `specs/` stays where it is: the standard lives in `srs-dd/`, beside your specification, not inside it.
+Where its requirements carry no `created` dates, you are offered `srs-dd/tools/srs_dates.py`, which fills each one from the commit that introduced the identifier rather than from today.
 
 **Already run a pre-commit hook?** It is never displaced — the installer says so instead of advising the `core.hooksPath` switch that would silently disable it.
 
@@ -184,12 +212,17 @@ Ask for them by name, or describe the task and let the agent pick.
 | any change to behaviour | `srs` — the everyday loop: name the requirements the change belongs to *before* the code, create one where none exists, re-read their statements as the loop closes, fill `code` and `tests` with real paths. |
 | "we have code and no spec" | `srs-harvest` — reads the code area by area, proposes `draft` requirements in batches you approve first, invents no tests. |
 | "check this before I commit" | `srs-check` — names the checks the touched requirements actually call for: the checker, the tests those requirements list, and what a person must look at where the method is not a test. It offers; it never runs a suite unasked. |
+| a change that will take more than one pass | `srs-build` — writes what has to exist before the first pass and judges the work against that list rather than against whichever checks went green, one requirement per pass with its tests, every failure classified before it is touched, the loop closed as it goes. |
+| "review this, it is finished" | `srs-review` — runs the checks the requirements call for, reads the work for what no check reaches, confirms every finding in the file it names before reporting it, and calls the work reviewed only on two consecutive passes that found nothing by different means. |
+| "get this ready to commit" | `srs-commit` — hands the change to `srs-review` and `srs-check` first, establishes whether the message covers the staged set or everything, puts the generated files the gate compares into the index, reads the diff and the untracked files, and writes the message with the identifiers the change implements. It prepares; you commit. |
 | "audit the spec against the code" | `srs-audit` — semantic drift, test adequacy, and the links requirements do not carry. Read-only: it reports which side looks wrong and never picks one. |
 | "freeze the spec" | `srs-baseline` — shows what changed since the last baseline, offers an audit of what the diff touches, settles the version with you, writes the row. |
 | "show me the spec" | `srs-page` — renders the self-contained page and opens it. |
 | "why do we do X" / a measurement came in | `srs-bet` — the grounds register: write a hypothesis, stake a requirement on it, record a measurement, settle what happens when one is refuted. |
-| "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, and read the disagreements the checker computes between that description, the specification and the code. |
-| "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, refreshes the tooling and nothing precious. |
+| "what is this system made of" / a change moved files between parts | `srs-arch` — the architecture layer: name the parts, say what each carries, declare what depends on what, design what a part is made of inside, and read the disagreements the checker computes between that description, the specification and the code. |
+| "is our architecture any good" / "should this part be split" | `srs-arch-audit` — reads the cut against the specification, the code, what it costs and what it stands on, and ends every finding in an act. |
+| "we have the code and no architecture" | `srs-arch-harvest` — recovers the parts from the code and from whatever the project already says about itself, in batches you approve. |
+| "update SRS-DD" | `srs-upgrade` — fetches the framework this project came from, shows the upgrade before it happens, rewrites `srs-dd/` and the procedures, and nothing of yours. |
 
 Three rules bind every one of them, and they are why an agent with these is safer than an agent without: **it proposes, you approve** — no status is flipped and no batch is written without you; **it never runs builds or tests unasked**; **it reports what follows, not what it noticed** — an observation with no consequence is dropped rather than handed to you as homework.
 
@@ -207,42 +240,45 @@ Every task that changes behaviour goes through the same five steps:
 4. **Close the loop.**
    Status to `implemented`, `code` and `tests` filled with real paths, in the same set of edits as the code.
 5. **Check.**
-   `python3 tools/srs_check.py`, locally and in CI.
+   `python3 srs-dd/tools/srs_check.py`, locally and in CI.
 
-What a linter cannot check — behaviour over implementation, verifiability, unambiguity — is still binding; those rules live in `specs/README.md`, and the `srs-audit` skill covers the semantic side.
+What a linter cannot check — behaviour over implementation, verifiability, unambiguity — is still binding; those rules live in `srs-dd/standard.md`, and the `srs-audit` skill covers the semantic side.
 
 ## Reading the specification
 
 ```
-python3 tools/srs_view.py FR-CORE-020        one requirement, links resolved
-python3 tools/srs_view.py --code src/app.py  which requirements describe a file
-python3 tools/srs_view.py --code src/app.py --statements   the same, with what each obliges — to choose by
-python3 tools/srs_view.py FR-CORE-020 --where  where it is realized, by line; --source prints the code
-python3 tools/srs_view.py --tree FR-CORE-010 what derives from it
-python3 tools/srs_view.py --coverage         no tests, code outside the spec, …
-python3 tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
-python3 tools/srs_view.py --vocabulary       the words a block may use, from the checker
-python3 tools/srs_view.py --diff 0.14.0      working tree against a baseline
-python3 tools/srs_view.py --json             the model, for your own tooling
-python3 tools/srs_view.py --html             a page for people who do not grep
-python3 tools/srs_view.py --area DOC --around --svg graph.svg   one area and what it links to, as an image
+python3 srs-dd/tools/srs_view.py FR-CORE-020        one requirement, links resolved
+python3 srs-dd/tools/srs_view.py --code src/app.py  which requirements describe a file
+python3 srs-dd/tools/srs_view.py --code src/app.py --statements   the same, with what each obliges — to choose by
+python3 srs-dd/tools/srs_view.py FR-CORE-020 --where  where it is realized, by line; --source prints the code
+python3 srs-dd/tools/srs_view.py --tree FR-CORE-010 what derives from it
+python3 srs-dd/tools/srs_view.py --coverage         no tests, code outside the spec, …
+python3 srs-dd/tools/srs_view.py --cite <ID>…       how to name it to a person; an ADR-NNNN too
+python3 srs-dd/tools/srs_view.py --vocabulary       the words a block may use, from the checker
+python3 srs-dd/tools/srs_view.py --diff 0.14.0      working tree against a baseline
+python3 srs-dd/tools/srs_view.py --json             the model, for your own tooling
+python3 srs-dd/tools/srs_view.py --html             a page for people who do not grep
+python3 srs-dd/tools/srs_view.py --area DOC --around --svg graph.svg   one area and what it links to, as an image
 ```
 
 The viewer never writes to `specs/` and never gates anything.
-Where a project keeps a register, `python3 tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
+Where a project keeps a register, `python3 srs-dd/tools/srs_grounds.py --blast <path>` answers the other question: what the requirements describing that file are standing on.
 Each layer's checker cites its own records in the same form — `srs_arch.py --cite E-NNN…`, `srs_grounds.py --cite H-NNN…` — because the viewer reads the specification and nothing else.
+The architecture layer answers four more questions with its own commands.
+`srs_arch.py --drivers` ranks the requirements a cut should form around — `--drivers E-NNN` the obligations of one part, which is what a form inside it is designed against — `--draft` proposes a cut from the files no part carries, `--plan` says what moving to a designed part or form requires, and `--price parts|areas|proposed` says what a cut costs in links inside it, leaving it and arriving.
+`srs_arch_doc.py` prints the whole layer as a document, and `--html` as a page beside the specification's own.
 
 ## Where things are
 
 | Path | What it is |
 |---|---|
-| `specs/README.md` | The standard: markup rules, identifier scheme, lifecycle, annotations, baselines, configuration |
+| `srs-dd/` | The framework's directory, copied whole into your project and rewritten by every upgrade. Under `tools/`: `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_view_model.py`, `srs_view_page.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py`, `srs_gate.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` and `srs_arch_doc.py` (yours if you keep an architecture layer). Beside them `standard.md` — the standard: markup rules, identifier scheme, lifecycle, annotations, baselines, configuration — `grounds.md` and `arch.md` for the layers, `method.md` with the articles every project is bound to (`SRS-DD-ART-*`), `guide.md` — the region of every `AGENTS.md` — and the licence |
 | `specs/` | This framework's own specification — it uses itself. Also `91-open-issues.md` (questions nobody has settled), `92-baselines.md` (the frozen milestones) and `adr/` (the decisions) |
 | `skeleton/` | What the installer copies into your project |
 | `grounds/` | This framework's own grounds register: the hypotheses under its requirements, and the standard for them |
 | `arch/` | This framework's own architecture layer: which parts it is cut into, what each one carries, and the standard for them |
-| `tools/` | `srs_check.py`, `srs_parse.py`, `srs_view.py`, `srs_upgrade.py`, `srs_baseline.py`, `srs_dates.py` (yours after install); `srs_grounds.py` (yours if you keep a register); `srs_arch.py` (yours if you keep an architecture layer); `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
-| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-bet` (with the register), `srs-arch` (with the layer), and `srs-init`, `srs-release` (framework-only) |
+| `tools/` | `srs_init.py`, `srs_release.py`, `srs_cite_eval.py`, `srs_proc_eval.py`, `srs_report_eval.py`, `ci_selftest.sh`, `test_lib.sh` (stay here) |
+| `.claude/skills/` | `srs`, `srs-new`, `srs-audit`, `srs-harvest`, `srs-upgrade`, `srs-baseline`, `srs-check`, `srs-page`, `srs-commit`, `srs-build`, `srs-review`, `srs-bet` (with the register), `srs-arch`, `srs-arch-harvest` and `srs-arch-audit` (with the layer), and `srs-init`, `srs-release` (framework-only) |
 | `tests/` | The suites this repository runs on itself; its requirements cite them by path |
 | `ci/` | CI templates and a pre-commit hook for target projects |
 | `.github/`, `.githooks/` | This repository's own pipeline and the hook that runs the same suites before a commit; targets get the templates in `ci/` instead |

@@ -1,23 +1,20 @@
 #!/bin/sh
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # SRS-DD pre-commit gate. One-time setup after cloning:
 #     git config core.hooksPath .githooks
-# Runs the local gate: YAML validation of the pipeline and the shipped
-# templates, then every suite in tests/ — the same scripts CI runs. See
-# tools/ci_selftest.sh for details.
-# implements: FR-GND-310, INV-SKILL-010
-cd "$(git rev-parse --show-toplevel)" || exit 1
+# Runs the gate a target's hook runs (ci/pre-commit), then the local gate:
+# YAML validation of the pipeline and the shipped templates, then every
+# suite in tests/ — the same scripts CI runs. See tools/ci_selftest.sh for
+# details.
+# implements: FR-GND-310, FR-GND-570, FR-ARCH-300, FR-CI-180, INV-SKILL-010
+set -e
+cd "$(git rev-parse --show-toplevel)"
 
-# First what the requirements this commit touches are standing on, as the
-# hook a target gets says it (ci/pre-commit): this repository keeps a
-# register too. A report and never a verdict, so nothing here can fail the
-# commit; every staged path, NUL-separated, for the reasons given there.
-if [ -f grounds/grounds-config.json ]; then
-    git diff --cached --name-only -z --diff-filter=ACM \
-        | xargs -0 python3 tools/srs_grounds.py --blast || true
-fi
+# This repository is the first project the gate applies to, and keeps a
+# register and a layer of its own: the checkers, every generated file
+# compared with what is staged, and what the requirements this commit
+# touches are standing on — a report that fails nothing.
+python3 srs-dd/tools/srs_gate.py --staged
+# srs-end: FR-GND-310, FR-GND-570, FR-ARCH-300, FR-CI-180, INV-SKILL-010
 
-# implements: FR-GND-570, FR-ARCH-300
-# The dashboard and the map the shipped hook regenerates and gates
-# (ci/pre-commit) are gated here by the suites below that compare them —
-# tests/grounds-check.sh and tests/arch-check.sh.
 exec tools/ci_selftest.sh

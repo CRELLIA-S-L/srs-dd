@@ -24,7 +24,7 @@ The target's own checker then fails on its first run, with an error its maintain
 Option 3. `skeleton/specs/` holds the starter files, `skeleton/AGENTS.md` and `skeleton/CLAUDE.md` the target-facing guides, and the installer copies from there.
 `specs/` in this repository is the framework's own specification, and this repository is an SRS-DD project like any other.
 
-One exception is deliberate: `specs/README.md` — the standard itself — is identical in every project and ships from `specs/`.
+One exception is deliberate: `srs-dd/standard.md` — the standard itself — is identical in every project and ships from `srs-dd/`.
 A second copy under `skeleton/` would be a 300-line normative document maintained twice.
 
 Option 1 was rejected because a blocklist fails open: forgetting an entry leaks, and nothing fails until it reaches a stranger.
@@ -37,4 +37,4 @@ Option 2 was rejected because the framework should be read the way a target is �
 - Anyone scripting against a framework clone has to know the new locations — recorded in the 0.7.0 upgrade notes.
   Installed targets are unaffected.
 - The root `AGENTS.md` and `CLAUDE.md` became free to describe this repository, which is what an agent handed the URL reads first.
-  *Since 2026-09-23 (INV-SKILL-010):* free to describe more, not free to lack a rule — each is this repository's instance of the guide a target gets, and carries every rule that guide states. The decision template joined the exception above for the same reason `specs/README.md` is one: identical in every project, it ships from `specs/adr/`.
+  *Since 2026-09-23 (INV-SKILL-010):* free to describe more, not free to lack a rule — each is this repository's instance of the guide a target gets, and carries every rule that guide states. The decision template joined the exception above for the same reason `srs-dd/standard.md` is one: identical in every project, it ships from `specs/adr/`.

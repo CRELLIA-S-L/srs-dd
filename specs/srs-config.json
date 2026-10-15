@@ -11,7 +11,8 @@
     "DOC"
   ],
   "code_roots": [
-    "tools"
+    "tools",
+    "srs-dd/tools"
   ],
   "test_roots": [
     "tests"

@@ -30,7 +30,7 @@ derives_from: []
 depends_on: [FR-CHK-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/spec-check.sh, tests/checker-rules.sh]
 created: 2026-08-07
 ```
@@ -70,7 +70,7 @@ derives_from: []
 depends_on: [IF-SPEC-010, INV-SPEC-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -99,7 +99,7 @@ derives_from: [NFR-SPEC-020]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_check.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_check.py]
 tests: []
 created: 2026-08-07
 ```
@@ -117,7 +117,7 @@ derives_from: []
 depends_on: [FR-CHK-160]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: [tests/checker-rules.sh]
 created: 2026-08-17
 ```
@@ -155,7 +155,7 @@ derives_from: []
 depends_on: [INV-GND-010]
 refines: []
 conflicts_with: []
-code: [grounds/README.md, tools/srs_grounds.py]
+code: [srs-dd/grounds.md, srs-dd/tools/srs_grounds.py]
 tests: []
 created: 2026-08-20
 ```
@@ -165,9 +165,9 @@ A register record **shall** be written as a level-three heading, a fenced `yaml`
 **Rationale.** The same promise `IF-SPEC-010` makes for the requirement block, made separately because it is a separate format: an addition is compatible, a removal or a rename is not, and what lets a later version add a key is that an unknown one is tolerated rather than refused.
 
 One statement over every kind of record in the register — hypothesis, bet, ideology, frame — rather than one per kind.
-The obligation is that the rule is the same throughout, and splitting it would destroy exactly that claim, which is the reading `specs/README.md` gives for a list of exit codes.
+The obligation is that the rule is the same throughout, and splitting it would destroy exactly that claim, which is the reading `srs-dd/standard.md` gives for a list of exit codes.
 
-The shape deliberately resembles the requirement block so that whoever has read `specs/README.md` recognises it.
+The shape deliberately resembles the requirement block so that whoever has read `srs-dd/standard.md` recognises it.
 Resemblance is not identity: neither format is obliged to track the other's edge cases, and a later reader who merges them would be inventing a coupling this subsystem was built to avoid (ADR-0015).
 
 ### IF-GND-020 — Exit codes of the grounds checker
@@ -179,7 +179,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -190,7 +190,7 @@ The grounds checker **shall** exit 0 where it found no error and, under `--stric
 The three are one statement for the reason `IF-CI-020`'s are: what a caller relies on is that these are all of them.
 
 Its own requirement rather than an extension of `IF-CI-010`.
-That statement gives the installer four codes, and `specs/README.md` names an exit-code list as the case where splitting destroys the only claim a caller has.
+That statement gives the installer four codes, and `srs-dd/standard.md` names an exit-code list as the case where splitting destroys the only claim a caller has.
 A fifth code there would rewrite a promise every installed project already depends on, to describe a subsystem most of them do not have.
 
 ### IF-GND-030 — A published grounds rule name keeps its meaning
@@ -202,7 +202,7 @@ derives_from: []
 depends_on: [FR-GND-010, FR-GND-110]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -222,7 +222,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [arch/README.md]
+code: [srs-dd/arch.md]
 tests: []
 created: 2026-09-02
 ```
@@ -242,7 +242,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -261,7 +261,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-090]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -280,7 +280,7 @@ derives_from: []
 depends_on: [FR-ARCH-260]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -292,6 +292,29 @@ JSON because the standard library reads it and a line format with free text in i
 File paths because the checker resolves them and the extractor then knows nothing about elements; a value that is an element identifier is refused when the file is read, with the reason, since a list of parts depending on parts is the declared model and has a field of its own.
 `via` is where the extractor says what it saw — a symbol, a line — and it is printed, not parsed, so that no project has to agree with another about what evidence looks like.
 
+### IF-ARCH-050 — The move record is a stable format
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md, srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh, tests/standard-vocabulary.sh]
+created: 2026-10-04
+```
+
+A move record **shall** be written as a level-three heading carrying an `M-<NNN>` identifier, a fenced `yaml` metadata block whose keys are `status`, `from`, `to`, `moves` and `adr`, a statement and an optional rationale, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The second kind of record this layer holds, and the reason it is a record rather than a field on an element is that a redraw outlives the commit it starts in: it is agreed once, carried out over several changes, and read by whoever arrives in the middle of it.
+A field on the element could not say that — it would belong to one of the two parts, and a move belongs to the pair.
+The kind is told by the identifier's prefix, so a project keeps its moves in whatever file it likes, the way elements are not tied to a filename either.
+The shape deliberately repeats the element's (`IF-ARCH-010`), down to the promise that keys are added and never renamed, because whoever has read one record of this layer has read all of them.
+`adr` is a key and not a sentence of prose: the layer records that the cut is changing, the decision records why, and a move with nothing to point at is the redraw whose reasons were lost — the case this layer exists to prevent.
+Authored beside `FR-ARCH-350`, and on purpose the other half of it: the difference between the designed cut and the built one is computed, and what somebody agreed to do about it is written down.
+
 ### IF-SPEC-030 — A decision's head is a stable format
 
 ```yaml
@@ -301,7 +324,7 @@ derives_from: [IF-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py, specs/README.md]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/standard.md]
 tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
@@ -324,7 +347,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_parse.py, tools/srs_check.py, tools/srs_init.py, tools/srs_view.py, tools/srs_dates.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_check.py, tools/srs_init.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_dates.py]
 tests: [tests/checker-rules.sh, tests/installer-smoke.sh, tests/view-smoke.sh, tests/dates-smoke.sh]
 created: 2026-09-29
 ```
@@ -336,3 +359,178 @@ The underscore is single and stands between words, so that `MAP_`, `_MAP` and `M
 One grammar, because it was written out seven times across four tools, and a name one of them refused was a requirement gone quiet: the heading net read `### FR-MAP_ILAND-010` as prose and the annotation grammar read an annotation naming it as nothing, with no error from either.
 A name says nothing of a hierarchy.
 An area grouped under another for a reader goes into a folder (`FR-CHK-260`), because the name is inside every identifier and an identifier is never renamed (`INV-SPEC-010`): a parent written into the name is a regrouping nobody can make afterwards.
+
+### IF-ARCH-060 — The forbidden-dependency list is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+A forbidden dependency **shall** be written in the layer's configuration under `forbidden` as a JSON list of objects whose `from` and `to` each name an element or `*`, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+In the configuration and not in a record, because a forbidden edge is policy about two parts and a key on one of them would be the link written twice that `INV-ARCH-010` exists to prevent.
+`*` on one side is what makes the common intents sayable — nothing may lean on this part, this part may lean on nothing — and `why` is required because a rule whose failure cannot say what it protects is a rule somebody deletes.
+
+### IF-SPEC-050 — The published pages are one set of names
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/standard.md, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_arch_doc.py, srs-dd/tools/srs_grounds.py]
+tests: [tests/standard-vocabulary.sh]
+created: 2026-10-06
+```
+
+Where the framework's pages are published together, they **shall** be named by one set — `index.html` for the specification, `arch.html` for the architecture document, `grounds.html` for the grounds dashboard — side by side in one directory.
+
+**Rationale.** Three names and one requirement, because what a reader and a pipeline rely on is that these are all of them, and splitting would destroy exactly that claim — the exception *How to phrase* makes for a list of exit codes.
+They are an interface and not an implementation detail: `INV-SPEC-130` links by them, a pipeline writes by them and a reader bookmarks them, so a name that moved would break all three at once.
+Side by side in one directory, because a page that links its siblings by a bare name can only find them beside it.
+
+### IF-ARCH-070 — The order of parts is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+An order of parts **shall** be written in the layer's configuration under `layers` as a JSON list of groups, each a list of element identifiers, from the group that may lean on every other to the group that may lean on none, with groups added over time and the direction never reversed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+A list of lists and not a key on each element, because a level is a statement about the cut as a whole and a key on one part would be the same policy written in as many places as there are parts — the reason `IF-ARCH-060` keeps a forbidden pair out of the records.
+The direction is the one thing here that can never move: a reversed reading would turn every finding into its opposite without changing a character of the file, so it is fixed at the top of the list — what may lean on everything — and said in the standard in those words.
+In the configuration a key the checker does not know is passed over, so a project that writes `layers` keeps working on a checker older than this requirement, and reads its first findings on the day it upgrades.
+
+### IF-ARCH-080 — The list of imports forbidden to a part is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+An import a part may not have **shall** be written in the layer's configuration under `forbidden_imports` as a JSON list of objects whose `in` names an element, whose `module` is the top-level module name as the code writes it, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Renamed on 2026-10-07, before it was built**, with the narrowing `FR-ARCH-610` records: the key and the entry say import and module because that is what is read.
+
+**Rationale.** The shape follows `IF-ARCH-060` entry for entry — two ends and a sentence — because it is the same kind of policy with the far end outside the system, and a project that has written one can write the other without reading anything.
+`module` is the top-level module name and nothing else: a pattern, a path or a dotted name inside a package would each need a reading of its own, and the names a file imports are what the checker already has (`FR-ARCH-200`, `FR-ARCH-490`).
+
+### IF-ARCH-090 — The allow-list of a part is a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+The parts that may reach a part **shall** be written in the layer's configuration under `only` as a JSON list of objects whose `to` names an element, whose `from` is a non-empty list of element identifiers, and whose `why` is the sentence the finding prints, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+The shape follows `IF-ARCH-060` — two ends and a sentence — with the near end a list, which is the whole difference between a prohibition and an allow-list.
+No wildcard on either side: `*` in `to` would make every part reachable only from the named few, which is a statement about the whole cut and belongs to the order, and `*` in `from` would permit everything, which is the absence of a policy rather than one.
+
+### IF-ARCH-100 — The facts about units are a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Facts about a project's units **shall** be written in `arch/units.json` as a JSON object whose `taken` is the date they were read, `source` the text saying where from, `units` the list of unit names, `links` the pairs of names standing for one unit reaching another, and `life` the number of days the producer says they stay true, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The project writes this, so its shape is an interface whether or not it was meant as one, the argument `IF-ARCH-040` makes for the edges file.
+Names and not identifiers of this layer: the file speaks the project's own vocabulary, which is what lets one project produce it from deployment descriptors in another repository, another from its pipeline, a third from traces and a fourth by hand — the framework reads one format and learns no technology.
+`taken` and `source` are required because a fact whose age and origin are unknown cannot be weighed against a model, and `life` is optional because a project may have no idea how fast its own answer rots — that admission is better recorded than guessed at.
+`links` is optional: a project may know what it runs long before it knows what talks to what.
+
+
+### IF-ARCH-110 — The shape record is a stable format
+
+```yaml
+status: implemented
+verification: I
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md, srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh, tests/standard-vocabulary.sh]
+created: 2026-10-13
+```
+
+A shape record **shall** be written as a level-three heading carrying an `S-<NNN>` identifier, a fenced `yaml` metadata block whose keys are `status`, `inside`, `requirements`, `names`, `shape`, `owns` and `holds`, a statement and an optional rationale, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The finest grain this layer had was a path: `carries` names files and directories, and `INV-ARCH-020` resolves a file to a part by the specificity of its path.
+Everything below a path — a type, the state it owns, the operations anything of its kind answers to, what is composed of what — had nowhere to go, so a question about the form inside one part met a layer with nothing to say and every rule green.
+A nested element does not reach it either: an element's carriers are paths too.
+
+A second kind of record rather than a key on the element, because `IF-ARCH-050` already set that precedent in this layer and because the two kinds answer different questions: a part is what the code is divided into, a shape is what one part is made of.
+
+The keys, each for its own reason.
+`inside` is the one part the shape belongs to, and the join points up exactly as the element's points at requirements.
+`requirements` is the obligations the shape answers for, and it is the key the design is built from: a form is designed from what its part carries, never read off the code.
+`owns` is the state the shape owns, which is checked at once and without reading anything: two owners of one state is one field answering two questions whose owners differ.
+`holds` is what the shape is composed of.
+`names` and `shape` are the symbols the form is and the operations it answers to, by the names the code uses; nothing reads them until the project supplies facts about its symbols, which is the position `interface` held before `FR-ARCH-490` existed.
+`status` takes the same four an element takes, and `proposed` is what the whole grain exists for: a form that is designed and not yet written.
+
+### IF-ARCH-120 — The facts about symbols are a stable format
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Facts about a project's symbols **shall** be written in `arch/symbols.json` as a JSON object whose `taken` is the date they were read, `source` the text saying where from, `symbols` the list of objects naming a symbol, its `kind` as `type`, `operation` or `state`, the path declaring it and the operations a type of its own declares, `entries` the list of objects standing for a path reaching a symbol by a name, and `life` the number of days the producer says they stay true, with keys added over time but never renamed or removed once published.
+
+**Rationale.** The argument `IF-ARCH-100` makes for the units and `IF-ARCH-040` for the edges, one grain down: the project writes this file, so its shape is an interface whether or not it was meant as one.
+`kind` is the layer's own three words rather than a language's, because a shape record names types, operations and state, and a file speaking Swift, Kotlin or Go has its own word for each of them — a format that said `class` would be readable by one language's producer and a translation for everybody else.
+`taken` and `source` are required and `life` optional for the reason `IF-ARCH-100` gives: facts whose age and origin are unknown cannot be weighed against a model, and a producer may have no idea how long they hold.
+`entries` is separate from `symbols` because a declaration and a crossing are different facts about the same name, and a project can produce the first long before it can produce the second.

@@ -1,6 +1,6 @@
 # Functional requirements — view
 
-The viewer, `tools/srs_view.py`: the read-only projections of what the checker validates — terminal queries and one self-contained page.
+The viewer, `srs-dd/tools/srs_view.py`: the read-only projections of what the checker validates — terminal queries and one self-contained page.
 
 ### FR-VIEW-010 — One requirement with its links resolved
 
@@ -11,7 +11,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -29,7 +29,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -47,7 +47,7 @@ derives_from: []
 depends_on: [FR-VIEW-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -65,7 +65,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -89,7 +89,7 @@ derives_from: []
 depends_on: [INV-SPEC-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh, tests/standard-vocabulary.sh]
 created: 2026-08-07
 ```
@@ -111,7 +111,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -129,7 +129,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -147,7 +147,7 @@ derives_from: []
 depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-07
 ```
@@ -165,7 +165,7 @@ derives_from: []
 depends_on: [FR-VIEW-060, INV-SPEC-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-08
 ```
@@ -184,7 +184,7 @@ derives_from: [FR-VIEW-050]
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-08
 ```
@@ -204,7 +204,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-08
 ```
@@ -229,7 +229,7 @@ derives_from: [FR-VIEW-050]
 depends_on: [FR-VIEW-080]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/baseline-smoke.sh]
 created: 2026-08-08
 ```
@@ -250,7 +250,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -269,7 +269,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -288,7 +288,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -308,7 +308,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-10
 ```
@@ -334,7 +334,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-11
 ```
@@ -357,7 +357,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-12
 ```
@@ -380,7 +380,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: [FR-VIEW-040]
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-12
 ```
@@ -402,7 +402,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -426,7 +426,7 @@ derives_from: []
 depends_on: [FR-VIEW-060, INV-SPEC-050]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-17
 ```
@@ -455,7 +455,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-20
 ```
@@ -463,7 +463,7 @@ created: 2026-08-20
 The rendered page **shall** say what each notation it draws stands for.
 
 **Rationale.** The verification method is drawn as a single letter and nothing on the page says what it is a letter of.
-`T`, `D`, `I` and `A` are defined in `specs/50-verification.md` and in the field table of `specs/README.md` — two documents the reader this page exists for does not have, because the page is what gets sent to somebody who will never clone the repository.
+`T`, `D`, `I` and `A` are defined in `specs/50-verification.md` and in the field table of `srs-dd/standard.md` — two documents the reader this page exists for does not have, because the page is what gets sent to somebody who will never clone the repository.
 
 Half the page already does this.
 The graph carries a legend naming every link kind and every status (FR-VIEW-160, FR-VIEW-180), and the reader meets it after the list of requirements, where the same statuses appear as badges with no legend at all.
@@ -488,7 +488,7 @@ derives_from: [FR-VIEW-010]
 depends_on: [FR-SKILL-200]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-01
 ```
@@ -515,7 +515,7 @@ derives_from: []
 depends_on: [IF-SPEC-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -544,7 +544,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -573,7 +573,7 @@ derives_from: []
 depends_on: [IF-SPEC-010, INV-SPEC-070]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -607,7 +607,7 @@ derives_from: []
 depends_on: [FR-VIEW-270]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
@@ -633,14 +633,14 @@ derives_from: []
 depends_on: [FR-VIEW-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-09
 ```
 
 Where the text searched for names a path the project carries, the viewer **shall** also name the mode that answers about a path.
 
-**Rationale.** A path is not in what the search reads: it lives in the `code` and `tests` fields, and a hit happens only where the text being searched mentions the path in passing — searching for `tools/srs_arch.py` finds this sentence and nothing else, while the mode beside it returns nineteen requirements.
+**Rationale.** A path is not in what the search reads: it lives in the `code` and `tests` fields, and a hit happens only where the text being searched mentions the path in passing — searching for `srs-dd/tools/srs_arch.py` finds this sentence and nothing else, while the mode beside it returns nineteen requirements.
 Silence is the wrong answer twice over — it is indistinguishable from "the project does not mention this file", and it arrives at the reader least able to tell the difference, since a reader who knew the mode would have used it.
 
 Also, never instead: a needle can be a path and a word at once — `tools` is a directory here and a word in a dozen rationales — and a hint that replaced the results would answer a question nobody asked while dropping the one they did.
@@ -654,7 +654,7 @@ derives_from: []
 depends_on: [FR-VIEW-020, FR-CHK-080]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-16
 ```
@@ -687,7 +687,7 @@ derives_from: []
 depends_on: [FR-VIEW-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-16
 ```
@@ -710,7 +710,7 @@ derives_from: [FR-SKILL-200]
 depends_on: [FR-VIEW-220]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-17
 ```
@@ -732,7 +732,7 @@ derives_from: []
 depends_on: [FR-VIEW-240, FR-SKILL-200, IF-SPEC-030]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-17
 ```
@@ -754,7 +754,7 @@ derives_from: [FR-VIEW-110]
 depends_on: [FR-VIEW-220, FR-VIEW-070]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-18
 ```
@@ -782,7 +782,7 @@ derives_from: [FR-SKILL-220]
 depends_on: [FR-VIEW-220]
 refines: [FR-VIEW-320]
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-19
 ```
@@ -805,16 +805,16 @@ derives_from: [FR-SKILL-020]
 depends_on: [IF-SPEC-010, FR-CHK-090]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-19
 ```
 
 When asked for the vocabulary of the format, the viewer **shall** print what the checker accepts in a requirement's block — the types, the statuses, the verification methods, the fields and which of them are required, and the areas and modal verbs the project declares.
 
-**Rationale.** A procedure that needs a status or a field name today says "read `specs/README.md`" — three thousand three hundred words, charged to every session that follows the procedure, for a vocabulary of some forty words that the checker already holds as its constants and the configuration as its lists.
+**Rationale.** A procedure that needs a status or a field name today says "read `srs-dd/standard.md`" — three thousand three hundred words, charged to every session that follows the procedure, for a vocabulary of some forty words that the checker already holds as its constants and the configuration as its lists.
 Printing them is not a second statement of the standard, which `FR-SKILL-020` forbids: the standard says what the words mean and when to use them, the checker is what refuses a block written outside them, and this prints the checker's own list — the words, and nothing of what the standard says about them.
-A test holds the printed statuses to the Lifecycle section of `specs/README.md`, so that the two places the words are spelled cannot drift apart unnoticed.
+A test holds the printed statuses to the Lifecycle section of `srs-dd/standard.md`, so that the two places the words are spelled cannot drift apart unnoticed.
 The lexicon comes from the project, not the framework (`FR-CHK-090`), which is why the areas and the verbs are printed beside the constants: the procedure that writes a statement needs both in one place, and the place used to be the whole standard.
 
 ### FR-VIEW-370 — Where a requirement is realized, by line
@@ -826,7 +826,7 @@ derives_from: [FR-SKILL-220]
 depends_on: [FR-VIEW-010, FR-CHK-080]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
@@ -835,7 +835,7 @@ When asked where a requirement is realized, the viewer **shall** print every ann
 
 **Rationale.** The specification points at code on two levels and printed only one.
 A `code` field names a file; an `implements:` annotation stands on a line inside it, above the function that does the work, and the checker reads it as the file's own half of the two-way check (`FR-CHK-080`).
-From a line to its requirements the viewer already answers (`FR-VIEW-300`); from a requirement to its lines nothing did, so an agent handed `tools/srs_view.py` — three thousand lines — found the function by grepping, three turns before it read sixty lines.
+From a line to its requirements the viewer already answers (`FR-VIEW-300`); from a requirement to its lines nothing did, so an agent handed `srs-dd/tools/srs_view.py` — three thousand lines — found the function by grepping, three turns before it read sixty lines.
 Measured on 2026-09-20 over three runs of the everyday procedure: of the tool calls a run made, ten were that kind of search and seven were the procedure's own.
 The files named and not annotated are printed too, with the fact stated, because the answer is otherwise wrong by omission: a file the field claims and no line speaks for is exactly what `FR-SKILL-220` sends the reader to open whole, and the reader should know that this is what they are doing.
 What is printed is the annotation as it stands, one per line: a requirement realized in three places with one annotation at the top shows one place, which is the annotation being incomplete, and is for the audit to notice rather than for the viewer to guess around.
@@ -848,15 +848,17 @@ What this prints is the case laid out for a reader instead.
 status: implemented
 verification: T
 derives_from: [FR-VIEW-370]
-depends_on: [FR-VIEW-370]
+depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py, tools/srs_check.py]
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_check.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-20
 ```
 
 When asked for the source behind a requirement, the viewer **shall** print, beneath each annotation that names it, the region it marks — for a block on lines of its own the lines down to its `srs-end:`, blocks inside it included, or without one down to the next block or a bounded number of lines; for an annotation after code the line it stands on; and for a `file` annotation the file, bounded.
+
+**The duplicate `depends_on: [FR-VIEW-370]` went on 2026-10-06**, by the audit before the 0.22.0 baseline: `derives_from` says the whole of the relation, and the same end under two fields drew the link twice wherever anything reads the radius.
 
 **Rationale.** Knowing the line saves the search; printing the region saves the read that follows it, and the two together turn three turns per requirement into one call.
 The region is what the author marked, the same in every language (`CON-SPEC-040`): the lines from a block down to the `srs-end:` that names one of its requirements, a nested block included because what is nested belongs to what encloses it.
@@ -875,7 +877,7 @@ derives_from: [FR-VIEW-380]
 depends_on: [FR-VIEW-300]
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-25
 ```
@@ -897,7 +899,7 @@ derives_from: [FR-VIEW-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/standard-vocabulary.sh]
 created: 2026-09-25
 ```
@@ -916,7 +918,7 @@ derives_from: []
 depends_on: []
 refines: [FR-VIEW-060]
 conflicts_with: []
-code: [tools/srs_view.py]
+code: [srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-09-29
 ```

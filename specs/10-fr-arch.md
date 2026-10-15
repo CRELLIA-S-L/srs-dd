@@ -12,7 +12,7 @@ derives_from: []
 depends_on: [IF-VIEW-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh, tests/arch-check.sh]
 created: 2026-09-02
 ```
@@ -31,7 +31,7 @@ derives_from: []
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -50,7 +50,7 @@ derives_from: []
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -69,7 +69,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -84,11 +84,11 @@ An error rather than a warning because a typed identifier that resolves is the w
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-040]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -103,11 +103,11 @@ A warning rather than an error because the honest resolutions differ — re-poin
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -133,11 +133,11 @@ That belongs to the checker `FR-CHK-070` already speaks for: implementation ahea
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -146,6 +146,7 @@ Where a requirement is `implemented` or `partial` and no element carries it, the
 
 **Rationale.** The other direction of the same decay, and the one that says the map has stopped describing the whole system.
 Scoped to the two statuses that claim realization for the reason `FR-CHK-200` is: a `draft` or `deferred` requirement has nothing built yet, so no part can be expected to carry it.
+Since `FR-ARCH-320` a `deferred` one is asked about from the other end — not which part carries it, but which part has been designed to answer for it — and the two keep their own names and their own costs, because one says the description decayed and the other that a design has a hole in it.
 
 Carries rather than names.
 Where the layer keeps the field written the two are the same set, and this said "names" for as long as that was the only mode; `FR-ARCH-240` says what an element carries where the requirements are derived, and this rule asks the question either way.
@@ -155,11 +156,11 @@ Where the layer keeps the field written the two are the same set, and this said 
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -181,7 +182,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -200,7 +201,7 @@ derives_from: []
 depends_on: [FR-ARCH-090]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -218,7 +219,7 @@ derives_from: []
 depends_on: [CON-ARCH-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-check.sh]
 created: 2026-09-02
 ```
@@ -256,7 +257,7 @@ derives_from: []
 depends_on: [FR-ARCH-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_init.py, tools/srs_upgrade.py]
+code: [tools/srs_init.py, srs-dd/tools/srs_upgrade.py]
 tests: [tests/installer-smoke.sh, tests/upgrade-smoke.sh]
 created: 2026-09-02
 ```
@@ -341,7 +342,7 @@ derives_from: []
 depends_on: [CON-ARCH-020]
 refines: []
 conflicts_with: []
-code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml]
+code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml, srs-dd/tools/srs_gate.py]
 tests: [tests/arch-check.sh, tests/installer-smoke.sh]
 created: 2026-09-08
 ```
@@ -361,11 +362,11 @@ It lives in this area rather than among the requirements about gates for the rea
 ```yaml
 status: implemented
 verification: T
-derives_from: []
+derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -386,7 +387,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -407,7 +408,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-090]
 refines: []
 conflicts_with: [FR-CHK-240]
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-16
 ```
@@ -437,7 +438,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-16
 ```
@@ -462,7 +463,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-ARCH-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py, arch/README.md, .claude/skills/srs-arch/SKILL.md]
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md, .claude/skills/srs-arch/SKILL.md]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -507,7 +508,7 @@ derives_from: []
 depends_on: [FR-ARCH-240]
 refines: [FR-ARCH-110]
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -530,7 +531,7 @@ derives_from: []
 depends_on: [FR-ARCH-200, FR-ARCH-060]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py, arch/README.md]
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -567,7 +568,7 @@ derives_from: []
 depends_on: [FR-ARCH-010, FR-SKILL-200]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-17
 ```
@@ -589,7 +590,7 @@ derives_from: [FR-ARCH-090]
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-21
 ```
@@ -611,7 +612,7 @@ derives_from: [IF-ARCH-030]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [arch/README.md]
+code: [srs-dd/arch.md]
 tests: [tests/standard-rules.sh]
 created: 2026-09-24
 ```
@@ -619,7 +620,7 @@ created: 2026-09-24
 The architecture layer's standard **shall** name every rule its checker reports by name, with what it reports.
 
 **Rationale.** The standard said of the rule names that "this file is written against them" (`IF-ARCH-030`), and on 2026-09-24 it named two of the seven — one in an example, one in passing — so a project setting a rule's cost in `arch/arch-config.json` learned the names by getting one wrong.
-The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `tools/srs_arch.py`.
+The same gap `FR-SPEC-050` closed in the specification's standard; the suite that holds that table holds this one against `RULES` in `srs-dd/tools/srs_arch.py`.
 
 ### FR-ARCH-300 — The hook refuses a stale map
 
@@ -630,12 +631,1459 @@ derives_from: [FR-ARCH-170]
 depends_on: [FR-CI-020]
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit]
+code: [ci/pre-commit, .githooks/pre-commit, srs-dd/tools/srs_gate.py]
 tests: [tests/installer-smoke.sh]
 created: 2026-09-29
 ```
 
-Where a project carries an architecture layer, the installed hook **shall** regenerate the map and refuse the commit while the copy being committed differs from it.
+Where a project carries an architecture layer, the gate, run before a commit, **shall** regenerate the map and refuse the commit while the copy being committed differs from it.
 
 **Rationale.** The reason `FR-GND-570` gives for the register, for the layer: `FR-ARCH-170` makes the pipeline refuse a stale map, and the map reads the specification — a requirement added to it changes how many the elements carry of how many there are — so a commit that touches only `specs/` can leave it stale.
 Whether the project carries the layer is read at every commit from `arch/arch-config.json`, as the pipeline reads it.
+
+### FR-ARCH-310 — A designed part's carriers need not exist yet
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-010]
+refines: [FR-ARCH-280]
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-03
+```
+
+While an element's status is `proposed`, the architecture checker **shall not** report the paths its `carries` names as missing from the repository.
+
+**Rationale.** A part designed before it is built names where its files will be, so every one of them is missing by construction, and `carrier-missing` — written for a record that went stale (`FR-ARCH-280`) — would fire on the whole design at once, which is how a report teaches its reader to skim it.
+The status is what tells the two cases apart: `proposed` says the files are not there yet, `built` says they are.
+The exception keys on a value the format already carried, so no key is added and a layer written against an earlier version keeps parsing, which is the whole of what `IF-ARCH-010` promises.
+What the exception costs is a design that shipped and never had its status flipped, and that is the finding `FR-ARCH-330` makes.
+
+### FR-ARCH-320 — An approved requirement no part answers for is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-03
+```
+
+Where a requirement is `deferred` and no element carries it, the architecture checker **shall** report it under the name `requirement-unassigned`, naming the requirement, as a note where the project has not priced the rule.
+
+**Rationale.** Where a cut is designed against the specification rather than read off the repository, this is the finding that says the design is unfinished, and nothing else in the layer makes it.
+`FR-ARCH-070` asks the same question from the built end and therefore answers it too late: by the time a requirement is `implemented`, the part that carries it has been chosen in code, and choosing it is what designing is.
+`deferred` is the status the Lifecycle gives an approved and unbuilt obligation, which is exactly what a cut is designed against.
+`draft` stays out: a `draft` is recorded and not approved, which SRS-DD-ART-020 of the method makes non-negotiable for code, and the same reason holds for structure — a part designed to carry an obligation nobody has approved answers for one that may still be reworded or dropped.
+A note rather than a warning where the project has not said otherwise, which is the one rule of this layer whose default is not `warn`: an approved obligation nobody has designed for is a backlog, which every project has and no gate should refuse — a fresh install carries one of those before it carries a single element, and a layer whose first act is to fail a stranger's commit teaches them to turn it off.
+A project that wants its cut closed before code is written prices it up, as `FR-ARCH-090` lets it price anything here.
+A name of its own beside `requirement-uncarried`, because the two findings are about different things — one says the description decayed, the other that the design has a hole — and a project may want one without the other.
+
+### FR-ARCH-330 — A designed part that is already built is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-310]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-03
+```
+
+Where an element is `proposed`, carries at least one requirement, every requirement it carries is `implemented` or `partial` and every path its `carries` names exists, the architecture checker **shall** report it as a warning named `element-built`, naming the element.
+
+**Rationale.** This is the price of `FR-ARCH-310`: an exception that lets a design name files nobody has also lets a design that shipped keep reading as a plan, and the layer's claim is that it says what the system is made of today.
+Both conditions and not either, because a part whose files exist while its obligations are still unbuilt is being built rather than built, and a warning firing then would be noise during exactly the work it watches.
+At least one requirement, because a record naming none carries none, and that part is already reported by `FR-ARCH-080` — a second voice from here would say the same thing about the same record.
+Reported and not corrected: the layer writes the map and nothing else (`CON-ARCH-010`), so the status is flipped by whoever knows the part is done.
+
+### FR-ARCH-340 — A designed part does not own the files it names yet
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-010]
+refines: [FR-ARCH-060]
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-03
+```
+
+While an element's status is `proposed`, the architecture checker **shall** read it as owning none of the paths it carries.
+
+**Rationale.** Owning what it names is what `built` says about a part, and a designed part has not reached that yet: until it does, the files it names are answered for by whatever part answers for them today.
+Counting the design's claim as ownership would silence `FR-ARCH-060` for every file a design mentions — the file would read as owned while no built part owns it — and it would erase the one thing a design is read for: what moving to it requires, which is computed from the difference between what the designed parts claim and what the built ones own.
+The files and not the obligations: answering for an approved obligation is exactly what a designed part is for, and `FR-ARCH-320` reads a requirement a design names as answered for, or no design could ever be complete.
+A realized requirement that only a design names is a part built and not yet declared built, which `FR-ARCH-330` reports as that rather than as an obligation nobody carries.
+A project whose layer holds only built elements sees no change at all.
+
+### FR-ARCH-350 — What moving to the designed cut requires is computed
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, FR-ARCH-340]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-03
+```
+
+When asked what moving to the designed parts requires, the architecture command **shall** print the difference between them and the built parts: the paths the designed parts claim, each with the part losing it or with the fact that nobody holds it yet, the requirements that change part, and the dependencies the designed parts add and drop.
+
+**Rationale.** A design is read for one thing — what it would cost to get there — and that question is answered today by comparing two records in a text editor, which is where a redraw starts going wrong: the files are moved, and the obligations and the edges are discovered afterwards.
+Printed when asked and not reported as a finding, because a designed cut differing from the built one is the normal state of a project that designs before it builds, and a warning for it would fire for as long as the design lives.
+It fails nothing either, so the three exit codes of `IF-ARCH-020` keep describing a checking run rather than a reading.
+All three differences in one printing, for the reason a list of exit codes is one requirement: what the reader relies on is that this is the whole difference, and a plan that named only the files would lie by omission in exactly the way the editor does today.
+Both ends of a path, because a file that changes hands is only actionable with the part losing it and the part taking it named together.
+And absence before ownership: a design is commonly a part split out of a directory another part carries, so the paths it names for files not written yet resolve through that directory, and a plan reading them as changing hands would send the reader looking for a file nobody has.
+Computed and not written down, which is the split the layer already lives by (`ADR-0023`): the model is authored and the disagreement is computed, and a difference kept by hand is stale the first time an element is edited.
+Not called a difference against a revision: `FR-VIEW-050` compares the specification with what git holds, this compares two cuts recorded side by side in the same file, and one name over both acts would leave the reader guessing which they asked for.
+
+### FR-ARCH-360 — Moves are read and reported on
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, IF-ARCH-050]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where a project's architecture layer holds move records, the architecture checker **shall** read every one of them, reporting a malformed or repeated identifier, a missing required key and a status outside the four the standard names as it reports an element's.
+
+**Rationale.** The entry the rest of the moves hang from, and the same entry `FR-ARCH-010` is for elements: a record nothing reads is prose, and prose about a redraw in progress is the first thing to go stale.
+Held to the readings an element's record is held to rather than to readings of its own, because a reader of one record of this layer has read the other, and a project that has learned what a malformed identifier costs here should not learn it twice.
+These are errors for the reason `FR-ARCH-230` draws the line there: a record the checker cannot resolve leaves every later finding about it guessing, and the layer would be reporting on a record it never read.
+
+### FR-ARCH-370 — A move names parts and a decision that exist
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+If a move's `from` or `to` names an element no record defines, or its `adr` names a decision the repository does not hold, the architecture checker **shall** report it as an error naming the move and what did not resolve.
+
+**Rationale.** One act over two cases, since both are a name in the record leading nowhere, and both make the same nonsense of every reading that follows: a move between parts one of which does not exist cannot be complete, cannot be orphaned and cannot be planned against.
+An error rather than a warning, as `FR-ARCH-230` is for the same failure between elements.
+The decision is checked for existing and for nothing else: whether it says what the move does is a reading a person makes, and a checker that tried would be reviewing prose.
+
+### FR-ARCH-380 — A finished move is reported as finished
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where a move is in force and every path it moves is carried by an element in its `to` and by none in its `from`, the architecture checker **shall** report it as a warning named `move-complete`, naming the move.
+
+**Rationale.** The state of a redraw nobody notices is the finished one: the files are where they were meant to go, and the record still says the move is pending, so every plan read afterwards is read against a cut that no longer exists.
+This is the one state the checker can see exactly — the paths are all at the receiving end and none at the leaving one — which is why it says it rather than leaving the author to remember.
+Closing the record stays the author's act: the layer writes the map and nothing else (`CON-ARCH-010`), and a move may be finished in the files while the author knows a step is still missing.
+A warning the project prices (`FR-ARCH-090`), because a project that carries long redraws may want this as a report it reads and not as a thing that fails a run.
+
+### FR-ARCH-390 — A path a move names and no end carries is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where a move is in force and names a path that no element in its `from` or `to` carries, the architecture checker **shall** report it as a warning named `move-orphan`, naming the move and the path.
+
+**Rationale.** A path belonging to neither end is a move that cannot be carried out as written: the file was renamed, or it belongs to a part the move never named, and the two have different answers.
+Which of the two it is depends on what happened to the file, and `FR-ARCH-280` already says where git put a path an element lost, so the reader has the half the checker can supply.
+A warning and not an error, because the record still reads and the honest resolution differs case by case — the line this layer draws between what it cannot parse and what it disagrees with.
+
+### FR-ARCH-400 — The map says what is moving
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-110, FR-ARCH-360]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-04
+```
+
+Where the layer holds moves in force, the map **shall** state for each of them what it moves, between which parts, and what state it is in.
+
+**Rationale.** A system mid-redraw is not described by its parts alone: a part may still carry files it is losing, and a reader of the map would see a cut that is already being abandoned with nothing saying so.
+`FR-ARCH-110` says what the map states for a part; this is what it states for a move, in the same generated file rather than a second one, because a reader looks in one place and a second generated file is one more thing to leave stale.
+Generated and compared like the rest of it (`CON-ARCH-020`, `FR-ARCH-170`), so a move written and never regenerated into the map fails the gate exactly as a part does.
+
+### FR-ARCH-410 — The architecture document is printed on request
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+When asked for the architecture document, a command of the layer's own **shall** print it and write nothing.
+
+**Rationale.** A document for people is a different act from a check, and the published skills that do this well keep the two apart: `unkode` has the agent write the model once and a deterministic script render it, and `code-map` emits one Markdown file a reader opens.
+Ours needs no agent at all, because the model is already authored in `arch/`: the document is a projection, the way the viewer's page is a projection of the specification.
+Printed rather than written, so `CON-ARCH-010` stays trivially true — the command writes to no path, inside the layer or out — and where the document lands is the caller's to decide with a redirect.
+It is not a gate and reports no finding: the checker says what is wrong with the layer, and this says what the layer holds.
+
+### FR-ARCH-420 — The document says what the system is made of
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-110]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** state, for every element in force, its identifier and title, what it is responsible for, its status, the paths it carries, the requirements it answers for with their titles, and the moves in force over it.
+
+**Rationale.** The map answers the same question for a tool — a row per part, identifiers only — and that is what a gate compares.
+A person reading about a system needs the responsibility sentence and the obligations in words, which the map deliberately leaves out: a table of forty identifiers tells a reader nothing they can act on.
+The requirements come with their titles for the reason a citation does (`FR-SKILL-200`): a bare number is a key to a document the reader has to go and open.
+What is moving belongs here because a system mid-redraw is not described by its parts alone, which is the reason the map carries it too (`FR-ARCH-400`).
+
+### FR-ARCH-430 — The document draws the declared dependencies
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** draw the dependencies the elements declare as text the reader's renderer turns into a diagram.
+
+**Rationale.** A dependency graph is the one thing about a cut that prose cannot carry: ten parts and fourteen edges read as a list of fourteen sentences nobody finishes.
+Text and not an image, for the reason the standard-library rule exists (`SRS-DD-ART-120`): a diagram drawn as Mermaid renders on a forge, in an editor and in a wiki without this framework shipping a renderer or a dependency, and the three published skills that draw architecture all emit Mermaid for the same reason.
+The viewer draws its own SVG for the requirement graph (`FR-VIEW-390`), which is a different act: that one is interactive and part of a page, this one is a block of text in a document somebody commits.
+
+### FR-ARCH-440 — The document says where the code disagrees with the model
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-200]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** state every dependency the code has that the elements do not declare, with the file the checker read it from.
+
+**Rationale.** This is the half none of the published skills has, and it is the reason this layer exists: a reflexion model is worth reading precisely where the drawing and the code part company (`ADR-0023`).
+A document that drew only the declared edges would be the diagram nobody regenerates, which is what the layer was built to replace.
+From the checker's own computation rather than a second reading, so the document and the gate can never disagree about what the code does.
+
+### FR-ARCH-450 — The document says what nobody has said
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-320]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** name what the layer leaves unsaid: an element that declares no interface, an approved requirement no element answers for, and a file of a realized requirement no element carries.
+
+**Rationale.** A generated document reads as complete, and the three silences above are exactly what a reader would otherwise take for absence of a problem: in this repository on 2026-10-05 ten elements of ten declared no `interface`, though the format has carried the key since `IF-ARCH-010`.
+`code-map` makes the same argument for its own output and spells it "Not determined" rather than leaving a heading empty.
+The three are each a finding the checker already computes or a field it can see, so this section is a projection and not a second judgement.
+
+### FR-ARCH-460 — The document says when a section has nothing to say
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+Where a section of the architecture document has nothing to state, the document **shall** say so in that section's place, drawing no empty diagram and claiming no agreement where there was nothing to compare.
+
+**Rationale.** The first document every fresh install prints is the empty one — the layer is installed and no part is written down yet — and it came out with a heading holding nothing under it, a Mermaid block holding only its own declaration, which a forge renders as an error, and the sentence "every dependency the checker can read is declared" over a layer with no parts and no code to read.
+The last of those is the trap this layer's own standard names about `Warnings: 0`: the absence of a verdict read as a verdict.
+`code-map` makes the same rule for its output and spells the empty case out rather than leaving the heading bare.
+A generated document reads as complete whatever is in it, so the empty case is not a cosmetic question: a reader cannot tell a layer nobody has filled in from a generator that failed.
+
+### FR-ARCH-470 — A dependency the project forbade is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-060]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+Where a dependency the configuration forbids is declared by an element or is one the code has, the architecture checker **shall** report it as a warning named `dependency-forbidden`, naming both parts, which of the two it read it from, and the sentence the project gave for the prohibition.
+
+**Rationale.** The layer could say what a part leans on and could catch an edge the code has and the model does not (`FR-ARCH-200`), and had no way to say that an edge must not exist at all: a cut whose intent is "nothing leans on the installer" was kept by nobody noticing.
+This is the commonest static fitness function in the literature — ArchUnit, ts-arch and dependency-cruiser exist for it — and `ADR-0045` took that vocabulary without the capability.
+Both sources, because the two failures differ: a declared forbidden edge is a model that contradicts the project's own policy, and an undeclared one the code has is the policy broken in silence.
+The project's own sentence is printed with the finding, since the taxonomy's one demand of a fitness function is that its failure says what was being protected.
+A warning the project prices (`FR-ARCH-090`), which in a pipeline running `--strict` fails the build, as that literature asks.
+
+### FR-ARCH-480 — A forbidden dependency that names no part is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-060]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+If an entry under `forbidden` names an element no record defines, omits `from`, `to` or `why`, or puts `*` on both sides, the architecture checker **shall** refuse to run and say which entry and why.
+
+**Rationale.** A prohibition that resolves to nothing is worse than none: it reads as enforced and enforces nothing, and the project that wrote it will not look again.
+Refused rather than reported, as a configuration the checker cannot read is refused (`FR-ARCH-090`): this is the setup, not a finding about the layer.
+`*` on both sides forbids every dependency including the ones the project has declared, which is not a policy anybody holds; it is a typo for one side or the other.
+
+### FR-ARCH-490 — A part reached by a name its interface does not state is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-200]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+Where the code of one element reaches another by a name that element's `interface` does not state, the architecture checker **shall** report it as a warning named `interface-bypassed`, naming the file, the name it reached by and the element it belongs to.
+
+**Rationale.** The `interface` key has carried "how the part is reached from outside" since `IF-ARCH-010`, and until this it was prose nothing read: a part could declare one boundary and be entered through another, with every dependency rule satisfied — the edge was declared, so `FR-ARCH-200` was silent, and the field said something else entirely.
+This is what the published skills' five readings call abstraction and what `FR-SKILL-480` asks a designer to judge; a reading nothing checks is a reading that drifts.
+The name and not the file, because what crosses a boundary is what the other side writes down: a module it imports, a path it was given in `arch/edges.json`.
+Where the checker reads no language it has nothing to compare and says nothing, as `FR-ARCH-200` does — the finding is about what can be proved, not about what a reader suspects.
+A part that declares no interface is not reported here: that silence is `FR-ARCH-450`'s to name, and reporting it twice would make a project price away both.
+
+### FR-ARCH-500 — A part says what it exists to protect
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-05
+```
+
+Where an element names requirements under `protects`, the architecture checker **shall** report as an error any that the specification does not carry, and as a warning named `protects-uncarried` any the element does not itself carry.
+
+**Rationale.** `requirements` is flat: everything a part answers for, the behaviour it happens to hold and the property it was cut to keep, in one list of forty identifiers.
+What a cut is judged against is the second kind — the quality attribute that would be lost if the boundary moved — and until this there was nowhere to write it, so "is this the right cut" had no recorded criterion and the readings `FR-SKILL-480` asks for were a judgement nobody could check.
+A subset and not a second list: a part protects what it carries, so an identifier here that the part does not carry is a claim about somebody else's boundary, which is the `protects-uncarried` warning.
+An identifier the specification does not carry at all is an error for the reason `FR-ARCH-040` gives: a record pointing at nothing makes every reading of it guesswork.
+Empty is ordinary and silent — most parts hold behaviour and protect nothing in particular, and a key demanded of every record is the ceremony this layer refuses.
+
+### FR-ARCH-510 — The document says what each part protects
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-ARCH-500]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-05
+```
+
+The architecture document **shall** state, for every element that names one, the requirements it exists to protect, with their titles.
+
+**Rationale.** The obligations a part carries are already in the document, forty identifiers deep for the larger parts, and the two or three it was cut to keep are invisible among them.
+A reader deciding whether a boundary may move needs that short list first: it is the answer to what breaks if the part is merged into its neighbour.
+Where a part names none the section is absent rather than empty, as `FR-ARCH-460` asks of every section.
+
+### FR-ARCH-520 — The architecture document can be read as a page
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-06
+```
+
+When asked for the architecture document as a page, a command of the layer's own **shall** print it as a single self-contained HTML file that requests nothing over the network.
+
+**Rationale.** What the document states is already specified without a form — `FR-ARCH-420` to `FR-ARCH-460` say what it must say and never what it is written in — so this adds the second form and claims nothing about the content.
+Self-contained for the reason `FR-VIEW-060` gives of the specification's page: a page that fetches anything stops working where the network does not reach, and a published document that calls a third party reports every one of its readers to it.
+Printed and not written, because `FR-ARCH-410` leaves where the document lands to the caller and `CON-ARCH-010` leaves the layer nothing to write outside itself.
+
+### FR-ARCH-530 — The drawing on the page is laid out by the command
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-520]
+refines: [FR-ARCH-430]
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-06
+```
+
+Where the architecture document is printed as a page, the command **shall** draw the dependencies the elements declare as an SVG inside the file, a node per element in force and an edge per declared dependency.
+
+**Rationale.** `FR-ARCH-430` asks for text the reader's renderer turns into a diagram, which in markdown is Mermaid and in a browser is SVG — the browser draws SVG itself, while a Mermaid block needs a script fetched from somewhere, and `FR-ARCH-520` forbids fetching.
+So the layout is the command's own, and the alternative was to name a third party on a page strangers open.
+A node per element in force and an edge per declared dependency, so that the drawing says what the markdown form's says and a reader comparing the two finds no third story.
+
+### FR-ARCH-540 — A draft cut is computed from what nobody carries
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-060]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+When asked for a draft cut, a command of the layer's own **shall** print one candidate record per directory holding files no element carries, naming those files and the requirements whose `code` field names them, and write nothing.
+
+**Rationale.** A project adopting the layer on a mature codebase faces a blank `arch/00-elements.md` and several hundred files, and the first hour of that is mechanical: the checker already knows which files no part carries (`FR-ARCH-060`) and which requirements name each of them, so the draft is a join it can compute.
+By directory, because that is the grouping a project has already made and the one a reader recognises; it is a starting point to rename, split and merge, not a cut — no tool can tell what a part is responsible for.
+Printed and never written, for the reason `CON-ARCH-020` gives of the map: a record is authored, and a file a tool filled in reads like a decision somebody made.
+
+### FR-ARCH-550 — The document says what each part stands on
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-410]
+depends_on: [FR-GND-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-06
+```
+
+Where the project keeps a grounds register, the architecture document **shall** state, for every element in force, the hypotheses the requirements it carries rest on and the state of each.
+
+**Rationale.** The path already exists and nobody walks it: a part carries requirements, a bet names the hypothesis a requirement rests on, and a hypothesis has a state — so what a part stands on is a join over records the project already has, and the layer never read the register at all.
+It belongs in the document rather than in the map, because it is the reading a person does before deciding whether a boundary may move: a part whose two or three protected obligations rest on something `assumed` is a part to redraw carefully, and one standing on confirmed ground is one to leave alone.
+Where the project keeps no register the section is absent, as `FR-ARCH-460` asks of every section with nothing to say.
+
+### FR-ARCH-560 — A part standing on refuted ground is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-550]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+Where the project keeps a grounds register, the architecture checker **shall** report an element carrying a requirement that rests on a `refuted` or `expired` hypothesis as a warning named `element-ungrounded`, naming the element and the hypothesis.
+
+**Rationale.** The document answers the question when somebody asks it; this answers it when nobody does, which is the half that matters — a hypothesis is refuted long after the part was cut, and the part is where the cost lands.
+`refuted` and `expired` and not `assumed`, because an assumed hypothesis is the ordinary state of a register and a rule that fired on it would fire on everything, which `ADR-0020` says trains a reader to pass over the whole class.
+A warning rather than an error, and priced by the project like every other reading of this layer (`FR-ARCH-090`): refuted ground is a reason to look, and what to do about it is nobody's to decide from here.
+
+### FR-ARCH-570 — What a cut costs is computed
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+When asked to price a cut — the parts the layer holds, or the areas the specification declares — the architecture command **shall** print, for each group, how many links between requirements cross its boundary in each direction and how many stay inside it.
+
+**Rationale.** Two cuts are argued about with adjectives until somebody counts what crosses them.
+The count is the one thing about a cut that is not a matter of taste: a group with forty links inside and two crossing is a part, and one with four inside and thirty crossing is a line drawn through the middle of something.
+Both cuts are priced because both are asked about: the areas are the grouping a project already has and the first candidate anybody proposes, and the parts are what it lives with.
+It is a reading and not a finding, for the reason `FR-ARCH-350` gives of the plan: a cut that could be cheaper is not a defect, and a warning for it would never stop firing.
+No score and no verdict — `ADR-0045` refused a number a model assigns, and this is the other kind: a count anybody can re-derive from the same records.
+The count has been made by hand here once already: `ADR-0012` chose the graph's grouping on the strength of fifty of seventy-seven links staying inside an area, at eighty-seven requirements in six areas.
+Nothing has recomputed it since, and the specification has passed three hundred.
+
+### FR-ARCH-580 — A cut is proposed from the links themselves
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-570]
+depends_on: [FR-ARCH-210]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+When asked for a proposed cut, the architecture command **shall** print groups of requirements that together hold every requirement the specification has not cancelled and share none, and write nothing.
+
+**Rationale.** A project with a specification and no architecture has one question — what are the parts — and the links between its requirements already answer part of it: what derives from, refines and depends on what is where cohesion is, and the drivers `FR-ARCH-210` ranks are what the first parts form around.
+Every requirement that still stands in exactly one group, because that is what a cut is; a proposal that left some out would be a sketch somebody has to finish without knowing what is missing.
+Printed and never written, for the reason `FR-ARCH-540` gives: a part has a responsibility and a name, and neither is computable — what is computed is the grouping to argue with, priced by `FR-ARCH-570` so that the argument has numbers in it.
+
+### FR-ARCH-590 — A dependency that runs against the declared order of parts is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+Where the configuration declares an order of groups of parts, the architecture checker **shall** report a dependency that runs against that order — one an element declares or one the code has — as a warning named `dependency-upward`, naming both parts, which of the two it read it from, and each part's place in the order.
+
+**Rationale.** A cut in levels is the oldest thing anybody says about an architecture and the one thing this layer could not hear: a project could say that nothing below leans on what is above only by listing every pair of parts under `forbidden` (`IF-ARCH-060`), which grows as the square of the cut and is rewritten whenever a part is added.
+An order says it once, and the pairs fall out of it.
+Both sources, for the reason `FR-ARCH-470` gives: a declared upward edge is a model contradicting the project's own policy, and one the code has and nothing declares is the policy broken in silence — read from the code the way `FR-ARCH-200` reads it, which means on one language by itself and on the project's own edges elsewhere (`FR-ARCH-260`).
+No sentence is demanded of the project here, unlike a forbidden pair: the order is its own reason, and the finding can say what was being protected by naming where each part stands in it, where a pair's intent is invisible without a sentence.
+Within one group nothing is reported — a group is the level, a set of parts that may lean on each other, and a project that wants two of them separated puts each in a group of its own.
+A warning the project prices (`FR-ARCH-090`), so a pipeline running `--strict` fails on it and a project adopting the layer on a code base that already violates its own order can lower it while it digs out.
+
+### FR-ARCH-600 — A malformed order of parts is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+If `layers` is not a list of groups of identifiers, names an element no record defines, or names one element in more than one group, the architecture checker **shall** refuse to run and say which group and why.
+
+**Rationale.** An order that resolves to nothing reads as enforced and enforces nothing, which is the argument `FR-ARCH-480` makes for a prohibition; refused rather than reported, because this is the setup and not a finding about the layer.
+An element in two groups has no place in the order, so every edge touching it would be judged twice and both ways.
+An element in no group is not an error and is not reported either: a project may order the part of its cut it has an opinion about, which is how an order is adopted at all.
+
+### FR-ARCH-610 — A module a part may not import is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-080]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+Where the configuration forbids a module to a part and the language of a file that part carries can be read, the architecture checker **shall** report that file importing the module as a warning named `import-forbidden`, naming the file, the module and the sentence the project gave for the prohibition.
+
+**Narrowed on 2026-10-07, before it was built**: it said any name the code reaches, and what the checker reads is the imports of the one language it reads by itself — the top-level module name, as `FR-ARCH-200` reads it. A name reached without an import is outside it, and the rule says so rather than promising a reading nobody wrote.
+
+**Rationale.** What a part is allowed to build with is a decision about the cut as much as what it may lean on: a part kept free of the network, of a framework, of a concurrency primitive is kept that way by nobody noticing until it is not.
+`depends_on` cannot say it, because the thing reached is not a part of this system and has no element to name.
+The reading is the one `FR-ARCH-490` already does — the names a file enters by — so the rule asks the code a second question rather than a new way of looking at it, and it says nothing where the language cannot be read, as `FR-ARCH-200` says nothing there.
+The project's sentence is printed with the finding, for the reason `FR-ARCH-470` gives: a prohibition whose failure cannot say what it protected is one somebody deletes.
+
+### FR-ARCH-620 — A malformed forbidden import is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-080]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-06
+```
+
+If an entry under `forbidden_imports` names an element no record defines, or omits `in`, `module` or `why`, the architecture checker **shall** refuse to run and say which entry and why.
+
+**The keys were renamed on 2026-10-07, before it was built**, with the narrowing `FR-ARCH-610` records.
+
+**Rationale.** The same argument as `FR-ARCH-480` and `FR-ARCH-600`: a prohibition pointing at no part is not a weaker prohibition, it is a sentence that will be read as one and enforce nothing.
+
+### FR-ARCH-630 — A run that compared the model with nothing says so
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-200]
+depends_on: [FR-ARCH-260]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where no file an element carries is in a language the architecture checker reads and the project supplied no edges, the checker **shall** report that the declared model was compared with nothing.
+
+**Rationale.** The checker reads one language by itself and takes every other one from `arch/edges.json`; a project that has neither gets a declared model and nothing that ever disagrees with it, and the layer's standard says in those words that `Warnings: 0` is then the absence of a verdict rather than a verdict.
+Nothing said it out loud, so the absence of a verdict arrived looking exactly like one — and for every project not written in the one language the checker reads, which is most of them, that is the default state until somebody writes a generator.
+The grounds register already does this for the rules that read its history: it names them and says the run "is not the same as passing".
+Not a rule the project prices, unlike every finding about the layer: this is not a finding about the cut at all but a statement about what the run proved, and a project that could switch it off would be switching off the one line that says its conformance check never ran.
+It says nothing where the checker read something — a carried file in its own language, or one edge the project supplied — because then the comparison happened and what it found is the verdict.
+
+### FR-ARCH-640 — A path two parts claim is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090, INV-ARCH-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where two or more elements in force carry the same path, the architecture checker **shall** report it as a warning named `carrier-contested`, naming the path and the elements that claim it.
+
+**Rationale.** `INV-ARCH-020` resolves a contested path to no element, which is the right answer and a silent one: every rule that needs an owner — the imports read from the code, the edges the project supplied, the prohibitions and the order — then says nothing about that file, and the project reads the silence as conformance.
+It is the shape this project distrusts most, a check that is green because it never ran, and the invariant made it reachable by ordinary mistake rather than by exotic configuration: once a part may sit inside another, two records claiming one path is a typo away.
+A warning the project prices (`FR-ARCH-090`), because a project mid-redraw may knowingly have two claims on one path for a while and the hook should not stop it; under `--strict` it fails, as every warning here does.
+Both ends are named because the finding is useless without them: the point is which two records to look at, and the path alone does not say.
+
+### FR-ARCH-650 — The map says where each part sits
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-110]
+depends_on: [INV-ARCH-020, IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+The map **shall** state, for every element, the element it sits inside where another carries a path above its own, and where it stands in the order where the configuration declares one.
+
+**Rationale.** A part inside another and an order over the parts are both things the layer now holds and nothing a person reads shows: the map is a flat table of what each part carries, so the hierarchy and the levels exist only in the configuration and in findings nobody has yet triggered.
+Both facts are about where one part sits, so they are one column rather than two: a reader scanning the table asks the question once.
+The column is written for every element, with nothing to say spelled out as such, because a column that appeared only in projects that nest would make the table's shape depend on the project and a reader would not know whether its absence meant no nesting or an old tool.
+
+### FR-ARCH-660 — The document says the order and what sits inside what
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-420]
+depends_on: [INV-ARCH-020, IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-07
+```
+
+Where the configuration declares an order, the architecture document **shall** state it — the groups in their order, what each holds, and which parts stand outside it — and say of every part inside another which part that is.
+
+**Rationale.** The document is what a person who will not read the records is given, and it already says what the system is made of, what the code disagrees with, what nobody has said and what each part protects and stands on.
+The order is the one statement about the cut as a whole that a reader cannot reconstruct from the parts, and a part standing outside the order is the thing to notice: it is unconstrained, which may be deliberate or may be the half-finished adoption of an order.
+Said only where an order is declared, as every optional section of this document is: a project without one reads a document that never mentions levels.
+
+### FR-ARCH-670 — The drawing puts each part at its place in the order
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-430]
+depends_on: [IF-ARCH-070]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-07
+```
+
+Where the configuration declares an order, the drawing the architecture command lays out **shall** place every part of a group at the same height, in the order's own sequence, and the parts outside the order below the last group.
+
+**Rationale.** The drawing lays the parts out by how deep each sits in the declared dependencies, which is a computed guess at the shape; where the project has said what the shape is, the drawing should show that instead, and an edge running upward is then visible as a line going the wrong way rather than as a finding in a list.
+It is the reading `ADR-0010` already gives the requirement graph, where the rows are the layers of derivation.
+The parts outside the order go below the last group rather than among them: they are unconstrained, and placing them at a level would say something the configuration does not.
+The drawing this binds is the one the command lays out itself; the diagram the document carries as text is laid out by whatever renders it, so an order cannot be imposed there and is said in words instead.
+
+### FR-ARCH-680 — A dependency from a part the allow-list leaves out is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [IF-ARCH-090]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where the configuration says which parts may reach a part, the architecture checker **shall** report a dependency on that part from any other — one an element declares or one the code has — as a warning named `dependency-unpermitted`, naming both parts, which of the two it read it from, and the sentence the project gave.
+
+**Rationale.** "Only the gateway reaches the store" is the commonest thing a project wants to say about a boundary, and saying it with prohibitions takes one entry per other part, rewritten whenever a part is added — the same arithmetic the order fixed for levels.
+Said as an allow-list it is one entry, and the entry is the thing a reviewer reads: the exception list is visible rather than implied by everything absent from a list of prohibitions.
+Both sources, for the reason `FR-ARCH-470` gives: a declared edge from outside the list is a model contradicting the project's own policy, and one the code has is the policy broken in silence.
+The project's sentence is printed, as every policy finding here prints it, because a prohibition whose failure cannot say what it protected is one somebody deletes.
+A warning the project prices (`FR-ARCH-090`), so a project adopting the layer on a code base that already violates its own policy can lower it while it digs out.
+
+### FR-ARCH-690 — A malformed allow-list is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-090]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+If an entry under `only` names an element no record defines, omits `to`, `from` or `why`, or leaves `from` empty, the architecture checker **shall** refuse to run and say which entry and why.
+
+**Rationale.** The argument `FR-ARCH-480` makes for a prohibition, and an allow-list has one more way to resolve to nothing: an empty `from` says that no part may reach this one, which is a prohibition with a wildcard and not an allow-list, so it is a typo for the other form rather than a policy anybody holds.
+
+### FR-ARCH-700 — A part says which units it ships in
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-ARCH-010]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh, tests/arch-doc.sh]
+created: 2026-10-07
+```
+
+An element **shall** name the units it ships in by the names the project uses for them, the parts a unit holds being computed from those names rather than written down.
+
+**Rationale.** A part is what the code is divided into; a unit is what is deployed or run as one piece, and the two do not line up — a unit may hold many parts, and one part may ship as two.
+A name rather than a flag covers all three shapes with one key: one part naming one unit, ten parts naming the same unit, one part naming two.
+The names are the project's own, because what a unit is called is a fact about the project's world and not something this layer can know.
+Computed in one direction for the reason `INV-ARCH-010` gives for requirements: a list written at both ends eventually disagrees with itself, and only one copy is ever updated.
+A unit is therefore not a record of this layer and has no identifier of its own: there is nothing about it the layer could check that the parts and the facts do not already say.
+
+### FR-ARCH-710 — A unit the model declares and the facts do not hold is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where the project supplies facts about its units, the architecture checker **shall** report a unit a part names that the facts do not hold, naming the unit and the parts that name it.
+
+**Rationale.** Either the model describes something that is not there any more, or the facts were taken from somewhere that does not have it — and which of the two it is the layer cannot know, which is why it reports rather than decides.
+A note by default (`FR-ARCH-090`): the facts usually come from a repository this one does not own, and failing a build over somebody else's deployment makes one team answer for another's decisions.
+A project whose own pipeline produces the facts knows better and can price it up.
+
+### FR-ARCH-720 — A unit the facts hold and no part declares is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where the project supplies facts about its units, the architecture checker **shall** report a unit the facts hold that no part names, naming the unit.
+
+**Rationale.** The other direction of the same comparison, kept apart for the reason `FR-ARCH-060` and `FR-ARCH-070` are kept apart: a part describing something that is gone and a thing running that nobody described are different problems with different answers.
+This one is the more interesting of the two in a mature system: a unit nobody wrote down is either somebody else's, or yours and forgotten.
+A note by default, for the reason `FR-ARCH-710` gives.
+
+### FR-ARCH-730 — A link in the facts the model does not declare is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-090]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where the facts link two units, the architecture checker **shall** report it as not declared unless a part shipping in the first declares a dependency on a part shipping in the second, naming both units and the parts that would have to declare it.
+
+**Rationale.** This is the comparison `FR-ARCH-200` makes between the declared model and the code, one level up: there the evidence is an import, here it is a link somebody observed or configured between two units.
+One direction only, as there: a link the facts do not show is not reported, because facts about a running system show what happened or what is permitted and never that something cannot happen.
+A link whose end is a unit no part names is left alone — `FR-ARCH-720` has already said that unit is unknown, and saying it twice would have a project price both away.
+Inside one unit nothing is reported: parts shipping together are not linked by the fact of shipping together.
+A note by default, for the reason `FR-ARCH-710` gives.
+
+### FR-ARCH-740 — Facts past their life are treated as absent
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-630]
+depends_on: [IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Where the facts about units state a life, the architecture checker **shall** use none of them once they are older than it and report that it did so.
+
+**Rationale.** Facts about a system in operation rot without anything in the repository changing, which is the one way this layer can be wrong while every check is green — the shape `FR-ARCH-630` was written against.
+The producer states the life because only the producer knows how often it runs; the checker cannot guess it and does not impose one.
+Facts that state no life cannot go stale and are used as they are; that they say nothing about their own age is told to a reader by `FR-ARCH-760` with the rest of their provenance, because it is a property of the facts rather than something this run did.
+Used or not, never partly: facts taken together are a single reading of the system, and half of a stale reading is not a fresher one.
+
+### FR-ARCH-750 — A malformed file of facts is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+If the facts about units are not a JSON object, lack `taken`, `source` or `units`, state a `taken` that is not a date or a life that is not a whole number of days, or hold a unit name or a link that is not text, the architecture checker **shall** refuse to run and say what is wrong.
+
+**Rationale.** The argument `IF-ARCH-040` makes for the edges file: a shape the checker cannot read is the setup, not a finding about the layer, and a file half read would make the comparison lie in the project's favour.
+
+### FR-ARCH-760 — The document says the units and where the facts came from
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-420]
+depends_on: [FR-ARCH-700, IF-ARCH-100]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-07
+```
+
+Where any part names a unit, the architecture document **shall** state each unit with the parts it holds, and, where facts about units were supplied, when they were taken, from where, and for how long their producer says they stay true or that it says nothing about that.
+
+**Rationale.** The units exist only as names scattered across the records, so the one view in which the system's pieces are visible has to be computed, and the document is where a person who will not read the records is given it.
+The provenance is stated beside them because a reader judging a disagreement needs to know what the model was compared against — a commit of another repository, a cluster, a list somebody typed — and that is exactly what a finding from these facts cannot say on its own.
+Absent where no part names a unit, as every optional section of this document is.
+
+
+### FR-ARCH-770 — The layer's standard says what a cut is drawn from
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-540]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md]
+tests: [tests/standard-sections.sh]
+created: 2026-10-11
+```
+
+The standard the framework ships for the architecture layer **shall** state that a part's boundary is drawn from what the part is responsible for rather than from the files it holds.
+
+**Rationale.** Two of the layer's three readings hand a reader a cut computed from what is already written — a draft over the directories nobody carries (`FR-ARCH-540`) and a grouping over the links between requirements (`FR-ARCH-580`) — and each is a join that knows nothing about responsibility, which is why both only print.
+That the boundary comes from the responsibility was written in one place, `.claude/skills/srs-arch/SKILL.md`, and in the rationale of `FR-ARCH-540`; the standard said only, under *What not to do*, that the parts are not cut as finely as the file tree, which is granularity and not direction.
+Both procedures of the layer open by telling the reader that the standard is the file this needs, so a reader who read it and nothing else was never told what the cut comes from, and one of the two pointed at a section of the standard that was not there.
+`FR-SKILL-020` then settles where the rule lives: the standard states it, and the procedure points at it rather than carrying a second copy.
+
+### FR-ARCH-780 — Shapes are read and reported on
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-010, IF-ARCH-110]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where a project's architecture layer holds shape records, the architecture checker **shall** read every one of them, reporting a malformed or repeated identifier, a missing required key and a status outside the four the standard names as it reports an element's.
+
+**Rationale.** The entry the grain hangs from, and the same sentence `FR-ARCH-360` makes for the move record: a second kind of record is read by the checker that reads the first, with the readings that make the rest meaningless reported the same way, so that a project has one tool and one set of exit codes rather than two.
+A layer that holds no shape is described exactly as it was: the reading is conditional, as the move record's is.
+
+### FR-ARCH-790 — A shape names exactly one part, and shapes that exist
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where a shape's `inside` does not name exactly one element the layer defines, or its `holds` names a shape the layer does not define, the architecture checker **shall** report it as an error naming the record and the key at fault.
+
+**Rationale.** The reading `FR-ARCH-370` makes of a move: a name that leads nowhere is an error rather than a warning, because every rule below reads these two keys — the closure of a part's inside asks `inside`, and the circle asks `holds`.
+Exactly one, because `inside` is what every rule below groups by: two parts would make one form answer to both and the closure of each would read as satisfied.
+A shape whose part does not exist can be neither designed against nor built, and one held by nothing is not reported here: a form nothing is composed of is ordinary.
+
+### FR-ARCH-800 — A realized requirement no shape inside its part answers for is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-320]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where an element holds at least one shape, the architecture checker **shall** report as a warning named `requirement-unshaped` every `implemented` or `partial` requirement that element carries which no shape inside it answers for, naming the element and the requirement.
+
+**Rationale.** This is the rule the grain exists for, and it reads no code at all.
+The chain the framework describes runs from the grounds to the requirements to the architecture to the code: a form is designed from the obligations its part carries, and what closes the design is the same thing that closes the cut one grain up — `FR-ARCH-320` reports an approved requirement no part answers for, and while that list is not empty the design is unfinished.
+
+Conditional on the part holding a shape at all, because the grain is adopted a part at a time: a layer of thirteen parts and no shapes would otherwise report every obligation it carries at once, and a rule that fires on every project that has not yet adopted it is a rule somebody prices to `off`.
+
+Measured in the field on 2026-10-13: a question about the form inside one part met a layer reporting no error and no warning about that part, because the finest grain it had was a path.
+Green there was the absence of a verdict, and the sentence the standard already uses for a model compared with nothing is the sentence this rule removes the need for.
+
+### FR-ARCH-810 — A deferred requirement no shape is designed for is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-800]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where an element holds at least one shape, the architecture checker **shall** report as a note named `requirement-undesigned` every `deferred` requirement that element carries which no shape inside it answers for, naming the element and the requirement.
+
+**Rationale.** The same reading as `FR-ARCH-800` at a different status, and the price is the whole point: an approved obligation nobody has designed a form for is the backlog of the design, which every project has and no gate should refuse.
+`requirement-unassigned` is a note one grain up for that reason, and this is its twin.
+Two rules rather than one with two prices, because a project tightens them at different moments: a team that wants the form closed before any code is written prices this one up, and one that merely wants no built obligation unowned leaves it alone.
+
+### FR-ARCH-820 — A shape answering for no requirement is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-080]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where a shape that is not cancelled answers for no requirement, the architecture checker **shall** report it as a warning named `shape-empty` naming the shape and the part it is inside.
+
+**Rationale.** The reading `FR-ARCH-080` makes of a part, one grain down: a form that answers to nothing is either a form nobody needed or an obligation nobody wrote, and which of the two it is depends on what the project meant — so it is a warning and not an error.
+It is also the guard against the failure this grain invites: a record written for every class in the part, which would make the layer a retelling of the code.
+
+### FR-ARCH-830 — A state more than one shape owns is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-640]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where two or more shapes in force name the same state in `owns`, the architecture checker **shall** report it as a warning named `state-contested`, naming the state and the shapes that claim it.
+
+**Rationale.** The reading `FR-ARCH-640` makes of a path two parts claim, at the grain where state lives.
+One piece of state with two owners is one field answering two questions whose owners differ, and that is a defect of form rather than of code: both answers are correct, and the field cannot serve both without one of them drifting.
+Measured in the field on 2026-10-13, this was the finding a person had to make by reading five places; nothing in the layer could name it.
+
+### FR-ARCH-840 — Shapes that hold each other in a circle are reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-220]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where shapes hold each other in a circle, the architecture checker **shall** report the circle as a warning named `shape-cycle`, naming every shape on it.
+
+**Rationale.** The reading `FR-ARCH-220` makes of parts that depend on each other in a circle, one grain down: either the form is wrong and two shapes are one, or one `holds` is composition in name only.
+A warning, because nothing the checker computes is broken by a circle — the same reason the element rule gives.
+
+### FR-ARCH-850 — The map states what each part is made of inside
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where the layer holds shapes, the generated map **shall** state for every one of them what it answers for, what it owns, what it holds and what state it is in, under the part it is inside.
+
+**Rationale.** The map is what a reader is told to read rather than the records, and a grain the map does not show is a grain nobody reads.
+It is also the only place the projection can live: nothing is written back into a record, for the reason derived requirements are not written back either.
+
+Our own layer is the case: the row of one part holds eighty-one obligations in a single list, which is the unreadable form of exactly this problem — the obligations are grouped by nothing, because until now there was nothing to group them by.
+
+### FR-ARCH-860 — The obligations that most constrain the form inside a part are computed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-210]
+depends_on: [FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+When asked for the drivers of one named element, the architecture command **shall** rank the obligations that element carries by what makes an obligation drive form and print the few that lead.
+
+**Rationale.** `FR-ARCH-210` computes the drivers of the cut because architecture is designed against a handful of obligations rather than against the whole specification, and the same is true one grain down: a part carrying eighty-one obligations is not designed inside by reading all eighty-one.
+Computed rather than chosen, for the reason the element rule gives — a list chosen by taste is a list that agrees with whoever wrote it.
+
+### FR-ARCH-870 — A decision an element names exists
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-370]
+depends_on: [FR-ARCH-010, IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-13
+```
+
+Where an element names a decision in `decisions` and the specification holds no document named after it, the architecture checker **shall** report it as an error naming the element and the decision.
+
+**Rationale.** The layer records the cut and the decision records why this cut and not the neighbouring one, which the architecture procedure has asked for since it was written — and until this there was no key to point at it: only a move could name a decision, so a part's own reason had to be found by reading `specs/adr/` from one end.
+
+Measured in the field on 2026-10-13: an answer about the form inside a part had to recover the two decisions behind it through the requirements, because the record of that part named neither.
+
+An error rather than a warning, for the reason `FR-ARCH-370` gives about a move: a name that leads nowhere is worse than no name, because a reader who follows it concludes the reason was recorded.
+Resolved against the documents the viewer publishes, so the layer never learns where a project keeps them — that one is named after the record's value is the whole question.
+
+### FR-ARCH-880 — The document states what each part is made of inside
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-420]
+depends_on: [FR-ARCH-410, FR-ARCH-780]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the layer holds forms, the architecture document **shall** state under every part the forms inside it, each with what it answers for, what it owns, what it holds and the state it is in.
+
+**Rationale.** `FR-ARCH-420` says what the system is made of at the grain of parts; this says it at the grain below, and the document is where a person reads the layer rather than in the records.
+Without it the grain exists for the checker and for nobody else: a part's obligations are grouped by the form that answers for each, and that grouping is the whole reason a part carrying eighty-one of them can be read at all.
+
+### FR-ARCH-890 — The document names the decisions behind each part
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-870]
+depends_on: [FR-ARCH-410]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where an element names decisions, the architecture document **shall** name each of them under that part by its identifier and the title of its document.
+
+**Rationale.** A document describing a structure and no reason for it is the diagram the layer was written to replace: the reader can see what the parts are and has to guess why the boundary runs there.
+The title and not the number alone, because a number sends the reader to a directory listing, and the one thing a person reading an architecture document is short of is the patience for one more lookup.
+
+### FR-ARCH-900 — The document opens with what the system is
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-ARCH-410]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the specification carries an introduction or an overview, the architecture document **shall** open with what they say the system is, and name them as where that came from.
+
+**Rationale.** The document begins at the first part, which assumes the reader already knows what the system is for — and the reader who most needs an architecture document is the one who does not.
+Taken from the specification rather than written here, because the project has already said it in its own words and a second telling is a second thing to keep true.
+Conditional, because a project need not carry either file, and a section with nothing in it is what `FR-ARCH-460` refuses.
+
+### FR-ARCH-910 — The document draws how the forms are composed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-430]
+depends_on: [FR-ARCH-880]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the layer holds forms that hold one another, the architecture document **shall** draw that composition beside the drawing of how the parts depend on each other.
+
+**Rationale.** `FR-ARCH-430` draws the parts because a dependency between a dozen of them is read from a picture and not from a table, and composition is the same claim one grain down: what is made of what.
+Conditional on a form holding another, because a drawing of unconnected boxes says less than the list above it.
+
+### FR-ARCH-920 — The composition on the page is laid out by the command
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-910]
+depends_on: [FR-ARCH-520, FR-ARCH-530]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch_doc.py]
+tests: [tests/arch-doc.sh]
+created: 2026-10-13
+```
+
+Where the architecture document is printed as a page and the layer holds forms that hold one another, the command **shall** draw that composition as an SVG inside the file, a node per form in force and an edge per form held.
+
+**Rationale.** The split `FR-ARCH-430` and `FR-ARCH-530` already make: the document hands a reader's renderer a diagram as text, and the page carries no renderer, so the page is laid out here or it shows its own source.
+
+It is a separate requirement rather than part of `FR-ARCH-910` because it is a separate obligation on a separate output, and because the page had one drawing and now has two: until this, every fenced block on the page was replaced by the same drawing, so a second one would have shown the first twice.
+
+### FR-ARCH-930 — A symbol a built shape names and nothing declares is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-710]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030, CON-ARCH-040]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a `built` shape names a symbol in `names` or `owns` that the facts about symbols hold for no file the element that shape is inside carries, the architecture checker **shall** report it as a warning named `symbol-missing`, naming the shape and the symbol.
+
+**Rationale.** The reading `FR-ARCH-710` makes of a unit the model declares and the facts do not, at the grain of a symbol: until this, `names` and `owns` were declarations nothing read, which is the position `interface` held before `FR-ARCH-490`.
+`built` and not every shape in force, because a `proposed` shape naming symbols nobody has written yet is the whole point of designing a form before its code — `FR-ARCH-960` is the rule for that half.
+A warning and not an error: the symbol may have been renamed, the facts may be stale, and which of the two it is the checker cannot tell.
+Narrowed on 2026-10-14 to the files the part itself carries (`CON-ARCH-030`) and to a part whose code was read whole (`CON-ARCH-040`): as first written it compared a form with every name the run read, which left it unfalsifiable wherever a neighbour declared the same name, and wrong about a part carrying a language the checker does not read.
+
+### FR-ARCH-940 — A type the facts hold that no shape claims is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-720]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where the facts about symbols hold a type declared in a file an element carries, that element holds at least one shape, and no shape inside it names that type, the architecture checker **shall** report it as a note named `symbol-unclaimed`, naming the type, the file declaring it and the element.
+
+**Rationale.** The other direction of `FR-ARCH-930`, kept apart for the reason `FR-ARCH-060` and `FR-ARCH-070` are: a form describing a symbol that is gone and a type nobody described are different problems with different answers.
+A type and not every symbol, because that is where this grain is about encapsulation: a project would be told about every helper function it ever wrote, the forms would be written to quiet the rule, and the layer would become the retelling of the code `FR-ARCH-820` guards against.
+A note rather than a warning, and the condition on the part holding a shape, because this is the backlog of adopting the grain one part at a time and not a defect — the reading `FR-ARCH-800` and `FR-ARCH-810` already give the obligations.
+
+### FR-ARCH-950 — A shape entered by an operation it does not state is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-490]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a shape states its operations and the facts about symbols hold an entry into one of its names, from a file outside the element that shape is inside, by a name `shape` does not state, the architecture checker **shall** report it as a warning named `shape-bypassed`, naming the shape, the name reached and the file reaching it.
+
+**Rationale.** What gives `shape` teeth, and the reading `FR-ARCH-490` makes of a part reached by a name its interface does not state, one grain down.
+Only where the shape states its operations: a form that declares none has said nothing to be crossed, the silence `FR-ARCH-490` leaves to `FR-ARCH-450` at the grain above, and reporting it here would make every form without that key look breached by its own callers.
+From outside the element and not from outside the form, because a form is not a compilation unit and the code of one part reaching its own insides is how a part is built; what the layer can say something about is somebody else's code reaching past the operations this form published.
+
+### FR-ARCH-960 — A designed shape that is already built is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-330]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a shape still `proposed` names symbols and the facts about symbols hold every one of them for a file the element that shape is inside carries, the architecture checker **shall** report it as a warning named `shape-built`, naming the shape.
+
+**Rationale.** The reading `FR-ARCH-330` makes of a designed part whose files all exist, at the grain of a form: the code is written and only the status still says it is a design.
+Turning the status is a person's act and the layer never does it, which is why this says what it found rather than editing the record (`ADR-0042`).
+A shape naming no symbol is not reported: there is nothing that could have been found, and a form designed down to its obligations alone is a legitimate design.
+Narrowed with `FR-ARCH-930` to the files the part itself carries (`CON-ARCH-030`), and deliberately not by `CON-ARCH-040`: this concludes from what is there rather than from what is missing, and going silent on a part whose language the checker cannot read would lose the finding on the day the code is written.
+
+### FR-ARCH-970 — What moving to the designed form requires is computed
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-350]
+depends_on: [FR-ARCH-780, IF-ARCH-120, CON-ARCH-030, CON-ARCH-040]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+When asked what moving to the designed parts requires, the architecture command **shall** print, for every shape still `proposed`, the symbols its own part does not declare yet, the operations its named types do not answer to, and the state another shape owns today.
+
+**Rationale.** The twin of `FR-ARCH-350` at the grain of a form, and the figure a person counted by hand in the case this grain came from: what it costs to get to the designed form is the one question a design is read for.
+Printed and reported as nothing, for the reason `FR-ARCH-350` gives: a designed form differing from the built code is the normal state of designing, and a warning there would price the design itself.
+State another shape owns today is in the list because that is the move the design usually is — a field leaving the form that answered two questions with it.
+Its own part and not the project since `CON-ARCH-030`, and where that part's code was not read whole the line is `CON-ARCH-040`'s to withhold and `FR-ARCH-995`'s to explain — a plan that says a function nobody can see is missing is wrong in the one direction a plan is read for.
+
+### FR-ARCH-980 — The checker reads a language's own declarations
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-200]
+depends_on: [IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where a file an element carries is in a language the architecture checker reads itself, the checker **shall** take the symbols it compares a shape against from that file, and take them from `arch/symbols.json` for every file in a language it does not.
+
+**Rationale.** The arrangement `FR-ARCH-200` already made for the dependencies: one language read natively so that the common case needs no file, every other language supplied by the project, and the two never in competition over the same file.
+Read and not configured, because a declaration is the one fact about a symbol that cannot drift from the code — it is the code — and a file the project maintains by hand about its own language would be a second source for something already in the repository.
+The facts a project supplies are not merged into a language the checker reads: a file it can read is read, which keeps a symbol from being held by two readings that disagree.
+
+### FR-ARCH-990 — A run that compared no shape with any symbol says so
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-630]
+depends_on: [FR-ARCH-980]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where the layer holds a shape and the run read no declaration at all — no file of the elements holding shapes in a language the checker reads, and no facts about symbols — the architecture checker **shall** report that the shapes were compared with nothing.
+
+**Rationale.** The statement `FR-ARCH-630` makes about a run that compared the model with nothing, for the four rules this grain adds: with no declarations read, every one of them is silent, and silence here reads as conformance.
+It is the trap this layer's own standard names about `Warnings: 0` — the absence of a verdict taken for a verdict — and the reason it is not a rule a project prices is the reason `FR-ARCH-630` is not: switching it off would switch off the line saying the check never ran.
+Separate from `FR-ARCH-630` because the two readings fail apart: a project whose edges file carries its dependencies has had the model compared with something and its shapes compared with nothing.
+Read as it is written since 2026-10-14: the condition is a readable file of those parts and not a declaration found in one — a file read that declares nothing was read, and `CON-ARCH-040` concludes an absence from it, so a run saying both would contradict itself.
+
+### FR-ARCH-995 — A part whose code was not read whole is named
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-990]
+depends_on: [CON-ARCH-040, FR-ARCH-930]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+Where an element holding shapes carries a code file the architecture checker does not read itself and the project supplied no facts about its symbols, the architecture command **shall** name that element and how many of its files were not read.
+
+**Rationale.** What keeps `CON-ARCH-040` from trading a false warning for a false silence: the gate leaves a part's forms unfalsifiable, and a run that says nothing about them reads as a run that found nothing — the trap `FR-ARCH-990` is written against, one grain down from the whole run.
+Numbered beside `FR-ARCH-990` rather than after it because it is the same sentence about a smaller subject, and unpriced for the same reason: a project able to switch it off would be switching off the line that says which parts were never checked.
+`FR-ARCH-990` keeps the whole-run reading, and this says nothing when that one speaks: a run that read no declaration at all would otherwise name every part holding a form and say the same thing as many times.

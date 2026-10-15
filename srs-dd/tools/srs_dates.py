@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """Write into each requirement the date its identifier first appeared.
 
-    python3 tools/srs_dates.py             date what is undated
-    python3 tools/srs_dates.py --dry-run   say what would be written
+    python3 srs-dd/tools/srs_dates.py             date what is undated
+    python3 srs-dd/tools/srs_dates.py --dry-run   say what would be written
 
-The date git already holds, written into the block once so that every
-lifecycle reading afterwards comes off the file rather than out of the log.
-Requirements that already carry a `created` date are left exactly as they
-are, which is what makes a second run cost nothing.
-
-This is the one command that writes requirement blocks. It is run on
-purpose, by a person, the way a baseline is frozen — never by a gate, a
-hook or an installer.
+The date git already holds, written into the block once so later readings come off
+the file. A requirement that carries `created` is left alone, so a second run costs
+nothing. The one command that writes requirement blocks, run by a person and never
+by a gate, a hook or an installer.
 
 Standard library only, compatible with Python 3.9.
 """
@@ -41,12 +40,9 @@ RE_CREATED = re.compile(r"^\s*created\s*:")
 
 
 def first_seen(paths):
-    """{identifier: date} from one pass over the history, or a problem.
-
-    One subprocess and one stream rather than a revision-by-revision walk:
-    the naive shape costs a `git show` per file per revision and takes
-    tens of seconds on a small specification.
-    """
+    """{identifier: date} from one pass over the history, or a problem: one subprocess and
+    one stream, where a revision-by-revision walk costs a `git show` per file per
+    revision."""
     def git(*args):
         return subprocess.check_output(
             ["git", "-C", ROOT] + list(args),
@@ -72,13 +68,10 @@ def first_seen(paths):
 
 
 def date_file(path, born, dry_run):
-    """Writes `created` into every undated block. Returns what it dated.
+    """Writes `created` into every undated block; returns what it dated.
 
-    Fenced blocks are stepped over whole, at both levels: a file may
-    document the format with an example requirement inside a fence, and
-    that example is not a requirement — fence opacity is the rule that
-    makes the checker agree, and a tool that edits the same files has to
-    agree with it or it edits documentation.
+    Fenced blocks are stepped over whole at both levels: an example inside a fence is
+    documentation, and the checker reads it the same way.
     """
     with open(path, "r", encoding="utf-8") as handle:
         lines = handle.read().split("\n")

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # The standards name every value their tools define — the requirement types,
 # the verification methods, the files the checker does not read, the
 # register's kinds, keys, statuses, grades, classes, periods and confidence
@@ -12,16 +13,20 @@ unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX GIT_COMMON_DIR
 cd "$(dirname "$0")/.."
 
 # file implements: INV-SPEC-110
-# file verifies: FR-SPEC-070, FR-VIEW-390, FR-VIEW-050, FR-INIT-250, INV-SPEC-110
+# file verifies: FR-SPEC-070, FR-VIEW-390, FR-VIEW-050, INV-SPEC-110, FR-SKILL-450
+# file verifies: IF-ARCH-050, IF-SPEC-050, IF-ARCH-110
 python3 - <<'PY'
 import re, sys
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_arch
 import srs_check
 import srs_grounds
-import srs_view
+import srs_arch_doc
+import srs_grounds
+import srs_view_model
+import srs_view_page
 
 
 def read(path):
@@ -66,15 +71,15 @@ assert table_keys("| `a` | x |\n| b | y |\n| `c` | z |\n") == ["a", "c"]
 print("standard-vocabulary: a value a list leaves out, or one the tool does not define, is red")
 
 found = []
-spec = read("specs/README.md")
+spec = read("srs-dd/standard.md")
 
 # The requirement types, on the one line that lists them.
 types_line = next((line for line in spec.splitlines() if line.startswith("**Types:**")), "")
-found += both_ways("specs/README.md, the Types line", backticked(types_line), srs_check.TYPES)
+found += both_ways("srs-dd/standard.md, the Types line", backticked(types_line), srs_check.TYPES)
 
 # The files and directories the checker reads no requirement from, in the map.
 the_map = "\n".join(line for line in section(spec, "Map").splitlines() if line.startswith("|"))
-found += mentioned("specs/README.md's map", the_map,
+found += mentioned("srs-dd/standard.md's map", the_map,
                    sorted(srs_check.SKIP_FILES) + ["%s/" % name for name in sorted(srs_check.SKIP_DIRS)])
 
 # The verification methods, one row each in the verification document.
@@ -85,117 +90,155 @@ found += both_ways("specs/50-verification.md, the table of methods", methods, sr
 
 # The register: a heading per kind, and every key, status, grade, class,
 # period and confidence level named where a reader looks for it.
-grounds = read("grounds/README.md")
+grounds = read("srs-dd/grounds.md")
 for kind, name in sorted(srs_grounds.KINDS.items()):
     if "### `%s` — %s" % (kind, name) not in grounds:
-        found.append("grounds/README.md has no heading for `%s` — %s" % (kind, name))
-found += mentioned("grounds/README.md", grounds,
+        found.append("srs-dd/grounds.md has no heading for `%s` — %s" % (kind, name))
+found += mentioned("srs-dd/grounds.md", grounds,
                    sorted({key for keys in srs_grounds.REQUIRED.values() for key in keys}))
-found += mentioned("grounds/README.md", grounds,
+found += mentioned("srs-dd/grounds.md", grounds,
                    sorted({status for statuses in srs_grounds.STATUSES.values() for status in statuses}))
-found += mentioned("grounds/README.md", grounds,
+found += mentioned("srs-dd/grounds.md", grounds,
                    srs_grounds.GRADES + srs_grounds.CLASSES + srs_grounds.PERIODS + srs_grounds.TESTABLE_KINDS)
-found += mentioned("grounds/README.md", grounds, [str(level) for level in srs_grounds.CONFIDENCES])
+found += mentioned("srs-dd/grounds.md", grounds, [str(level) for level in srs_grounds.CONFIDENCES])
 config = section(grounds, "Configuration")
 config = config[:config.find("**Rules.**")] if "**Rules.**" in config else config
-found += both_ways("grounds/README.md, the configuration table", table_keys(config), srs_grounds.DEFAULTS)
+found += both_ways("srs-dd/grounds.md, the configuration table", table_keys(config), srs_grounds.DEFAULTS)
 
-# The layer: its statuses on the status row, and a row for each required key.
-arch = read("arch/README.md")
-status_row = next((line for line in arch.splitlines() if line.startswith("| `status` |")), "")
-found += both_ways("arch/README.md, the status row", backticked(status_row)[1:], srs_arch.STATUSES)
-required = [key for key in table_keys(arch)
-            if re.search(r"^\| `%s` \| required" % re.escape(key), arch, re.M)]
-found += both_ways("arch/README.md, the required keys", required, srs_arch.REQUIRED_KEYS)
+# The layer: its statuses on the status row, and a row for each required key —
+# per kind of record, since the layer holds three and each table is read inside
+# the section that owns it. Read over the whole file, the move's keys would
+# arrive as the element's and every one of them would read as invented.
+arch = read("srs-dd/arch.md")
+
+
+def keys_of(text):
+    return [key for key in table_keys(text)
+            if re.search(r"^\| `%s` \| required" % re.escape(key), text, re.M)]
+
+
+def status_values(text):
+    row = next((line for line in text.splitlines() if line.startswith("| `status` |")), "")
+    return backticked(row)[1:]
+
+
+element = section(arch, "The record")
+found += both_ways("srs-dd/arch.md, the status row", status_values(element), srs_arch.STATUSES)
+found += both_ways("srs-dd/arch.md, the required keys", keys_of(element), srs_arch.REQUIRED_KEYS)
+move = section(arch, "The move record")
+found += both_ways("srs-dd/arch.md, the move status row", status_values(move),
+                   srs_arch.MOVE_STATUSES)
+found += both_ways("srs-dd/arch.md, the move keys", keys_of(move), srs_arch.MOVE_KEYS)
+shape = section(arch, "What a part is made of inside")
+found += both_ways("srs-dd/arch.md, the shape status row", status_values(shape),
+                   srs_arch.STATUSES)
+found += both_ways("srs-dd/arch.md, the shape keys", keys_of(shape), srs_arch.SHAPE_REQUIRED)
+found += both_ways("srs-dd/arch.md, every shape key", table_keys(shape), srs_arch.SHAPE_KEYS)
 
 # The viewer keeps its own tables of the checker's vocabulary: a method it
 # cannot name, a link it cannot label backwards, a status with no colour,
 # or a field the comparison between two revisions skips is the viewer
-# falling behind the checker.
-found += both_ways("srs_view.py METHODS", [key for key, _label in srs_view.METHODS], srs_check.VERIFICATIONS)
-found += both_ways("srs_view.py INCOMING_LABEL", srs_view.INCOMING_LABEL,
+# falling behind the checker. The three tables sit where they are read —
+# the page's two on the page, the label both projections use in the model.
+found += both_ways("srs_view_page.py METHODS", [key for key, _label in srs_view_page.METHODS],
+                   srs_check.VERIFICATIONS)
+found += both_ways("srs_view_model.py INCOMING_LABEL", srs_view_model.INCOMING_LABEL,
                    srs_check.LINK_FIELDS + ("superseded_by",))
-page_css = read("tools/srs_view.py")
-found += ["srs_view.py has no colour for the status `%s`" % status for status in srs_check.STATUSES
+page_css = read("srs-dd/tools/srs_view_page.py")
+found += ["srs_view_page.py has no colour for the status `%s`" % status for status in srs_check.STATUSES
           if ".st-%s {" % status not in page_css]
 # The fields two revisions are compared on: every field but `created`,
 # which is written once and never changes, and the title.
-found += both_ways("srs_view.py DIFF_FIELDS", srs_view.DIFF_FIELDS,
+found += both_ways("srs_view_model.py DIFF_FIELDS", srs_view_model.DIFF_FIELDS,
                    (srs_check.KNOWN_FIELDS - {"created"}) | {"title"})
 
-# Every place that says which files an upgrade leaves alone without --force
-# names each kind of them. The kinds are FR-INIT-060's, whose list the
-# installer's suite walks against what the installer does; each place words
-# them its own way, so each kind carries the words that count as naming it.
-PRECIOUS = (
-    ("the CI configuration", ("CI",)),
-    ("the agent guides", ("AGENTS.md", "agent guides")),
-    (".gitattributes", (".gitattributes",)),
-    ("the hook", ("hook",)),
-    ("the specification's standard", ("specs/README.md", "the standards", "specification standard")),
-    ("the register's standard", ("grounds/README.md", "the standards", "optional layer", "grounds standard")),
-    ("the layer's standard", ("arch/README.md", "the standards", "optional layer", "architecture standard")),
-)
+# --- The published pages: the standard defines the set, each renderer carries a
+# --- copy of it, and a copy is only safe while something holds it to the table
+# --- (INV-SPEC-110). Both columns, since the label is what a reader clicks.
+pages_section = section(spec, "Published pages")
+table = [row for row in pages_section.splitlines() if row.startswith("| `")]
+defined = [(re.search(r"^\| `([^`]+)` \| (.+?) \|", row).group(1),
+            re.search(r"^\| `([^`]+)` \| (.+?) \|", row).group(2).strip())
+           for row in table]
+if not defined:
+    found.append("srs-dd/standard.md has no Published pages table, which three renderers copy")
+for module, where in (("srs_view_page", "srs-dd/tools/srs_view_page.py"),
+                      ("srs_arch_doc", "srs-dd/tools/srs_arch_doc.py"),
+                      ("srs_grounds", "srs-dd/tools/srs_grounds.py")):
+    carried = list(__import__(module).PAGES)
+    if carried != defined:
+        found.append("%s carries %s and the standard's table defines %s"
+                     % (where, carried, defined))
+    own = __import__(module).OWN
+    if own not in [name for name, _label in defined]:
+        found.append("%s calls itself %s, which the standard's table does not name"
+                     % (where, own))
 
-
-def precious_place(path, start, stop):
-    if stop is None:
-        # A row of a table: the row is the place, read as the line it is.
-        return next((line for line in read(path).splitlines() if line.startswith(start)), None)
-    text = " ".join(read(path).split())
-    if path.endswith(".py"):
-        # Adjacent string literals are one string to Python and one
-        # sentence to a reader: `"agent " "guides"` names the guides.
-        text = text.replace('" "', "")
-    at = text.find(start)
-    if at < 0:
-        return None
-    end = text.find(stop, at + len(start)) if stop else -1
-    return text[at:end if end >= 0 else at + 600]
-
-
-PLACES = (
-    ("specs/10-fr-init.md, FR-INIT-060", "specs/10-fr-init.md", "refresh the files that may be the project's own", "only with `--force`"),
-    ("specs/00-glossary.md", "specs/00-glossary.md", "| Precious file |", None),
-    ("docs/install.md", "docs/install.md", "CI config, `CLAUDE.md`", "are \"precious\""),
-    ("docs/upgrade.md", "docs/upgrade.md", "Left alone: CI configuration", "files that may be your own"),
-    ("tools/srs_init.py", "tools/srs_init.py", "additionally refreshes the \"precious\"", "marker"),
-    ("tools/srs_init.py --force", "tools/srs_init.py", "also refresh existing SRS-DD-marked precious", "; a file"),
-    ("tools/srs_upgrade.py", "tools/srs_upgrade.py", "also refresh precious files", ")\")"),
-    ("the srs-init procedure", ".claude/skills/srs-init/SKILL.md", "precious files (", "only with"),
-    ("the srs-upgrade procedure", ".claude/skills/srs-upgrade/SKILL.md", "Left alone:", "All of them"),
-)
-
-
-def unnamed(place, words_of):
-    return [kind for kind, words in words_of if not any(word in place for word in words)]
-
-
-assert unnamed("CI and the hook", PRECIOUS[:4]) == ["the agent guides", ".gitattributes"]
-for where, path, start, stop in PLACES:
-    place = precious_place(path, start, stop)
-    if place is None:
-        found.append("%s: the list of files an upgrade leaves alone is not where the suite looks (%r)" % (where, start))
-        continue
-    found += ["%s does not name %s among the files an upgrade leaves alone" % (where, kind)
-              for kind in unnamed(place, PRECIOUS)]
+# --- What of the framework's lives outside srs-dd/, said in the standard
+# --- (FR-SKILL-450): the procedures by their prefix, and the region of the
+# --- guide by its markers, beside the directory itself.
+for phrase in ("`srs-dd/`", "`.claude/skills/srs-*`", "<!-- srs-dd -->", "edited only under another name"):
+    if phrase not in spec:
+        found.append("srs-dd/standard.md does not say %s, which FR-SKILL-450 asks of it" % phrase)
 
 # --- The specification's configuration: the keys the tools read, both ways.
 # The checker's defaults name most; five more are read by one tool each, and
 # each is asked of the tool that reads it, so this is no list kept by hand.
-READ_ELSEWHERE = {"rules": "tools/srs_check.py", "repo_url": "tools/srs_view.py",
-                  "framework_url": "tools/srs_upgrade.py", "line_width": "tools/srs_init.py",
+READ_ELSEWHERE = {"rules": "srs-dd/tools/srs_check.py", "repo_url": "srs-dd/tools/srs_view_model.py",
+                  "framework_url": "srs-dd/tools/srs_upgrade.py", "line_width": "tools/srs_init.py",
                   "project_name": "tools/srs_init.py"}
 for key, tool in sorted(READ_ELSEWHERE.items()):
     if '"%s"' % key not in read(tool):
         found.append("%s does not read `%s`, which this suite says it does" % (tool, key))
 spec_config = section(spec, "Configuration")
 spec_config = spec_config[:spec_config.find("**Rules.**")] if "**Rules.**" in spec_config else spec_config
-found += both_ways("specs/README.md, the configuration table", table_keys(spec_config),
+found += both_ways("srs-dd/standard.md, the configuration table", table_keys(spec_config),
                    set(srs_check.DEFAULTS) | set(READ_ELSEWHERE))
 
+# --- A flag an element's `interface` names is a copy of what the tool it
+# --- carries defines (INV-SPEC-110): the field is prose a person reads, and a
+# --- flag that left the tool would otherwise stay in it for ever.
+import glob
+import os
+elements = "arch/00-elements.md"
+declared_ids = set()
+for spec_file in sorted(glob.glob("specs/**/*.md", recursive=True)):
+    declared_ids |= set(re.findall(r"(?m)^### ((?:FR|NFR|IF|INV|CON)-[A-Z0-9_]+-\d{3,}) — ",
+                                   read(spec_file)))
+if os.path.exists(elements):
+    text = read(elements)
+    for block in re.split(r"(?m)^### ", text)[1:]:
+        eid = block.split(" ", 1)[0]
+        face = re.search(r"^interface: (.*)$", block, re.M)
+        carries = re.search(r"^carries: \[(.*?)\]", block, re.M | re.S)
+        if not face or not carries:
+            continue
+        held = []
+        for path in (p.strip().rstrip("/") for p in carries.group(1).split(",") if p.strip()):
+            if os.path.isfile(path):
+                held.append(path)
+            elif os.path.isdir(path):
+                held += [p for p in glob.glob(os.path.join(path, "**", "*"), recursive=True)
+                         if os.path.isfile(p)]
+        carried_text = ""
+        for path in held:
+            try:
+                carried_text += read(path)
+            except (OSError, UnicodeDecodeError):
+                pass
+        for flag in sorted(set(re.findall(r"--[a-z][a-z-]+", face.group(1)))):
+            if flag not in carried_text:
+                found.append("arch/00-elements.md: %s names %s in its interface and carries "
+                             "no file that defines it" % (eid, flag))
+        # A requirement an interface points at is a copy of the specification's own list.
+        for rid in sorted(set(re.findall(r"\b(?:FR|NFR|IF|INV|CON)-[A-Z0-9_]+-\d{3,}\b",
+                                         face.group(1)))):
+            if rid not in declared_ids:
+                found.append("arch/00-elements.md: %s names %s in its interface and the "
+                             "specification does not carry it" % (eid, rid))
+
 # --- What a rule can cost, in each standard beside its checker.
-for path, module in (("specs/README.md", srs_check), ("grounds/README.md", srs_grounds), ("arch/README.md", srs_arch)):
+for path, module in (("srs-dd/standard.md", srs_check), ("srs-dd/grounds.md", srs_grounds), ("srs-dd/arch.md", srs_arch)):
     found += mentioned(path, read(path), module.SEVERITIES)
 
 # --- The glossary's rows that list a tool's set.
@@ -215,11 +258,11 @@ generated = [os.path.relpath(p, os.getcwd()) for p in (srs_check.TRACE, srs_grou
 guide_generated = next((line for line in read("AGENTS.md").splitlines() if line.startswith("- **Generated files**")), "")
 found += ["AGENTS.md, Generated files, does not name %s" % path for path in generated if path not in guide_generated]
 map_rows = the_map
-found += ["srs_view.py expects %s as prose and the standard's map has no row for it" % name
-          for name in srs_view.PROSE_EXPECTED if "`%s`" % name not in map_rows]
-found += ["srs_view.py excludes %s from prose, and the checker reads requirements from it" % name
-          for name in srs_view.PROSE_EXCLUDED if name not in srs_check.SKIP_FILES]
-for tool in ("tools/srs_init.py", "tools/srs_upgrade.py"):
+found += ["srs_view_model.py expects %s as prose and the standard's map has no row for it" % name
+          for name in srs_view_model.PROSE_EXPECTED if "`%s`" % name not in map_rows]
+found += ["srs_view_model.py excludes %s from prose, and the checker reads requirements from it" % name
+          for name in srs_view_model.PROSE_EXCLUDED if name not in srs_check.SKIP_FILES]
+for tool in ("tools/srs_init.py", "srs-dd/tools/srs_upgrade.py"):
     choices = re.search(r'"--period", choices=\(([^)]*)\)', read(tool))
     offered = re.findall(r'"([a-z]+)"', choices.group(1)) if choices else []
     found += both_ways("%s --period" % tool, offered, srs_grounds.PERIODS)
@@ -244,11 +287,11 @@ found += mentioned("srs_proc_eval.py's docstring", srs_proc_eval.__doc__.replace
 # main() accepts is in the usage it prints on a flag it does not.
 import ast, subprocess
 for name in ("srs_check.py", "srs_grounds.py", "srs_arch.py", "srs_dates.py"):
-    source = read("tools/" + name)
+    source = read("srs-dd/tools/" + name)
     main = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == "main")
     accepted = {node.value for node in ast.walk(main)
                 if isinstance(node, ast.Constant) and isinstance(node.value, str) and re.fullmatch(r"--[a-z][a-z-]*", node.value)}
-    run = subprocess.run([sys.executable, "tools/" + name, "--no-such-flag"], capture_output=True, text=True,
+    run = subprocess.run([sys.executable, "srs-dd/tools/" + name, "--no-such-flag"], capture_output=True, text=True,
                          env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
     usage = run.stderr + run.stdout
     found += ["tools/%s accepts %s and its usage does not say so" % (name, flag) for flag in sorted(accepted) if flag not in usage]

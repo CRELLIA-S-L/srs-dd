@@ -1,0 +1,41 @@
+# What the `srs-review` procedure must name — written off the original on
+# 2026-10-13, as the procedure was first written. One literal token per line;
+# the suite fails when one is missing from the procedure's text. Add a line
+# when the procedure gains an instruction; remove one only with the sentence
+# that says why.
+
+# articles
+SRS-DD-ART-010
+SRS-DD-ART-030
+SRS-DD-ART-100
+
+# procedures — where the work comes from, what it hands to, and what it is not
+.claude/skills/srs-build/SKILL.md
+.claude/skills/srs-check/SKILL.md
+.claude/skills/srs-commit/SKILL.md
+.claude/skills/srs-audit/SKILL.md
+srs-new
+
+# files
+srs-dd/method.md
+specs/91-open-issues.md
+AGENTS.md
+
+# commands
+srs_view.py --code
+git status --short
+git diff HEAD
+git merge-base
+
+# readings and acts the procedure must carry
+Announce it in one line
+A check that never ran is never reported as passing
+no trigger is no finding
+The wording is the tell
+Drop what did not survive
+Never weaken a check to get past it
+different means
+Re-reading is not a different means
+Keep one pass in reserve
+Two passes running that do not reduce what is open
+the place and what was seen there

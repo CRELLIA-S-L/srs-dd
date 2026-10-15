@@ -11,7 +11,7 @@ derives_from: []
 depends_on: [FR-CHK-010]
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_check.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_check.py]
 tests: []
 created: 2026-08-07
 ```
@@ -33,7 +33,7 @@ derives_from: []
 depends_on: [FR-CHK-030]
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_check.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_check.py]
 tests: []
 created: 2026-08-07
 ```
@@ -58,7 +58,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_baseline.py, tools/srs_release.py, specs/README.md]
+code: [srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/standard.md]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
 created: 2026-08-09
 ```
@@ -77,7 +77,7 @@ derives_from: [INV-SPEC-030]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_view.py, tools/srs_baseline.py, specs/README.md]
+code: [srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_baseline.py, srs-dd/standard.md]
 tests: [tests/baseline-smoke.sh]
 created: 2026-08-09
 ```
@@ -97,7 +97,7 @@ derives_from: []
 depends_on: [INV-SPEC-010]
 refines: []
 conflicts_with: []
-code: [specs/README.md, tools/srs_check.py, tools/srs_view.py]
+code: [srs-dd/standard.md, srs-dd/tools/srs_check.py, srs-dd/tools/srs_view_page.py]
 tests: [tests/view-smoke.sh]
 created: 2026-08-12
 ```
@@ -130,7 +130,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md]
+code: [srs-dd/standard.md]
 tests: []
 created: 2026-08-17
 ```
@@ -159,7 +159,7 @@ The price is more requirements.
 FR-VIEW-060 is six of them, each with a number that can never be reused, its own links and its own `tests` field.
 That is the point rather than the cost: a `tests` field is worth reading only when what it answers for is one thing.
 
-Written after the passage in `specs/README.md` that carries it, which is the shape FR-SKILL-090 warns about — the rule was sharpened first and only then noticed to have no number to be cited by.
+Written after the passage in `srs-dd/standard.md` that carries it, which is the shape FR-SKILL-090 warns about — the rule was sharpened first and only then noticed to have no number to be cited by.
 Recorded that way rather than backdated.
 
 ### INV-GND-010 — Hypothesis identifiers are immutable and never reused
@@ -171,7 +171,7 @@ derives_from: [INV-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [grounds/README.md, tools/srs_grounds.py]
+code: [srs-dd/grounds.md, srs-dd/tools/srs_grounds.py]
 tests: []
 created: 2026-08-20
 ```
@@ -194,7 +194,7 @@ derives_from: [INV-SPEC-020]
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [grounds/README.md, tools/srs_grounds.py]
+code: [srs-dd/grounds.md, srs-dd/tools/srs_grounds.py]
 tests: []
 created: 2026-08-20
 ```
@@ -214,7 +214,7 @@ derives_from: []
 depends_on: [INV-GND-020]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -242,7 +242,7 @@ derives_from: [INV-SPEC-060]
 depends_on: [IF-GND-010]
 refines: []
 conflicts_with: []
-code: [grounds/README.md]
+code: [srs-dd/grounds.md]
 tests: []
 created: 2026-08-20
 ```
@@ -265,7 +265,7 @@ derives_from: [INV-SPEC-040]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_baseline.py, tools/srs_release.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_dates.py, tools/srs_init.py, tools/srs_upgrade.py, tools/srs_view.py, tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/ci_selftest.sh]
+code: [srs-dd/tools/srs_baseline.py, tools/srs_release.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_dates.py, tools/srs_init.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_arch.py, tools/srs_cite_eval.py, tools/srs_proc_eval.py, tools/srs_report_eval.py, tools/ci_selftest.sh, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_arch_doc.py]
 tests: [tests/baseline-smoke.sh, tests/release-smoke.sh]
 created: 2026-08-09
 ```
@@ -288,7 +288,7 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md]
+code: [srs-dd/standard.md]
 tests: []
 created: 2026-09-25
 ```
@@ -310,7 +310,7 @@ derives_from: [NFR-SPEC-020]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [specs/README.md, CONTRIBUTING.md, AGENTS.md, skeleton/AGENTS.md]
+code: [srs-dd/standard.md, CONTRIBUTING.md, AGENTS.md, skeleton/AGENTS.md]
 tests: []
 created: 2026-09-02
 ```
@@ -319,7 +319,7 @@ In markdown written by hand, a line **shall** break where the meaning breaks and
 
 **Rationale.** It stands on `NFR-SPEC-020`: the specification is stored as markdown a review tool diffs line by line, which is the only reason where a line ends matters at all.
 Width is not a meaning.
-A break inside a paragraph renders as a space — `tools/srs_view.py` joins them with `p.replace("\n", " ")` — so a break placed to keep a line short says nothing to any reader and shows up only in `git diff`.
+A break inside a paragraph renders as a space — `srs-dd/tools/srs_view.py` joins them with `p.replace("\n", " ")` — so a break placed to keep a line short says nothing to any reader and shows up only in `git diff`.
 Wrapping is the renderer's work and the terminal's, and neither asks the author to do it in advance.
 
 **Inside a sentence, never.** That is the half a reader can point at: a line that ends mid-sentence was ended by a ruler rather than by the text.
@@ -345,7 +345,7 @@ derives_from: []
 depends_on: [FR-CHK-050]
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py, specs/90-traceability.md]
+code: [srs-dd/tools/srs_check.py, specs/90-traceability.md]
 tests: [tests/spec-check.sh]
 created: 2026-08-07
 ```
@@ -381,7 +381,7 @@ Not a dangling reference, a confidently wrong one, in the file whose whole job i
 So a shipped procedure explains itself instead of citing.
 The reason a rule exists belongs in the sentence a stranger reads, not behind a number only this repository can resolve.
 What may be cited is what travels with them:
-the articles of the constitution they receive, and the sections of `specs/README.md`, which is the same document in every project.
+the articles of the constitution they receive, and the sections of `srs-dd/standard.md`, which is the same document in every project.
 
 Cite rather than contain, and whichever area rather than ours.
 Both halves of that were read the other way once, by an agent working from this sentence.
@@ -401,7 +401,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-rules.sh]
 created: 2026-08-20
 ```
@@ -424,7 +424,7 @@ derives_from: []
 depends_on: [FR-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py, grounds/90-dashboard.md]
+code: [srs-dd/tools/srs_grounds.py, grounds/90-dashboard.md]
 tests: [tests/grounds-rules.sh, tests/grounds-check.sh]
 created: 2026-08-20
 ```
@@ -445,7 +445,7 @@ derives_from: []
 depends_on: [CON-GND-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_grounds.py]
+code: [srs-dd/tools/srs_grounds.py]
 tests: [tests/grounds-check.sh]
 created: 2026-08-20
 ```
@@ -470,7 +470,7 @@ derives_from: [INV-SPEC-020]
 depends_on: [IF-ARCH-010]
 refines: []
 conflicts_with: []
-code: [arch/README.md]
+code: [srs-dd/arch.md]
 tests: []
 created: 2026-09-02
 ```
@@ -481,6 +481,32 @@ The architecture layer **shall** record which requirements a part carries in the
 a link written on both ends is a link that eventually disagrees with itself, and only one of the two copies is ever updated.
 It also keeps the layer optional in the way that matters — a requirement file says nothing about elements, so removing `arch/` removes the layer and leaves the specification exactly as it was.
 
+
+### INV-ARCH-020 — A path belongs to one part by one rule
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-ARCH-010]
+depends_on: [IF-ARCH-010]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-07
+```
+
+Wherever the architecture checker resolves a path to the element that carries it, the resolution **shall** be the same one: the element with the most specific claim on the path — the path itself before a directory above it — and no element where two claim it equally.
+
+**Approved and built on 2026-10-07**, the rule read against what the field has already settled rather than chosen here. The module decomposition style of *Documenting Software Architectures* gives a child one parent and no loops; UML owns a named element in at most one namespace and admits a part into at most one whole; C4 makes a component part of one container. The hierarchical reflexion models this layer's conformance check descends from map a concrete entity either directly or "indirectly by way of its closest containing entity" — the most specific claim, which is what this states. Tools that partition by path answer the same way: a Bazel package holds everything beneath its directory "except those which themselves contain a BUILD file", and a dependency-structure matrix seats each atom in one leaf. The opposite convention — the last matching pattern wins, as `CODEOWNERS` and `.gitignore` have it — belongs to a file that is an ordered list of policy, which `arch/00-elements.md` is not: its records are ordered by identifier for a reader, so the order deciding anything was nobody's decision.
+
+**Rationale.** `srs-dd/arch.md` says twice that an end is resolved "by the same rule that decides which part a file belongs to", and the checker has two rules.
+One of them, the one the carrier findings and the project's own edges go through, prefers the most specific claim and refuses a tie.
+The other, the one that maps every carried Python file to its part, assigns a file once per record that claims it, so the last record in the file wins — which was measured on 2026-10-07: the same two records, a directory and a file inside it, attributed `src/a.py` to the inner part when the outer record came first and to the outer part when the inner one did, and five rules read the code through that map.
+Nothing in this repository nests a part inside another, so the two rules agree everywhere today and the disagreement is latent; it becomes a verdict that depends on the order of records the day a project nests, which is the day somebody adopts the layer on a code base where a boundary sits inside a directory.
+Written as an invariant and not as a rule of the checker because there is nothing new to report: the claim is that one reading is used everywhere, the shape `INV-SPEC-090` has for the order of identifiers.
+A `draft` because it was found by an audit of the layer rather than asked for (Lifecycle, `srs-dd/standard.md`): what it obliges is a change to how five existing rules read the code, and that is the maintainer's to approve.
+
 ### CON-ARCH-010 — The architecture layer writes nowhere else
 
 ```yaml
@@ -490,7 +516,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py]
 tests: [tests/arch-rules.sh]
 created: 2026-09-02
 ```
@@ -509,7 +535,7 @@ derives_from: []
 depends_on: [FR-ARCH-010]
 refines: []
 conflicts_with: []
-code: [tools/srs_arch.py]
+code: [srs-dd/tools/srs_arch.py]
 tests: [tests/arch-check.sh]
 created: 2026-09-02
 ```
@@ -518,6 +544,47 @@ The layer's map **shall** be produced by the architecture checker from the eleme
 
 **Rationale.** A hand-kept map is a second copy of what the records already say, and the copy that gets edited is never the one that gets read.
 Generated, it is also diffable: a committed map that no longer matches what the records produce is a change somebody made without looking at the parts.
+
+### CON-ARCH-030 — A shape is compared with its own part's code
+
+```yaml
+status: implemented
+verification: T
+derives_from: [INV-ARCH-020]
+depends_on: [FR-ARCH-780, IF-ARCH-120]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+The architecture command **shall** compare the symbols a shape names only with what was read from the files the element that shape is inside carries, resolving which element a file belongs to as the rest of the layer does.
+
+**Rationale.** A symbol is a name in a file, and a file belongs to one part by `INV-ARCH-020`; a comparison that pools every name a run read answers a question nobody asked — whether the project declares that name anywhere at all.
+Measured on this repository before the narrowing: 44 names were declared in more than one part and `main` in thirteen modules, so a form naming `main` could not be falsified — delete it from the file the form is about and the neighbour's copy answers for it.
+A constraint rather than a clause inside each rule, because four rules compare a shape with the code and a fifth will be written later: the one that forgets the clause is the one nobody reads twice.
+
+### CON-ARCH-040 — An absence is concluded only where the code was read whole
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-ARCH-710]
+depends_on: [CON-ARCH-030, FR-ARCH-980]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_arch.py, srs-dd/arch.md]
+tests: [tests/arch-rules.sh]
+created: 2026-10-14
+```
+
+The architecture command **shall** say a symbol a shape names is absent only where every code file the element that shape is inside carries was read by the checker itself or the project supplied facts about its symbols.
+
+**Rationale.** Every other rule of this layer concludes from what it saw — a dependency read, an entry read, a type read — and `FR-ARCH-710`, the one rule that concludes an absence, may do so because a project supplying facts about its units claims they are complete.
+`FR-ARCH-930` lost that condition when the checker learned to read a language itself, and reading a language is completeness per file and not per part: on this repository one part carries thirty-two shell files, and a form naming two of its functions was reported twice for naming what is there.
+The facts file is taken as the claim of completeness, as `arch/units.json` is, rather than a list of the files it was produced from: a project with nothing to supply has nothing to write, and a key naming the files a producer read can be added to `IF-ARCH-120` afterwards without breaking a producer, which the reverse order cannot.
+A code file and not every carrier, because a part carries a standard, a procedure and a CI template as readily as code, and what counts as code is what the project already declared for the two-way check.
 
 ### INV-SPEC-080 — A number widens, and nothing is renamed
 
@@ -528,7 +595,7 @@ derives_from: [INV-SPEC-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_grounds.py, tools/srs_arch.py, tools/srs_init.py, tools/srs_view.py, tools/srs_cite_eval.py]
+code: [srs-dd/tools/srs_parse.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, tools/srs_init.py, srs-dd/tools/srs_view.py, tools/srs_cite_eval.py]
 tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh, tests/adopt-smoke.sh]
 created: 2026-09-20
 ```
@@ -549,7 +616,7 @@ derives_from: [INV-SPEC-080]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_parse.py, tools/srs_check.py, tools/srs_view.py, tools/srs_grounds.py, tools/srs_arch.py, tools/srs_dates.py, tools/srs_cite_eval.py]
+code: [srs-dd/tools/srs_parse.py, srs-dd/tools/srs_check.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, srs-dd/tools/srs_dates.py, tools/srs_cite_eval.py, srs-dd/tools/srs_arch_doc.py]
 tests: [tests/checker-rules.sh, tests/grounds-rules.sh, tests/arch-rules.sh, tests/dates-smoke.sh]
 created: 2026-09-20
 ```
@@ -579,7 +646,7 @@ Where this repository keeps its own counterpart of a file the framework ships �
 **Rationale.** The framework is the first project it is applied to, and its own `AGENTS.md`, `CLAUDE.md` and `.githooks/pre-commit` are its instances of what `skeleton/` and `ci/` hand every target.
 Nothing said so.
 ADR-0004 recorded the opposite half — the root guides "became free to describe this repository" — and the map of the repository called the shipped guides "target-facing", so a reader took the two for independent files with two audiences, and an agent proposed taking a rule out of the root guide on the ground that a procedure covered it here.
-The relation existed only as a habit in the `code` fields, decided afresh for each requirement, and nothing checked it: on 2026-09-23 the root guide lacked the constitution, the rule on the generated matrix, the one on ART-030, and the lines on `srs-check`, `srs-page`, `srs-baseline` and the procedures being plain markdown; the root `CLAUDE.md` sent only changes to the checker, the viewer and the installer through `srs`; and the hook here did not print the bets a commit touches, although this repository keeps a register.
+The relation existed only as a habit in the `code` fields, decided afresh for each requirement, and nothing checked it: on 2026-09-23 the root guide lacked the constitution, the rule on the generated matrix, the one on SRS-DD-ART-030, and the lines on `srs-check`, `srs-page`, `srs-baseline` and the procedures being plain markdown; the root `CLAUDE.md` sent only changes to the checker, the viewer and the installer through `srs`; and the hook here did not print the bets a commit touches, although this repository keeps a register.
 
 What rests on it is more than tidiness.
 `FR-SKILL-290` and `FR-SKILL-310` run a fresh agent in this repository, with the root guides loaded, and read the result as a measurement of the guides a target gets — true only while each counterpart holds the rules its shipped file states.
@@ -588,7 +655,7 @@ The counterpart may say more — ADR-0004 still frees it to describe this reposi
 What concerns a target alone is excepted by name in the test, with its reason: a line the installer fills in, a procedure that exists only for a target, such as upgrading from a framework this repository is.
 The starter files under `skeleton/specs/`, `skeleton/grounds/` and `skeleton/arch/` are of that kind as a whole: what they state teaches a project that has not started how to fill its first files — "define every word a newcomer would stumble on" — and this repository filled its own long ago, so they are no pair and the test holds none; the audit before baseline 0.20.0 asked, and this is the answer.
 
-A file identical in every project is not a pair at all: it ships from this repository's own tree, as `specs/README.md` does under ADR-0004, and the decision template joined it when a rule went into the shipped copy that this repository, having none, never saw.
+A file identical in every project is not a pair at all: it ships from this repository's own tree, as `srs-dd/standard.md` does under ADR-0004, and the decision template joined it when a rule went into the shipped copy that this repository, having none, never saw.
 The constitution is not a pair either: its own text says the two copies diverge as either side is amended.
 
 Two instruments hold it, because a rule reaches a guide by two roads.
@@ -635,3 +702,97 @@ Where one file keeps a list of what another defines — the flags a tool accepts
 The ones that still matched were copies all the same — the viewer's expected prose beside the standard's map, the two installers' `--period` choices beside the register's periods, the citation measurement's map of record kinds, the release procedure's list of what the command edits, the hand-written usage of the four tools that parse their own flags — and a copy that matches today is the one that is behind tomorrow.
 The suite holds each to its definition; the tools built on `argparse` are not among them, because their usage is generated from the definition and cannot drift from it.
 The suite is the gate this names as its code, as `INV-SPEC-100` does: what carries the property is the pairs of files, not one part of the system.
+
+### INV-SPEC-120 — A path rewritten because a file moved still names that file
+
+```yaml
+status: implemented
+verification: I
+derives_from: [INV-SPEC-010]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [srs-dd/standard.md, CONTRIBUTING.md]
+tests: []
+created: 2026-10-01
+```
+
+Where a file moves, a path already written — in a requirement, a decision, the release notes, a guide — **shall** be rewritten to the new one only where it named the file that moved.
+
+**Rationale.** A move is made once and the paths naming it are rewritten everywhere at once, which is the cheapest way to do it and the only way that misreads what it edits: the spelling of a path is not its meaning.
+The move of 0.22.0 rewrote `specs/README.md` to `srs-dd/standard.md` through the decisions, the release notes and `CONTRIBUTING.md`, and in two of them — `ADR-0029` and the notes of 0.19.0 — that path had named a document the project itself wrote, the one adoption sets aside.
+`ADR-0029` came out saying that adoption moves the framework's own standard into `specs/archive/`, the reverse of the decision it records, while `FR-INIT-230`, which that decision chose, kept the path it always had; the two then disagreed, and nothing reported it.
+The release notes of 0.19.0 came out instructing a reader to `git mv srs-dd/standard.md specs/archive/README-before-srs-dd.md`.
+The hazard is in every path a project and the framework can both own, which is what makes the spelling no guide: a sentence written several releases earlier is read by whoever is migrating, and a path that has quietly changed referent is worse than one left stale, because stale reads as history and wrong reads as instruction.
+
+**No gate goes with it.** What a path named when the sentence was written is not in the text: both referents are spelled the same, and only the sentence around them says which was meant.
+A script that guessed would be wrong wherever the guess matters, so this is verified by inspection and says so — the same reason `INV-SPEC-070` gives.
+It extends `INV-SPEC-010` from the identifier to the path: what is published keeps its meaning, and an edit that preserves the spelling while changing the referent breaks that as surely as reusing a number would.
+
+### INV-SPEC-130 — A page links the pages its caller named
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [IF-SPEC-050, FR-VIEW-060, FR-ARCH-520, FR-GND-580]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_arch_doc.py, srs-dd/tools/srs_grounds.py]
+tests: [tests/view-smoke.sh, tests/arch-doc.sh, tests/grounds-rules.sh]
+created: 2026-10-06
+```
+
+Wherever the framework prints a page `IF-SPEC-050` names, it **shall** carry a link to exactly the pages of that set its caller named.
+
+**Rationale.** The pages are one document set for a reader, and a set whose members do not name each other is three files somebody has to be told about.
+The caller names them rather than the page deciding for itself, because only the caller knows which pages it is about to produce: a page that chose its own links from what the repository holds — a `grounds/` directory, an `arch/` one — would promise a sibling nobody printed, and a page printed to stdout cannot even look beside its output to check.
+So a link exists on exactly one ground: somebody said that file will be there. Where nothing was named the page carries no links, which is what a hand-run of a single page gets, and `FR-CI-190`'s step names all three because it is the one place that knows the whole set is being produced.
+The names come from `IF-SPEC-050` and not from the caller's imagination: a name outside that set is a published URL nobody else writes, and the page would be the only thing pointing at it.
+
+### INV-SKILL-020 — A budget rises before an instruction is cut
+
+```yaml
+status: deferred
+verification: I
+derives_from: [NFR-SKILL-020]
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-11
+```
+
+Where a procedure or an agent guide the framework ships must carry an instruction its budget of words has no room for, that budget **shall** be raised, with the reason written beside the number, rather than the room made by cutting an instruction the file already carries.
+
+**Rationale.** The budget is a floor under what the procedures cost, not a design target, and `NFR-SKILL-020` says it "starts where the procedures stand and is lowered as they are shortened".
+Nothing said which way to go when the floor is in the way of an instruction, and the expensive answer is the one that looks disciplined: squeeze the new rule in by spending the file's own words.
+Measured once, on 2026-10-09: paying for the guide's sixth rule out of `AGENTS.md` itself took out the line that says to read `CONTRIBUTING.md` before reformatting anything, the one that makes the `srs-ignore` exemption unconditional, and the one that says this repository lives by the framework it ships.
+All three went back and the number rose from 2 060 to 2 100 instead, which is the act this invariant makes the default rather than a recovery.
+Raising is cheap to review and impossible to miss — the number sits in `tests/skill-budget.sh` with its reason above it, and the commit that moves it says why — while a sentence quietly spent to make room is invisible in a diff that also adds a section.
+
+Three ways out of a full budget, and this one is first because the other two are not always available: a rule that belongs in a standard the procedure already tells the reader to open is moved there and pointed at (`FR-SKILL-020`), which is what `FR-ARCH-770` did for `srs-arch`; and a procedure that has genuinely grown slack is rewritten shorter, which is a pass of its own and is where `FR-SKILL-620` puts it.
+So the numbers do not only ever rise: they rise while the work is going on and are read back down before a release.
+
+**No gate goes with it.** A suite can see that a number moved and that a file is shorter; it cannot see whether the words that left were an instruction or a restatement of one, which is the whole question.
+`FR-SKILL-300` holds the mechanical half — every command, article, file and procedure a list says the file must name is still named — and this is verified by inspection for what that list cannot hold: the sentence around the command that tells the reader to run it, and the reason beside it.
+
+### INV-ARCH-030 — A shape is recorded in one direction only
+
+```yaml
+status: implemented
+verification: I
+derives_from: [INV-SPEC-020]
+depends_on: [IF-ARCH-110]
+refines: []
+conflicts_with: []
+code: [srs-dd/arch.md]
+tests: []
+created: 2026-10-13
+```
+
+The architecture layer **shall** record which requirements a shape answers for in the shape alone, leaving what answers for a requirement to be computed.
+
+**Rationale.** The rule `INV-ARCH-010` states for a part, at the grain below it and for the same reason: a link written at both ends eventually disagrees with itself, and only one of the two copies is ever updated.
+It is also what keeps the grain optional — nothing in `specs/` mentions a shape, so a project that writes none is described exactly as it was.

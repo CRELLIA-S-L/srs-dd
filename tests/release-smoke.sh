@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_release.py, exercised in a throwaway clone of this repository:
 # it edits files that are committed here, and a test that did that to the
 # working copy would be a test nobody dares run twice.
@@ -51,7 +52,7 @@ done
 # refuses on a matrix that is not fresh. The output is kept — a suite that
 # discards it reports a dead hook and no reason, which is exactly what the
 # commands were taught not to do.
-python3 tools/srs_check.py > /tmp/rel-precheck.log 2>&1 || {
+python3 srs-dd/tools/srs_check.py > /tmp/rel-precheck.log 2>&1 || {
     echo "the clone does not pass its own checker:"; cat /tmp/rel-precheck.log
     exit 1
 }
@@ -116,16 +117,16 @@ test -z "$(git status --porcelain)"
 python3 tools/srs_release.py 9.9.9 --date 2026-01-02 > /tmp/rel-run.log
 test "$(git rev-parse HEAD)" = "$clean"
 test -z "$(git tag -l 'v9.9.9')"
-grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+grep -q '__version__ = "9.9.9"' srs-dd/tools/srs_parse.py
 grep -q '## \[9.9.9\] — 2026-01-02' CHANGELOG.md
-grep -q "Commit CHANGELOG.md, tools/srs_parse.py" /tmp/rel-run.log
+grep -q "Commit CHANGELOG.md, srs-dd/tools/srs_parse.py" /tmp/rel-run.log
 
 # One home and two re-exports: a bump that reaches the file but not
 # the tools reading it announces the old version to everybody who
 # runs them, which is the bug this arrangement replaced (ADR-0021).
-python3 tools/srs_check.py --no-write > /tmp/rel-ver-spec.log 2>&1
+python3 srs-dd/tools/srs_check.py --no-write > /tmp/rel-ver-spec.log 2>&1
 grep -q "(srs_check 9.9.9)" /tmp/rel-ver-spec.log
-python3 tools/srs_grounds.py --no-write > /tmp/rel-ver-gnd.log 2>&1
+python3 srs-dd/tools/srs_grounds.py --no-write > /tmp/rel-ver-gnd.log 2>&1
 grep -q "(srs_grounds 9.9.9)" /tmp/rel-ver-gnd.log
 
 # A release is not a baseline: it freezes nothing and leaves the log and
@@ -136,7 +137,7 @@ git diff --quiet -- specs/92-baselines.md
 # Committed with an ordinary client, it is a release like any other.
 git add -A
 git commit -qm "SRS-DD 9.9.9"
-python3 tools/srs_check.py --strict --no-write >/dev/null
+python3 srs-dd/tools/srs_check.py --strict --no-write >/dev/null
 
 # Preparing the same release twice is refused, and the dated section is
 # what says so — no git client had to be asked.
@@ -159,7 +160,7 @@ rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-bad.log 2>&1 || rc=$?
 test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/rel-bad.log
 absent '## \[9.9.10\] —' CHANGELOG.md
-grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+grep -q '__version__ = "9.9.9"' srs-dd/tools/srs_parse.py
 
 # And a warning stops it too, which is where this parts company with the
 # baseline command: that one refuses on an error and freezes a specification
@@ -178,20 +179,20 @@ derives_from: []
 depends_on: []
 refines: []
 conflicts_with: []
-code: [tools/srs_check.py]
+code: [srs-dd/tools/srs_check.py]
 tests: []
 ```
 
 The checker **shall** be pointed at by a requirement nobody has approved.
 REQ
-python3 tools/srs_check.py --no-write > /tmp/rel-warn-check.log 2>&1
+python3 srs-dd/tools/srs_check.py --no-write > /tmp/rel-warn-check.log 2>&1
 grep -q "is draft but the code field is not empty" /tmp/rel-warn-check.log
 grep -q "No errors" /tmp/rel-warn-check.log
 rc=0; python3 tools/srs_release.py 9.9.10 > /tmp/rel-warn.log 2>&1 || rc=$?
 test "$rc" -eq 2
 grep -q "checker does not pass" /tmp/rel-warn.log
 absent '## \[9.9.10\] —' CHANGELOG.md
-grep -q '__version__ = "9.9.9"' tools/srs_parse.py
+grep -q '__version__ = "9.9.9"' srs-dd/tools/srs_parse.py
 git checkout -- specs/10-fr-chk.md specs/90-traceability.md
 
 # srs-end: FR-CI-140
@@ -251,7 +252,8 @@ def argv(node):
 
 
 found = []
-for path in sorted(glob.glob(os.path.join(sys.argv[1], "tools", "*.py"))):
+for path in sorted(glob.glob(os.path.join(sys.argv[1], "tools", "*.py"))
+                   + glob.glob(os.path.join(sys.argv[1], "srs-dd", "tools", "*.py"))):
     with open(path, encoding="utf-8") as handle:
         tree = ast.parse(handle.read(), path)
     for node in ast.walk(tree):

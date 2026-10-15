@@ -5,22 +5,22 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_check.py
-tools/srs_view.py
-tools/srs_view.py --area
-tools/srs_view.py --code
-tools/srs_view.py --grep
-tools/srs_view.py --list
-tools/srs_view.py --statements
-tools/srs_view.py --vocabulary
+srs-dd/tools/srs_check.py
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --area
+srs-dd/tools/srs_view.py --code
+srs-dd/tools/srs_view.py --grep
+srs-dd/tools/srs_view.py --list
+srs-dd/tools/srs_view.py --statements
+srs-dd/tools/srs_view.py --vocabulary
 
 # articles
-ART-030
+SRS-DD-ART-030
 
 # files
 AGENTS.md
 specs/91-open-issues.md
-specs/README.md
+srs-dd/standard.md
 specs/srs-config.json
 
 # procedures

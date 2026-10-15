@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """Freeze the specification: write the baseline row.
 
-    python3 tools/srs_baseline.py 1.2.0 --dry-run
-    python3 tools/srs_baseline.py 1.2.0
+    python3 srs-dd/tools/srs_baseline.py 1.2.0 --dry-run
+    python3 srs-dd/tools/srs_baseline.py 1.2.0
 
-It writes the row into `specs/92-baselines.md` — version, date, and what
-changed since the previous baseline — and stops. Committing is yours, with
-whatever git client the project uses; a `spec/vX.Y.Z` tag is a bookmark you
-may add afterwards or never, because the row is what makes the baseline.
-
-Where such a tag was made first, the row describes that revision rather than
-the working tree, so writing it late costs nothing in accuracy.
-
-A baseline is not a release. It freezes what the system must do; a release
-ships what it does. Neither implies the other, and the same number in both
-places means nothing.
+It writes version, date and what changed into `specs/92-baselines.md` and stops:
+committing and any `spec/vX.Y.Z` tag are yours, and the row is what makes the
+baseline. Where the tag came first, the row describes that revision. A baseline is
+not a release.
 
 Exit codes: 0 written · 2 refused, the log untouched — outside a dry run the
 checker it ran may have regenerated the matrix first.
@@ -33,14 +29,16 @@ import sys
 
 sys.dont_write_bytecode = True                              # noqa: E402
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools"))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(ROOT, "srs-dd", "tools"))
 
-import srs_view                                             # noqa: E402
+# The model, not the viewer: the row and the log are what this command needs,
+# and the page it would otherwise drag in has nothing to do with a baseline.
+import srs_view_model                                       # noqa: E402
 
-CHECKER = os.path.join(ROOT, "tools", "srs_check.py")
-BASELINES = os.path.join(srs_view.SPECS, "92-baselines.md")
-MATRIX = os.path.join(srs_view.SPECS, "90-traceability.md")
+CHECKER = os.path.join(ROOT, "srs-dd", "tools", "srs_check.py")
+BASELINES = os.path.join(srs_view_model.SPECS, "92-baselines.md")
+MATRIX = os.path.join(srs_view_model.SPECS, "90-traceability.md")
 
 EMPTY_NOTE = "*No baselines yet.*\n"
 
@@ -83,19 +81,13 @@ def main():
         baselines = read(BASELINES)
     except OSError as exc:
         return fail("there is no baseline log to write to: %s" % exc)
-    if version in srs_view.logged_baselines():
+    if version in srs_view_model.logged_baselines():
         return fail("%s is already in %s; there is nothing to write"
                     % (version, relative(BASELINES)))
 
-    # The checker also regenerates the matrix, which is why it runs before
-    # the row is written: both files then go into the same commit. Its
-    # output is captured so the refusal carries the reasons: the verdict
-    # goes to stderr and the findings to stdout, and whoever redirects one
-    # of the two is otherwise told that something is wrong without being
-    # told what.
-    # A dry run reads the specification and writes nothing, the matrix
-    # included: the checker's side effect is the one a dry run promised
-    # away and kept.
+    # The checker runs first because it also regenerates the matrix, so both files go
+    # into one commit; its output is captured so a refusal carries the reasons. A dry
+    # run writes nothing, the matrix included.
     # implements: FR-SPEC-060
     command = [sys.executable, CHECKER] + (["--no-write"] if args.dry_run else [])
     probe = subprocess.Popen(command, cwd=ROOT,
@@ -109,8 +101,8 @@ def main():
     sys.stdout.write(output)
 
     try:
-        row = srs_view.baseline_row(version, args.date)
-    except srs_view.ViewError as exc:
+        row = srs_view_model.baseline_row(version, args.date)
+    except srs_view_model.ViewError as exc:
         return fail("%s" % exc)
     anchor = re.search(r"^\|---\|---\|---\|---\|$", baselines, re.M)
     if not anchor:

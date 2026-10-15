@@ -5,7 +5,7 @@ procedure: srs-new
 max_turns: 24
 free: FR-VIEW-420
 check: skill srs-new
-check: ran python3 tools/srs_view.py
+check: ran python3 srs-dd/tools/srs_view.py
 check: answer FR-VIEW-420
 check: answer \*\*shall\*\*
 check: answer FR-VIEW-240 — A citation is printed, not typed \(specs/10-fr-view\.md, implemented\)

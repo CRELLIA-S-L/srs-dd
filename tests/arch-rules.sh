@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # One fixture per rule of the architecture checker, each breaking exactly one
 # thing, so a failure names the rule that stopped working.
 #
@@ -6,6 +7,21 @@
 # verifies: FR-ARCH-060, FR-ARCH-070, FR-ARCH-080, FR-ARCH-090, FR-ARCH-100
 # verifies: IF-ARCH-020, IF-ARCH-030, CON-ARCH-010, FR-ARCH-200, FR-ARCH-210
 # verifies: FR-ARCH-220, FR-ARCH-230, FR-ARCH-240, FR-ARCH-250, FR-ARCH-260, IF-ARCH-040
+# verifies: FR-ARCH-310, FR-ARCH-320, FR-ARCH-330, FR-ARCH-340, FR-ARCH-350
+# verifies: FR-ARCH-360, FR-ARCH-370, FR-ARCH-380, FR-ARCH-390, FR-ARCH-400, IF-ARCH-050
+# verifies: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060, FR-ARCH-490, FR-ARCH-500
+# verifies: FR-ARCH-560, FR-ARCH-540, FR-ARCH-570, FR-ARCH-580
+# verifies: FR-ARCH-590, FR-ARCH-600, IF-ARCH-070
+# verifies: FR-ARCH-610, FR-ARCH-620, IF-ARCH-080
+# verifies: INV-ARCH-020
+# verifies: FR-ARCH-630, FR-ARCH-640
+# verifies: FR-ARCH-650
+# verifies: FR-ARCH-680, FR-ARCH-690, IF-ARCH-090
+# verifies: FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730
+# verifies: FR-ARCH-740, FR-ARCH-750, IF-ARCH-100
+# verifies: FR-ARCH-780, FR-ARCH-790, FR-ARCH-800, FR-ARCH-810, FR-ARCH-820
+# verifies: FR-ARCH-830, FR-ARCH-840, FR-ARCH-850, FR-ARCH-860, IF-ARCH-110
+# verifies: FR-ARCH-870
 #
 # Several of these assert that the checker stays quiet, and they are why this
 # file exists rather than a smoke test: delete the rule underneath one and the
@@ -25,8 +41,9 @@ cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-arch
 rm -rf "$LAB"
-mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/arch" "$LAB/src"
-cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py "$LAB/tools/"
+mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/arch" "$LAB/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$LAB/srs-dd/tools/"
 printf 'x\n' > "$LAB/src/a.py"
 printf 'x\n' > "$LAB/src/b.py"
 
@@ -88,7 +105,7 @@ passes=0
 rule() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
+    ( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-arch.log; exit 1
     fi
@@ -102,7 +119,7 @@ rule() {
 silent() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
+    ( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --no-write "$@" ) > /tmp/srs-arch.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-arch.log; exit 1
     fi
@@ -423,9 +440,9 @@ printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
 # srs-end: FR-ARCH-090, IF-ARCH-030
 # --- verifies: IF-ARCH-020 — the third exit code is for what cannot be read.
 rule "IF-ARCH-020 unknown flag" 2 "unknown flag(s): --nope" --nope
-mv "$LAB/tools/srs_view.py" "$LAB/tools/srs_view.hidden"
-rule "IF-ARCH-020 no viewer to read the model through" 2 "tools/srs_view.py is not here"
-mv "$LAB/tools/srs_view.hidden" "$LAB/tools/srs_view.py"
+mv "$LAB/srs-dd/tools/srs_view.py" "$LAB/srs-dd/tools/srs_view.hidden"
+rule "IF-ARCH-020 no viewer to read the model through" 2 "srs-dd/tools/srs_view.py is not here"
+mv "$LAB/srs-dd/tools/srs_view.hidden" "$LAB/srs-dd/tools/srs_view.py"
 
 # srs-end: IF-ARCH-020
 # --- verifies: FR-ARCH-200 — a dependency the code has and the model does not.
@@ -660,7 +677,7 @@ rule "FR-ARCH-260 lowered to report under the published name" 0 \
 
 # --- The same pair from both suppliers is one finding.
 printf 'import b\n' > "$LAB/src/a.py"
-( cd "$LAB" && python3 tools/srs_arch.py --no-write ) > /tmp/srs-arch.log 2>&1 || true
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --no-write ) > /tmp/srs-arch.log 2>&1 || true
 n=$(grep -c "and E-010 does not declare it" /tmp/srs-arch.log)
 if [ "$n" != "1" ]; then
     echo "FAIL FR-ARCH-260 a pair said by the import and by the file is one finding — got $n"
@@ -1006,7 +1023,7 @@ carries: [src/b.py]
 
 Owns b.py alone.
 MD
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-240 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qE '^\| \*\*E-010\*\*.*\| FR-CORE-010 \(1 realized\) \|$' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-240 — the directory carries only what no nearer carrier owns"
@@ -1113,7 +1130,7 @@ Owns t/ and nothing a requirement realizes.
 MD
 rule "FR-ARCH-240 derived: a test file an element owns carries nothing" 0 \
      "E-020 carries no requirement"
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-240 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qF '| **FR-CORE-010**, FR-CORE-020, FR-CORE-060 (3 realized) |' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-240 — only realized requirements, through code, each once, in order"
@@ -1149,7 +1166,7 @@ requirements: [FR-CORE-010]
 
 Answers for the first and owns what realizes the second.
 MD
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-250 — the derived layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qF '| **FR-CORE-010**, FR-CORE-020, FR-CORE-060 (3 realized) |' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-250 — the map does not mark written apart from derived"
@@ -1159,7 +1176,7 @@ grep -qF 'Requirements are derived' "$LAB/arch/90-map.md" \
          cat "$LAB/arch/90-map.md"; exit 1; }
 passes=$((passes + 1))
 printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
-( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 \
     || { echo "FAIL FR-ARCH-250 — the written layer does not pass"; cat /tmp/srs-arch.log; exit 1; }
 grep -qF '| **FR-CORE-010** (1 realized) |' "$LAB/arch/90-map.md" \
     || { echo "FAIL FR-ARCH-250 — under the default nothing is derived"
@@ -1190,7 +1207,7 @@ created: 2026-09-02
 
 The system **shall** lean.
 MD
-( cd "$LAB" && python3 tools/srs_arch.py --drivers ) > /tmp/srs-arch-drivers.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --drivers ) > /tmp/srs-arch-drivers.log 2>&1 \
     || { echo "FAIL FR-ARCH-210 — --drivers exited non-zero"
          cat /tmp/srs-arch-drivers.log; exit 1; }
 head -3 /tmp/srs-arch-drivers.log | grep -qF "FR-CORE-010" \
@@ -1212,9 +1229,9 @@ passes=$((passes + 1))
 # --- the kind of writing this forbids and the kind a narrower comparison
 # --- never sees.
 LAB2=/tmp/srs-arch-write
-rm -rf "$LAB2"; mkdir -p "$LAB2/tools" "$LAB2/specs" "$LAB2/arch" "$LAB2/src"
-cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py \
-   "$LAB2/tools/"
+rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools" "$LAB2/specs" "$LAB2/arch" "$LAB2/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$LAB2/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB2/specs/"
 printf '{"rules": {}}\n' > "$LAB2/arch/arch-config.json"
 printf 'x\n' > "$LAB2/src/a.py"
@@ -1243,7 +1260,7 @@ BEFORE=/tmp/srs-arch-write.before
 AFTER=/tmp/srs-arch-write.after
 rm -rf "$BEFORE" "$AFTER"
 weigh > "$BEFORE"
-( cd "$LAB2" && python3 tools/srs_arch.py ) > /dev/null 2>&1
+( cd "$LAB2" && python3 srs-dd/tools/srs_arch.py ) > /dev/null 2>&1
 [ -f "$LAB2/arch/90-map.md" ] \
     || { echo "FAIL CON-ARCH-010 — the run wrote no map, so this assertion"
          echo "would hold for a checker that did nothing"; exit 1; }
@@ -1285,7 +1302,7 @@ Gone, and cited with the status that says so.
 MD
 rm -f "$LAB/arch/90-map.md"
 rc=0
-( cd "$LAB" && python3 tools/srs_arch.py --cite E-020 E-010 E-990 ) \
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py --cite E-020 E-010 E-990 ) \
     > /tmp/srs-arch-cite.out 2> /tmp/srs-arch-cite.err || rc=$?
 cat > /tmp/srs-arch-cite.want <<'WANT'
 E-020 — The second, cancelled (arch/00-elements.md, withdrawn)
@@ -1345,7 +1362,7 @@ MD
 # Warnings are expected of this fixture — a proposed part carrying nothing,
 # requirements no element carries — and are not what it asserts; an error
 # would be, and the exit code says which it was.
-rc=0; ( cd "$LAB" && python3 tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || rc=$?
+rc=0; ( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || rc=$?
 [ "$rc" = 0 ] || { echo "FAIL INV-SPEC-080 — the wide fixture exited $rc"; cat /tmp/srs-arch.log; exit 1; }
 grep -q "identifier does not match" /tmp/srs-arch.log && { echo "FAIL INV-SPEC-080 — a wide element number was refused"; cat /tmp/srs-arch.log; exit 1; }
 python3 - "$LAB/arch/90-map.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the map orders elements as strings"; exit 1; }
@@ -1420,8 +1437,9 @@ silent "FR-ARCH-280 a directory that exists is not reported" 0 "does not exist"
 # The git lab: a file renamed and committed, a file deleted and committed, a
 # file renamed in the working tree, and a file git never saw.
 GITLAB=/tmp/srs-arch-git
-rm -rf "$GITLAB"; mkdir -p "$GITLAB/tools" "$GITLAB/specs" "$GITLAB/arch" "$GITLAB/src"
-cp tools/srs_arch.py tools/srs_parse.py tools/srs_check.py tools/srs_view.py "$GITLAB/tools/"
+rm -rf "$GITLAB"; mkdir -p "$GITLAB/srs-dd/tools" "$GITLAB/specs" "$GITLAB/arch" "$GITLAB/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py srs-dd/tools/srs_view.py \
+   srs-dd/tools/srs_view_model.py "$GITLAB/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$GITLAB/specs/"
 cp "$LAB/specs/10-fr-core.md" "$GITLAB/specs/"
 printf '{"rules": {}}\n' > "$GITLAB/arch/arch-config.json"
@@ -1447,7 +1465,7 @@ MD
   && git mv src/old.py src/new.py && git rm -q src/gone.py && git mv src/файл.py src/файл2.py \
   && git -c user.email=ci@example.com -c user.name=CI commit -qm moved \
   && git mv src/wt.py src/wt2.py )
-( cd "$GITLAB" && python3 tools/srs_arch.py --no-write ) > /tmp/srs-arch-git.log 2>&1 || true
+( cd "$GITLAB" && python3 srs-dd/tools/srs_arch.py --no-write ) > /tmp/srs-arch-git.log 2>&1 || true
 grep -q "E-010 carries src/old.py, which does not exist; git renamed it to src/new.py in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \
     || { echo "FAIL FR-ARCH-280 — a committed rename is not named with its new path and commit"; cat /tmp/srs-arch-git.log; exit 1; }
 grep -q "E-010 carries src/gone.py, which does not exist; git deleted it in [0-9a-f]\{7,\}$" /tmp/srs-arch-git.log \
@@ -1461,6 +1479,2995 @@ grep -q "E-010 carries src/файл.py, which does not exist; git renamed it to 
 grep -q "src/a.py, which does not exist\|src/b.py, which does not exist" /tmp/srs-arch-git.log \
     && { echo "FAIL FR-ARCH-280 — a file that exists was reported"; cat /tmp/srs-arch-git.log; exit 1; }
 passes=$((passes + 1))
+
+# --- verifies: FR-ARCH-310, FR-ARCH-320 — design mode: a part designed and
+# --- not yet built. Appended last: the approved requirement it needs would
+# --- otherwise be unanswered for in every fixture above.
+cat >> "$LAB/specs/10-fr-core.md" <<'MD'
+
+### FR-CORE-070 — The approved one
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-04
+```
+
+The system **shall** act once somebody builds it.
+MD
+
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries what exists.
+MD
+rule "FR-ARCH-320 an approved requirement nobody answers for" 0 \
+    "FR-CORE-070 is deferred and no element answers for it"
+
+# A backlog is not a defect: a note by default, a warning once priced up. The
+# layer below is otherwise silent, so the exit code is about the note alone.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060]
+depends_on: []
+```
+
+Carries every file and every realized obligation.
+MD
+rule "FR-ARCH-320 a note by default" 0 "note: specs/10-fr-core.md — FR-CORE-070 is deferred"
+silent "FR-ARCH-320 a strict run passes over the note" 0 "treated as errors" --strict
+printf '{"rules": {"requirement-unassigned": "warn"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-320 priced up, it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Carries what exists.
+
+### E-020 — The part that will carry the third
+
+```yaml
+status: proposed
+carries: [src/later]
+requirements: [FR-CORE-070]
+depends_on: [E-010]
+```
+
+Will carry it once somebody builds it.
+MD
+silent "FR-ARCH-320 a design answers for an approved requirement" 0 \
+    "FR-CORE-070 is deferred and no element answers"
+silent "FR-ARCH-310 a designed part's carriers need not exist" 0 \
+    "src/later, which does not exist"
+silent "FR-ARCH-330 a design whose files are absent is not called built" 0 \
+    "every file it carries exists"
+
+# srs-end: FR-ARCH-310, FR-ARCH-320
+# --- verifies: FR-ARCH-340 — a design claims a file a built part does not own:
+# --- the file is still unclaimed, the obligation still answered for.
+elements <<'MD'
+# Elements
+
+### E-010 — Half of it
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Carries half.
+
+### E-020 — The part that will take the other half
+
+```yaml
+status: proposed
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-070]
+depends_on: []
+```
+
+Will take the first file.
+MD
+rule "FR-ARCH-340 a designed part does not own its files yet" 0 \
+    "src/a.py — named by FR-CORE-010 and carried by no element"
+silent "FR-ARCH-340 and it does carry the obligation" 0 \
+    "FR-CORE-010 is implemented and no element carries it"
+silent "FR-ARCH-330 a design with an unbuilt obligation is not called built" 0 \
+    "every requirement it carries is realized"
+
+# srs-end: FR-ARCH-340
+# --- verifies: FR-ARCH-330 — a design whose files are all here and whose
+# --- obligations are all built is a built part with the wrong status on it.
+elements <<'MD'
+# Elements
+
+### E-010 — The design that shipped
+
+```yaml
+status: proposed
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+```
+
+Everything it names is already here.
+MD
+rule "FR-ARCH-330 a design that is already built" 0 \
+    "E-010 is proposed, and every file it carries exists and every requirement it carries is realized"
+
+elements <<'MD'
+# Elements
+
+### E-010 — A part designed and empty
+
+```yaml
+status: proposed
+carries: []
+requirements: []
+depends_on: []
+```
+
+Answers to nothing yet.
+MD
+rule "FR-ARCH-330 an empty design is reported as empty" 0 "carries no requirement"
+silent "FR-ARCH-330 and not as built" 0 "every requirement it carries is realized"
+
+# srs-end: FR-ARCH-330
+
+# --- verifies: FR-ARCH-350 — what moving to the designed parts requires.
+elements <<'MD'
+# Elements
+
+### E-010 — The old whole
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-020]
+```
+
+Carries both files today.
+
+### E-020 — What the old whole leans on
+
+```yaml
+status: built
+carries: [t]
+requirements: []
+depends_on: []
+```
+
+Carries the suites.
+
+### E-030 — The design
+
+```yaml
+status: proposed
+carries: [src/a.py, src/later]
+requirements: [FR-CORE-010, FR-CORE-070]
+depends_on: [E-020]
+```
+
+Takes one file that exists and one that does not.
+MD
+rule "FR-ARCH-350 a file changes hands, both ends named" 0 \
+    "file  src/a.py — from E-010" --plan
+rule "FR-ARCH-350 a file the repository does not have yet" 0 \
+    "file  src/later — not in the repository yet" --plan
+rule "FR-ARCH-350 an obligation changes part" 0 \
+    "holds FR-CORE-010 — from E-010" --plan
+rule "FR-ARCH-350 an obligation no part carries today" 0 \
+    "holds FR-CORE-070 — no part carries it today" --plan
+rule "FR-ARCH-350 a dependency the design adds" 0 \
+    "needs E-020 — a dependency the built parts do not have" --plan
+silent "FR-ARCH-350 a part keeping a file of its own does not fall away" 0 \
+    "Falls away" --plan
+silent "FR-ARCH-350 the plan reports no finding" 0 "warning:" --plan
+silent "FR-ARCH-350 an absent path names no part as losing it" 0 \
+    "file  src/later — from" --plan
+
+# --- A path that exists and no built part owns is the other reading, and the
+# --- two must not be told as one.
+elements <<'MD'
+# Elements
+
+### E-010 — Half of it
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: []
+```
+
+Carries one file.
+
+### E-030 — The design
+
+```yaml
+status: proposed
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Takes a file nobody owns today.
+MD
+rule "FR-ARCH-350 a file that exists and no part owns" 0 \
+    "file  src/b.py — no part owns it today" --plan
+
+# --- A record the reading could not take is said, not dropped in silence.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries all of it.
+
+### E-03 — Two digits short
+
+```yaml
+status: proposed
+carries: [src/later]
+requirements: [FR-CORE-070]
+depends_on: []
+```
+
+A typo in the identifier.
+MD
+rule "FR-ARCH-350 a record it could not read is said" 0 \
+    "1 record(s) could not be read and are not in this plan" --plan
+
+# --- A design that claims every file of a built part dissolves it, and the
+# --- dependencies it declared go with it.
+elements <<'MD'
+# Elements
+
+### E-010 — The old whole
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: [E-020]
+```
+
+Carries both files today.
+
+### E-020 — What the old whole leans on
+
+```yaml
+status: built
+carries: [t]
+requirements: []
+depends_on: []
+```
+
+Carries the suites.
+
+### E-030 — The design
+
+```yaml
+status: proposed
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: [E-020]
+```
+
+Takes the whole directory, and with it everything E-010 had.
+MD
+rule "FR-ARCH-350 a part the design empties falls away" 0 \
+    "E-010 — The old whole keeps no file of its own under the design" --plan
+rule "FR-ARCH-350 and its dependency goes with it" 0 \
+    "E-010 → E-020 — the dependency goes with it" --plan
+
+# --- Nothing designed: the command says so rather than printing an empty plan.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything built
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Carries all of it.
+MD
+rule "FR-ARCH-350 nothing designed" 0 \
+    "No part and no form is designed and unbuilt, so there is nothing to move." --plan
+
+# srs-end: FR-ARCH-350
+
+# --- verifies: IF-ARCH-050, FR-ARCH-360 — the move record: the second kind
+# --- of record this layer holds, in a file of its own.
+mkdir -p "$LAB/specs/adr"
+cat > "$LAB/specs/adr/ADR-0001-the-cut-changes.md" <<'MD'
+# ADR-0001 — The cut changes
+
+- **Status:** accepted
+MD
+
+# moves <<'MD' — the redraws under test, replaced by every fixture.
+moves() { cat > "$LAB/arch/10-moves.md"; }
+
+elements <<'MD'
+# Elements
+
+### E-010 — The part losing a file
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Carries the file today.
+
+### E-020 — The part taking it
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Will carry it.
+MD
+
+moves <<'MD'
+# Moves
+
+### M-01 — Two digits short
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+rule "FR-ARCH-360 malformed identifier" 1 "identifier does not match E-<NNN>, M-<NNN> or S-<NNN>"
+
+moves <<'MD'
+# Moves
+
+### M-010 — The first
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+
+### M-010 — The same number again
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/b.py]
+adr: ADR-0001
+```
+
+Hands another over.
+MD
+rule "FR-ARCH-360 duplicate identifier" 1 "M-010 is already used at"
+
+moves <<'MD'
+# Moves
+
+### M-010 — No list of what moves
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+adr: ADR-0001
+```
+
+Says nothing about what changes hands.
+MD
+rule "FR-ARCH-360 missing key" 1 "required key 'moves' is missing"
+
+moves <<'MD'
+# Moves
+
+### M-010 — A state of its own invention
+
+```yaml
+status: started
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+rule "FR-ARCH-360 status outside the four" 1 \
+    "status 'started' is not one of planned, moving, done, abandoned"
+
+# srs-end: FR-ARCH-360, IF-ARCH-050
+# --- verifies: FR-ARCH-370 — a move names parts and a decision that exist.
+moves <<'MD'
+# Moves
+
+### M-010 — Into a part nobody wrote down
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-990]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file to a part that does not exist.
+MD
+rule "FR-ARCH-370 an end no element carries" 1 \
+    'M-010 names E-990 in `to`, which no element carries'
+
+moves <<'MD'
+# Moves
+
+### M-010 — Behind a decision nobody wrote
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0099
+```
+
+Hands the file over for reasons recorded nowhere.
+MD
+rule "FR-ARCH-370 a decision the specification does not hold" 1 \
+    "M-010 names ADR-0099, and the specification holds no document named after it"
+
+# srs-end: FR-ARCH-370
+# --- verifies: FR-ARCH-380 — a move in force whose paths are all at the
+# --- receiving end is finished, and only its status still says otherwise.
+elements <<'MD'
+# Elements
+
+### E-010 — The part that lost the file
+
+```yaml
+status: built
+carries: []
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Carries nothing any more.
+
+### E-020 — The part that took it
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Carries both now.
+MD
+moves <<'MD'
+# Moves
+
+### M-010 — The file changes hands
+
+```yaml
+status: moving
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+rule "FR-ARCH-380 a finished move is reported as finished" 0 \
+    "M-010 has every path it moves at E-020 and none at E-010, and its status still says moving"
+
+moves <<'MD'
+# Moves
+
+### M-010 — The file changed hands and the record was closed
+
+```yaml
+status: done
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Handed the file over.
+MD
+silent "FR-ARCH-380 a closed move is not reported" 0 "has every path it moves"
+
+# --- A path still at the leaving end has not arrived.
+elements <<'MD'
+# Elements
+
+### E-010 — The part still holding it
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Has not handed it over yet.
+
+### E-020 — The part waiting for it
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Claims it too, for now.
+MD
+moves <<'MD'
+# Moves
+
+### M-010 — Half handed over
+
+```yaml
+status: moving
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands the file over.
+MD
+silent "FR-ARCH-380 a path at both ends has not arrived" 0 "has every path it moves"
+
+# srs-end: FR-ARCH-380
+# --- verifies: FR-ARCH-390 — a path at neither end cannot be moved as written.
+elements <<'MD'
+# Elements
+
+### E-010 — The leaving part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Carries one file.
+
+### E-020 — The receiving part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-070]
+depends_on: []
+```
+
+Carries the other.
+MD
+moves <<'MD'
+# Moves
+
+### M-010 — A file neither part has
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/ghost.py]
+adr: ADR-0001
+```
+
+Hands over something nobody carries.
+MD
+rule "FR-ARCH-390 a path at neither end" 0 \
+    "M-010 moves src/ghost.py, which no element at either end carries"
+
+moves <<'MD'
+# Moves
+
+### M-010 — A file the leaving part has
+
+```yaml
+status: planned
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Hands over what E-010 carries today.
+MD
+silent "FR-ARCH-390 a path one end carries is not an orphan" 0 "which no element at either end carries"
+
+# srs-end: FR-ARCH-390
+# --- verifies: FR-ARCH-400 — the map says what is moving, and says nothing of
+# --- a move that is over.
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-400 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "## What is moving" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-400 — the map holds no section for what is moving"; exit 1; }
+grep -qF "| **M-010** A file the leaving part has | \`planned\` | E-010 | E-020 | \`src/a.py\` |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-400 — the map does not say what the move moves, between which parts, in what state"
+         sed -n '/What is moving/,$p' "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+
+moves <<'MD'
+# Moves
+
+### M-010 — A move that is over
+
+```yaml
+status: done
+from: [E-010]
+to: [E-020]
+moves: [src/a.py]
+adr: ADR-0001
+```
+
+Handed over long ago.
+MD
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-400 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "## What is moving" "$LAB/arch/90-map.md" \
+    && { echo "FAIL FR-ARCH-400 — a closed move is in the map"; exit 1; }
+passes=$((passes + 1))
+
+rm -f "$LAB/arch/10-moves.md"
+# srs-end: FR-ARCH-400
+
+# --- verifies: IF-ARCH-060, FR-ARCH-470, FR-ARCH-480 — a dependency the
+# --- project said must not exist, in the model and in the code alike.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+printf 'import b\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "forbidden": [{"from": "E-010", "to": "E-020", "why": "the engine must not reach the store"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-470 a declared edge the project forbids" 0 \
+    "E-010 depends on E-020 and the project forbids it (the model declares it): the engine must not reach the store"
+rule "FR-ARCH-470 and the same edge in the code" 0 \
+    "E-010 depends on E-020 and the project forbids it (src/a.py imports b): the engine must not reach the store"
+
+# --- The wildcard says the common intents: nothing leans on this part.
+printf '{"rules": {}, "forbidden": [{"from": "*", "to": "E-020", "why": "nothing leans on the store"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-470 the wildcard on the receiving side" 0 \
+    "E-010 depends on E-020 and the project forbids it (the model declares it): nothing leans on the store"
+
+# --- An edge nobody forbade is not reported, which is the half that fails
+# --- quietly if the matching is wrong.
+printf '{"rules": {}, "forbidden": [{"from": "E-020", "to": "E-010", "why": "the store must not reach the engine"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-470 an edge the other way round is not forbidden" 0 "the project forbids it"
+
+# --- A prohibition about a part nobody has is an error: it reads as enforced
+# --- and enforces nothing.
+printf '{"rules": {}, "forbidden": [{"from": "E-990", "to": "E-020", "why": "nope"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 a prohibition naming no part" 1 \
+    "forbidden entry 0 names E-990 in \`from\`, which no element carries"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "forbidden": [{"from": "*", "to": "*", "why": "nothing at all"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 the wildcard on both sides" 2 \
+    "forbids every dependency, which is a typo for one side or the other"
+printf '{"rules": {}, "forbidden": [{"from": "E-010", "why": "half an entry"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 an entry missing a side" 2 "forbidden entry 0: \`to\` must be text"
+printf '{"rules": {}, "forbidden": [{"from": "E-010", "to": "E-020"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-480 an entry with no reason" 2 "forbidden entry 0: \`why\` must be text"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: FR-ARCH-470, FR-ARCH-480, IF-ARCH-060
+
+# --- verifies: FR-ARCH-490 — a part entered by a name its interface does not
+# --- state: every dependency rule can be satisfied while the field says
+# --- something else entirely.
+printf 'import b\n' > "$LAB/src/a.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+interface: a command, and nothing importable
+```
+
+Keeps it.
+MD
+rule "FR-ARCH-490 a module the interface does not state" 0 \
+    "src/a.py reaches E-020 by \`b\`, which its interface does not state"
+
+# --- Named, and the finding goes: the boundary is what the other side writes.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+interface: the module `b`, imported by whoever reads the store
+```
+
+Keeps it.
+MD
+silent "FR-ARCH-490 a module the interface states" 0 "which its interface does not state"
+
+# --- A part with no interface is FR-ARCH-450's silence, not this rule's: said
+# --- twice, a project prices both away.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+silent "FR-ARCH-490 a part with no interface is not this rule's finding" 0 "its interface does not state"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: FR-ARCH-490
+
+# --- verifies: FR-ARCH-500 — what a part was cut to keep, as a subset of what
+# --- it carries: empty is ordinary, a name the specification lacks is an error,
+# --- and a name the part does not carry is a claim about another boundary.
+elements <<'MD'
+# Elements
+
+### E-010 — Everything
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+protects: [FR-CORE-990]
+depends_on: []
+```
+
+Carries all of it.
+MD
+rule "FR-ARCH-500 protecting what the specification does not carry" 1 \
+    "E-010 protects FR-CORE-990, which the specification does not carry"
+
+elements <<'MD'
+# Elements
+
+### E-010 — Half of it
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+protects: [FR-CORE-020]
+depends_on: []
+```
+
+Carries one file.
+
+### E-020 — The other half
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+protects: [FR-CORE-020]
+depends_on: []
+```
+
+Carries the other.
+MD
+rule "FR-ARCH-500 protecting what it does not carry" 0 \
+    "E-010 protects FR-CORE-020 and does not carry it"
+silent "FR-ARCH-500 and the part that does carry it is not reported" 0 \
+    "E-020 protects FR-CORE-020 and does not carry it"
+
+elements <<'MD'
+# Elements
+
+### E-010 — Everything
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries all of it, and protects nothing in particular.
+MD
+silent "FR-ARCH-500 naming none is ordinary and silent" 0 "protects"
+
+# srs-end: FR-ARCH-500
+
+# --- verifies: FR-ARCH-560 — a part standing on ground the register has lost.
+# --- The register is a layer of its own, so the lab grows one: its tool, a
+# --- hypothesis whose state the fixture moves, and a bet naming a requirement.
+cp srs-dd/tools/srs_grounds.py "$LAB/srs-dd/tools/"
+mkdir -p "$LAB/grounds"
+printf '{\n  "rules": {}\n}\n' > "$LAB/grounds/grounds-config.json"
+
+# ground <status> — the register under test: one hypothesis in that state and a
+# bet resting FR-CORE-010 on it.
+ground() {
+    cat > "$LAB/grounds/10-h-test.md" <<MD
+# Grounds under test
+
+### H-010 — The claim under the first requirement
+
+\`\`\`yaml
+status: $1
+class: III
+population: studios of five to fifty people
+refuted_if: proportion < 0.25 at n >= 200
+expires: 2099-01-01
+owner: @someone
+impact: a third of the plan
+\`\`\`
+
+Studios of five to fifty people export weekly.
+
+### B-010 — The first requirement rests on it
+
+\`\`\`yaml
+status: ${2:-active}
+requirement: FR-CORE-010
+all_of: [H-010]
+\`\`\`
+
+Worth building only if the claim holds.
+MD
+}
+
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+interface: one call, first()
+```
+
+Carries the first.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+interface: one call, second()
+```
+
+Carries the second.
+MD
+
+ground refuted
+rule "FR-ARCH-560 a part on refuted ground is reported" 0 "E-010 carries FR-CORE-010, which rests on H-010 (refuted)"
+rule "FR-ARCH-560 and it fails a strict run" 1 "rests on H-010 (refuted)" --strict
+silent "FR-ARCH-560 and the part standing on nothing is not" 0 "E-020 carries"
+
+ground expired
+rule "FR-ARCH-560 expired ground counts too" 0 "rests on H-010 (expired)"
+
+ground assumed
+silent "FR-ARCH-560 assumed ground is the ordinary state and silent" 0 "rests on H-010"
+
+ground supported
+silent "FR-ARCH-560 supported ground is silent" 0 "rests on H-010"
+
+# A retired bet is a bet that was: the ground it named is past.
+ground refuted retired
+silent "FR-ARCH-560 a retired bet names no ground" 0 "rests on H-010"
+
+# Priced off like every other reading of this layer.
+ground refuted
+printf '{\n  "rules": {"element-ungrounded": "off"}\n}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-560 the project can price it off" 0 "rests on H-010"
+printf '{\n  "rules": {}\n}\n' > "$LAB/arch/arch-config.json"
+
+# Without a register there is no question: the rule cannot fire at all.
+rm -rf "$LAB/grounds"
+silent "FR-ARCH-560 no register, no finding" 0 "rests on H-010"
+
+# srs-end: FR-ARCH-560
+
+# --- verifies: FR-ARCH-540 — the draft cut: a lab of its own, because this one
+# --- asks what an empty layer over a codebase looks like.
+DRAFT=/tmp/srs-arch-draft
+rm -rf "$DRAFT"
+mkdir -p "$DRAFT/srs-dd/tools" "$DRAFT/specs" "$DRAFT/arch" "$DRAFT/src/engine" "$DRAFT/src/store"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$DRAFT/srs-dd/tools/"
+cp "$LAB/specs/srs-config.json" "$DRAFT/specs/"
+printf 'x\n' > "$DRAFT/src/engine/run.py"
+printf 'x\n' > "$DRAFT/src/engine/parse.py"
+printf 'x\n' > "$DRAFT/src/store/keep.py"
+printf '{\n  "rules": {}\n}\n' > "$DRAFT/arch/arch-config.json"
+printf '# Elements\n\nNothing is written down yet.\n' > "$DRAFT/arch/00-elements.md"
+cat > "$DRAFT/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — The engine answers
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/engine/run.py, src/engine/parse.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** answer.
+
+### FR-CORE-020 — The store keeps
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/store/keep.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** keep.
+MD
+
+draft() { ( cd "$DRAFT" && python3 srs-dd/tools/srs_arch.py --draft ) > /tmp/srs-arch-draft.out 2>&1; }
+before=$(cat "$DRAFT/arch/00-elements.md")
+draft
+python3 - <<'PYDRAFT'
+import re, sys
+text = open("/tmp/srs-arch-draft.out", encoding="utf-8").read()
+if "2 directories holding files no part carries" not in text:
+    sys.exit("FAIL FR-ARCH-540 — the draft does not say how many directories it grouped:\n" + text[:300])
+records = re.findall(r"^### (E-\d{3}) — <what (\S+) is responsible for>$", text, re.M)
+if records != [("E-010", "src/engine"), ("E-020", "src/store")]:
+    sys.exit("FAIL FR-ARCH-540 — the draft's records are %s" % records)
+if "carries: [src/engine/parse.py, src/engine/run.py]" not in text:
+    sys.exit("FAIL FR-ARCH-540 — a group does not name the files it holds")
+if "requirements: [FR-CORE-010]" not in text or "requirements: [FR-CORE-020]" not in text:
+    sys.exit("FAIL FR-ARCH-540 — a group does not name the requirements that name its files")
+PYDRAFT
+passes=$((passes + 4))
+
+# Nothing written: the layer's own file is the one the fixture left there.
+[ "$before" = "$(cat "$DRAFT/arch/00-elements.md")" ] \
+    || { echo "FAIL FR-ARCH-540 — --draft wrote into arch/00-elements.md"; exit 1; }
+passes=$((passes + 1))
+
+# The round trip: filled in and pasted, the draft is a layer its own checker accepts.
+( cd "$DRAFT" && python3 srs-dd/tools/srs_arch.py --draft | sed -n '3,$p' \
+    | sed 's/<what \(.*\) is responsible for>/The \1 part/; s/<how this part is reached from outside>/one call/; s/<One sentence.*>/It answers for what it carries./' \
+    > /tmp/srs-arch-draft.records )
+{ printf '# Elements\n\n'; cat /tmp/srs-arch-draft.records; } > "$DRAFT/arch/00-elements.md"
+rc=0
+( cd "$DRAFT" && python3 srs-dd/tools/srs_arch.py --no-write --strict ) > /tmp/srs-arch-draft.log 2>&1 || rc=$?
+if [ "$rc" != "0" ]; then
+    echo "FAIL FR-ARCH-540 — the filled-in draft does not pass its own checker"; cat /tmp/srs-arch-draft.log; exit 1
+fi
+passes=$((passes + 1))
+
+# And once every file is carried, there is nothing to draft and it says so.
+draft
+grep -qF "there is nothing to draft" /tmp/srs-arch-draft.out \
+    || { echo "FAIL FR-ARCH-540 — a layer that carries everything still drafts"; cat /tmp/srs-arch-draft.out; exit 1; }
+passes=$((passes + 1))
+
+# The next number continues the layer's own: E-010 taken, the draft starts at E-020.
+printf '# Elements\n\n### E-010 — The engine\n\n```yaml\nstatus: built\ncarries: [src/engine]\nrequirements: [FR-CORE-010]\ndepends_on: []\ninterface: one call\n```\n\nCarries the engine.\n' \
+    > "$DRAFT/arch/00-elements.md"
+draft
+grep -qF "### E-020 — <what src/store is responsible for>" /tmp/srs-arch-draft.out \
+    || { echo "FAIL FR-ARCH-540 — the draft does not continue the layer's own numbering"; cat /tmp/srs-arch-draft.out; exit 1; }
+passes=$((passes + 1))
+
+# srs-end: FR-ARCH-540
+
+# --- verifies: FR-ARCH-570, FR-ARCH-580 — what a cut costs, and the cut the
+# --- links suggest. Three requirements and two parts, so every number here is
+# --- one a reader can count by hand: 020 depends on 010 inside the first part,
+# --- 030 depends on 010 across the boundary.
+PRICE=/tmp/srs-arch-price
+rm -rf "$PRICE"
+mkdir -p "$PRICE/srs-dd/tools" "$PRICE/specs" "$PRICE/arch" "$PRICE/src"
+cp srs-dd/tools/srs_arch.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$PRICE/srs-dd/tools/"
+cp "$LAB/specs/srs-config.json" "$PRICE/specs/"
+printf 'x\n' > "$PRICE/src/a.py"
+printf 'x\n' > "$PRICE/src/b.py"
+printf 'x\n' > "$PRICE/src/c.py"
+printf '{\n  "rules": {}\n}\n' > "$PRICE/arch/arch-config.json"
+cat > "$PRICE/specs/10-fr-core.md" <<'MD'
+# Functional requirements — core
+
+### FR-CORE-010 — The first
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: [src/a.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** act first.
+
+### FR-CORE-020 — The second
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CORE-010]
+refines: []
+conflicts_with: []
+code: [src/b.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** act second.
+
+### FR-CORE-030 — The third
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CORE-010]
+refines: []
+conflicts_with: []
+code: [src/c.py]
+tests: []
+created: 2026-10-06
+```
+
+The system **shall** act third.
+MD
+cat > "$PRICE/arch/00-elements.md" <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py, src/b.py]
+requirements: [FR-CORE-010, FR-CORE-020]
+depends_on: []
+interface: one call, first()
+```
+
+Carries the first two.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/c.py]
+requirements: [FR-CORE-030]
+depends_on: []
+interface: one call, third()
+```
+
+Carries the third.
+MD
+
+priced() { ( cd "$PRICE" && python3 srs-dd/tools/srs_arch.py --price "$1" ) > /tmp/srs-arch-price.out 2>&1; }
+
+priced parts
+python3 - <<'PYPRICE'
+import re, sys
+text = open("/tmp/srs-arch-price.out", encoding="utf-8").read()
+if "3 of 3 requirements covered" not in text:
+    sys.exit("FAIL FR-ARCH-570 — the coverage line is wrong:\n" + text)
+rows = dict((m.group(1), tuple(int(v) for v in m.groups()[1:])) for m in
+            re.finditer(r"^(E-\d{3})\s+(\d+) held · \s*(\d+) inside · \s*(\d+) out · \s*(\d+) in",
+                        text, re.M))
+# E-010 holds 010 and 020: the link between them is inside, and 030's link arrives.
+if rows.get("E-010") != (2, 1, 0, 1):
+    sys.exit("FAIL FR-ARCH-570 — E-010 priced %s, expected (2, 1, 0, 1)" % (rows.get("E-010"),))
+# E-020 holds 030 alone: nothing inside, one link leaving.
+if rows.get("E-020") != (1, 0, 1, 0):
+    sys.exit("FAIL FR-ARCH-570 — E-020 priced %s, expected (1, 0, 1, 0)" % (rows.get("E-020"),))
+PYPRICE
+passes=$((passes + 3))
+
+priced areas
+grep -qF "The areas the specification declares — 1 group(s), 3 of 3 requirements covered." /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-570 — the areas cut is not priced"; cat /tmp/srs-arch-price.out; exit 1; }
+grep -qE "^CORE +3 held · +2 inside · +0 out · +0 in" /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-570 — the one area's price is wrong"; cat /tmp/srs-arch-price.out; exit 1; }
+passes=$((passes + 2))
+
+# A part that carries nothing of the specification is still a group, and what no
+# group holds is said: the second part is emptied and its requirement left over.
+cat > "$PRICE/arch/00-elements.md" <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+interface: one call, first()
+```
+
+Carries the first.
+MD
+priced parts
+grep -qF "2 requirement(s) in no group: FR-CORE-020, FR-CORE-030" /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-570 — what the cut leaves out is not named"; cat /tmp/srs-arch-price.out; exit 1; }
+passes=$((passes + 1))
+
+# --- The proposal needs a specification larger than the handful of seeds it
+# --- starts from, or every requirement is a seed and the grouping is untested.
+# --- Twenty requirements: the first is the only one anything links to, ten are
+# --- seeds by the ranking's tie-break, and the other ten hang off the first.
+python3 - <<'PYBIG'
+lines = ["# Functional requirements — core", ""]
+for index in range(20):
+    number = (index + 1) * 10
+    depends = "[FR-CORE-010]" if index >= 10 else "[]"
+    lines += ["### FR-CORE-%03d — Requirement %d" % (number, number), "", "```yaml",
+              "status: implemented", "verification: T", "derives_from: []",
+              "depends_on: %s" % depends, "refines: []", "conflicts_with: []",
+              "code: []", "tests: []", "created: 2026-10-06", "```", "",
+              "The system **shall** act %d." % number, ""]
+open("/tmp/srs-arch-price/specs/10-fr-core.md", "w", encoding="utf-8").write("\n".join(lines))
+PYBIG
+priced proposed
+python3 - <<'PYPROP'
+import re, sys
+text = open("/tmp/srs-arch-price.out", encoding="utf-8").read()
+if "seeded by the drivers: FR-CORE-010" not in text:
+    sys.exit("FAIL FR-ARCH-580 — the proposal does not name its seeds:\n" + text)
+if "10 group(s), 20 of 20 requirements covered" not in text:
+    sys.exit("FAIL FR-ARCH-580 — the proposal is not ten groups over twenty requirements:\n"
+             + text)
+rows = dict((m.group(1), int(m.group(2))) for m in
+            re.finditer(r"^(FR-CORE-\d{3})\s+(\d+) held", text, re.M))
+# Everything that links to the first requirement joins its group: it and the ten.
+if rows.get("FR-CORE-010") != 11:
+    sys.exit("FAIL FR-ARCH-580 — the first group holds %s, expected 11 — the links did not "
+             "draw the grouping" % rows.get("FR-CORE-010"))
+if sum(rows.values()) != 20:
+    sys.exit("FAIL FR-ARCH-580 — the groups hold %d places for 20 requirements, so they share "
+             "some" % sum(rows.values()))
+PYPROP
+cp /tmp/srs-arch-price.out /tmp/srs-arch-price.first
+priced proposed
+cmp -s /tmp/srs-arch-price.first /tmp/srs-arch-price.out \
+    || { echo "FAIL FR-ARCH-580 — two runs of --price proposed differ"; exit 1; }
+passes=$((passes + 3))
+
+# Neither writes anything, and a cut nobody named is refused.
+before=$(cat "$PRICE/arch/00-elements.md")
+priced parts
+[ "$before" = "$(cat "$PRICE/arch/00-elements.md")" ] \
+    || { echo "FAIL FR-ARCH-570 — --price wrote into the layer"; exit 1; }
+rc=0
+( cd "$PRICE" && python3 srs-dd/tools/srs_arch.py --price ) >/tmp/srs-arch-price.out 2>&1 || rc=$?
+[ "$rc" = "2" ] || { echo "FAIL FR-ARCH-570 — --price with no cut named exited $rc, expected 2"; exit 1; }
+rc=0
+( cd "$PRICE" && python3 srs-dd/tools/srs_arch.py --price nope ) >/dev/null 2>&1 || rc=$?
+[ "$rc" = "2" ] || { echo "FAIL FR-ARCH-570 — --price nope exited $rc, expected 2"; exit 1; }
+passes=$((passes + 3))
+
+# srs-end: FR-ARCH-570, FR-ARCH-580
+
+# --- verifies: IF-ARCH-070, FR-ARCH-590, FR-ARCH-600 — the order of the cut:
+# --- an edge that runs upward, in the model, in the imports and in the edges
+# --- the project supplies, and the orders that are refused instead.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-590 a declared edge against the order" 0 \
+    "E-010 in group 1 depends on E-020 in group 0, which the order puts above it (the model declares it)"
+
+printf 'import b\n' > "$LAB/src/a.py"
+rule "FR-ARCH-590 and the same edge in the code" 0 \
+    "E-010 in group 1 depends on E-020 in group 0, which the order puts above it (src/a.py imports b)"
+
+# --- The third supplier: an edge the project computed itself.
+printf 'x\n' > "$LAB/src/a.py"
+printf '[{"from": "src/a.py", "to": "src/b.py", "via": "Store:3"}]\n' > "$LAB/arch/edges.json"
+rule "FR-ARCH-590 and an edge the project supplied" 0 \
+    "E-010 in group 1 depends on E-020 in group 0, which the order puts above it (src/a.py uses src/b.py)"
+rm -f "$LAB/arch/edges.json"
+
+# --- Downward is what the order allows, and this is the half that fails
+# --- quietly if the comparison is the wrong way round.
+printf '{"rules": {}, "layers": [["E-010"], ["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 a dependency running downward" 0 "which the order puts above it"
+
+# --- A group is the level: parts inside it may lean on each other.
+printf '{"rules": {}, "layers": [["E-010", "E-020"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 two parts in one group" 0 "which the order puts above it"
+
+# --- A part the order does not place is outside it.
+printf '{"rules": {}, "layers": [["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 a part in no group" 0 "which the order puts above it"
+
+# --- Priced, like every rule of this checker.
+printf '{"rules": {"dependency-upward": "report"}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-590 lowered to a note" 0 "note: "
+silent "FR-ARCH-590 a note does not fail a strict run" 0 "treated as errors" --strict
+printf '{"rules": {}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-590 at its default cost it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {"dependency-upward": "off"}, "layers": [["E-020"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-590 switched off says nothing" 0 "which the order puts above it"
+
+# --- An order about a part nobody has reads as enforced and enforces nothing.
+printf '{"rules": {}, "layers": [["E-990"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 an order naming no part" 1 \
+    "layers group 0 names E-990, which no element carries"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "layers": ["E-010"]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 an order that is not a list of groups" 2 "\`layers\` must be a JSON list of groups"
+printf '{"rules": {}, "layers": [["nope"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 a group holding something else" 2 "layers group 0 holds 'nope', expected an element identifier"
+printf '{"rules": {}, "layers": [["E-010"], ["E-010"]]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-600 a part in two groups" 2 \
+    "E-010 is in groups 0 and 1, so the order does not say where it stands"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: IF-ARCH-070, FR-ARCH-590, FR-ARCH-600
+
+# --- verifies: IF-ARCH-080, FR-ARCH-610, FR-ARCH-620 — a module a part may
+# --- not import: the far end is outside the system, so no element names it.
+printf 'import json\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "the engine never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-610 a module the part may not import" 0 \
+    "src/a.py imports json, which E-010 may not: the engine never serialises"
+
+# --- A module nobody forbade, and a prohibition about another part, are both
+# --- silent — the halves that fail quietly if the matching is wrong.
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "subprocess", "why": "no shelling out"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-610 a module the part does not import" 0 "which E-010 may not"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-020", "module": "json", "why": "the store never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-610 a prohibition about another part" 0 "imports json"
+
+# --- Priced, like every rule of this checker.
+printf '{"rules": {"import-forbidden": "report"}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-610 lowered to a note" 0 "note: "
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-610 at its default cost it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {"import-forbidden": "off"}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-610 switched off says nothing" 0 "which E-010 may not"
+
+# --- An entry about a part nobody has reads as enforced and enforces nothing.
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-990", "module": "json", "why": "nope"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an entry naming no part" 1 \
+    "forbidden_imports entry 0 names E-990 in \`in\`, which no element carries"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "forbidden_imports": {"in": "E-010"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 a list that is not a list" 2 "\`forbidden_imports\` must be a JSON list"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an entry with no reason" 2 "forbidden_imports entry 0: \`why\` must be text"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "why": "half an entry"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an entry with no module" 2 "forbidden_imports entry 0: \`module\` must be text"
+printf '{"rules": {}, "forbidden_imports": [{"in": "src/a.py", "module": "json", "why": "a file, not a part"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-620 an end that is not an element" 2 "forbidden_imports entry 0: \`in\` is 'src/a.py', expected an element identifier"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: IF-ARCH-080, FR-ARCH-610, FR-ARCH-620
+
+# --- verifies: INV-ARCH-020, FR-ARCH-640 — a part inside another. The file belongs to the
+# --- most specific claim, the order the records are written in decides
+# --- nothing, and a path two parts claim equally belongs to neither. Before
+# --- this the map from file to part was filled per record, so the last record
+# --- in the file won and the same two records gave opposite answers.
+printf 'import json\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-020", "module": "json", "why": "the inner part never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+nested_outer_first() { elements <<'MD'
+# Elements
+
+### E-010 — The outer part
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Owns the directory.
+
+### E-020 — The inner part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Owns one file inside it.
+MD
+}
+nested_inner_first() { elements <<'MD'
+# Elements
+
+### E-020 — The inner part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Owns one file inside it.
+
+### E-010 — The outer part
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Owns the directory.
+MD
+}
+nested_outer_first
+rule "INV-ARCH-020 the inner part owns the file it claims" 0 \
+    "src/a.py imports json, which E-020 may not: the inner part never serialises"
+nested_inner_first
+rule "INV-ARCH-020 and the order of the records decides nothing" 0 \
+    "src/a.py imports json, which E-020 may not: the inner part never serialises"
+
+# --- The other half: the outer part does not own what the inner one claims,
+# --- whichever order they are written in.
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "the outer part never serialises"}]}\n' > "$LAB/arch/arch-config.json"
+silent "INV-ARCH-020 the outer part does not own the inner part's file" 0 "imports json"
+nested_outer_first
+silent "INV-ARCH-020 and that does not depend on the order either" 0 "imports json"
+
+# --- Two equal claims resolve to neither, so every rule that needs an owner
+# --- is silent about that file.
+elements <<'MD'
+# Elements
+
+### E-010 — One claimant
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: []
+```
+
+Claims the file.
+
+### E-020 — The other claimant
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Claims the same file.
+MD
+printf '{"rules": {}, "forbidden_imports": [{"in": "E-010", "module": "json", "why": "no serialising"}]}\n' > "$LAB/arch/arch-config.json"
+silent "INV-ARCH-020 a path two parts claim belongs to neither" 0 "imports json"
+rule "FR-ARCH-640 and the contest itself is reported" 0 \
+    "src/a.py is carried by E-010 and E-020, so it belongs to none of them"
+printf '{"rules": {"carrier-contested": "report"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-640 lowered to a note" 0 "note: src/a.py is carried by E-010 and E-020"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-640 at its default cost it fails a strict run" 1 "treated as errors" --strict
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+printf 'x\n' > "$LAB/src/a.py"
+
+# srs-end: INV-ARCH-020, FR-ARCH-640
+
+# --- verifies: FR-ARCH-630 — a run that read nothing from the code says so,
+# --- because for every language but the one this checker reads that is the
+# --- default state, and a run with no findings then proves nothing.
+printf 'let x = 1\n' > "$LAB/src/a.swift"
+elements <<'MD'
+# Elements
+
+### E-010 — The only part
+
+```yaml
+status: built
+carries: [src/a.swift]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries a file in a language this checker does not read.
+MD
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-630 nothing was read from the code" 0 \
+    "the declared model was compared with nothing"
+
+# --- One supplied edge is a comparison, and so is one carried file in the
+# --- language it reads: both halves, since either alone would pass a rule
+# --- that only looked at the other.
+printf '[{"from": "src/a.swift", "to": "src/b.swift", "via": "Store:3"}]\n' > "$LAB/arch/edges.json"
+silent "FR-ARCH-630 one supplied edge is a comparison" 0 "compared with nothing"
+rm -f "$LAB/arch/edges.json"
+elements <<'MD'
+# Elements
+
+### E-010 — The only part
+
+```yaml
+status: built
+carries: [src/a.py, src/a.swift]
+requirements: [FR-CORE-010, FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Carries a file in the language this checker reads.
+MD
+silent "FR-ARCH-630 a carried file in the language it reads" 0 "compared with nothing"
+rm -f "$LAB/src/a.swift"
+
+# srs-end: FR-ARCH-630
+
+# --- verifies: FR-ARCH-650 — the map says where each part sits: inside which
+# --- part, and at which place in the order. Both facts in one column, and a
+# --- part with neither says so rather than leaving the cell to be guessed at.
+printf 'x\n' > "$LAB/src/a.py"
+elements <<'MD'
+# Elements
+
+### E-010 — The shell
+
+```yaml
+status: built
+carries: [src]
+requirements: [FR-CORE-020, FR-CORE-040, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Owns the directory.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Owns one file inside it.
+MD
+printf '{"rules": {}, "layers": [["E-010"], ["E-020"]]}\n' > "$LAB/arch/arch-config.json"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-650 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "| **E-020** The store | \`built\` | inside **E-010**, level 1 |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-650 — the map does not say where the inner part sits"
+         grep -F "E-020" "$LAB/arch/90-map.md"; exit 1; }
+grep -qF "| **E-010** The shell | \`built\` | level 0 |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-650 — the map does not say where the outer part stands"
+         grep -F "E-010" "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 2))
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py ) > /tmp/srs-arch.log 2>&1 || {
+    echo "FAIL FR-ARCH-650 — the run that writes the map failed"; cat /tmp/srs-arch.log; exit 1; }
+grep -qF "| **E-010** The shell | \`built\` | — |" "$LAB/arch/90-map.md" \
+    || { echo "FAIL FR-ARCH-650 — a part that sits nowhere in particular is not said to"
+         grep -F "E-010" "$LAB/arch/90-map.md"; exit 1; }
+passes=$((passes + 1))
+
+# srs-end: FR-ARCH-650
+
+# --- verifies: IF-ARCH-090, FR-ARCH-680, FR-ARCH-690 — who may reach a part,
+# --- said once: the mirror of a prohibition, where everything but the named
+# --- few is refused.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+```
+
+Keeps it.
+MD
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"], "why": "the store is reached through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an allow-list naming no part" 1 \
+    "only entry 0 names E-030, which no element carries"
+
+printf '{"rules": {}, "only": [{"to": "E-010", "from": ["E-020"], "why": "nothing depends on the engine"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-680 an allow-list nobody crosses is silent" 0 "which only"
+
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-010"], "why": "the engine is the only reader"}]}\n' > "$LAB/arch/arch-config.json"
+silent "FR-ARCH-680 the part on the list is allowed" 0 "which only E-010 may reach"
+
+# --- The whole point: an edge from a part the list leaves out, declared and in
+# --- the code alike.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060]
+depends_on: []
+```
+
+Keeps it.
+
+### E-030 — The gateway
+
+```yaml
+status: built
+carries: [src/c.py]
+requirements: [FR-CORE-070]
+depends_on: []
+```
+
+Fronts the store.
+MD
+printf 'x\n' > "$LAB/src/c.py"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"], "why": "the store is reached through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-680 a declared edge from a part the list leaves out" 0 \
+    "E-010 depends on E-020, which only E-030 may reach (the model declares it): the store is reached through the gateway"
+printf 'import b\n' > "$LAB/src/a.py"
+rule "FR-ARCH-680 and the same edge in the code" 0 \
+    "E-010 depends on E-020, which only E-030 may reach (src/a.py imports b)"
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {"dependency-unpermitted": "report"}, "only": [{"to": "E-020", "from": ["E-030"], "why": "through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-680 lowered to a note" 0 "note: E-010 depends on E-020, which only E-030 may reach"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"], "why": "through the gateway"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-680 at its default cost it fails a strict run" 1 "treated as errors" --strict
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '{"rules": {}, "only": [{"to": "E-020", "from": [], "why": "nobody at all"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an empty allow-list is a prohibition" 2 \
+    "an empty one says no part may reach it, which is a prohibition"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["E-030"]}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an entry with no reason" 2 "only entry 0: \`why\` must be text"
+printf '{"rules": {}, "only": [{"to": "src/b.py", "from": ["E-030"], "why": "a file, not a part"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 an end that is not an element" 2 "only entry 0: \`to\` is 'src/b.py', expected an element identifier"
+printf '{"rules": {}, "only": [{"to": "E-020", "from": ["*"], "why": "everyone"}]}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-690 no wildcard on the near side" 2 "only entry 0: \`from\` holds '*', expected an element identifier"
+
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+rm -f "$LAB/src/c.py"
+
+# srs-end: IF-ARCH-090, FR-ARCH-680, FR-ARCH-690
+
+# --- verifies: IF-ARCH-100, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720
+# --- verifies: FR-ARCH-730, FR-ARCH-740, FR-ARCH-750
+# --- The units the parts ship in against the facts the project supplies about
+# --- them: both directions, the links, the silent cases, the stale reading and
+# --- the shapes that are refused.
+elements <<'MD'
+# Elements
+
+### E-010 — The engine
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-040]
+depends_on: [E-020]
+units: [api]
+```
+
+Reads the store.
+
+### E-020 — The store
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020, FR-CORE-060, FR-CORE-070]
+depends_on: []
+units: [store]
+```
+
+Keeps it.
+MD
+printf 'x\n' > "$LAB/src/a.py"
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+TODAY=$(date +%F)
+
+# --- Facts that agree with the model say nothing at all.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "api", "to": "store"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+silent "FR-ARCH-710 facts that agree are silent" 0 "the unit"
+silent "FR-ARCH-730 a link the model declares is silent" 0 "the facts link"
+
+# --- A unit the model names and the facts do not hold, and the other way round.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api"]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-710 a unit the facts do not hold" 0 \
+    "the unit store is named by E-020 and the facts do not hold it"
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store", "stranger"]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-720 a unit no part names" 0 "the facts hold the unit stranger and no part names it"
+
+# --- A link the parts do not account for, and the two silences around it.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "store", "to": "api"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-730 a link no part declares" 0 \
+    "the facts link the unit store to api, and none of E-020 declares a dependency on any of E-010"
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "api", "to": "nowhere"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+silent "FR-ARCH-730 a link into a unit nobody names is left alone" 0 "the facts link"
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api", "store"], "links": [{"from": "api", "to": "api"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+silent "FR-ARCH-730 a link inside one unit is not a dependency" 0 "the facts link"
+
+# --- Priced: all three are notes by default, because the far end is usually
+# --- another team's repository.
+printf '{"taken": "%s", "source": "the deploy repository", "units": ["api"]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-710 a note by default" 0 "note: the unit store is named by E-020"
+silent "FR-ARCH-710 and a note does not fail a strict run" 0 "treated as errors" --strict
+printf '{"rules": {"unit-absent": "warn"}}\n' > "$LAB/arch/arch-config.json"
+rule "FR-ARCH-710 priced up, it fails a strict run" 1 "treated as errors" --strict
+printf '{"rules": {}}\n' > "$LAB/arch/arch-config.json"
+
+# --- A reading older than its own stated life is used for nothing, and the run
+# --- says so rather than looking like one that found nothing.
+printf '{"taken": "2000-01-01", "source": "the deploy repository", "life": 1, "units": ["api"]}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-740 a stale reading is used for nothing" 0 "so none of them was used"
+silent "FR-ARCH-740 and its facts are not compared" 0 "the unit store is named by"
+printf '{"taken": "2000-01-01", "source": "the deploy repository", "units": ["api"]}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-740 facts with no life cannot go stale" 0 "the unit store is named by E-020"
+
+# --- Refused before anything is read: the setup, not a finding.
+printf '[]\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-750 the top level must be an object" 2 "the top level must be a JSON object"
+printf '{"source": "somewhere", "units": []}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-750 facts with no date" 2 "\`taken\` must be text"
+printf '{"taken": "yesterday", "source": "somewhere", "units": []}\n' > "$LAB/arch/units.json"
+rule "FR-ARCH-750 a date that is not one" 2 "expected a date as YYYY-MM-DD"
+printf '{"taken": "%s", "source": "somewhere"}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-750 facts with no units" 2 "\`units\` must be a JSON list of names"
+printf '{"taken": "%s", "source": "somewhere", "units": ["api"], "links": [{"from": "api"}]}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-750 a link missing a side" 2 "link 0: \`to\` must be text"
+printf '{"taken": "%s", "source": "somewhere", "units": ["api"], "life": "a fortnight"}\n' "$TODAY" > "$LAB/arch/units.json"
+rule "FR-ARCH-750 a life that is not a number of days" 2 "expected a whole number of days"
+
+rm -f "$LAB/arch/units.json"
+silent "FR-ARCH-700 no facts, no findings about units" 0 "the unit"
+
+# srs-end: IF-ARCH-100, FR-ARCH-700, FR-ARCH-710, FR-ARCH-720, FR-ARCH-730, FR-ARCH-740, FR-ARCH-750
+
+# --- What a part is made of inside. A clean layer of two parts first, so that a
+# fixture breaks one thing and the rest of the reading stays right.
+# verifies: FR-ARCH-780, FR-ARCH-790, FR-ARCH-800, FR-ARCH-810, FR-ARCH-820
+# verifies: FR-ARCH-830, FR-ARCH-840, FR-ARCH-850, FR-ARCH-860, IF-ARCH-110
+rm -f "$LAB/arch/10-moves.md" "$LAB/arch/units.json" "$LAB/arch/edges.json"
+shapes() { cat > "$LAB/arch/20-shapes.md"; }
+
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+
+silent "FR-ARCH-800 a part with no form is silent" 0 "no shape inside it"
+
+shapes <<'MD'
+# Shapes
+
+### S-01 — Two digits short
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-780 malformed identifier" 1 "identifier does not match E-<NNN>, M-<NNN> or S-<NNN>"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+
+### S-010 — The same number again
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for it too.
+MD
+rule "FR-ARCH-780 duplicate identifier" 1 "S-010 is already used at"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that says nothing about its obligations
+
+```yaml
+status: proposed
+inside: E-010
+```
+
+Answers for something unnamed.
+MD
+rule "FR-ARCH-780 missing key" 1 "required key 'requirements' is missing"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A state of its own invention
+
+```yaml
+status: designed
+inside: E-010
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-780 a status outside the four" 1 "status 'designed' is not one of"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — Inside a part nobody has
+
+```yaml
+status: proposed
+inside: E-999
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-790 inside names no element" 1 "inside names E-999, which no element defines"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — Inside two parts at once
+
+```yaml
+status: proposed
+inside: [E-010, E-020]
+requirements: [FR-CORE-010]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-790 inside names more than one" 1 "inside names 2 elements, and a shape is inside exactly one"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — Holding a form nobody wrote
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+holds: [S-999]
+```
+
+Answers for the first.
+MD
+rule "FR-ARCH-790 holds names no shape" 1 "holds names S-999, which no shape defines"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form inside the first part
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-020]
+```
+
+Answers for an obligation its part does not carry.
+MD
+rule "FR-ARCH-800 a realized obligation no form answers for" 0 \
+     "E-010 carries FR-CORE-010 and no shape inside it answers for it"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that answers for nothing
+
+```yaml
+status: proposed
+inside: E-010
+requirements: []
+```
+
+Nothing says what it is for.
+MD
+rule "FR-ARCH-820 a form answering for no obligation" 0 \
+     "S-010 inside E-010 answers for no requirement"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+owns: [Query.cursor]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: proposed
+inside: E-020
+requirements: [FR-CORE-020]
+owns: [Query.cursor]
+```
+
+Answers for the second, and owns the same state.
+MD
+rule "FR-ARCH-830 one state with two owners" 0 \
+     "Query.cursor is owned by S-010 and S-020, so one piece of state answers to more than one form"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+holds: [S-020]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: proposed
+inside: E-020
+requirements: [FR-CORE-020]
+holds: [S-010]
+```
+
+Answers for the second, and holds the one that holds it.
+MD
+rule "FR-ARCH-840 forms in a circle" 0 "shapes hold each other in a circle"
+
+# A cancelled form holds nothing up: the part reads as it did before anybody wrote it.
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that was dissolved
+
+```yaml
+status: withdrawn
+inside: E-010
+requirements: []
+```
+
+Answers for nothing, and is gone.
+MD
+silent "FR-ARCH-820 a cancelled form is not reported" 0 "answers for no requirement"
+silent "FR-ARCH-800 a part whose only form is cancelled is silent" 0 "no shape inside it"
+
+# --- A layer whose forms close over everything their parts carry says nothing at all.
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010]
+names: [First]
+shape: [act]
+owns: [First.state]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+holds: [S-010]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-800 a closed design says nothing about its obligations" 0 "no shape inside it"
+silent "FR-ARCH-820 a form that answers for something is not reported" 0 "answers for no requirement"
+silent "FR-ARCH-830 one owner per state is not reported" 0 "answers to more than one form"
+silent "FR-ARCH-840 a form held once is not a circle" 0 "hold each other in a circle"
+
+# --- The backlog of the design: an approved obligation no form is designed for.
+cat >> "$LAB/specs/10-fr-core.md" <<'MD'
+
+### FR-CORE-030 — The third
+
+```yaml
+status: deferred
+verification: T
+derives_from: []
+depends_on: []
+refines: []
+conflicts_with: []
+code: []
+tests: []
+created: 2026-10-13
+```
+
+The system **shall** act a third time.
+MD
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file and answers for an obligation nobody has built.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+rule "FR-ARCH-810 an approved obligation no form is designed for" 0 \
+     "E-010 carries FR-CORE-030 and no shape inside it is designed for it"
+
+# --- The drivers of one part, and a part nobody has.
+rule "FR-ARCH-860 the drivers of one part" 0 "What most constrains the form inside E-010" --drivers E-010
+rule "FR-ARCH-860 the drivers of a part nobody has" 2 "no element E-999" --drivers E-999
+rule "FR-ARCH-210 the drivers of the whole cut" 0 "Architectural drivers, most constrained first" --drivers
+
+# --- The map says what each part is made of inside, and says nothing where no form exists.
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py > /tmp/srs-arch.log 2>&1 ) || true
+if ! grep -qF "## What the parts are made of inside" "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-850 — the map does not state what the parts are made of inside"
+    cat /tmp/srs-arch.log; exit 1
+fi
+if ! grep -qF "**S-010** The first form" "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-850 — the map does not name the form"; exit 1
+fi
+passes=$((passes + 1))
+
+rm -f "$LAB/arch/20-shapes.md"
+( cd "$LAB" && python3 srs-dd/tools/srs_arch.py > /tmp/srs-arch.log 2>&1 ) || true
+if grep -qF "## What the parts are made of inside" "$LAB/arch/90-map.md"; then
+    echo "FAIL FR-ARCH-850 — the map keeps a section for forms nobody wrote"; exit 1
+fi
+passes=$((passes + 1))
+# srs-end: FR-ARCH-780
+# One marker for the whole block: a block ends at the first `srs-end:` naming any one of
+# its requirements (Annotations, srs-dd/standard.md), and the ten above do not fit a line.
+
+
+# --- Why a part's boundary runs where it does: the decision it names must exist.
+# verifies: FR-ARCH-870
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+decisions: [ADR-0001]
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+silent "FR-ARCH-870 a decision that exists is not reported" 0 "the specification holds no document named"
+
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+decisions: [ADR-0099]
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+rule "FR-ARCH-870 a decision nobody wrote" 1 "E-010 names ADR-0099, and the specification holds no document named after it"
+# srs-end: FR-ARCH-870
+
+
+# --- The facts about symbols: what the checker reads itself and what a project supplies.
+# verifies: FR-ARCH-930, FR-ARCH-940, FR-ARCH-950, FR-ARCH-960, FR-ARCH-970
+# verifies: FR-ARCH-980, FR-ARCH-990, IF-ARCH-120
+# verifies: CON-ARCH-030, CON-ARCH-040, FR-ARCH-995
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+
+# A run with a form and nothing to compare it against says so: the files carry no declaration
+# and the project supplied none.
+printf 'pass\n' > "$LAB/src/a.py"
+printf 'pass\n' > "$LAB/src/b.py"
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+```
+
+Answers for the first.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+# Read and declaring nothing is not the same as unread: the file was read, so the name the form
+# claims is absent, and the run that read it says nothing about having compared nothing.
+rule "FR-ARCH-930 a file read and declaring nothing leaves the name absent" 0 \
+     "S-010 names First and no file E-010 carries declares it"
+silent "FR-ARCH-990 a file read that declares nothing was still read" 0 \
+     "the forms were compared with nothing"
+
+# Now the files declare something, read by the checker itself.
+cat > "$LAB/src/a.py" <<'PY'
+STATE = 1
+
+
+def act():
+    return STATE
+
+
+def inside_use():
+    return First.plan
+
+
+class First:
+    def act(self):
+        return STATE
+
+    def plan(self):
+        return STATE
+PY
+cat > "$LAB/src/b.py" <<'PY'
+def use():
+    return First.plan
+PY
+
+silent "FR-ARCH-990 a run that read declarations is silent" 0 "the forms were compared with nothing"
+silent "FR-ARCH-930 a name the code declares is not reported" 0 "no file E-010 carries declares it"
+silent "FR-ARCH-940 a type the form names is not reported" 0 "declares the type First"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, Missing]
+owns: [First.state]
+```
+
+Answers for the first, and names what nobody wrote.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-930 a name nothing declares" 0 "S-010 names Missing and no file E-010 carries declares it"
+rule "FR-ARCH-930 state nothing declares" 0 \
+     "S-010 names First.state and no file E-010 carries declares it"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form still being designed
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, Missing]
+```
+
+Answers for the first, and is not built yet.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-930 a designed form names what nobody wrote yet" 0 "no file E-010 carries declares it"
+rule "FR-ARCH-970 the symbols a design still needs" 0 \
+     "symbol Missing — E-010 does not declare it yet" --plan
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A design the code has caught up with
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+```
+
+Answers for the first, and every symbol it names exists.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-960 a design the code has caught up with" 0 \
+     "S-010 is still proposed and every symbol it names is declared"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A design that names no symbol
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+```
+
+Answers for the first, down to its obligations alone.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-960 a design naming no symbol is not reported" 0 "every symbol it names is declared"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form nobody claims the type of
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [act]
+```
+
+Answers for the first, and names the operation rather than the type.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-940 a type no form claims" 0 \
+     "src/a.py declares the type First, which E-010 carries and no shape inside it names"
+silent "FR-ARCH-940 an operation is not reported as unclaimed" 0 "declares the type act"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form with operations of its own
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+shape: [act]
+```
+
+Answers for the first, and states one operation.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-950 a form entered past its operations" 0 \
+     "S-010 is reached on First.plan by src/b.py, and its shape does not state plan"
+silent "FR-ARCH-950 a part reaching its own insides is not reported" 0 "by src/a.py"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that states both operations
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+shape: [act, plan]
+```
+
+Answers for the first, and states what the other part enters by.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-950 an operation the form states is not a bypass" 0 "its shape does not state"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form that states no operation
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+```
+
+Answers for the first, and declares no operation to be crossed.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-950 a form stating no operation is not reported" 0 "its shape does not state"
+rule "FR-ARCH-970 the operations a design still needs" 0 "No part and no form is designed" --plan
+
+# --- A type inside a type comes with what encloses it, under its dotted name.
+cat > "$LAB/src/a.py" <<'PY'
+STATE = 1
+
+
+def act():
+    return STATE
+
+
+def inside_use():
+    return First.plan
+
+
+class First:
+    class Inner:
+        def run(self):
+            return STATE
+
+    def act(self):
+        return STATE
+
+    def plan(self):
+        return STATE
+PY
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form naming a type inside a type
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, First.Inner]
+```
+
+Answers for the first, and names what is nested in it.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "FR-ARCH-980 a nested type resolves by its dotted name" 0 \
+     "names First.Inner and no file E-010 carries declares it"
+silent "FR-ARCH-940 a nested type is not asked for a form of its own" 0 "declares the type First.Inner"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form naming a type that was never nested
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, First.Missing]
+```
+
+Answers for the first, and names what nobody nested in it.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-930 a nested name nothing declares" 0 \
+     "S-010 names First.Missing and no file E-010 carries declares it"
+
+# --- The facts a project supplies, for a language the checker does not read.
+# The part carries the file the facts describe: a symbol belongs to the part whose file declares
+# it, and one declared in a file no part carries belongs to nobody.
+printf 'struct Second {}\n' > "$LAB/src/c.swift"
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py, src/c.swift]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file and one in another language.
+MD
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2026-10-14",
+ "source": "a reader of another language",
+ "symbols": [{"name": "Second", "kind": "type", "path": "src/c.swift", "operations": ["run"]},
+             {"name": "Ghost", "kind": "type", "path": "src/a.py"}],
+ "entries": [{"from": "src/c.swift", "symbol": "First", "by": "plan"}]}
+JSON
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First]
+shape: [act]
+```
+
+Answers for the first.
+
+### S-020 — A form in another language
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+names: [Second]
+```
+
+Answers for the second, in a language this checker does not read.
+MD
+silent "FR-ARCH-980 a symbol the facts hold is not missing" 0 "S-020 names Second"
+silent "FR-ARCH-980 a file read natively is not taken from the facts" 0 "declares the type Ghost"
+rule "FR-ARCH-950 an entry the facts hold" 0 \
+     "S-010 is reached on First.plan by src/c.swift, and its shape does not state plan"
+
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2026-10-14",
+ "source": "a reader of another language",
+ "symbols": [{"name": "Second", "kind": "class", "path": "src/c.swift"}]}
+JSON
+rule "IF-ARCH-120 a kind the format does not have" 2 \
+     "is 'class', expected one of type, operation, state"
+
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2020-01-01",
+ "source": "a reader of another language",
+ "life": 14,
+ "symbols": [{"name": "Second", "kind": "type", "path": "src/c.swift"}]}
+JSON
+rule "IF-ARCH-120 facts past the life their producer gave them" 0 \
+     "no form here was compared with a symbol that file holds"
+rm -f "$LAB/arch/symbols.json"
+
+# --- A part this checker reads in half: shell is code in this project, and one part carries some.
+cat > "$LAB/specs/srs-config.json" <<'JSON'
+{
+  "areas": ["CORE"],
+  "code_roots": ["src"],
+  "test_roots": ["t"],
+  "code_extensions": [".py", ".sh"]
+}
+JSON
+printf 'rule() { :; }\nsilent() { :; }\n' > "$LAB/src/c.sh"
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The part read in half
+
+```yaml
+status: built
+carries: [src/b.py, src/c.sh]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds one file in a language this checker reads and one in a language it does not.
+MD
+shapes <<'MD'
+# Shapes
+
+### S-010 — The first form
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [First, Missing]
+```
+
+Answers for the first, and names what nobody wrote.
+
+### S-020 — A form over the shell
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+names: [rule, silent]
+```
+
+Answers for the second, naming what its shell file declares.
+MD
+silent "CON-ARCH-040 nothing is missing from a part read in half" 0 "S-020 names rule"
+rule "FR-ARCH-995 the part read in half is named" 0 \
+     "E-020 holds 1 shape(s) and carries 1 file(s) in a language this checker does not read"
+silent "FR-ARCH-995 a part read whole is not named" 0 "E-010 holds 1 shape(s)"
+rule "CON-ARCH-040 the part read whole is compared as before" 0 \
+     "S-010 names Missing and no file E-010 carries declares it"
+rule "FR-ARCH-995 the plan names the part it could not cost" 0 \
+     "E-020 holds 1 shape(s) and carries 1 file(s)" --plan
+
+# The project supplies the facts, which is its claim that they are complete (CON-ARCH-040): the
+# gate opens, and the one name they do not hold is reported.
+cat > "$LAB/arch/symbols.json" <<'JSON'
+{"taken": "2026-10-14",
+ "source": "a reader of shell",
+ "symbols": [{"name": "rule", "kind": "operation", "path": "src/c.sh"}]}
+JSON
+rule "CON-ARCH-040 facts open the gate again" 0 \
+     "S-020 names silent and no file E-020 carries declares it"
+silent "CON-ARCH-040 a name the facts hold is not missing" 0 "S-020 names rule"
+silent "FR-ARCH-995 a part the facts speak for is not named" 0 "E-020 holds 1 shape(s)"
+rm -f "$LAB/arch/symbols.json"
+
+# --- A name only the neighbour declares. Matched over the whole project it is satisfied by the
+#     neighbour's copy, which is what CON-ARCH-030 narrows.
+cat > "$LAB/src/b.py" <<'SRC'
+class Alone:
+    def other(self):
+        return 1
+
+
+def use():
+    return First.plan
+
+
+def neighbour_use():
+    return Alone.other
+SRC
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file.
+
+### E-020 — The second part
+
+```yaml
+status: built
+carries: [src/b.py]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the second file.
+MD
+shapes <<'MD'
+# Shapes
+
+### S-010 — A form naming the neighbour's type
+
+```yaml
+status: built
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [Alone]
+shape: [act]
+```
+
+Answers for the first, and names a type the other part declares.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+rule "CON-ARCH-030 a name only the neighbour declares is missing" 0 \
+     "S-010 names Alone and no file E-010 carries declares it"
+silent "CON-ARCH-030 an entry into the neighbour's own name is not a bypass here" 0 \
+     "its shape does not state other"
+
+shapes <<'MD'
+# Shapes
+
+### S-010 — A design naming the neighbour's type
+
+```yaml
+status: proposed
+inside: E-010
+requirements: [FR-CORE-010, FR-CORE-030]
+names: [Alone]
+```
+
+Answers for the first, and names a type the other part declares.
+
+### S-020 — The second form
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+```
+
+Answers for the second.
+MD
+silent "CON-ARCH-030 the neighbour's code does not build this design" 0 \
+     "every symbol it names is declared"
+rule "CON-ARCH-030 the plan asks the design's own part" 0 \
+     "symbol Alone — E-010 does not declare it yet" --plan
+
+# --- A run with no readable file of the parts holding forms: the whole-run reading speaks, and
+#     speaks alone.
+elements <<'MD'
+# Elements
+
+### E-010 — The first part
+
+```yaml
+status: built
+carries: [src/a.py]
+requirements: [FR-CORE-010, FR-CORE-030]
+depends_on: []
+```
+
+Holds the first file, and holds no form.
+
+### E-020 — The part in a language this checker does not read
+
+```yaml
+status: built
+carries: [src/c.sh]
+requirements: [FR-CORE-020]
+depends_on: []
+```
+
+Holds the shell file.
+MD
+shapes <<'MD'
+# Shapes
+
+### S-020 — The only form, over a language this checker does not read
+
+```yaml
+status: built
+inside: E-020
+requirements: [FR-CORE-020]
+names: [rule]
+```
+
+Answers for the second.
+MD
+rule "FR-ARCH-990 no readable file of the parts holding forms" 0 \
+     "the forms were compared with nothing"
+silent "FR-ARCH-995 the whole-run reading speaks alone" 0 "E-020 holds 1 shape(s)"
+# srs-end: FR-ARCH-930
+
 
 echo "arch-rules: $passes fixtures pass"
 # srs-end: FR-ARCH-280

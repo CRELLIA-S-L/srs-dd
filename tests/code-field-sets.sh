@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # A requirement whose statement claims a set — every procedure, every Python
 # tool, every command — names the whole set in its `code` field. An
 # incomplete field is green forever: the checker proves the paths exist and
@@ -11,7 +12,7 @@ cd "$(dirname "$0")/.."
 
 # file implements: INV-SPEC-100
 # file verifies: INV-SPEC-100
-python3 tools/srs_view.py --json /tmp/srs-code-sets.json >/dev/null
+python3 srs-dd/tools/srs_view.py --json /tmp/srs-code-sets.json >/dev/null
 python3 - <<'PY'
 import glob, json, os, re, sys
 
@@ -34,7 +35,22 @@ def names_records(text):
     return "--cite" in text or "as `AGENTS.md` asks" in text
 
 
-tools_py = set(glob.glob("tools/*.py"))
+tools_py = set(glob.glob("tools/*.py")) | set(glob.glob("srs-dd/tools/*.py"))
+
+
+def shipped_srs_dir():
+    """Everything under srs-dd/ the installer copies, read off its own tuples, the
+    source of the guide aside: it is the one file of ours whose text becomes part of
+    the project's document, so a notice of ours in it would claim their file."""
+    sys.path.insert(0, "tools")
+    sys.dont_write_bytecode = True
+    import srs_init
+    tools = srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS
+    return ({os.path.join(srs_init.SRS_TOOLS, name).replace(os.sep, "/") for name in tools}
+            | {path.replace(os.sep, "/") for path in srs_init.DIR_FILES}
+            | {srs_init.GROUNDS_STANDARD.replace(os.sep, "/"),
+               srs_init.ARCH_STANDARD.replace(os.sep, "/")}) - {srs_init.GUIDE_SOURCE.replace(os.sep, "/")}
+
 # The requirement, the kind of path it claims, and the set of that kind it
 # must name — the kind filters the field, so a guide beside the procedures
 # in FR-SKILL-200's field is neither required nor in the way.
@@ -44,15 +60,21 @@ CLAIMS = (
     # are the framework's, and the citation would find the project's own.
     ("FR-SKILL-200", r"^\.claude/skills/",
      skills(names_records) - {".claude/skills/srs-upgrade/SKILL.md"}),
-    ("NFR-SPEC-010", r"^tools/.*\.py$", tools_py),
+    ("NFR-SPEC-010", r"^(srs-dd/)?tools/.*\.py$", tools_py),
     # Every command: the Python tools less the module the checkers import,
     # and the local gate.
-    ("CON-SPEC-030", r"^tools/", (tools_py - {"tools/srs_parse.py"}) | {"tools/ci_selftest.sh"}),
+    ("CON-SPEC-030", r"^(srs-dd/)?tools/", (tools_py - {"srs-dd/tools/srs_parse.py"}) | {"tools/ci_selftest.sh"}),
     # Every tool that reads an identifier's number, and every one that
     # orders identifiers: the grammar and the order are the parser's, and a
     # tool that uses them is one the invariant binds.
-    ("INV-SPEC-080", r"^tools/", {p for p in tools_py if "NUMBER" in open(p, encoding="utf-8").read()}),
-    ("INV-SPEC-090", r"^tools/", {p for p in tools_py if "id_key" in open(p, encoding="utf-8").read()}),
+    ("INV-SPEC-080", r"^(srs-dd/)?tools/", {p for p in tools_py if "NUMBER" in open(p, encoding="utf-8").read()}),
+    ("INV-SPEC-090", r"^(srs-dd/)?tools/", {p for p in tools_py if "id_key" in open(p, encoding="utf-8").read()}),
+    # Every file of the framework's own directory the installer copies: the
+    # tools of the core and of both layers, the standards and the documents.
+    # The source of the guide is excused by name — its text lands inside the
+    # project's own AGENTS.md — and the skills are a directory in the field,
+    # which the kind leaves out.
+    ("FR-INIT-280", r"^srs-dd/", shipped_srs_dir()),
 )
 
 

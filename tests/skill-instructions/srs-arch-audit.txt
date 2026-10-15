@@ -1,0 +1,30 @@
+# What the `srs-arch-audit` procedure must name — written with the procedure on
+# 2026-10-06. One literal token per line; the suite fails when one is missing
+# from the procedure's text. Add a line when a procedure gains an instruction;
+# remove one only with the sentence that says why.
+
+# commands
+srs-dd/tools/srs_arch.py --no-write
+srs-dd/tools/srs_arch.py --price
+srs-dd/tools/srs_arch.py --drivers
+srs-dd/tools/srs_arch.py --cite
+srs-dd/tools/srs_arch_doc.py
+srs-dd/tools/srs_view.py --cite
+
+# the acts a finding ends in, and the number it may not end in
+rename
+split
+merge
+redraw
+No score.
+Leaving a part alone is an act.
+
+# files
+srs-dd/arch.md
+
+# the report is re-read before it is sent (FR-SKILL-550)
+read once before it is sent
+
+# the form inside a part, judged as the part is (FR-SKILL-690)
+Every form a part holds
+whether the form is a boundary at all

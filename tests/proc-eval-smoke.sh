@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # tools/srs_proc_eval.py reads every shipped scenario and holds its
 # expectations to the specification as it stands, accounts the tokens of a
 # run from the per-turn usage the client reports, scores the checks off the
@@ -20,7 +21,7 @@ cd "$(dirname "$0")/.."
 python3 - <<'PY'
 import os, re, subprocess, sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_proc_eval as e
 
 scenarios, problem = e.read_scenarios()
@@ -32,7 +33,7 @@ for s in scenarios:
     assert any(k == "skill" and a == s["procedure"] for k, a in s["checks"]), \
         "%s does not check that its procedure `%s` was invoked" % (s["name"], s["procedure"])
     for rid in s["free"]:
-        run = subprocess.run([sys.executable, "tools/srs_view.py", "--cite", rid], capture_output=True, text=True)
+        run = subprocess.run([sys.executable, "srs-dd/tools/srs_view.py", "--cite", rid], capture_output=True, text=True)
         assert run.returncode == 1 and not run.stdout.strip(), \
             "%s assumes %s is free and the specification carries it: %s" % (s["name"], rid, run.stdout.strip())
     for kind, argument in s["checks"]:
@@ -40,7 +41,7 @@ for s in scenarios:
             continue
         for rid in RE_CITED.findall(argument):
             tool = TOOL.get(rid.split("-")[0], "srs_view.py")
-            run = subprocess.run([sys.executable, "tools/" + tool, "--cite", rid], capture_output=True, text=True)
+            run = subprocess.run([sys.executable, "srs-dd/tools/" + tool, "--cite", rid], capture_output=True, text=True)
             assert run.returncode == 0, "%s expects %s, which no tool cites: %s" % (s["name"], rid, run.stderr.strip())
             assert re.search(argument, run.stdout.strip()), \
                 "%s expects `%s`, and %s prints `%s`" % (s["name"], argument, tool, run.stdout.strip())
@@ -61,7 +62,7 @@ def turn(created, read, out, fresh=2):
     return {"input_tokens": fresh, "cache_creation_input_tokens": created,
             "cache_read_input_tokens": read, "output_tokens": out}
 good = {"tools": [{"name": "Skill", "input": {"skill": "srs-arch"}},
-                  {"name": "Bash", "input": {"command": "python3 tools/srs_arch.py --cite E-050"}}],
+                  {"name": "Bash", "input": {"command": "python3 srs-dd/tools/srs_arch.py --cite E-050"}}],
         "turns": [turn(20000, 0, 10), turn(1500, 20000, 40), turn(300, 21500, 200)],
         "answer": "It is E-050 — The grounds layer (arch/00-elements.md, built), which answers for the register.",
         "cost_usd": 0.25, "num_turns": 3, "stop": "success", "is_error": False,
@@ -73,8 +74,14 @@ bad = {"tools": [{"name": "Edit", "input": {"file_path": "arch/00-elements.md"}}
 print(json.dumps({"scenario": "srs-arch", "run": 1, "trace": good}))
 print(json.dumps({"scenario": "srs-arch", "run": 2, "trace": bad}))
 print(json.dumps({"scenario": "no-such-scenario", "run": 1, "trace": bad}))
+baseline = dict(bad)
+baseline["baseline"] = True
+print(json.dumps({"scenario": "srs-arch", "run": 1, "baseline": True, "trace": baseline}))
 PY
 WORDS=$(wc -w < .claude/skills/srs-arch/SKILL.md | tr -d ' ')
+# The tool prints both sizes in ascending order, so the expectation sorts them
+# too: which of the two runs was taken under the larger procedure is not fixed.
+SIZES=$(printf '%s\n%s\n' "$WORDS" 999 | sort -n | paste -sd/ -)
 python3 tools/srs_proc_eval.py --score "$CANNED" --only srs-arch --json /tmp/srs-proc-eval.json > /tmp/srs-proc-eval.out
 # floor 20002; end 300 + 21500 + 2 = 21802; added 1800; out 250;
 # burned = 21800 created + 41500 read + 6 fresh + 250 out = 63556.
@@ -84,15 +91,39 @@ grep -q '^srs-arch       run 2  floor  20002  added      0  burned    20062  out
     || { echo "proc-eval: the bad run is not scored 1 of 5 with nothing added and its stop reason beside it"; cat /tmp/srs-proc-eval.out; exit 1; }
 grep -q "failed: skill srs-arch" /tmp/srs-proc-eval.out && grep -q "failed: no_tool Edit" /tmp/srs-proc-eval.out \
     && grep -q "failed: answer E-050 — The grounds layer" /tmp/srs-proc-eval.out \
-    && grep -q "failed: ran python3 tools/srs_arch.py" /tmp/srs-proc-eval.out \
+    && grep -q "failed: ran python3 srs-dd/tools/srs_arch.py" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the bad run's failed checks are not the ones expected"; cat /tmp/srs-proc-eval.out; exit 1; }
-grep -q "^srs-arch       2 run(s)  procedure srs-arch $WORDS/999 words  added    900  burned    41809  checks met 6 of 10$" /tmp/srs-proc-eval.out \
+grep -q "^srs-arch       2 run(s)  procedure srs-arch $SIZES words  added    900  burned    41809  checks met 6 of 10$" /tmp/srs-proc-eval.out \
     || { echo "proc-eval: the per-scenario summary is not the mean of the two runs, naming both sizes the runs were taken under"; cat /tmp/srs-proc-eval.out; exit 1; }
 grep -q "no-such-scenario" /tmp/srs-proc-eval.out && { echo "proc-eval: a saved run of no scenario was scored"; exit 1; }
+
+# --- verifies: FR-SKILL-500 — the baseline half, scored apart and compared.
+# With the procedure: runs 1 and 2 meet 6 of 10. Without it: 1 of 5. The pair is
+# what makes either number readable.
+grep -q "^srs-arch       run 1 baseline  floor  20002" /tmp/srs-proc-eval.out \
+    || { echo "proc-eval: a baseline run is not marked as one on its line"; cat /tmp/srs-proc-eval.out; exit 1; }
+grep -q "^srs-arch       1 baseline run(s) with the procedure out of reach  checks met 1 of 5$" /tmp/srs-proc-eval.out \
+    || { echo "proc-eval: the baseline half is not summed apart"; cat /tmp/srs-proc-eval.out; exit 1; }
+grep -q "^srs-arch       with the procedure 60%, without it 20%, difference +40 points$" /tmp/srs-proc-eval.out \
+    || { echo "proc-eval: the difference between the two halves is not reported"; cat /tmp/srs-proc-eval.out; exit 1; }
+python3 - <<'BASE' || { echo "proc-eval: a baseline run still reaches the procedure"; exit 1; }
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, "tools")
+import srs_proc_eval as e
+assert e.allowed_without_procedure("Read,Grep,Skill,Bash(python3 tools/*)") \
+    == "Read,Grep,Bash(python3 tools/*)"
+assert "Skill" in e.DEFAULT_TOOLS and "Skill" not in e.allowed_without_procedure(e.DEFAULT_TOOLS)
+BASE
+# srs-end: FR-SKILL-500
 python3 - "$WORDS" <<'PY' || { echo "proc-eval: the JSON report disagrees with the text"; exit 1; }
 import json, sys
 rows = json.load(open("/tmp/srs-proc-eval.json"))["runs"]
-assert len(rows) == 2
+# Three rows: the two runs with the procedure and the baseline half beside them,
+# which the report sums apart (FR-SKILL-500).
+assert len(rows) == 3, len(rows)
+assert [row["baseline"] for row in rows] == [False, False, True], \
+    [row["baseline"] for row in rows]
 assert rows[0]["tokens"] == {"floor": 20002, "end": 21802, "added": 1800, "output": 250,
                              "cache_created": 21800, "cache_read": 41500, "input": 6,
                              "burned": 63556}, rows[0]["tokens"]
@@ -110,7 +141,7 @@ BROKEN=$(mktemp -d)
 python3 - "$BROKEN" <<'PY' || { echo "proc-eval: a malformed scenario was accepted"; exit 1; }
 import os, sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_proc_eval as e
 cases = {
     "shouted": ("---\nprocedure: srs\ncheck: shouted LOUD\n---\nDo.\n", "kinds are"),

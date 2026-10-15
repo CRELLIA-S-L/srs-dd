@@ -45,10 +45,10 @@ This skill adds the one thing the script cannot do: language.
 
    Add `--period <month|quarter|year>` to that command **only with `--grounds yes`** — passed alongside `--grounds no` it has no register to configure, and the installer says so rather than dropping it, which is a note the user did not need to read.
 
-   Run that command **twice**: first with `--dry-run` appended, which writes nothing and prints the exact created / refreshed / set aside / skipped list — show it to the user with the lexicon — and then, once they approve, the same command without the flag.
+   Run that command **twice**: first with `--dry-run` appended, which writes nothing and prints the exact created / refreshed / moved / skipped list — show it to the user with the lexicon — and then, once they approve, the same command without the flag.
 
 6. After a successful install, rewrite the placeholder requirement in the target (`specs/10-fr-<area>.md`) as a grammatical sentence in the specification language, then run the target's checker again.
-7. Suggest recording the force class of each chosen verb in the target's `specs/00-glossary.md`, as `specs/README.md` recommends.
+7. Suggest recording the force class of each chosen verb in the target's `specs/00-glossary.md`, as `srs-dd/standard.md` recommends.
 8. If the target has real code, offer to mine a specification from it with the `srs-harvest` skill.
 
 ## Adopting an existing specification
@@ -65,8 +65,8 @@ When the target already has an SRS-shaped spec (numbered requirements in `specs/
    `--dry-run` lists what would be installed but skips that validation — it needs the checker inside the target — so treat the dry run as a preview of the file list only.
 4. If validation fails, read the checker's output: wrong or incomplete lexicon (a missing verb form is the most common cause) — extend the lists and re-run; genuine spec defects — report them to the user instead of forcing the lexicon around them.
 5. After success: remind the user to commit `specs/90-traceability.md` with the tooling.
-   Where the installer set the project's own standard aside, read `specs/archive/README-before-srs-dd.md` and sort its rules: what the standard already says needs nothing; a project rule the standard permits goes to `specs/constitution.md`; a rule the checker refuses is a practice the maintainer has to change — name it and stop.
-   What it said about the system rather than its rules goes to `specs/01-introduction.md` and `specs/00-glossary.md`. The archived file is not edited.
+   A README of the project's own under `specs/` stays where it is — the standard lives in `srs-dd/standard.md` — and its rules are sorted the same way: what the standard already says needs nothing; a project rule the standard permits goes to `specs/constitution.md`; a rule the checker refuses is a practice the maintainer has to change — name it and stop.
+   What it said about the system rather than its rules goes to `specs/01-introduction.md` and `specs/00-glossary.md`. The README itself is the project's and is not edited.
 
 ## Upgrading
 
@@ -77,14 +77,22 @@ git -C <framework-clone> pull
 python3 <framework-clone>/tools/srs_init.py <target> --defaults
 ```
 
-The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; the tooling and the skills refresh automatically, precious files (CI, CLAUDE.md/AGENTS.md, .gitattributes, the hook, the standards) only with `--force`.
+The installer prints the checker version transition and the relevant CHANGELOG upgrade notes; `srs-dd/` and the skills refresh whole, the region of `AGENTS.md` between `<!-- srs-dd -->` and `<!-- /srs-dd -->` is rewritten in place, and nothing else of the project's is touched — the hook, the pipelines, `CLAUDE.md`, `.gitattributes` and the rest of `AGENTS.md` are the project's.
 Add `--dry-run` first when the user wants to see the file list before anything moves.
 Remind them to commit the refreshed tooling and the regenerated matrix.
 
-After the installer finishes, offer to merge the agent docs. `--force` refreshes them like any other precious file, but it *replaces* — the project's own additions go with it, and those files are where a project writes what its agents must know. A merge is the reason to do this by hand rather than by flag:
+A project installed before 0.22.0 is moved into the directory by the upgrade: the tools and the standards leave `tools/`, `specs/`, `grounds/` and `arch/`, and the report says what the hook, the pipelines and the guide now have to call; the articles of the method it kept in `specs/constitution.md` may be deleted, since `srs-dd/method.md` carries them.
 
-1. Diff the target's `CLAUDE.md` and `AGENTS.md` against the shipped templates in `skeleton/` — **not** against the ones in the framework repository's root, which describe that repository rather than a target.
-   The templates carry `<Your Project Name>` where the target has its real name; account for that substitution.
-2. For a file that carries the `SRS-DD` marker, propose a merged version: framework additions folded in, the project name and every local addition preserved.
-   Show the result and apply it only on the user's explicit confirmation.
-3. A file without the marker is not ours (same rule the installer follows): report what changed on the framework side and leave the file alone.
+## Wiring the gate
+
+The hook and the pipelines are the project's files: the installer writes a starter only where there is none, never again, and its report — *Pre-commit gate*, *Pipeline gate* — says whether git runs a hook, whether that hook calls `srs-dd/tools/srs_gate.py`, whether any pipeline does, and prints what to add where not.
+Read it after every run and add what it prints where the project runs its hooks: a line in a hook of the project's own, a `repo: local` hook in `.pre-commit-config.yaml`, the line in `.husky/pre-commit`, a command in `lefthook.yml` — with `pre-commit install` or `lefthook install` where git runs nothing yet — and a step in a workflow under `.github/workflows/` or a job in `.gitlab-ci.yml`.
+Where nothing runs at all, `git config core.hooksPath .githooks` switches the starter on, and only then: the switch turns off whatever ran before.
+On a service the installer does not know, read its pipeline and add the step in that service's form.
+Done is the report, run again, saying the hook and a pipeline call the gate — or your reading of the step on a service it does not know; a hook git does not run is a gate that looks installed.
+
+## Where the region landed
+
+The installer finds the framework's region of `AGENTS.md` by its border alone: a line holding nothing but a marker is one, a sentence naming the markers is not, and a fenced example of those lines reads to it exactly like the region.
+So open the file once and see that the region stands where an agent meets the method's rules — not inside an example or a fenced block.
+Where it landed wrong, move the two marker lines to where the rules belong and run again.

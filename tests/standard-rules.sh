@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # Each standard names every rule its checker reports by name, with what it
 # reports — the specification's, the register's and the layer's. A project
 # sets a rule's cost in `rules` by name, and a table kept by hand beside a
@@ -15,15 +16,15 @@ python3 - <<'PY'
 import re, sys
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, "tools")
+sys.path.insert(0, "tools"); sys.path.insert(0, "srs-dd/tools")
 import srs_arch
 import srs_check
 import srs_grounds
 
 # Each standard beside the checker whose rules it names.
-STANDARDS = (("specs/README.md", srs_check.RULES),
-             ("grounds/README.md", srs_grounds.RULES),
-             ("arch/README.md", srs_arch.RULES))
+STANDARDS = (("srs-dd/standard.md", srs_check.RULES),
+             ("srs-dd/grounds.md", srs_grounds.RULES),
+             ("srs-dd/arch.md", srs_arch.RULES))
 
 RE_ROW = re.compile(r"^\| `([a-z][a-z-]*)` \|([^|\n]*)\|\s*$", re.M)
 

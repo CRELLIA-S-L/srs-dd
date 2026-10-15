@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # One fixture per rule of the grounds checker, each breaking exactly one
 # thing, so a failure names the rule that stopped working.
 #
@@ -12,7 +13,7 @@
 # verifies: FR-GND-270, FR-GND-410, FR-GND-420, FR-GND-430
 # verifies: FR-GND-160, FR-GND-170, FR-GND-180, FR-GND-450
 # verifies: FR-GND-460, FR-GND-470, FR-GND-230, FR-GND-140
-# verifies: FR-GND-150, FR-GND-490
+# verifies: FR-GND-150, FR-GND-490, FR-GND-580, INV-SPEC-130
 #
 # Three of these pass silently if the rule underneath them is deleted, and
 # they are the reason this file exists rather than a smoke test: a
@@ -33,9 +34,9 @@ cd "$(dirname "$0")/.."
 
 LAB=/tmp/srs-grounds
 rm -rf "$LAB"
-mkdir -p "$LAB/tools" "$LAB/specs" "$LAB/grounds"
-cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
-   tools/srs_view.py "$LAB/tools/"
+mkdir -p "$LAB/srs-dd/tools" "$LAB/specs" "$LAB/grounds"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$LAB/srs-dd/tools/"
 
 cat > "$LAB/specs/srs-config.json" <<'JSON'
 {
@@ -112,7 +113,7 @@ passes=0
 rule() {
     local name=$1 want=$2 msg=$3; shift 3
     local rc=0
-    ( cd "$LAB" && python3 tools/srs_grounds.py --no-write "$@" ) \
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --no-write "$@" ) \
         > /tmp/srs-grounds.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-grounds.log
@@ -128,7 +129,7 @@ rule() {
 # silent <name> <expected exit> <fragment that must NOT appear>
 silent() {
     local name=$1 want=$2 msg=$3 rc=0
-    ( cd "$LAB" && python3 tools/srs_grounds.py --no-write ) \
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --no-write ) \
         > /tmp/srs-grounds.log 2>&1 || rc=$?
     if [ "$rc" != "$want" ]; then
         echo "FAIL $name — exit $rc, expected $want"; cat /tmp/srs-grounds.log
@@ -445,7 +446,7 @@ requirement: FR-CORE-010' 'FR-CORE-010 rests on, well, nothing.'
                'status: active
 requirement: FR-CORE-010' 'Nobody could name a ground for this.')
 silent "FR-GND-100 an empty bet retires no declaration" 0 "declares FR-CORE-010 unclaimed"
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qE "^\| FR-CORE-010 \|" "$LAB/grounds/90-dashboard.md" \
     || { echo "FAIL FR-GND-220 — a bet staking nothing took the requirement"
          echo "off the list of what rests on no hypothesis"
@@ -540,7 +541,7 @@ reduce() {   # reduce <field> -> the status the dashboard says decides
                rec B-010 "The bet" "status: active
 requirement: FR-CORE-010
 $1: [H-010, H-020]" 'FR-CORE-010 rests on both.')
-    ( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
     grep -F "| FR-CORE-010 |" "$LAB/grounds/90-dashboard.md" | head -1
 }
 
@@ -563,10 +564,10 @@ esac
 # --- --no-write leaves it exactly as it was.
 before=$(cksum < "$LAB/grounds/90-dashboard.md")
 ground < <(rec H-030 "A record the dashboard has never seen" "$HYP" 'Studios archive.')
-( cd "$LAB" && python3 tools/srs_grounds.py --no-write ) > /dev/null 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --no-write ) > /dev/null 2>&1
 [ "$(cksum < "$LAB/grounds/90-dashboard.md")" = "$before" ] \
     || { echo "FAIL CON-GND-020 — --no-write rewrote the dashboard"; exit 1; }
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /dev/null 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /dev/null 2>&1
 [ "$(cksum < "$LAB/grounds/90-dashboard.md")" != "$before" ] \
     || { echo "FAIL CON-GND-020 — a write left the dashboard unchanged"; exit 1; }
 passes=$((passes + 2))
@@ -602,7 +603,7 @@ all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
            rec B-020 "On the one that did not" 'status: active
 requirement: FR-CORE-020
 all_of: [H-020]' 'FR-CORE-020 rests on H-020.')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qF "2 rest on hypotheses" "$LAB/grounds/90-dashboard.md" \
     && { echo "FAIL FR-GND-130 — a supported ground was counted as debt"
          cat "$LAB/grounds/90-dashboard.md"; exit 1; }
@@ -668,7 +669,7 @@ tests: []
 
 The system **shall** act a third time.
 MD
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qF "Of 3 requirements carrying a bet, 1 rest on" "$D" \
     || { echo "FAIL FR-GND-130 — the denominator is the rows, not the bets"
@@ -700,7 +701,7 @@ admissible_arguments: [a cohort measurement]' \
 |---|---|---|---|---|
 | 2026-02-14 | 0.38 | 42 | supported | @kira |
 | 2026-08-01 | 0.41 | 210 | supported | telemetry |')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 
 grep -qF "Ideologies: 2." "$D" \
@@ -783,7 +784,7 @@ tests: []
 The system **shall** depend on the first.
 MD
 ground < <(rec H-010 "Unstaked" "$HYP" 'Studios export weekly.')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qF "| FR-CORE-010 | 1 | 2 | 3 |" "$D" \
     || { echo "FAIL FR-GND-220 — the weight is not incoming plus code files,"
          echo "or a withdrawn dependant was counted into it"; cat "$D"; exit 1; }
@@ -797,7 +798,7 @@ cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md"
 # --- their heading: the amendment table is written first on purpose.
 ground < <(printf '### F-010 — No regulatory surface we cannot staff\n\n```yaml\nstatus: active\n```\n\nWe do not take on what we cannot support.\n\n| date | what changed | why | territory it opens |\n|---|---|---|---|\n| 2026-06-01 | narrowed to payroll | one refusal | nothing yet |\n\n| date | what was refused | who asked |\n|---|---|---|\n| 2026-05-02 | selling timing data to tool vendors | growth |\n\n'
            printf '### F-020 — Nothing has tested this one\n\n```yaml\nstatus: active\n```\n\nWe do not grow by making the thing worse.\n\n')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qF "selling timing data to tool vendors" "$D" \
     || { echo "FAIL FR-GND-250 — the refusal journal is not on the dashboard"
@@ -1146,7 +1147,7 @@ requirement: FR-CORE-010
 all_of: [H-010]' 'FR-CORE-010 rests on H-010.'
            rec B-020 "Claims the second and stakes it on nothing" 'status: active
 requirement: FR-CORE-020' 'FR-CORE-020 carries a bet naming no hypothesis.')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qE "^\| 2026-Q3 \| 1 \| CORE 1 \|" "$D" \
     || { echo "FAIL FR-GND-230 — the quarter that received one unclaimed"
@@ -1164,7 +1165,7 @@ grep -qF "Counted by quarter, which is what \`period\` says" "$D" \
     || { echo "FAIL FR-GND-230 — the dashboard does not name its own unit"
          cat "$D"; exit 1; }
 printf '{"rules": {}, "period": "month"}\n' > "$LAB/grounds/grounds-config.json"
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 grep -qE "^\| 2026-08 \| 1 \| CORE 1 \|" "$D" \
     || { echo "FAIL FR-GND-230 — the configured period is not used"
          cat "$D"; exit 1; }
@@ -1185,9 +1186,9 @@ cp /tmp/srs-grounds-core.md "$LAB/specs/10-fr-core.md" 2>/dev/null || true
 # --- weighed inside the lab above, a file left behind by an earlier
 # --- fixture's run sits in both snapshots and the assertion cannot fail.
 LAB4=/tmp/srs-grounds-write
-rm -rf "$LAB4"; mkdir -p "$LAB4/tools" "$LAB4/specs" "$LAB4/grounds"
-cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
-   tools/srs_view.py "$LAB4/tools/"
+rm -rf "$LAB4"; mkdir -p "$LAB4/srs-dd/tools" "$LAB4/specs" "$LAB4/grounds"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$LAB4/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$LAB4/specs/"
 cp "$LAB/grounds/grounds-config.json" "$LAB4/grounds/"
 { printf '# g\n\n'; rec H-010 "Ground" "$HYP" 'Studios export weekly.'
@@ -1195,7 +1196,7 @@ cp "$LAB/grounds/grounds-config.json" "$LAB4/grounds/"
 weigh() { ( cd "$LAB4" && find . -type f ! -name 90-dashboard.md \
             -exec cksum {} \; | sort ); }
 weigh > /tmp/srs-grounds-before
-( cd "$LAB4" && python3 tools/srs_grounds.py ) > /dev/null 2>&1
+( cd "$LAB4" && python3 srs-dd/tools/srs_grounds.py ) > /dev/null 2>&1
 [ -f "$LAB4/grounds/90-dashboard.md" ] \
     || { echo "FAIL CON-GND-010 — the run wrote no dashboard, so this"
          echo "assertion would hold for a checker that did nothing"; exit 1; }
@@ -1217,7 +1218,7 @@ ground < <(rec H-010 "Measured twice, differently" \
 |---|---|---|---|---|
 | 2026-02-14 | 0.38 | 42 | supported | @kira |
 | 2026-08-01 | 0.09 | 210 | refuted | telemetry |')
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1
 D="$LAB/grounds/90-dashboard.md"
 grep -qF "| @kira | 1 | 1 |" "$D" \
     || { echo "FAIL FR-GND-210 — the reversed verdict was not counted"
@@ -1240,9 +1241,9 @@ rule "FR-GND-270 no history" 0 "did not run, which is not the same as passing"
 # --- register's history. A lab of their own, because they need one; the
 # --- ideology pair below shares it.
 HLAB=/tmp/srs-grounds-history
-rm -rf "$HLAB"; mkdir -p "$HLAB/tools" "$HLAB/specs" "$HLAB/grounds"
-cp tools/srs_grounds.py tools/srs_parse.py tools/srs_check.py \
-   tools/srs_view.py "$HLAB/tools/"
+rm -rf "$HLAB"; mkdir -p "$HLAB/srs-dd/tools" "$HLAB/specs" "$HLAB/grounds"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py srs-dd/tools/srs_check.py \
+   srs-dd/tools/srs_view.py srs-dd/tools/srs_view_model.py "$HLAB/srs-dd/tools/"
 cp "$LAB/specs/srs-config.json" "$LAB/specs/10-fr-core.md" "$HLAB/specs/"
 cp "$LAB/grounds/grounds-config.json" "$HLAB/grounds/"
 ( cd "$HLAB" && git init -q . && git config user.email t@t \
@@ -1259,7 +1260,7 @@ hyp_at() {   # hyp_at <threshold> <evidence rows…>
 }
 commit_lab() { ( cd "$HLAB" && git add -A && git commit -qm "$1" ); }
 history_run() {
-    ( cd "$HLAB" && python3 tools/srs_grounds.py --no-write ) \
+    ( cd "$HLAB" && python3 srs-dd/tools/srs_grounds.py --no-write ) \
         > /tmp/srs-history.log 2>&1 || true
 }
 
@@ -1353,7 +1354,7 @@ passes=$((passes + 1))
 # And a shallow clone says so rather than passing both rules in silence.
 rm -rf /tmp/srs-grounds-shallow
 git clone -q --depth 1 "file://$HLAB" /tmp/srs-grounds-shallow 2>/dev/null
-( cd /tmp/srs-grounds-shallow && python3 tools/srs_grounds.py --no-write ) \
+( cd /tmp/srs-grounds-shallow && python3 srs-dd/tools/srs_grounds.py --no-write ) \
     > /tmp/srs-shallow.log 2>&1 || true
 grep -qF "the clone is shallow" /tmp/srs-shallow.log \
     || { echo "FAIL FR-GND-270 — a shallow clone did not say so"
@@ -1428,7 +1429,7 @@ passes=$((passes + 1))
 ( cd "$LAB" && python3 -c "
 import sys
 sys.dont_write_bytecode = True
-sys.path.insert(0, 'tools')
+sys.path.insert(0, 'tools'); sys.path.insert(0, 'srs-dd/tools')
 import srs_grounds
 
 published = (
@@ -1456,10 +1457,10 @@ rule "IF-GND-020 unknown flag" 2 "unknown flag(s): --bogus" --bogus
 # this lab: the checker locates the register from where the script sits, the
 # way the specification checker locates specs/, so a cd proves nothing.
 LAB2=/tmp/srs-grounds-none
-rm -rf "$LAB2"; mkdir -p "$LAB2/tools"
-cp tools/srs_grounds.py tools/srs_parse.py "$LAB2/tools/"
+rm -rf "$LAB2"; mkdir -p "$LAB2/srs-dd/tools"
+cp srs-dd/tools/srs_grounds.py srs-dd/tools/srs_parse.py "$LAB2/srs-dd/tools/"
 rc=0
-( cd "$LAB2" && python3 tools/srs_grounds.py --no-write ) \
+( cd "$LAB2" && python3 srs-dd/tools/srs_grounds.py --no-write ) \
     > /tmp/srs-grounds.log 2>&1 || rc=$?
 [ "$rc" = 2 ] || { echo "FAIL IF-GND-020 no register — exit $rc, expected 2"
                    cat /tmp/srs-grounds.log; exit 1; }
@@ -1479,7 +1480,7 @@ requirement: FR-CORE-010
 reason: no hypothesis names it yet' 'It stands in for a bet.')
 rm -f "$LAB/grounds/90-dashboard.md"
 rc=0
-( cd "$LAB" && python3 tools/srs_grounds.py --cite U-010 H-010 H-990 ) \
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --cite U-010 H-010 H-990 ) \
     > /tmp/srs-grounds-cite.out 2> /tmp/srs-grounds-cite.err || rc=$?
 cat > /tmp/srs-grounds-cite.want <<'WANT'
 U-010 — Nobody measured this (grounds/10-h-test.md, active)
@@ -1516,7 +1517,7 @@ all_of: [H-010]' 'Rests on it too.'
 requirement: FR-CORE-1000
 all_of: [H-010]' 'And so does this.')
 silent "INV-SPEC-080 a wide bet number is accepted" 0 "identifier does not match"
-( cd "$LAB" && python3 tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1 \
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) > /tmp/srs-grounds.log 2>&1 \
     || { echo "FAIL INV-SPEC-090 — the wide fixture does not pass"; cat /tmp/srs-grounds.log; exit 1; }
 python3 - "$LAB/grounds/90-dashboard.md" <<'PY' || { echo "FAIL INV-SPEC-090 — the dashboard orders requirements as strings"; exit 1; }
 import re, sys
@@ -1582,6 +1583,170 @@ ground < <(rec H-010 "Refuted below the gate" "$HYP_SMALL" \
 |---|---|---|---|---|
 | 2026-09-21 | 0 | 1 | refuted | @maintainer |')
 rule "FR-GND-550 a class III refutation below the gate contradicts its own threshold" 1 "smaller than the threshold's own at n >= 2"
+
+# --- verifies: FR-GND-580 — the dashboard as a page: stdout carries it alone,
+# --- it holds what the markdown holds, and nothing is fetched or written.
+ground < <(rec H-010 "A hypothesis the page can show" "$HYP" \
+               'Studios of five to fifty people export weekly.')
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py ) >/dev/null 2>&1
+cp "$LAB/grounds/90-dashboard.md" /tmp/srs-grounds-page.md
+page_rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) \
+    > /tmp/srs-grounds-page.out 2>/tmp/srs-grounds-page.err || page_rc=$?
+if [ "$page_rc" != "0" ]; then
+    echo "FAIL FR-GND-580 — --html on a sound register exited $page_rc"; cat /tmp/srs-grounds-page.err; exit 1
+fi
+passes=$((passes + 1))
+
+python3 - <<'PYPAGE'
+import re, sys
+from html.parser import HTMLParser
+
+page = open("/tmp/srs-grounds-page.out", encoding="utf-8").read()
+markdown = open("/tmp/srs-grounds-page.md", encoding="utf-8").read()
+
+# Stdout carries the page and nothing else: it begins and ends with it, and the
+# run's own summary is on the other stream.
+if not page.startswith("<!doctype html>") or page.rstrip().split("\n")[-1] != "</html>":
+    sys.exit("FAIL FR-GND-580 — stdout is not the page alone: %r … %r"
+             % (page[:20], page.rstrip()[-20:]))
+if "Records:" not in open("/tmp/srs-grounds-page.err", encoding="utf-8").read():
+    sys.exit("FAIL FR-GND-580 — the summary is not on the other stream")
+if "<style>" not in page:
+    sys.exit("FAIL FR-GND-580 — the page carries no stylesheet of its own")
+for fetched in ("src=", "@import", "<script", 'href="http', "url(http"):
+    if fetched in page:
+        sys.exit("FAIL FR-GND-580 — the page fetches: %s" % fetched)
+
+headings = len(re.findall(r"(?m)^#{1,3} ", markdown))
+if headings != len(re.findall(r"<h[123]>", page)):
+    sys.exit("FAIL FR-GND-580 — %d headings in the markdown, %d on the page"
+             % (headings, len(re.findall(r"<h[123]>", page))))
+tables = len(re.findall(r"(?m)^\|---", markdown))
+if tables != page.count("<table>"):
+    sys.exit("FAIL FR-GND-580 — %d tables in the markdown, %d on the page"
+             % (tables, page.count("<table>")))
+rows = len([line for line in markdown.split("\n")
+            if line.startswith("|") and not line.startswith("|---")])
+if rows != page.count("<tr>"):
+    sys.exit("FAIL FR-GND-580 — %d table rows in the markdown, %d on the page"
+             % (rows, page.count("<tr>")))
+if "|---" in page or "<td>---</td>" in page:
+    sys.exit("FAIL FR-GND-580 — the rule under a table's heads reached the page")
+
+VOID = {"meta", "br", "hr", "img", "input", "link"}
+
+
+class Check(HTMLParser):
+    def __init__(self):
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self.stack, self.problems = [], []
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in VOID:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if not self.stack:
+            self.problems.append("</%s> with nothing open, line %d" % (tag, self.getpos()[0]))
+        elif self.stack[-1] != tag:
+            self.problems.append("</%s> closes <%s>, line %d"
+                                 % (tag, self.stack[-1], self.getpos()[0]))
+            self.stack.pop()
+        else:
+            self.stack.pop()
+
+
+check = Check()
+check.feed(page)
+if check.problems or check.stack:
+    sys.exit("FAIL FR-GND-580 — the page is not well formed: %s %s"
+             % (check.problems[:3], check.stack[:3]))
+PYPAGE
+passes=$((passes + 6))
+
+# Nothing written: the dashboard on disk is the one the earlier run wrote.
+if ! cmp -s "$LAB/grounds/90-dashboard.md" /tmp/srs-grounds-page.md; then
+    echo "FAIL FR-GND-580 — --html rewrote the dashboard"; exit 1
+fi
+passes=$((passes + 1))
+
+# Two runs of the same register print the same bytes.
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) > /tmp/srs-grounds-page.again 2>/dev/null
+if ! cmp -s /tmp/srs-grounds-page.out /tmp/srs-grounds-page.again; then
+    echo "FAIL FR-GND-580 — two runs of --html differ"; exit 1
+fi
+passes=$((passes + 1))
+
+# A register with an error prints no page, says so on the other stream, and exits 1.
+ground < <(rec H-010 "A hypothesis with no class" 'status: assumed
+population: studios
+refuted_if: proportion < 0.25 at n >= 200
+expires: 2099-01-01
+owner: @someone
+impact: some' 'Studios export weekly.')
+rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) \
+    > /tmp/srs-grounds-page.out 2>/tmp/srs-grounds-page.err || rc=$?
+if [ "$rc" != "1" ]; then
+    echo "FAIL FR-GND-580 — a broken register exited $rc, expected 1"; exit 1
+fi
+if [ -s /tmp/srs-grounds-page.out ]; then
+    echo "FAIL FR-GND-580 — a broken register still printed a page"; head -3 /tmp/srs-grounds-page.out; exit 1
+fi
+if ! grep -qF "Nothing printed" /tmp/srs-grounds-page.err; then
+    echo "FAIL FR-GND-580 — it does not say that nothing was printed"; cat /tmp/srs-grounds-page.err; exit 1
+fi
+passes=$((passes + 3))
+
+# srs-end: FR-GND-580
+
+# --- verifies: INV-SPEC-130 — the page links exactly the pages its caller named.
+ground < <(rec H-010 "A hypothesis the page can show" "$HYP" \
+               'Studios of five to fifty people export weekly.')
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html ) > /tmp/srs-grounds-page.out 2>/dev/null
+if grep -qF 'nav class="pages"' /tmp/srs-grounds-page.out; then
+    echo "FAIL INV-SPEC-130 — nothing was named and the page links something"; exit 1
+fi
+passes=$((passes + 1))
+
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html --link arch.html,index.html ) \
+    > /tmp/srs-grounds-page.out 2>/dev/null
+python3 - <<'PYLINKS'
+import re, sys
+page = open("/tmp/srs-grounds-page.out", encoding="utf-8").read()
+strip = re.search(r'<nav class="pages">(.*?)</nav>', page, re.S)
+if not strip:
+    sys.exit("FAIL INV-SPEC-130 — no strip of links on the dashboard's page")
+order = re.findall(r'href="([^"]+)"', strip.group(1))
+if order != ["index.html", "arch.html"]:
+    sys.exit("FAIL INV-SPEC-130 — the links read %s, not the set's own order" % order)
+if "the specification" not in strip.group(1) or "the architecture document" not in strip.group(1):
+    sys.exit("FAIL INV-SPEC-130 — a link does not read by what the page it points at holds")
+PYLINKS
+passes=$((passes + 2))
+
+for bad in nope.html grounds.html; do
+    rc=0
+    ( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --html --link "$bad" ) \
+        >/tmp/srs-grounds-page.out 2>/tmp/srs-grounds-page.err || rc=$?
+    if [ "$rc" != "2" ]; then
+        echo "FAIL INV-SPEC-130 — --link $bad exited $rc, expected 2"; exit 1
+    fi
+    if [ -s /tmp/srs-grounds-page.out ]; then
+        echo "FAIL INV-SPEC-130 — --link $bad printed a page anyway"; exit 1
+    fi
+    passes=$((passes + 1))
+done
+
+rc=0
+( cd "$LAB" && python3 srs-dd/tools/srs_grounds.py --link index.html ) >/dev/null 2>&1 || rc=$?
+if [ "$rc" != "2" ]; then
+    echo "FAIL INV-SPEC-130 — --link without --html exited $rc, expected 2"; exit 1
+fi
+passes=$((passes + 1))
+
+# srs-end: INV-SPEC-130
 
 echo "grounds-rules: $passes fixtures pass"
 # srs-end: FR-GND-550

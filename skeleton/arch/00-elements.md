@@ -8,6 +8,6 @@ The join points one way: an element names its requirements, and a requirement ne
 Cut the parts as coarsely as the system allows.
 An element per module says nothing the file tree did not; an element per boundary somebody could cross without noticing is what this layer is for.
 
-The format is in `arch/README.md`.
+The format is in `srs-dd/arch.md`.
 
 *None at the moment.*

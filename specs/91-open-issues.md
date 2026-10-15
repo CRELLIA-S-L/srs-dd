@@ -9,7 +9,7 @@ Entries are removed once the maintainer decides which side is right and the fix 
 **Found:** by the audit before baseline 0.20.0 (2026-09-24).
 
 **What diverged:** FR-SPEC-030 obliges a decision that chose an algorithm or a mechanism to describe it in words — its steps, the invariants it keeps, the inputs where it stops working — and says nothing of when the decision was written.
-Of the decisions under `specs/adr/`, only those that chose a mechanism from 2026-09-24 on — ADR-0031, ADR-0033, ADR-0034 and ADR-0035 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
+Of the decisions under `specs/adr/`, only those that chose a mechanism from 2026-09-24 on — ADR-0031 and ADR-0033 to ADR-0038 — have a *How it works* section; those written before it that chose a mechanism, ADR-0019 and ADR-0026 among them, describe the choice and not the mechanism, and by the letter of the statement they do not conform.
 
 **Why it is recorded rather than fixed:** a decision is the record of what was decided when it was decided, and adding a section to it afterwards changes that record; narrowing the statement to decisions written from now on is the other way out, and it is a change to what the requirement obliges.
 
@@ -60,7 +60,7 @@ No rule weighs a class III verdict by it, and the register has no way to acquire
 No amount of code here produces it.
 
 **2026-09-08.** Half of this is already decided, and not where the entry looks for it: the rationale of `FR-GND-210` says the weighting needs calibration questions and a programme to run them, and calls the reversal count its affordable half.
-What is missing is the layer's standard — the word calibration does not occur in `grounds/README.md` at all, so a reader comparing the concept with the register meets the gap exactly where no note is.
+What is missing is the layer's standard — the word calibration does not occur in `srs-dd/grounds.md` at all, so a reader comparing the concept with the register meets the gap exactly where no note is.
 
 **Decision needed:** say in the layer's standard that calibration stops at the reversal count and the weighting is deliberately not attempted; or carry the fuller model as intended work and name what a project would have to run to get it.
 
@@ -70,7 +70,7 @@ What is missing is the layer's standard — the word calibration does not occur 
 
 **What diverged:** the record format has `refuted_if` and nothing else numeric.
 The concept has two numbers and says plainly that confusing them is expensive: the target magnitude is what the thing is being built for, the refutation threshold is the line below which the claim is false, and a result landing between them neither supports nor refutes — it says the claim survived and its magnitude was wrong.
-That middle band cannot be expressed here at all, and `grounds/README.md` demonstrates the collapse in its own worked example, where the statement claims three studios in ten and `refuted_if` fires below the same 0.30.
+That middle band cannot be expressed here at all, and `srs-dd/grounds.md` demonstrates the collapse in its own worked example, where the statement claims three studios in ten and `refuted_if` fires below the same 0.30.
 
 The cost is not that a number is missing.
 It is that a measurement in the middle has no name, so it reads as support to whoever compares it against the threshold and as failure to whoever compares it against the target — and both are looking at the same row of evidence.
@@ -153,6 +153,7 @@ Both now hold of a register with two hypotheses in it, which is better than hold
 The suite still cannot tell a kind deliberately left unwritten from one nobody got to.
 Unchanged on 2026-09-08: a fresh run of the dashboard still reads `0 ideology, 0 frame, 2 hypothesis, 0 bet, 0 unclaimed`, while the specification grew by 28 requirements in 0.16.0, not one of which carries a bet.
 Moved on 2026-09-18, by one file: `03-bets.md` exists and holds twenty-one bets, `B-010` to `B-210`, every one on `H-030`, so the dashboard reads `0 ideology, 0 frame, 3 hypothesis, 21 bet, 0 unclaimed`; the ideology, the frames and the unclaimed list are still no files, and every bet is on the one hypothesis about the documentation rather than on any of the 236 requirements that predate it.
+On 2026-09-30 the dashboard reads `0 ideology, 0 frame, 4 hypothesis, 28 bet, 0 unclaimed`: a fourth hypothesis, `H-040` in `grounds/12-h-procedures.md`, carries seven bets on the procedures, the other twenty-one are still on `H-030`, and the ideology, the frames and the unclaimed list are still no files.
 
 **Decision needed:** whether the other four kinds are wanted here at all.
 The two halves are not alike.
@@ -173,7 +174,7 @@ Starting or not starting changes no procedure and no requirement.
 **What would have to hold when it starts, settled now so that the decision is not re-derived:**
 
 - The notes are the `## [X.Y.Z]` section of `CHANGELOG.md` and nothing else, extracted the way `tools/srs_init.py` parses it for an upgrade; a second text written for the page is a second source of truth for the same release.
-- The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
+- The pipeline publishes on a pushed `v*` tag and only then, so that `CON-SPEC-030` stands — the maintainer tags, the pipeline reacts — and refuses where the tag's number is not the version `srs-dd/tools/srs_check.py` prints, which is the mistake a hand-made release makes most.
 - `spec/v*` tags are not releases; the trigger filters them out, or `INV-SPEC-030` is broken by the forge on the maintainer's behalf.
 - Tags are annotated from then on — the ones made before that are lightweight and stay so.
 - The older sections in `CHANGELOG.md` can be published for their tags after the fact in one pass, so that the page does not open with a single entry.
@@ -206,17 +207,23 @@ What would be measured, if this were ever taken up, is drafted and not recorded,
 
 **Found:** 2026-09-25, while the rule for where an annotation stands was being reworked and was found to have been designed around the tooling's own language; `CON-SPEC-040` and ART-080 were written the same day, and each item below is a place where the framework does not yet hold to them.
 
-- `code_extensions` defaults to programming languages only (`.py`, `.ts`, `.tsx`, `.js`, `.swift`, `.kt`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.m`, in `tools/srs_check.py`), so an annotation in a document or a diagram source is not read unless the project extends the list, and nothing tells it to.
+- `code_extensions` defaults to programming languages only (`.py`, `.ts`, `.tsx`, `.js`, `.swift`, `.kt`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.m`, in `srs-dd/tools/srs_check.py`), so an annotation in a document or a diagram source is not read unless the project extends the list, and nothing tells it to.
 - `code_roots` defaults to `["src"]`, the layout of a code repository.
 - The standard says `code` is where a requirement is realized and `tests` what verifies it, and never says what they hold when the files are documents or diagrams — the names are service tokens and stay, but a reader of a documents project has to guess that `code` is theirs too.
 - A format that takes no comment — an image of a diagram, JSON, a binary file — cannot carry an annotation, so a realized requirement whose only file is one of them draws `annotation-unpaired`, and the standard names no way out; `exempt` is for a requirement met by the absence of code — a prohibition — which this is not.
 
 **What stays open:** each item is a change to the standard or to a default, and none is made yet; the defaults reach every target at its next install, so each is settled with the upgrade note it needs.
 
+**Settled for the architecture layer, 2026-10-06:** a project made of documents gets no architecture layer at this stage. The layer's readings — the dependencies it computes from imports, the draft cut it offers over files no part carries (`FR-ARCH-540`), the recovery procedure (`FR-SKILL-520`) — are written for code, and the maintainer chose that over widening `code_roots` and `code_extensions` for every target's next install. The four items below stay open for the specification itself, where the question is not the same: a specification of documents is the case `CON-SPEC-040` was written for.
+
+**Decision needed:** for each of the four, the change — widen the default extensions and roots, say in the standard what `code` and `tests` hold for a document or a diagram, and give a file that takes no comment a way to be paired — with the upgrade note each needs; or narrow `CON-SPEC-040` to say the framework serves code repositories and leave the defaults as they are.
+
 ## A scanner for secrets in the gate
 
-**Found:** 2026-09-25, when ART-100 was written: the rule is text, and text is what a measured agent follows least.
+**Found:** 2026-09-25, when SRS-DD-ART-100 was written: the rule is text, and text is what a measured agent follows least.
 
 **What is being asked:** whether the CI templates in `ci/` should run a secret scanner — gitleaks or an equivalent — over every push, so that a credential committed by mistake is refused rather than found later.
 
 **What stays open:** a scanner is a dependency of every target's pipeline, which ART-040 asks an ADR for, and its false positives on fixtures and examples need a way to be excused that does not become the habit.
+
+**Decision needed:** whether the pipeline starters run a scanner at all and which one, recorded as the dependency ART-040 asks a decision for, with the way a false positive on a fixture is excused; or that SRS-DD-ART-100 stays a rule of text and the starters carry none.

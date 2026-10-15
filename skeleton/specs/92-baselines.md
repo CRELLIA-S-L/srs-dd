@@ -2,7 +2,7 @@
 
 Frozen states of the specification.
 Each row is one, frozen by the commit that added it; a `spec/vX.Y.Z` tag on that commit is an optional bookmark.
-The procedure is described in the Baselines section of `README.md`.
+The procedure is described in the Baselines section of `srs-dd/standard.md`.
 
 | Version | Date | Tag | What changed |
 |---|---|---|---|

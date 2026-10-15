@@ -4,12 +4,12 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_grounds.py
-tools/srs_grounds.py --cite
-tools/srs_view.py
-tools/srs_view.py --cite
+srs-dd/tools/srs_grounds.py
+srs-dd/tools/srs_grounds.py --cite
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --cite
 
 # files
 AGENTS.md
-grounds/README.md
+srs-dd/grounds.md
 grounds/grounds-config.json

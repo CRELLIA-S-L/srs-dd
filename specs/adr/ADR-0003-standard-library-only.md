@@ -20,7 +20,7 @@ A YAML library, a markdown parser and a templating engine would each have made t
 
 ## Decision outcome
 
-Option 3. `tools/srs_check.py`, `tools/srs_view.py` and `tools/srs_init.py` import nothing outside the standard library and run on Python 3.9 or newer.
+Option 3. `srs-dd/tools/srs_check.py`, `srs-dd/tools/srs_view.py` and `tools/srs_init.py` import nothing outside the standard library and run on Python 3.9 or newer.
 The metadata format is a restricted YAML subset — flat keys, scalars and bracketed lists — parsed by hand, precisely so that no YAML library is needed.
 
 ### Consequences

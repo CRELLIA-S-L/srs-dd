@@ -12,7 +12,7 @@ The check of `ADR-0031` must know it is excused, and so must a reader wondering 
 
 ## Considered options
 
-1. The requirement's `exempt` field, which `specs/README.md` defines for excusing a requirement from a checker rule.
+1. The requirement's `exempt` field, which `srs-dd/standard.md` defines for excusing a requirement from a checker rule.
 2. A file of its own beside the lists, such as `tests/guide-parity/exempt.txt`.
 3. A table at the top of the test, each entry beside its reason.
 

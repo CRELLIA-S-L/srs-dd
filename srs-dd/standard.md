@@ -1,5 +1,6 @@
 # Specification
-<!-- SRS-DD-VERSION — installed by the framework; --force overwrites local edits -->
+<!-- SRS-DD-VERSION — the framework's; rewritten whole by every upgrade -->
+<!-- Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License -->
 
 This describes what the system is obliged to do.
 It is the single normative document on how the specification is maintained: if a rule here contradicts something elsewhere, this file wins.
@@ -13,9 +14,9 @@ The decision log follows **MADR**.
 
 | File | Contents |
 |---|---|
-| `README.md` | This standard — the one normative document on the specification's format |
+| `README.md` | For people, never read as requirements — here or in any folder below. The standard itself is `srs-dd/standard.md`, outside `specs/` |
 | `00-glossary.md` | Terms. Read first if the project's vocabulary is unfamiliar |
-| `constitution.md` | Standing engineering principles, `ART-*`. Changed only via its own amendment procedure |
+| `constitution.md` | The project's own standing principles, `ART-*`, numbered by the project alone and changed as `SRS-DD-ART-130` says; written by the project where it has principles of its own, and shipped by nobody. The articles of the method are the framework's, in `srs-dd/method.md` as `SRS-DD-ART-*` |
 | `01-introduction.md` | §1: purpose, scope, boundaries, audience |
 | `02-overview.md` | §2: product perspective, user classes, environment, assumptions |
 | `10-fr-<area>.md` … | `FR-*` — functional requirements, one file per area holding its first thousand numbers; from the thousandth on, a directory `10-fr-<area>/` of files by the thousand — `000-999.md`, `1000-1999.md`, … — each holding the numbers its name states |
@@ -30,13 +31,16 @@ The decision log follows **MADR**.
 | `archive/` | Absorbed documents. Not normative, kept for history |
 | `srs-config.json` | Project settings — see *Configuration* |
 
-The file names are a convention, and the checker reads every `.md` file in `specs/` for requirements except these: this file, the glossary, the constitution, the three that record rather than state — the matrix, the open issues and the baseline log — and everything under `adr/` and `archive/`.
+The file names are a convention, and the checker reads every `.md` file in `specs/` for requirements except these: a `README.md`, the glossary, the constitution, the three that record rather than state — the matrix, the open issues and the baseline log — and everything under `adr/` and `archive/`.
 Everything else is read whether or not it holds any, so a section file still empty is read and yields nothing.
 Split the `10-fr-*` files by area as your system grows.
 An area's first number past a thousand is the moment its file becomes a directory: `git mv specs/10-fr-<area>.md specs/10-fr-<area>/000-999.md` — the whole file, history with it — then `1000-1999.md` opens beside it with the area's heading and the new requirement, and nothing already written moves.
 The checker reports a number outside the range its file's name states as a warning named `file-range`, naming the file it belongs in; a requirements file directly under `specs/`, or named as the map names one — two digits and a hyphen first — in a folder under it, holds `000-999`.
 A `README.md` inside such a directory is for people and is never read as requirements, like every reserved name at any depth.
-A file may also be cut by subject and its pieces named as the project likes; `python3 tools/srs_view.py --diff HEAD` after any move names a requirement the move lost, because it compares by identifier and never by file.
+This standard is `srs-dd/standard.md`, beside `specs/` and not inside it: `srs-dd/` is the framework's directory in a project — the tools under `srs-dd/tools/`, this standard and the standards of the layers the project keeps, the method's articles in `srs-dd/method.md`, the framework's guide in `srs-dd/guide.md` and the licence — copied whole at install, and every upgrade rewrites the files the framework owns there and names any other path it finds under the directory. Nothing of the project's goes there.
+Two things of the framework's live outside it, because the client looks for them there: the procedures under `.claude/skills/srs-*`, refreshed with the tooling and edited only under another name, and the region of `AGENTS.md` between `<!-- srs-dd -->` and `<!-- /srs-dd -->`, which the upgrade rewrites in place with `srs-dd/guide.md` and which holds the framework's rules so that an agent reading the file as plain text has them.
+Everything else in a project is the project's: the hook, the pipelines, `AGENTS.md` outside the region, `CLAUDE.md`, `.gitattributes`, and every file under `specs/`, `grounds/` and `arch/`.
+A file may also be cut by subject and its pieces named as the project likes; `python3 srs-dd/tools/srs_view.py --diff HEAD` after any move names a requirement the move lost, because it compares by identifier and never by file.
 Areas may be grouped for a reader in folders of any name under `specs/` — `specs/MAPS/10-fr-map_iland.md` and `specs/MAPS/10-fr-map_space_ship.md` beside `specs/10-fr-maps.md` — an area's file or its directory alike.
 The folder means nothing to the tools or to an identifier, so a file moves between folders and no requirement is renamed; `adr` and `archive` are the two names a folder cannot take, because nothing under them is read.
 
@@ -49,6 +53,7 @@ The folder means nothing to the tools or to an identifier, so a file moves betwe
 **Areas** partition the system by subject matter and are project-specific.
 They are declared in `srs-config.json` — see *Configuration*.
 An area's name is uppercase letters and digits, beginning with a letter, and joins its words with single underscores — `MAP_ILAND`; a hyphen cannot join them, because it separates the identifier's segments.
+A name that is, in lowercase, a folder the checker skips — `ADR`, `ARCHIVE` — is refused by the installer and the checker alike, because the area grouped into its folder would vanish whole.
 The name carries no hierarchy: an area grouped under another is grouped by a folder (*Map*), because the name is inside every identifier and an identifier is never renamed.
 
 Numbers go in steps of 10 within an area, so there is room to insert a neighbor later — a convention, not a rule: the checker does not enforce the step, and `FR-CORE-025` between 020 and 030 is a valid identifier.
@@ -57,6 +62,10 @@ The sequence runs in tens and does not break; a number between tens is for a req
 
 **An identifier is immutable and never reused.** A cancelled requirement is not deleted: it gets status `superseded` and a pointer to its replacement.
 The freed number stays dead forever — otherwise a reference from an old discussion will one day lead to the wrong place.
+
+**A path is not an identifier, and it takes the same care.** Where a file moves, the paths that named it are rewritten with it — and only those.
+An earlier sentence may spell the same path and mean another file, and rewriting that one leaves it instructing a reader to do the opposite of what it said; the spelling is no guide to which file was meant, and only the sentence around it says.
+A path left stale reads as history, where one quietly re-pointed reads as instruction.
 
 ## Binding force
 
@@ -116,7 +125,7 @@ undo history noisy.
 | `code` | no | list of paths | Where it is realized. Mandatory for `implemented` and `partial` |
 | `tests` | no | list of paths | What verifies it |
 | `exempt` | no | list of rule names | Rules this requirement is excused from — see *Configuration* |
-| `created` | no | `YYYY-MM-DD` | When the requirement first appeared. Written by hand when authoring, or once for a whole specification by `tools/srs_dates.py` |
+| `created` | no | `YYYY-MM-DD` | When the requirement first appeared. Written by hand when authoring, or once for a whole specification by `srs-dd/tools/srs_dates.py` |
 
 A required key that is absent is an error naming the key.
 An optional one may be left out entirely; the checker reads it as empty. **A key that is neither is not an error** — it is reported as unknown, and only a project running `--strict` fails on it.
@@ -195,7 +204,7 @@ It answers “why this way” about the statement — why this obligation, this 
 A line in markdown breaks where the meaning breaks and nowhere else.
 
 Width is not a meaning.
-A break inside a paragraph renders as a space — `tools/srs_view.py` joins them with `p.replace("\n", " ")` — so a break placed to keep a line short says nothing to any reader and shows up only in `git diff`, while the renderer and the terminal do the wrapping nobody asked the author to do in advance.
+A break inside a paragraph renders as a space — `srs-dd/tools/srs_view.py` joins them with `p.replace("\n", " ")` — so a break placed to keep a line short says nothing to any reader and shows up only in `git diff`, while the renderer and the terminal do the wrapping nobody asked the author to do in advance.
 
 Inside a sentence, never: a line that ends mid-sentence was ended by a ruler rather than by the text.
 Where the meaning does break — between sentences, between list items, between rows of a table, at the edge of a fenced block — the break is the author's, and this says nothing about it.
@@ -237,7 +246,7 @@ Its status is the front matter's `status` key or a `- **Status:** <status>` line
 A file under `adr/` with no such heading — an index, a template — is not a decision.
 The number in the heading is the decision's name; the file name is a convention, and renaming the file changes nothing.
 
-A rule that binds every procedure is written once, where the procedure's reader can open it: in this standard or in the constitution, which travel with the procedure, and the procedure points at it with a line that says what it asks.
+A rule that binds every procedure is written once, where the procedure's reader can open it: in this standard or in the method's articles, which travel with the procedure, and the procedure points at it with a line that says what it asks.
 A rule that lives only in a requirement of the framework that ships the procedure does not travel with it, so the procedure carries that rule in its own words, and the requirement names the procedure in its `code` field — the one pointer that can be written.
 
 ## Annotations
@@ -275,7 +284,7 @@ A baseline freezes the specification at a milestone.
 It is a row in `92-baselines.md`, and the commit that adds that row is the baseline:
 
 ```
-python3 tools/srs_baseline.py X.Y.Z
+python3 srs-dd/tools/srs_baseline.py X.Y.Z
 ```
 
 The command writes the row — version, date, and what changed since the previous baseline — beside the matrix its checker run regenerates, and stops there.
@@ -303,6 +312,21 @@ The checker reports a `spec/v*` tag the log has no row for — under `--strict` 
 **A baseline is not a release.** It freezes what the system must do; a release ships what it does.
 Neither implies the other, they are numbered independently, and the same number in both places asserts nothing.
 
+## Published pages
+
+A project may publish what the framework renders for a reader.
+Where those pages are published together they are named by one set, and nothing is added to it:
+
+| File | Holds | Printed by |
+|---|---|---|
+| `index.html` | the specification | `srs-dd/tools/srs_view.py --html` |
+| `arch.html` | the architecture document | `srs-dd/tools/srs_arch_doc.py --html` |
+| `grounds.html` | the grounds dashboard | `srs-dd/tools/srs_grounds.py --html` |
+
+The names are fixed: the pages link each other by them, a pipeline writes them and a reader bookmarks them, so a name that moved would break all three at once.
+A page carries a link to exactly the pages of this set its caller named — a link exists because somebody said that file will be there, and never because the repository holds a layer.
+Two of the three are optional, so the set is a ceiling and not a list to fill: the page of a layer the project does not keep is never published, and nothing links it.
+
 ## Configuration
 
 All project settings live in `specs/srs-config.json`; any key absent from the file falls back to the checker's default.
@@ -316,8 +340,8 @@ All project settings live in `specs/srs-config.json`; any key absent from the fi
 | `code_roots` | `["src"]` | Where production code lives; used for orphan detection and annotation scanning |
 | `test_roots` | `["tests"]` | Additional roots scanned for annotations |
 | `code_extensions` | `[".py", ".ts", …]` | File extensions treated as source files |
-| `framework_url` | the framework's own address | Where `tools/srs_upgrade.py` fetches the framework from. Written at install time from the installing clone's remote; edit it if you install from a fork |
-| `repo_url` | `""` | Blob-URL prefix for links to code, e.g. `https://gitlab.com/acme/app/-/blob/main`. Read by `tools/srs_view.py` only — the checker ignores it |
+| `framework_url` | the framework's own address | Where `srs-dd/tools/srs_upgrade.py` fetches the framework from. Written at install time from the installing clone's remote; edit it if you install from a fork |
+| `repo_url` | `""` | Blob-URL prefix for links to code, e.g. `https://gitlab.com/acme/app/-/blob/main`. Read by `srs-dd/tools/srs_view.py` only — the checker ignores it |
 | `modal_verbs` | `["shall", "must", "should", "may"]` | Words accepted as the bolded modal verb |
 | `negation_words` | `["not"]` | Words allowed before or after the verb inside the bold |
 | `rationale_markers` | `["Rationale"]` | Words that open the rationale paragraph |
@@ -360,7 +384,7 @@ Which of your words carries which binding force (mandatory / recommended / allow
 ## Checking
 
 ```
-python3 tools/srs_check.py
+python3 srs-dd/tools/srs_check.py
 ```
 
 The script catches uniqueness and well-formedness of identifiers, dangling references, a link naming its own requirement, cycles in the derivation links (`derives_from`, `refines`) and in the dependency links (`depends_on`), an empty `code` field with status `implemented` or `partial`, nonexistent paths, `superseded` without a replacement and a replacement named by anything but a `superseded` requirement, two requirements glued into one sentence, a missing required key, a status or verification value outside the vocabulary, a requirement with no title, statement or bolded modal verb, a field of the wrong shape, a key the format retired, an `exempt` naming no rule, and annotation drift (see *Annotations*).
@@ -369,7 +393,7 @@ As a side effect, where it finds no error and `--strict` finds no warning, it re
 The `--no-write` flag — check only, generate nothing.
 The `--strict` flag turns warnings into a failing exit code — for CI, when warnings must not accumulate.
 
-Reading the same specification — one requirement with its links resolved, the requirements covering a file, a page for a reviewer who does not grep — is `tools/srs_view.py`; it validates nothing and writes nothing into `specs/`.
+Reading the same specification — one requirement with its links resolved, the requirements covering a file, a page for a reviewer who does not grep — is `srs-dd/tools/srs_view.py`; it validates nothing and writes nothing into `specs/`.
 Its modes are listed by `srs_view.py --help`.
 
 Parser notes: fenced code blocks are opaque — headings, modal verbs, and rationale markers inside them are ignored.

@@ -5,23 +5,26 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_check.py
-tools/srs_check.py --no-write
-tools/srs_view.py
-tools/srs_view.py --area
-tools/srs_view.py --areas
-tools/srs_view.py --coverage
-tools/srs_view.py --list
-tools/srs_view.py --statements
+srs-dd/tools/srs_check.py
+srs-dd/tools/srs_check.py --no-write
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --area
+srs-dd/tools/srs_view.py --areas
+srs-dd/tools/srs_view.py --coverage
+srs-dd/tools/srs_view.py --list
+srs-dd/tools/srs_view.py --statements
 
 # articles
-ART-010
-ART-030
-ART-050
+SRS-DD-ART-010
+SRS-DD-ART-030
+SRS-DD-ART-050
 
 # files
 AGENTS.md
 specs/50-verification.md
 specs/90-traceability.md
 specs/91-open-issues.md
-tools/srs_check.py
+srs-dd/tools/srs_check.py
+
+# the report is re-read before it is sent (FR-SKILL-550)
+Read the report once before sending it

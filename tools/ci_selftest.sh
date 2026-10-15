@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # implements: FR-CI-020, FR-CI-030, CON-SPEC-030
 # Local gate. Run manually or via the pre-commit hook
 # (git config core.hooksPath .githooks).
@@ -67,7 +68,10 @@ for suite in tests/*.sh; do
     # matrix on purpose, so a single snapshot would leave every suite after
     # it comparing against a state that legitimately moved.
     [ -f "$index" ] && cksum < "$index" > "$tmpdir/index.before"
-    bytecode_before=no; [ -d tools/__pycache__ ] && bytecode_before=yes
+    bytecode_before=""
+    for cache in tools/__pycache__ srs-dd/tools/__pycache__; do
+        if [ -d "$cache" ]; then bytecode_before="$bytecode_before $cache"; fi
+    done
     if ! "$suite" >"$tmpdir/$name.log" 2>&1; then
         echo "ci-selftest: $name FAILED; last output:" >&2
         tail -20 "$tmpdir/$name.log" >&2
@@ -82,12 +86,16 @@ for suite in tests/*.sh; do
     fi
     # srs-end: FR-CI-090
     # implements: FR-CI-160
-    # A suite that imports a tool without sys.dont_write_bytecode leaves
-    # tools/__pycache__ behind; named per suite, so the one that did is found.
-    if [ "$bytecode_before" = no ] && [ -d tools/__pycache__ ]; then
-        echo "ci-selftest: $name left bytecode in tools/__pycache__" >&2
-        exit 1
-    fi
+    # A suite that imports a tool without sys.dont_write_bytecode leaves that
+    # tool's __pycache__ beside it, in either tree the tooling lives in; taken
+    # per directory and per suite, so the message names what was left where.
+    for cache in tools/__pycache__ srs-dd/tools/__pycache__; do
+        case " $bytecode_before " in *" $cache "*) continue ;; esac
+        if [ -d "$cache" ]; then
+            echo "ci-selftest: $name left bytecode in $cache" >&2
+            exit 1
+        fi
+    done
 done
 echo "ci-selftest: all suites pass"
 # srs-end: FR-CI-160

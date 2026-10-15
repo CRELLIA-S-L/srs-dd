@@ -11,8 +11,8 @@ derives_from: []
 depends_on: [CON-SPEC-010]
 refines: []
 conflicts_with: []
-code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml]
-tests: [tests/spec-check.sh]
+code: [ci/gitlab-ci.yml, ci/github-workflow.yml, .github/workflows/srs.yml, srs-dd/tools/srs_gate.py]
+tests: [tests/spec-check.sh, tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
@@ -28,20 +28,21 @@ Where a rule is enforced is already written in `code` and `tests`; what the link
 
 ```yaml
 status: implemented
-verification: I
+verification: T
 derives_from: [FR-CI-010]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [ci/pre-commit, .githooks/pre-commit, tools/ci_selftest.sh]
-tests: []
+code: [ci/pre-commit, .githooks/pre-commit, tools/ci_selftest.sh, srs-dd/tools/srs_gate.py]
+tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-The installed hook **shall** run the specification gate locally, so a stale matrix is caught before it is pushed.
+Run before a commit as `srs-dd/tools/srs_gate.py --staged`, the gate **shall** compare every file it regenerates with what is staged, so a stale matrix is caught before it is pushed.
 
 **Rationale.** A gate that only exists in CI teaches people to push and wait;
 one that runs on commit is the difference between a habit and a chore.
+The comparison is with what is staged because that is what the commit will hold; the hook the installer writes makes the call, and where the project runs its hooks with something of its own the installer says what to call (`FR-INIT-300`) and the installing procedure adds it there (`FR-SKILL-410`).
 
 ### FR-CI-030 — The local self-test runs the real pipeline
 
@@ -99,9 +100,10 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-The installer **shall** offer the CI templates for GitHub and GitLab and install the chosen one, never this repository's own pipeline configuration.
+The installer **shall** offer starter pipelines for GitHub and GitLab, never this repository's own pipeline configuration.
 
 **Rationale.** Our pipeline tests the framework: smoke-installing into temporary directories would be meaningless noise in somebody else's project.
+What is offered is a starter: once written, the pipeline is the project's file, and the installer never writes into it again (`FR-INIT-290`).
 
 ### FR-CI-060 — A project that uses the framework is checked as a downstream consumer
 
@@ -217,7 +219,7 @@ A baseline records where a project stands, warnings and all; a release hands the
 
 It bumps one number, and the statement says whose: the framework's, not the checker's.
 What a release versions is the delivery — the tools and the standards one installer writes into a target and one upgrade command refreshes — and the same number is stamped into every file that installer writes, the grounds standard included.
-The number lives in `tools/srs_parse.py`, the one file both checkers must have beside them, and each re-exports it (ADR-0021).
+The number lives in `srs-dd/tools/srs_parse.py`, the one file both checkers must have beside them, and each re-exports it (ADR-0021).
 It used to live in the specification checker, which left the grounds checker announcing a version nothing bumped.
 
 ### FR-CI-100 — The gate refuses a source line nobody had to write long
@@ -260,7 +262,7 @@ What settles it is neither: both JSON files here are written by `tools/srs_init.
 Where JSON does get a width elsewhere it comes from a formatter, and this project runs none — there is no `.editorconfig` here and no formatter or linter configuration of any kind.
 
 Markdown is not looked at, in this repository or in any target.
-A line break inside a paragraph renders as a space — `tools/srs_view.py` joins them with `p.replace("\n", " ")` — so where a line ends is invisible to every reader and matters only to `git diff`.
+A line break inside a paragraph renders as a space — `srs-dd/tools/srs_view.py` joins them with `p.replace("\n", " ")` — so where a line ends is invisible to every reader and matters only to `git diff`.
 Where a markdown line may break at all is INV-SPEC-070's question rather than this rule's: this one refuses a long line of code, and that one refuses a break nobody meant.
 
 **And neither is what the tools print.** The limit governs code.
@@ -374,7 +376,7 @@ created: 2026-09-24
 The `.gitattributes` the framework ships **shall** pin to LF endings every file a shipped gate compares byte for byte.
 
 **Rationale.** The gates compare a generated file with what the checker writes now, and a checkout that converted its line endings makes that file stale without anything having changed; the pin existed for the matrix and not for the register's dashboard or the architecture map, which the CI templates compare the same way since those layers shipped.
-The list of files is read off the gates themselves — every `git diff --exit-code -- <path>` in `ci/` — so a gate added later asks for its pin on the day it is written.
+The list of files is read off the gate itself — the list `srs-dd/tools/srs_gate.py` compares, and any `git diff --exit-code -- <path>` a template still holds — so a file the gate starts comparing asks for its pin on the day it is written.
 
 ### FR-CI-160 — The local gate refuses a suite that leaves bytecode behind
 
@@ -390,9 +392,74 @@ tests: []
 created: 2026-09-25
 ```
 
-After each suite, the local gate **shall** fail where the suite left `tools/__pycache__` behind and it was not there before.
+After each suite, the local gate **shall** fail where the suite left behind a bytecode directory beside the tooling that was not there before.
+
+**The statement said `tools/__pycache__` until 2026-10-06**, by the audit before the 0.22.0 baseline: the tooling moved to `srs-dd/tools/` in this release and the gate was widened to watch both trees without the statement following it. It now names the directory by what it is rather than where it was, and the gate takes each tree on its own — a cache standing in one before the suite ran no longer covers for the other — and says which directory it found.
 
 **Rationale.** A suite that imports a tool to read its tuples writes that tool's bytecode beside it unless it says not to, and `CONTRIBUTING.md` asked it of every tool that imports another and of no suite.
 On 2026-09-25 five of them did it — `docs-content`, `guide-parity`, `proc-eval-smoke`, `standard-rules` and `upgrade-smoke` — and the tree carried the files until somebody looked.
 Checked around each suite rather than once, so the message names the one that did; a directory already there before the suite is not charged to it, so a cache an editor left does not turn the gate red.
 Inspection, as `FR-CI-030` is: the gate is the thing that runs the suites, and a suite asserting the gate would run it from inside itself.
+
+### FR-CI-170 — The gate refuses code that does not say whose it is
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CI-020, FR-INIT-280]
+refines: []
+conflicts_with: []
+code: [tests/notice.sh]
+tests: [tests/notice.sh]
+created: 2026-09-30
+```
+
+The local gate **shall** refuse a file of code this repository keeps — a tool, a suite, its own pipeline and hook, the starters under `ci/` aside — that does not carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+
+**The dependency on `FR-INIT-280` was drawn on 2026-10-06**, by the audit before the 0.22.0 baseline: the rationale below named it twice and no field did, so a change to which shipped files carry the notice did not reach the gate that refuses them.
+
+**Rationale.** The licence covers the repository from its root, and a file lifted from it on its own carries nothing of that: the notice has to be in the file.
+Written as a rule for contributors it would hold until the first file somebody forgot, so it is a gate, as the width of a line is (`FR-CI-100`) — over the same files, the code a person writes here, markdown aside.
+The tools that ship are also what the installer copies (`FR-INIT-280`); a notice refused here is one no project goes without.
+The starters under `ci/` are left out: they become the project's hook and pipeline (`FR-INIT-290`) and carry no notice of ours, as `FR-INIT-280` says.
+
+### FR-CI-180 — The hook and pipeline starters run one gate, shipped as a tool
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-270, FR-CI-020]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_gate.py, ci/pre-commit, .githooks/pre-commit, ci/github-workflow.yml, ci/gitlab-ci.yml, tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-30
+```
+
+The hook and pipeline starters the installer writes **shall** run the gate through one tool shipped with the tooling, holding none of its steps themselves.
+
+**Rationale.** The gate's steps were written three times — in the hook and in each CI template — and those files may be the project's own, refreshed only with `--force` (`FR-INIT-060`), so every change to the gate reached a project only through an upgrade note asking somebody to edit the file by hand.
+As a tool it is refreshed with the rest (`FR-INIT-270`), and the hook and the pipeline run the same steps by construction.
+The hook and the pipelines are the project's files, shared with every other check it runs, so the installer writes them once as starters and never again (`FR-INIT-290`); what they hold of ours is a call, and the notice of whose the gate is travels in the tool (`FR-INIT-280`).
+
+### FR-CI-190 — The pages of the layers the project keeps are published beside the specification
+
+```yaml
+status: implemented
+verification: I
+derives_from: [FR-CI-040]
+depends_on: [IF-SPEC-050, FR-ARCH-520, FR-GND-580]
+refines: []
+conflicts_with: []
+code: [ci/github-workflow.yml, ci/gitlab-ci.yml, .github/workflows/srs.yml]
+tests: []
+created: 2026-10-06
+```
+
+Where the pipeline publishes the specification as a page, it **shall** publish beside it the page of every layer the project keeps, from the same revision.
+
+**Rationale.** The same revision for the reason `FR-CI-110` gives of the graph image: two pages rendered from different commits disagree about the system they describe, and nothing on either says so.
+Every layer the project keeps rather than a fixed pair, because both layers are optional (`FR-ARCH-120` and `FR-GND-280` say so of theirs) and a step that rendered a page for a layer nobody installed would fail the run it was added to help.
+Verified by inspection for the reason `FR-CI-040` gives: no suite here runs a pipeline.

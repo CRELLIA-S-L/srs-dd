@@ -4,6 +4,9 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_view.py
-tools/srs_view.py --html
-tools/srs_view.py --open
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --html
+srs-dd/tools/srs_view.py --open
+srs-dd/tools/srs_view.py --link
+srs-dd/tools/srs_arch_doc.py --html
+srs-dd/tools/srs_grounds.py --html

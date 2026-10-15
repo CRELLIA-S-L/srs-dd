@@ -21,7 +21,7 @@ So the question is not whether the missing check is useful.
 It is whether a back-reference is a second copy of a link, which the invariant forbids, or something else.
 
 The measured state of this repository, which the answer has to survive: 127 requirement-to-code pairs, 77 requirement-to-test pairs, and zero annotations.
-`tools/srs_check.py` is named by 28 requirements, `tools/srs_view.py` by 24, `tests/checker-rules.sh` by 19.
+`srs-dd/tools/srs_check.py` is named by 28 requirements, `srs-dd/tools/srs_view.py` by 24, `tests/checker-rules.sh` by 19.
 
 ## Considered options
 

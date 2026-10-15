@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SRS-DD-VERSION — the framework release this file came from
+# implements: FR-INIT-280
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
+# srs-end: FR-INIT-280
 """The grounds checker: reads the register beside specs/ and reports on it.
 
-    python3 tools/srs_grounds.py             check and rewrite 90-dashboard.md
-    python3 tools/srs_grounds.py --no-write  check only
-    python3 tools/srs_grounds.py --strict    treat warnings as errors
-    python3 tools/srs_grounds.py --cite ID…  name records to a person
-    python3 tools/srs_grounds.py --blast P…  what the requirements these
+    python3 srs-dd/tools/srs_grounds.py             check and rewrite 90-dashboard.md
+    python3 srs-dd/tools/srs_grounds.py --no-write  check only
+    python3 srs-dd/tools/srs_grounds.py --strict    treat warnings as errors
+    python3 srs-dd/tools/srs_grounds.py --cite ID…  name records to a person
+    python3 srs-dd/tools/srs_grounds.py --blast P…  what the requirements these
                                              files belong to are staked on
+    python3 srs-dd/tools/srs_grounds.py --html      the dashboard as one page
+    python3 srs-dd/tools/srs_grounds.py --html --link index.html,arch.html
+                                                    and the pages beside it
 
-The register's format is described in grounds/README.md — that file is the
-normative one; this script only enforces it. Standard library only,
-compatible with Python 3.9.
-
-The requirement model is read by running tools/srs_view.py as a subprocess
-rather than importing the checker: an optional subsystem must not die on the
-mandatory one's configuration before it can say anything of its own, and a
-register whose specification is broken still has plenty to report.
+The format is srs-dd/grounds.md's; this script only enforces it. The requirement
+model comes from srs_view.py as a subprocess, so an optional subsystem never dies
+on the mandatory one's configuration. Standard library only, Python 3.9.
 """
 
 # file implements: NFR-SPEC-010, CON-GND-030, CON-SPEC-030
@@ -37,7 +38,7 @@ try:
     import srs_parse                                        # noqa: E402
 except ImportError:
     sys.stderr.write(
-        "tools/srs_parse.py: missing — the grounds checker reads the record "
+        "srs-dd/tools/srs_parse.py: missing — the grounds checker reads the record "
         "shape through it, and the two travel together. Copy it beside this "
         "file from the framework clone, or re-run tools/srs_init.py to "
         "refresh the tooling.\n")
@@ -47,14 +48,14 @@ except ImportError:
 # every checker — this one, the specification and the architecture — must have.
 __version__ = srs_parse.__version__
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GROUNDS = os.path.join(ROOT, "grounds")
 CONFIG = os.path.join(GROUNDS, "grounds-config.json")
 # implements: CON-GND-010
 # The only path this tool ever writes. Everything else it does is read.
 DASHBOARD = os.path.join(GROUNDS, "90-dashboard.md")
 # srs-end: CON-GND-010
-VIEWER = os.path.join(ROOT, "tools", "srs_view.py")
+VIEWER = os.path.join(ROOT, "srs-dd", "tools", "srs_view.py")
 
 # Files in grounds/ that hold no records.
 SKIP_FILES = {"README.md", "90-dashboard.md"}
@@ -100,9 +101,8 @@ REQUIRED = {
 CLASSES = ("I", "II", "III")
 # srs-end: FR-GND-390
 GRADES = ("high", "moderate", "low", "very-low")
-# `declined` carries both halves because they are useless apart: a refusal
-# with no reason answers nothing next time, one with no date cannot be told
-# from one that predates everything since.
+# `declined` carries both halves: a refusal without a reason answers nothing next
+# time, one without a date cannot be told from one that predates everything.
 RE_DECLINED = re.compile(r"^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(\S.*)$")
 STATUSES = {
     "I": ("active", "dissolved"),
@@ -113,18 +113,14 @@ STATUSES = {
     "U": ("active", "retired"),
 }
 
-# How much ground a hypothesis provides, weakest first. `declined` is beside
-# `refuted` on purpose: the core looked at it and said no, so a requirement
-# standing on it stands on something nobody agreed to carry.
+# How much ground a hypothesis provides, weakest first; `declined` sits beside
+# `refuted` because the core looked at it and said no.
 STRENGTH = {"refuted": 0, "declined": 0, "expired": 1, "untested": 2,
             "assumed": 3, "supported": 4}
 DEBT_STATUSES = ("refuted", "expired", "assumed")
 # implements: FR-GND-220, FR-GND-230
-# What the specification calls a cancelled requirement. The readings
-# below range over the requirements that have not been cancelled, which
-# is the reading the viewer's gap list and the specification checker's
-# unclaimed-file rule already take — one file described two ways in one run
-# is worse than either answer.
+# What the specification calls a cancelled requirement; the readings below range
+# over the live ones, as the viewer and the specification checker do.
 CANCELLED = ("withdrawn", "superseded")
 # srs-end: FR-GND-220, FR-GND-230
 
@@ -140,28 +136,22 @@ RULES = ("bet-cancelled", "hypothesis-expired", "bet-duplicated",
 SEVERITIES = ("warn", "report", "off")
 
 # implements: FR-GND-230
-# What counts as "lately" is the project's: a product shipping weekly and
-# one shipping twice a year do not share a unit. Calendar periods only —
-# a window measured back from today would move this file every night.
+# What counts as "lately" is the project's. Calendar periods only — a window
+# measured back from today would move this file every night.
 PERIODS = ("month", "quarter", "year")
 # srs-end: FR-GND-230
 
 # implements: FR-GND-490
-# A criterion that allows for error has to be told how much, and no answer
-# is right everywhere. Named levels rather than a free number: a confidence
-# somebody typed as 0.973 came from nowhere and cannot be discussed.
+# Named levels rather than a free number: a confidence typed as 0.973 came from
+# nowhere and cannot be discussed (ADR-0044).
 CONFIDENCES = (0.9, 0.95, 0.99)
 # srs-end: FR-GND-490
-# One-sided, because a threshold asks whether the truth is past it, not
-# whether it sits inside a band. Two-sided quantiles here would demand more
-# of a measurement than the sentence its author wrote does.
+# One-sided: a threshold asks whether the truth is past it (ADR-0044).
 Z_ONE_SIDED = {0.9: 1.2816, 0.95: 1.6449, 0.99: 2.3263}
 
 # implements: FR-GND-150
-# What a measurement's error is depends on what was measured. A mean's does
-# not follow from anything the row carries — it needs the spread behind the
-# mean, and the row holds the mean and the sample size. So a mean closes
-# class I rather than falling back to a comparison that refutes on noise.
+# A mean's error does not follow from what the row carries, so a mean closes
+# class I rather than refuting on noise (ADR-0044).
 TESTABLE_KINDS = ("proportion", "count")
 # srs-end: FR-GND-150
 
@@ -207,9 +197,8 @@ def load_config():
                          % (name, ", ".join(SEVERITIES)))
     cfg["rules"] = rules
     # implements: FR-GND-170
-    # What a weakly supported hypothesis may be used for is a matter of
-    # appetite, so the map is the project's and the format only says it
-    # exists. A grade absent from it permits anything.
+    # What a weak hypothesis may be used for is appetite, so the map is the project's;
+    # a grade absent from it permits anything.
     grades = raw.get("grades", {})
     if not isinstance(grades, dict):
         _config_fail("grades must be an object of grade to permitted actions")
@@ -240,12 +229,8 @@ def load_config():
 
 # implements: FR-GND-150
 def wilson_bounds(value, n, z):
-    """Where a proportion's truth may sit, given `value` observed out of n.
-
-    Wilson's interval and not value ± z·sqrt(pq/n): the plain one runs off
-    the end of [0, 1] near zero and one, which is exactly where a threshold
-    on a proportion tends to be drawn.
-    """
+    """Where a proportion's truth may sit, given `value` observed out of n: Wilson, not
+    `p ± z·sqrt(pq/n)`, which runs off [0, 1] where thresholds are drawn (ADR-0044)."""
     denominator = 1.0 + z * z / n
     centre = (value + z * z / (2 * n)) / denominator
     half = z * math.sqrt(value * (1 - value) / n
@@ -255,11 +240,8 @@ def wilson_bounds(value, n, z):
 
 
 def poisson_cdf(k, rate):
-    """P(X <= k) for a Poisson of this rate.
-
-    Summed through logarithms so that a large rate loses the first terms to
-    underflow one at a time instead of the whole sum at once.
-    """
+    """P(X <= k) for a Poisson of this rate, summed through logarithms so a large rate
+    loses terms to underflow one at a time."""
     if k < 0:
         return 0.0
     total, log_term = 0.0, -rate
@@ -272,18 +254,11 @@ def poisson_cdf(k, rate):
 
 # implements: FR-GND-150
 def poisson_bounds(k, confidence):
-    """Where a count's truth may sit, given k events observed.
-
-    Exact rather than k ± z·sqrt(k), because counts in a register of
-    hypotheses are small and the approximation is worst there: it puts the
-    bound for nought observations at nought, which would read as certainty
-    from the one measurement that carries none.
-    """
+    """Where a count's truth may sit, given k events observed: exact, since counts here
+    are small and `k ± z·sqrt(k)` reads nought as certainty (ADR-0044)."""
     if k > POISSON_EXACT_TO:
-        # Far from nought the normal approximation is within two tenths of a
-        # percent of the exact bound, and the exact one costs a term per
-        # event counted. A register recording millions of events would wait
-        # half a minute to be told what a square root answers at once.
+        # Beyond the crossover the approximation is within two tenths of a percent and
+        # costs no term per event (ADR-0044).
         spread = Z_ONE_SIDED[confidence] * math.sqrt(k)
         return k - spread, k + spread
 
@@ -302,17 +277,14 @@ def poisson_bounds(k, confidence):
 # srs-end: FR-GND-150
 
 
-# Beyond this many events the exact sum is not worth its terms; see
-# poisson_bounds. Chosen where the two methods already agree to a tenth of
-# a percent, so the seam is invisible in any message either produces.
+# Where the exact sum stops being worth its terms, chosen where the two methods
+# already agree to a tenth of a percent (ADR-0044).
 POISSON_EXACT_TO = 1000
 
 
 # implements: FR-GND-140
-# A register is written by hand, so a typo is ordinary input rather than an
-# attack. Every one of these used to reach the arithmetic and either crash
-# it or be silently judged, which for a checker is the same failure: it
-# stops being runnable on the file somebody actually has.
+# A register is written by hand, so a typo is ordinary input: every one of these
+# used to crash the arithmetic or be judged in silence.
 def measurement_fault(kind, value, n):
     """Why this row cannot be compared to a threshold of this kind, or None."""
     for name, number in (("value", value), ("n", n)):
@@ -332,9 +304,8 @@ def measurement_fault(kind, value, n):
 
 
 # implements: FR-GND-140
-# The two words a measurement may end in. A record's `status` has six, and
-# four of them are things that happen to a hypothesis rather than things a
-# measurement found.
+# The two words a measurement may end in; a record's `status` has six, four of them
+# things that happen to a hypothesis rather than things a measurement found.
 VERDICTS = ("supported", "refuted")
 # srs-end: FR-GND-140
 
@@ -354,13 +325,9 @@ def _crosses(op, edge, bound):
 def verdict_owed(threshold, value, n, cfg, interval=True):
     """The verdict a measurement compels, with the phrase that says why.
 
-    `(None, None)` where the row does not compel one: the kind carries no
-    error the row can produce, and the raw value is on the refuting side, so
-    whether it refuted is exactly the question nothing here can answer.
-    With `interval` off — a class III reading — the two contradictions of
-    the threshold's own words are still compelled, a sample smaller than
-    its gate and a value on its safe side, and nothing beyond them is: how
-    far a person's reading of two people can miss is not this arithmetic's.
+    `(None, None)` where the row compels none. With `interval` off — class III — only the
+    threshold's own contradictions are compelled: a sample under its gate, a value on its
+    safe side.
     """
     kind, op, raw_bound, raw_gate = threshold.groups()
     bound, gate = float(raw_bound), int(raw_gate)
@@ -400,12 +367,8 @@ def rule_finding(warnings, reports, cfg, rule, text):
 
 # implements: FR-GND-010
 def collect_files():
-    """Every record file in the register, subdirectories included.
-
-    The layout in the standard is flat, and a register that grows a folder
-    is not thereby exempt: `every record in it` has to mean every one, or
-    a file one directory down goes unread with nothing said about it.
-    """
+    """Every record file in the register, subdirectories included: a register that grows a
+    folder is not thereby exempt."""
     out = []
     if not os.path.isdir(GROUNDS):
         return out
@@ -452,20 +415,20 @@ def read_records(errors):
 def read_model():
     """The requirement model, or None with the reason it could not be read."""
     if not os.path.exists(VIEWER):
-        return None, "tools/srs_view.py is not here"
+        return None, "srs-dd/tools/srs_view.py is not here"
     try:
         done = subprocess.run([sys.executable, VIEWER, "--json"],
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except OSError as exc:
-        return None, "could not run tools/srs_view.py: %s" % exc
+        return None, "could not run srs-dd/tools/srs_view.py: %s" % exc
     if done.returncode != 0:
         detail = done.stderr.decode("utf-8", "replace").strip().split("\n")
-        return None, "tools/srs_view.py exited %d: %s" % (
+        return None, "srs-dd/tools/srs_view.py exited %d: %s" % (
             done.returncode, detail[-1] if detail else "no output")
     try:
         return json.loads(done.stdout.decode("utf-8")), None
     except ValueError as exc:
-        return None, "tools/srs_view.py produced unreadable JSON: %s" % exc
+        return None, "srs-dd/tools/srs_view.py produced unreadable JSON: %s" % exc
 
 
 # implements: FR-GND-270
@@ -723,7 +686,7 @@ def active(rec):
 # A bet naming no hypothesis stands its requirement on nothing. The
 # format leaves both lists optional, so the record is legal — and read
 # as a claim it would take the requirement off the one list this layer
-# exists to produce. That is the invented link `grounds/README.md`
+# exists to produce. That is the invented link `srs-dd/grounds.md`
 # warns about, in the shape that costs an agent least to write: it
 # arrives well-formed and passes every check on the shape.
 def stakes(rec):
@@ -1002,10 +965,8 @@ def validate(records, model, model_error, cfg):
     # Both ends of every bet.
     by_requirement = {}
     # implements: FR-GND-100
-    # Kept apart from `by_requirement`: two bets on one requirement is a
-    # fact about the records whatever they name, while a declaration is
-    # only retired by a bet that actually stands the requirement on
-    # something.
+    # Kept apart from `by_requirement`: a declaration is retired only by a bet that
+    # actually stands the requirement on something.
     staking = {}
     # srs-end: FR-GND-100
     for rid in sorted(bets, key=srs_parse.id_key):
@@ -1035,9 +996,8 @@ def validate(records, model, model_error, cfg):
                          % (rec.where, rid, req, target["status"]))
 
     # implements: FR-GND-420, FR-GND-430
-    # What a hypothesis says about itself against what the register does
-    # with it. Both readings are of the same pair — the record and the bets
-    # standing on it — so they are computed together.
+    # What a hypothesis says about itself against what the register does with it; both
+    # readings are of the same pair, so they are computed together.
     for name in sorted(staked, key=srs_parse.id_key):
         if name not in hyps:
             continue                      # already reported as dangling
@@ -1095,11 +1055,8 @@ def validate(records, model, model_error, cfg):
 
 
 def _pick(hyps, names, strongest):
-    """The strongest or weakest of the named hypotheses, as (rank, id).
-
-    Ties break on the identifier so that a dashboard regenerated from
-    unchanged records comes out byte for byte the same.
-    """
+    """The strongest or weakest of the named hypotheses, as (rank, id); ties break on the
+    identifier so an unchanged dashboard comes out byte for byte the same."""
     ranked = [(STRENGTH[hyps[n].fields["status"]], n) for n in names
               if n in hyps and hyps[n].fields.get("status") in STRENGTH]
     if not ranked:
@@ -1111,18 +1068,12 @@ def _pick(hyps, names, strongest):
 
 # implements: FR-GND-070, INV-GND-020
 def decide(records, req):
-    """The hypothesis that decides a requirement, as (rank, id).
+    """The hypothesis that decides a requirement, as (rank, id), read off the bets every
+    time rather than stored, which keeps the join in one direction.
 
-    Nothing stores what a requirement rests on. It is read off the bets
-    every time it is needed, which is what keeps the join in one direction.
-
-    Within a bet: the weakest of what it requires, the strongest of what it
-    offers as alternatives, and the weaker of those two. Across the bets of
-    one requirement: the weakest. None where nothing decides it.
-
-    The hypothesis is returned rather than its rank alone because two
-    statuses can share a rank, and naming a status the record does not
-    carry is worse than saying nothing.
+    Within a bet: the weakest required, the strongest offered, the weaker of the two.
+    Across bets: the weakest. The hypothesis and not its rank alone, since two statuses
+    can share one.
     """
     hyps = {i: r for i, r in records.items() if r.kind == "H"}
     best = None
@@ -1155,13 +1106,8 @@ def confirmation_dates(rec):
 
 # implements: FR-GND-210
 def reversals(records):
-    """Per author: verdicts given, and how many a later one reversed.
-
-    Read from the evidence table and not from history. A verdict and the
-    measurement that reversed it are two rows of the same table, ordered
-    by their own dates, so the file in front of us holds the whole
-    answer.
-    """
+    """Per author: verdicts given, and how many a later one reversed — read from the
+    evidence table, whose rows carry their own dates, not from history."""
     given, turned = {}, {}
     for hid in sorted(records, key=srs_parse.id_key):
         rec = records[hid]
@@ -1184,7 +1130,7 @@ def build_dashboard(records, model, incoming, cfg):
     kinds = {k: [i for i, r in sorted(records.items(), key=lambda kv: srs_parse.id_key(kv[0])) if r.kind == k]
              for k in KINDS}
     out = ["# Grounds dashboard", "",
-           "**Generated by `tools/srs_grounds.py`. Do not edit by hand —",
+           "**Generated by `srs-dd/tools/srs_grounds.py`. Do not edit by hand —",
            "the next run will overwrite it.**", "",
            "Records: %d — %s." % (len(records), ", ".join(
                "%d %s" % (len(kinds[k]), KINDS[k]) for k in "IFHBU")), ""]
@@ -1266,13 +1212,8 @@ def build_dashboard(records, model, incoming, cfg):
             weak += 1 if status in DEBT_STATUSES else 0
             rows.append("| %s | %s | %s |" % (req, decided[1], status))
         # implements: FR-GND-130
-        # The denominator is what the sentence names — requirements carrying
-        # a bet — and not the rows below it, which are the ones whose bet
-        # resolves. A bet naming no hypothesis carries neither `refuted` nor
-        # `expired` nor `assumed`, so it counts here and not in `weak`: it
-        # rests on nothing, which is a different reading and belongs to the
-        # list below. The two questions differ, and one record answers them
-        # differently.
+        # The denominator is what the sentence names, requirements carrying a bet, not the
+        # rows whose bet resolves; a bet naming no hypothesis counts here and not in `weak`.
         if staked:
             out += ["Of %d requirements carrying a bet, %d rest on "
                     "hypotheses that are" % (len(staked), weak),
@@ -1292,17 +1233,11 @@ def build_dashboard(records, model, incoming, cfg):
         # srs-end: FR-GND-130
 
     # implements: INV-GND-030
-    # The list no rule of this layer is allowed to shorten. A requirement
-    # standing on nothing is a reading, and demanding a bet would replace it
-    # with invented ones.
+    # The list no rule here may shorten: demanding a bet would replace a requirement
+    # standing on nothing with an invented one.
     # implements: FR-GND-230
-    # The rate, not the total: one requirement standing on nothing is noise
-    # and is meant to be, and five in a quarter with four of them in one
-    # area is the product having become something nobody said out loud.
-    # A calendar period and not "the last ninety days", whatever length the
-    # configuration names: this file is committed and compared, and a window
-    # anchored to today would move every night and fail the gate every
-    # morning without saying anything new.
+    # The rate, not the total, over a calendar period: this file is committed and
+    # compared, and a window anchored to today would fail the gate every morning.
     out += ["## Requirements that arrived standing on nothing", "",
             "Counted by %s, which is what `period` says in the register's "
             "configuration." % cfg["period"], ""]
@@ -1337,7 +1272,7 @@ def build_dashboard(records, model, incoming, cfg):
             out += ["Nothing arrived unclaimed in any dated period.", ""]
         if undated:
             out += ["%d of them carry no `created` date and fall in no "
-                    "period. `tools/srs_dates.py` writes one from the "
+                    "period. `srs-dd/tools/srs_dates.py` writes one from the "
                     "history." % undated, ""]
     # srs-end: FR-GND-230
     # srs-end: INV-GND-030
@@ -1355,12 +1290,8 @@ def build_dashboard(records, model, incoming, cfg):
             if req in claimed:
                 continue
             # implements: FR-GND-220
-            # Filtered here rather than in the model: the viewer owes every
-            # incoming link to whoever asks it, and the procedure for
-            # withdrawing a requirement reads exactly the links from
-            # cancelled ones to settle what breaks. What does not follow is
-            # that such a link still holds weight — a requirement nobody
-            # kept stands on nothing.
+            # Filtered here, not in the model: the viewer owes every incoming link to whoever
+            # asks, but a requirement nobody kept stands on nothing.
             links = len([1 for _field, other in incoming.get(req, [])
                          if other in model and live(model[other])])
             files = len(model[req].get("code", []))
@@ -1382,20 +1313,10 @@ def build_dashboard(records, model, incoming, cfg):
 
 # implements: FR-GND-310
 def blast(records, model, paths):
-    """What the requirements these files belong to are staked on.
-
-    A file belongs to a requirement two ways and both count: the
-    specification file the requirement is written in, and the `code` or
-    `tests` entries naming it. The second is the one a commit usually
-    touches, and it is the one this exists for — the moment somebody is
-    changing the code is the moment what it rests on is worth knowing.
-    Matching only the first made this silent on every commit that
-    changed no specification, which is most of them.
-
-    Quiet where nothing is staked: a report that speaks on every commit
-    is a report nobody reads, and the hook this feeds runs on all of
-    them.
-    """
+    """What the requirements these files belong to are staked on, by the specification file
+    they are written in and by their `code` and `tests` entries — the second being what a
+    commit usually touches. Quiet where nothing is staked, since the hook runs on every
+    commit."""
     if model is None:
         return 0
     wanted = {os.path.normpath(p) for p in paths}
@@ -1433,9 +1354,8 @@ def blast(records, model, paths):
 
 # implements: FR-GND-540
 def citation(rec):
-    """The form a record is named in to a person — the one the viewer
-    prints for a requirement, over the register's own records: identifier,
-    title, file, status."""
+    """The form a record is named in to a person: identifier, title, file, status, as the
+    viewer prints it for a requirement."""
     return "%s — %s (%s, %s)" % (rec.id, rec.title, rec.path,
                                   rec.fields.get("status") or "?")
 # srs-end: FR-GND-540
@@ -1443,10 +1363,8 @@ def citation(rec):
 
 # implements: FR-GND-540
 def cite(records, wanted):
-    """Print each record asked for, ready to paste, in the order asked; an
-    identifier no record carries is named on stderr and fails the run, in
-    the same run as the rest. `records` is the register keyed by identifier,
-    as read_records returns it."""
+    """Each record asked for, ready to paste, in the order asked; an identifier no record
+    carries is named on stderr and fails the run."""
     missing = [rid for rid in wanted if rid not in records]
     for rid in wanted:
         if rid in records:
@@ -1457,6 +1375,170 @@ def cite(records, wanted):
 # srs-end: FR-GND-540
 
 
+# implements: IF-SPEC-050, INV-SPEC-130
+# The published set, copied from the Published pages table of the specification's standard; a
+# suite holds this copy to it. OWN is this page's place in the set: a page is not linked to
+# itself, and a caller that names it has made a mistake worth hearing about.
+PAGES = (("index.html", "the specification"),
+         ("arch.html", "the architecture document"),
+         ("grounds.html", "the grounds dashboard"))
+OWN = "grounds.html"
+# srs-end: IF-SPEC-050, INV-SPEC-130
+
+# implements: FR-GND-580
+# The dashboard as a page. Its own stylesheet and its own translator: the layers are installed
+# one without the other, so neither reaches into the other's tools for either.
+STYLE = """
+:root { --bg: #ffffff; --fg: #1a1d21; --muted: #6b7280; --line: #e2e5e9; --panel: #f7f8fa; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #15171a; --fg: #e8eaed; --muted: #9aa0a6; --line: #2b2f34; --panel: #1c1f23; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 -apple-system,
+       BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+nav.pages { font-size: .9rem; margin-bottom: 1.4rem; }
+nav.pages a { color: #2c5fd0; }
+nav.pages span { color: var(--muted); padding: 0 .4rem; }
+h1 { font-size: 1.9rem; margin: 0 0 .4rem; }
+h2 { font-size: 1.3rem; margin: 2.2rem 0 .6rem; padding-bottom: .3rem;
+     border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .5rem 0; }
+code { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+       background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+       padding: 0 .25rem; }
+em { color: var(--muted); font-style: normal; }
+table { border-collapse: collapse; margin: .8rem 0; font-size: .95rem; width: 100%; }
+th, td { border: 1px solid var(--line); padding: .35rem .6rem; text-align: left;
+         vertical-align: top; }
+th { background: var(--panel); font-weight: 600; }
+"""
+
+PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grounds</title>
+<style>%s</style>
+</head>
+<body>
+<main>
+%s
+</main>
+</body>
+</html>
+"""
+
+# The spans this dashboard writes. Underscores only at a word boundary, so a path outside
+# backticks is not read as emphasis.
+RE_SPAN = re.compile(r"\*\*(.+?)\*\*|`(.+?)`|(?<![\w])_(.+?)_(?![\w])")
+
+
+def esc(text):
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def spans(text):
+    out, last = [], 0
+    for match in RE_SPAN.finditer(text):
+        out.append(esc(text[last:match.start()]))
+        bold, code, emphasis = match.groups()
+        if bold is not None:
+            out.append("<strong>%s</strong>" % esc(bold))
+        elif code is not None:
+            out.append("<code>%s</code>" % esc(code))
+        else:
+            out.append("<em>%s</em>" % esc(emphasis))
+        last = match.end()
+    out.append(esc(text[last:]))
+    return "".join(out)
+
+
+def cells(line):
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+# implements: INV-SPEC-130
+def nav(named):
+    """The links to the other pages of the set, in the set's own order. Exactly what the caller
+    named: nothing where it named nothing, and no page that is not in the set."""
+    held = [(name, label) for name, label in PAGES if name in named]
+    if not held:
+        return ""
+    parts = []
+    for index, (name, label) in enumerate(held):
+        if index:
+            parts.append("<span>·</span>")
+        parts.append('<a href="%s">%s</a>' % (esc(name), esc(label)))
+    return '<nav class="pages">%s</nav>' % "".join(parts)
+
+
+def read_links(value):
+    """The names a caller gave, or a sentence saying what is wrong with them."""
+    named, known = [], dict(PAGES)
+    for name in (part.strip() for part in value.split(",")):
+        if not name:
+            continue
+        if name == OWN:
+            return None, ("%s is this page itself; name the pages beside it" % name)
+        if name not in known:
+            return None, ("%s is not one of the published pages: %s"
+                          % (name, ", ".join(n for n, _l in PAGES if n != OWN)))
+        if name not in named:
+            named.append(name)
+    return named, ""
+# srs-end: INV-SPEC-130
+
+
+def to_page(dashboard, named=()):
+    """The dashboard as one page. The markdown is this file's own output, so the grammar is
+    closed: three heading levels, paragraphs and tables."""
+    body, paragraph, table = [], [], None
+
+    def flush():
+        if paragraph:
+            body.append("<p>%s</p>" % spans(" ".join(paragraph)))
+            del paragraph[:]
+
+    def close_table():
+        nonlocal table
+        if table is not None:
+            body.append("</tbody></table>")
+            table = None
+
+    for line in dashboard.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("|"):
+            flush()
+            row = cells(stripped)
+            if all(set(cell) <= set("-: ") and cell for cell in row):
+                continue          # the rule under the heads, which HTML draws itself
+            if table is None:
+                body.append("<table><thead><tr>%s</tr></thead><tbody>"
+                            % "".join("<th>%s</th>" % spans(cell) for cell in row))
+                table = True
+                continue
+            body.append("<tr>%s</tr>" % "".join("<td>%s</td>" % spans(cell) for cell in row))
+            continue
+        close_table()
+        if not stripped:
+            flush()
+            continue
+        heading = re.match(r"^(#{1,3}) (.+)$", stripped)
+        if heading:
+            flush()
+            level = len(heading.group(1))
+            body.append("<h%d>%s</h%d>" % (level, spans(heading.group(2)), level))
+            continue
+        paragraph.append(stripped)
+    flush()
+    close_table()
+    return PAGE % (STYLE, nav(named) + "\n" + "\n".join(body))
+# srs-end: FR-GND-580
+
+
 # implements: FR-GND-010, FR-GND-120, IF-GND-020
 def main():
     argv = sys.argv[1:]
@@ -1465,6 +1547,21 @@ def main():
         cut = argv.index("--blast")
         paths = argv[cut + 1:]
         argv = argv[:cut] + ["--blast"]
+    # implements: INV-SPEC-130
+    named = []
+    if "--link" in argv:
+        cut = argv.index("--link")
+        rest = argv[cut + 1:]
+        if not rest:
+            sys.stderr.write("--link needs the page(s) to link: %s\n"
+                             % ", ".join(n for n, _l in PAGES if n != OWN))
+            return 2
+        named, problem = read_links(rest[0])
+        if problem:
+            sys.stderr.write("%s\n" % problem)
+            return 2
+        argv = argv[:cut] + ["--link"] + rest[1:]
+    # srs-end: INV-SPEC-130
     wanted = None
     if "--cite" in argv:
         cut = argv.index("--cite")
@@ -1475,11 +1572,15 @@ def main():
                              "usage: srs_grounds.py --cite ID…\n")
             return 2
     flags = set(argv)
-    unknown = sorted(flags - {"--no-write", "--strict", "--blast", "--cite"})
+    unknown = sorted(flags - {"--no-write", "--strict", "--blast", "--cite", "--html",
+                              "--link"})
     if unknown:
         sys.stderr.write("unknown flag(s): %s\nusage: srs_grounds.py "
-                         "[--no-write] [--strict] [--blast PATH…] [--cite ID…]\n"
-                         % " ".join(unknown))
+                         "[--no-write] [--strict] [--blast PATH…] [--cite ID…] "
+                         "[--html [--link PAGE,…]]\n" % " ".join(unknown))
+        return 2
+    if "--link" in flags and "--html" not in flags:
+        sys.stderr.write("--link belongs to --html: the dashboard's markdown links nothing\n")
         return 2
     if not os.path.isdir(GROUNDS):
         sys.stderr.write("no grounds/ directory here — this project carries "
@@ -1505,12 +1606,33 @@ def main():
     found, warnings, reports = validate(records, model, model_error, cfg)
     errors += found
 
+    # implements: FR-GND-580
+    # A page on stdout is a page alone: the findings move to the other stream so that
+    # redirecting the output gives a file and not a file with a report in its head.
+    said = sys.stderr if "--html" in flags else sys.stdout
+    # srs-end: FR-GND-580
     for line in reports:
-        sys.stdout.write("report: %s\n" % line)
+        said.write("report: %s\n" % line)
     for line in warnings:
-        sys.stdout.write("warning: %s\n" % line)
+        said.write("warning: %s\n" % line)
     for line in errors:
-        sys.stdout.write("error: %s\n" % line)
+        said.write("error: %s\n" % line)
+
+    # implements: FR-GND-580
+    if "--html" in flags:
+        # A broken register produces no dashboard in either form.
+        if errors:
+            said.write("\nRecords: %d. Errors: %d. Nothing printed.\n"
+                       % (len(records), len(errors)))
+            return 1
+        sys.stdout.write(to_page(build_dashboard(records, model, incoming or {}, cfg), named))
+        said.write("\nRecords: %d. Errors: 0. Warnings: %d. Page printed. (srs_grounds %s)\n"
+                   % (len(records), len(warnings), __version__))
+        if warnings and "--strict" in flags:
+            said.write("strict mode: %d warning(s) treated as errors.\n" % len(warnings))
+            return 1
+        return 0
+    # srs-end: FR-GND-580
 
     wrote = ""
     if not errors and "--no-write" not in flags:

@@ -24,6 +24,7 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/grounds-rules.sh` | One fixture per rule of the grounds checker, including the three that pass silently when the rule under them is deleted: an unclaimed requirement stays quiet, two bets on one requirement speak, and a lowered rule stops failing without stopping being computed |
 | `tests/grounds-check.sh` | This repository's own register passes strictly, its committed dashboard is what the records say now, and a run leaves every authored record untouched |
 | `tests/arch-rules.sh` | One fixture per rule of the architecture checker, including the ones that assert the checker stays quiet — the `silent` calls in it, which pass for the wrong reason if the rule under them is deleted and are marked where they stand rather than listed here |
+| `tests/arch-doc.sh` | One fixture per section of the architecture document, each asserting both states — what the section says when there is something to say and what it says when there is not, since a generated document reads as complete either way |
 | `tests/arch-check.sh` | This repository's own layer passes strictly, its committed map is what the elements say now, and a run rewrites the map and nothing else in the layer |
 | `tests/dates-smoke.sh` | The one command that writes requirement blocks: the date it writes is the one the history holds and not today's, a second run costs nothing, and where the history cannot be read it refuses rather than inventing one |
 | `tests/docs-commands.sh` | Every command the documentation names with a flag is one the tool accepts |
@@ -32,12 +33,16 @@ How the methods in the `verification` field are carried out in this repository.
 | `tests/proc-eval-smoke.sh` | The procedure evaluation reads every shipped scenario against the specification as it stands, accounts and scores a trace exactly, refuses a malformed scenario, and stops with no agent to ask |
 | `tests/skill-budget.sh` | Every shipped procedure, and each agent guide, fits its budget of words, on its own and with what it tells the reader to open first |
 | `tests/skill-instructions.sh` | Every shipped procedure still names the commands, articles, files, procedures and instructions its list says it must |
+| `tests/plain-instructions.sh` | No figure of speech this list has taken out of the shipped instructions has come back; a ratchet, which cannot judge a figure nobody has written yet |
+| `tests/report-eval-smoke.sh` | The report measurement totals canned verdicts as they say, names a verdict it cannot read instead of scoring it zero, and refuses where there is no agent to ask |
 | `tests/guide-parity.sh` | This repository's guides and hook carry every rule their shipped counterparts state, and the decision template has one copy |
 | `tests/pipeline-suites.sh` | The pipeline runs every file in `tests/` as a step of its own, this table names every one of them, and `.gitattributes` pins every file a shipped gate compares byte for byte |
 | `tests/standard-rules.sh` | Each of the three standards names every rule its checker reports by name, with what it reports, and the specification's *Annotations* section every annotation rule |
+| `tests/standard-sections.sh` | Each section a standard is the only home of a rule in still carries the words that rule is stated in; a ratchet over prose, which holds the sentence the standard was given rather than every way of saying it |
 | `tests/standard-vocabulary.sh` | The standards name the values their tools define — types, methods, unread files, the register's and the layer's vocabularies and configuration, the specification's configuration keys, the severities — every copy one file keeps of a list another defines matches it, the viewer's tables cover the checker's vocabulary, and every account of what an upgrade leaves alone names each kind |
 | `tests/code-field-sets.sh` | The requirements its table names as claiming a set — every procedure, every Python tool, every command, the procedures that name records, the tools that read or order identifiers — name every member of it in their `code` fields |
 | `tests/line-width.sh` | Not a suite: the gate `FR-CI-100` names as its own code, refusing a source line wider than 120 columns that no string literal on it answers for |
+| `tests/notice.sh` | Not a suite: the gate `FR-CI-170` names as its own code, refusing a file of code this repository keeps that does not say in its first lines who holds the copyright and under what licence — the starters under `ci/` aside |
 
 Every file in the table runs in CI, one step each, and locally through `tools/ci_selftest.sh`, which executes everything in `tests/` rather than a copy of it; `tests/pipeline-suites.sh` holds both the pipeline's steps and this table to the directory.
 `tests/line-width.sh` is among them and is not a suite — it proves no requirement, it is the gate FR-CI-100 names as its own code, and it runs here because this is where the gate already runs.
@@ -46,6 +51,7 @@ Every file in the table runs in CI, one step each, and locally through `tools/ci
 
 | Requirement | Measurement | Date |
 |---|---|---|
+| NFR-CHK-010 | 90 ms wall clock at 500 requirements, after the rules of 0.22.0 — the design-mode and move readings, forbidden dependencies, interface conformance, the ground under a part. A harder fixture than the rows below it: each of the 500 is annotated in a file of its own, depends on the one before it, and is named by a suite, so the pairing and link rules all run (`--no-write`, Python 3.14, Apple silicon; three runs: 90, 100, 90 ms) | 2026-10-06 |
 | NFR-CHK-010 | 50 ms by the same method, after the two pairing rules were added — every file a requirement names checked for its back-reference, every scanned file checked for being claimed at all, with all 500 requirements annotated in the fixture | 2026-08-14 |
 | NFR-CHK-010 | 52 ms by the same method, after five rules were added — the required-key and retired-key checks, the two reports on tests and links, and the routing that gives every rule a severity | 2026-08-11 |
 | NFR-CHK-010 | A generated specification of 500 requirements validates in 45 ms wall clock, interpreter startup included (`--no-write`, Python 3.14, Apple silicon) | 2026-08-06 |

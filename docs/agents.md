@@ -18,10 +18,15 @@ An agent without a skill system reads them directly as workflow guides:
 | `srs-harvest` | Mining a specification out of existing code |
 | `srs-check` | Naming and running the checks a finished change calls for |
 | `srs-page` | Rendering the specification as a page, and opening it |
+| `srs-commit` | Preparing a commit of finished work: reviewed and checked, covering what is actually staged, naming the requirements it implements |
+| `srs-build` | Building over several passes: the list the work is judged against, one requirement per pass, every failure classified, the loop closed as it goes |
+| `srs-review` | Reviewing finished work to two consecutive passes that found nothing, each by a different means, with every finding confirmed where it was seen |
 | `srs-baseline` | Freezing the specification at a milestone |
 | `srs-upgrade` | Picking up a new framework version |
 | `srs-bet` | The grounds register: a hypothesis, a bet, a measurement, a refutation — installed only where the register is |
-| `srs-arch` | The architecture layer: what the parts are, what each carries, and where that description and the specification disagree — installed only where the layer is |
+| `srs-arch` | The architecture layer: what the parts are, what each carries, what a part is made of inside, and where that description and the specification disagree — installed only where the layer is |
+| `srs-arch-harvest` | Recovering the architecture of a project that has one: the parts, and the forms inside a part, read out of the code in approved batches — installed only where the layer is |
+| `srs-arch-audit` | Auditing a cut and the forms inside its parts: against the specification, the code, its cost and its ground, every finding ending in an act — installed only where the layer is |
 | `srs-init`, `srs-release` | Setup and releases — stay in the framework repository, never installed |
 
 ## If your tool wants its own rules file
@@ -30,7 +35,7 @@ A two-line pointer is enough — do not duplicate the rules:
 
 ```
 This project follows the SRS-DD standard.
-Read AGENTS.md first; the specification rules live in specs/README.md.
+Read AGENTS.md first; the specification rules live in srs-dd/standard.md.
 ```
 
 That works for `.cursor/rules/srs.mdc`, `.github/copilot-instructions.md`, and anything else of that shape.

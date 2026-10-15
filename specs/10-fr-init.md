@@ -101,7 +101,8 @@ If the target holds markdown under `specs/` but no requirement the strict identi
 ### FR-INIT-060 — An upgrade refreshes what may be the project's own only on request
 
 ```yaml
-status: implemented
+status: superseded
+superseded_by: FR-INIT-360
 verification: T
 derives_from: [FR-INIT-010]
 depends_on: []
@@ -112,7 +113,7 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-When run against an initialized target, the installer **shall** refresh the files that may be the project's own — CI configuration, the agent guides, `.gitattributes`, the hook, the specification standard, the grounds standard, the architecture standard — only with `--force` and only when they carry the SRS-DD marker.
+When run against an initialized target, the installer **shall** refresh the files that may be the project's own — the agent guides, `.gitattributes`, the specification standard, the grounds standard, the architecture standard — only with `--force` and only when they carry the SRS-DD marker.
 
 **Rationale.** Everything a maintainer may have edited must not move with the framework unasked, and the marker is how we tell a file we installed from one they wrote; the tooling moves without asking, under `FR-INIT-270`.
 
@@ -121,9 +122,10 @@ That is worse than a stale CI file, because `CON-SPEC-020` lets a shipped proced
 
 It joins this list rather than `FR-INIT-270`'s because adopt deliberately keeps a project's own `specs/README.md` (`FR-INIT-040`), and refreshing without a flag would undo that at the first upgrade.
 Since 2026-09-21 adopt sets that file aside and installs the standard in its place (`FR-INIT-230`), so a project adopted after that holds a standard with the marker and `--force` reaches it like any other; the standard stays in this list because the marker in it promises a maintainer that local edits survive until asked for.
-`grounds/README.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
-`arch/README.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
+`srs-dd/grounds.md` joined it on the same terms and reaches only the projects that keep a register — an upgrade refreshes it where it is and installs it nowhere else.
+`srs-dd/arch.md` joined on exactly those terms when the architecture layer shipped, and this sentence did not follow it.
 The code had it right from the layer's first commit — the same flag the grounds standard travels under — so what lagged was the enumeration, and an enumeration that lags is invisible: every path it names exists, and nothing reports the one it does not.
+The CI configuration and the hook left this list on 2026-09-30: they are the project's files, which the installer writes once and never again (`FR-INIT-290`).
 So the characterization widened: "commonly owns" was true of CI files and agent guides, and the standard is not something anyone writes for themselves — it is merely a file that may already be theirs.
 
 The agent guides were in this list and behaved unlike the other six: an upgrade left them alone with the flag and without it, because they are filled in rather than copied and the answers had not been kept.
@@ -132,10 +134,10 @@ The agent guides were in this list and behaved unlike the other six: an upgrade 
 The marker carries the framework version — `SRS-DD-0.14.0`, matched as a pattern — because the bare name appears in ordinary prose.
 A project that adopted the framework and wrote "we follow the SRS-DD standard" in its own `specs/README.md` would otherwise be told its document is ours and have it replaced.
 
-The statement named the checker, the viewer and the skills while the installer refreshed every tool it ships, and it said the CI configuration is refreshed with `--force` while an upgrade refreshed it only when `--ci` was passed — which `tools/srs_upgrade.py`, the command a project runs, has no way to pass, so `--force` there never reached the pipeline at all. On 2026-09-24 the statement was brought to the tooling it covers, and the upgrade finds the template the project already carries as ours and treats it like every other file here.
+The statement named the checker, the viewer and the skills while the installer refreshed every tool it ships, and it said the CI configuration is refreshed with `--force` while an upgrade refreshed it only when `--ci` was passed — which `srs-dd/tools/srs_upgrade.py`, the command a project runs, has no way to pass, so `--force` there never reached the pipeline at all. On 2026-09-24 the statement was brought to the tooling it covers, and the upgrade finds the template the project already carries as ours and treats it like every other file here.
 
 **Split on 2026-09-29.** Until then this number also carried the refresh of the tooling and the skills without a flag, in a `while` clause the checker's rule for glued requirements does not see, under one status and one `tests` field.
-Twice a gap in this half stood under the status of the other — the standard missing from both lists until 0.14.0, the CI configuration unreachable from `tools/srs_upgrade.py` until 0.21.0 — and the refresh of the tooling moved to `FR-INIT-270`.
+Twice a gap in this half stood under the status of the other — the standard missing from both lists until 0.14.0, the CI configuration unreachable from `srs-dd/tools/srs_upgrade.py` until 0.21.0 — and the refresh of the tooling moved to `FR-INIT-270`.
 
 ### FR-INIT-070 — A dry run writes nothing and tells the truth
 
@@ -169,9 +171,10 @@ tests: [tests/installer-smoke.sh]
 created: 2026-08-07
 ```
 
-If the target already runs something on commit, the installer **shall** install the gate beside it and say so, instead of advising the `core.hooksPath` switch that would disable what is already there.
+If the target already runs something on commit, the installer **shall** write no hook and say what calls the gate from it, instead of advising the `core.hooksPath` switch that would disable what is already there.
 
 **Rationale.** Silently disabling a project's linters and secret scanners would be the single most damaging thing this tool could do.
+It lays no copy of the gate beside the project's hook either, as it did until 0.22.0 as `.githooks/pre-commit.srs-dd`: the gate is a tool (`FR-CI-180`), and what the project's hook needs is a call to it, which the installer says (`FR-INIT-300`) and the installing procedure adds (`FR-SKILL-410`).
 
 ### FR-INIT-090 — The lexicon is asked for, not assumed
 
@@ -214,7 +217,7 @@ If the target lies inside this repository, the installer **shall** refuse before
 ```yaml
 status: implemented
 verification: I
-derives_from: [FR-INIT-060, FR-INIT-270]
+derives_from: [FR-INIT-270]
 depends_on: []
 refines: []
 conflicts_with: []
@@ -225,6 +228,8 @@ created: 2026-08-07
 
 When upgrading, the installer **shall** print the version transition and the upgrade notes recorded for the versions being crossed.
 
+**The link to `FR-INIT-060` went on 2026-10-06**, by the audit before the 0.22.0 baseline: that requirement was superseded in this release, and its successor `FR-INIT-360` is about which files are the project's — nothing to do with where upgrade notes come from. What this derives from is `FR-INIT-270`, which it already named.
+
 **Rationale.** A maintainer who upgrades three versions at once needs the notes for all three, and nobody reads a changelog they were not handed.
 
 ### FR-INIT-120 — Upgrading is one command inside the project
@@ -232,16 +237,18 @@ When upgrading, the installer **shall** print the version transition and the upg
 ```yaml
 status: implemented
 verification: T
-derives_from: [FR-INIT-060, FR-INIT-270]
+derives_from: [FR-INIT-270]
 depends_on: [FR-INIT-140]
 refines: []
 conflicts_with: []
-code: [tools/srs_upgrade.py]
+code: [srs-dd/tools/srs_upgrade.py]
 tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```
 
 When run inside an initialized project, the upgrader **shall** fetch the framework that project was installed from, run its installer against the project, and remove what it fetched.
+
+**The link to `FR-INIT-060` went on 2026-10-06**, for the reason `FR-INIT-110` gives: the superseded requirement's successor is about the project's own files, and `FR-INIT-270` is what upgrading in one command derives from.
 
 **Rationale.** The old procedure asked a maintainer to keep a framework clone somewhere, remember where, and pull it before every upgrade.
 Nothing in the project pointed at any of that, so an agent working there could not upgrade without being handed the address — which is the whole reason this exists.
@@ -255,7 +262,7 @@ derives_from: [FR-INIT-070]
 depends_on: [FR-INIT-120]
 refines: []
 conflicts_with: []
-code: [tools/srs_upgrade.py, tools/srs_init.py]
+code: [srs-dd/tools/srs_upgrade.py, tools/srs_init.py]
 tests: [tests/upgrade-smoke.sh]
 created: 2026-08-08
 ```
@@ -409,7 +416,7 @@ One line per file, in the shape the marker already has, rather than one per anno
 status: implemented
 verification: T
 derives_from: []
-depends_on: [FR-INIT-060]
+depends_on: [FR-INIT-370]
 refines: []
 conflicts_with: []
 code: [tools/srs_init.py]
@@ -418,6 +425,8 @@ created: 2026-09-08
 ```
 
 The installer **shall** record the project's name in the target's configuration, so that a later run can rewrite the agent guides without asking for it again.
+
+**The dependency moved from `FR-INIT-060` to `FR-INIT-370` on 2026-10-06**, by the audit before the 0.22.0 baseline: rewriting the guides without asking again is now the refreshing of the framework's region in place, and that is where this rests.
 
 **Rationale.** `AGENTS.md` and `CLAUDE.md` are the only payload files that are filled in rather than copied: each template carries the project's name, and `AGENTS.md` also carries the line `FR-INIT-220` writes about its width — answers a person gives at install.
 An upgrade does not ask those questions, so until the answers were kept there was nothing to fill the template with — and the installer's response was to leave the guides alone entirely, with `--force` and without it.
@@ -490,7 +499,8 @@ Where the width is not recorded, the guide says nothing about it rather than nam
 ### FR-INIT-230 — Adoption sets the project's own standard aside
 
 ```yaml
-status: implemented
+status: superseded
+superseded_by: FR-INIT-320
 verification: T
 derives_from: [FR-INIT-030]
 depends_on: []
@@ -510,7 +520,8 @@ A stale copy already at that path stops the run before anything is written, so t
 ### FR-INIT-240 — A skipped file says whether it differs from what ships
 
 ```yaml
-status: implemented
+status: superseded
+superseded_by: FR-INIT-320
 verification: T
 derives_from: [FR-INIT-060]
 depends_on: []
@@ -533,13 +544,14 @@ A file without the marker is not compared — it is not ours, and it keeps the r
 ### FR-INIT-250 — Every account of what an upgrade leaves alone names each kind
 
 ```yaml
-status: implemented
+status: superseded
+superseded_by: FR-INIT-360
 verification: T
 derives_from: [FR-INIT-060]
 depends_on: []
 refines: []
 conflicts_with: []
-code: [docs/install.md, docs/upgrade.md, tools/srs_init.py, tools/srs_upgrade.py, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-upgrade/SKILL.md]
+code: [docs/install.md, docs/upgrade.md, tools/srs_init.py, srs-dd/tools/srs_upgrade.py, .claude/skills/srs-init/SKILL.md, .claude/skills/srs-upgrade/SKILL.md]
 tests: [tests/standard-vocabulary.sh]
 created: 2026-09-25
 ```
@@ -584,9 +596,251 @@ tests: [tests/installer-smoke.sh]
 created: 2026-09-29
 ```
 
-When run against an initialized target, the installer **shall** refresh the tooling and the skills it ships to that project without a flag.
+When run against an initialized target, the installer **shall** refresh `srs-dd/` whole and the skills it ships to that project without a flag.
 
 **Rationale.** Tooling has to move with the framework or targets drift; everything a maintainer may have edited must not, and `FR-INIT-060` is the other half of that sentence.
 Split out of it on 2026-09-29, where the two shared a number, a status and a test, and a gap in one stood twice under the status of the other.
 Nothing moved between the two lists when they were split: the tooling and the skills were refreshed without a flag before, and the files that may be the project's own were refreshed only with `--force`.
 "It ships to that project": the register's checker and procedure travel only where the project keeps a register, and the layer's only where it keeps the layer.
+
+### FR-INIT-280 — What stays the framework's says whose it is
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-INIT-270]
+refines: []
+conflicts_with: []
+code: [srs-dd/tools/srs_check.py, srs-dd/tools/srs_parse.py, srs-dd/tools/srs_view.py, srs-dd/tools/srs_view_model.py, srs-dd/tools/srs_view_page.py, srs-dd/tools/srs_upgrade.py, srs-dd/tools/srs_baseline.py, srs-dd/tools/srs_dates.py, srs-dd/tools/srs_gate.py, srs-dd/tools/srs_grounds.py, srs-dd/tools/srs_arch.py, srs-dd/tools/srs_arch_doc.py, .claude/skills, srs-dd/standard.md, srs-dd/grounds.md, srs-dd/arch.md, srs-dd/method.md, srs-dd/README.md, srs-dd/LICENSE]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-30
+```
+
+Every file the installer copies into a target whose text stays the framework's — the tools, the skills, the standards and the documents of its own directory, the source of the guide aside — **shall** carry a notice naming who holds the framework's copyright and the licence it is distributed under.
+
+**The link to `FR-INIT-060` went on 2026-10-06**: a notice belongs to the files that stay the framework's, and the superseded requirement's successor is about the ones that are the project's.
+
+**Rationale.** The licence asks that its notice travel with every copy, and none of the files the installer copies said who holds the copyright or on what terms: a tool lifted from an installed project carried the framework's name and version and no notice of whose it was.
+The notice goes into the file rather than beside it, because a file is what gets copied on, one at a time.
+The standards may be edited into the project's own (`FR-INIT-060`), and the notice stays true of what of ours they keep.
+The pre-commit hook and the pipelines carry none: they are the project's files, shared with every other check it runs (`FR-INIT-290`), and the gate they call carries the notice as a tool.
+A file that becomes the project's own — its specification, its constitution, its agent guides once filled in — carries none, because a copyright line there would claim the project's document as ours; nor does the decision template, which a project copies into every decision it writes.
+The source of the guide is the one file the installer copies that stays ours and carries none: its text is written into the region of the project's own `AGENTS.md` (`FR-INIT-370`), so a line of ours in it would arrive inside their document for the same reason.
+It came with the directory in 0.22.0, and the statement named the three classes of file that existed before it; the documents of the directory joined the set on 2026-10-02 and the guide's source was excused by name.
+
+### FR-INIT-290 — The hook and the pipelines are the project's files
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CI-180]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-30
+```
+
+The installer **shall** never write into `.githooks/pre-commit`, `.github/workflows/srs.yml` or `.gitlab-ci.yml` where the file already exists, with no flag to override it.
+
+**The statement said "with `--force` or without" until 2026-10-06**, by the second audit before the 0.22.0 baseline: the flag went in this release, so the clause presupposed something no reader could find. It says what it always meant — nothing overrides this — the way `FR-INIT-360` does; the rationale keeps `--force` where it recounts what used to happen.
+
+**Rationale.** A project runs every pre-commit check it has through one hook, and in GitLab every job through one file; neither belongs to the framework once the project has one, and a copyright line of ours in it would claim the project's file as ours.
+Before this they were refreshed with `--force` where they carried the marker, which rewrote whatever the project had added beside the gate.
+Nothing is lost by leaving them alone: the gate is a tool refreshed with the rest (`FR-CI-180`), and all they hold of ours is a call to it.
+
+### FR-INIT-300 — The installer says whether the hook runs the gate
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-290]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-30
+```
+
+After installing or upgrading, the installer **shall** report whether git runs a pre-commit hook in the target and whether that hook, or the pre-commit framework, husky or lefthook configuration that runs it, calls `srs-dd/tools/srs_gate.py`, giving what to add where it does not.
+
+**Rationale.** The installer no longer writes into a hook that exists (`FR-INIT-290`), so whether the gate runs before a commit depends on a line somebody else adds, and on git running the hook at all; an install that says nothing of either leaves a gate that looks installed and never runs.
+A hook manager's own file is a shim that calls its configuration, so the configuration is what is read.
+
+### FR-INIT-310 — The installer says whether a pipeline runs the gate
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-290]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-09-30
+```
+
+After installing or upgrading, the installer **shall** report whether any file under `.github/workflows/`, or `.gitlab-ci.yml`, calls `srs-dd/tools/srs_gate.py`, giving the step to add where none does.
+
+**Rationale.** The pipeline is the gate nobody can skip, and it is the project's file (`FR-INIT-290`), so the installer says whether it calls the gate rather than making it.
+Any workflow will do, because a project's other workflows — a release, a deployment — have no reason to run it, and naming each of them would be a false alarm.
+These are the two services the starters are for; a pipeline elsewhere is read by the agent (`FR-SKILL-420`).
+
+### FR-INIT-320 — The framework's files live in one reserved directory
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-CI-180]
+depends_on: [FR-INIT-270]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py, srs-dd/README.md]
+tests: [tests/installer-smoke.sh, tests/adopt-smoke.sh]
+created: 2026-10-01
+```
+
+The installer **shall** put every file that stays the framework's — the tools, the standards of the specification and of each layer the project keeps, the method's articles, the source of the framework's guide and the licence — under `srs-dd/` in the target, and write nothing of the framework's elsewhere but the procedures under `.claude/skills/` and the region of the guide that `FR-INIT-370` names.
+
+**Rationale.** After an install two authors wrote into the same places, and the border between them was only implied: a marker in a file, a prefix in a name, a row in a table. Articles of the constitution were numbered by both, each taking the next free number; the guide held the framework's numbered rules and the project's additions in one file that `--force` replaced whole; `tools/` and `.claude/skills/` held files of both with nothing saying which an upgrade rewrites. The first visible case was ART-100, written twice on 2026-09-25 and 2026-09-29 by the framework and by a project; the others are of the same kind.
+Ownership is now a place: what is under `srs-dd/` is the framework's and an upgrade rewrites the files it owns there, naming any other path it finds (`FR-INIT-380`), what is outside is the project's and the framework writes it once as a starter or never. The procedures are the one exception, because the client looks for them under `.claude/skills/` and nowhere else (`FR-SKILL-450`).
+This repository is the first project of its own method, and here the rule is literal: its `srs-dd/` is the source the installer copies, not a copy; `tools/` keeps what never ships — the installer, the release, the measurements, the local self-test — and `skeleton/` keeps only the starters of the project's files.
+
+### FR-INIT-330 — A directory of that name that is not the framework's is refused
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-320]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-01
+```
+
+The installer **shall** refuse to install into or upgrade a target where `srs-dd/` exists and its `README.md` carries no marker of the framework.
+
+**Rationale.** The directory is the one place the installer rewrites without asking, so a directory of that name that somebody else made is the one thing it must never touch: overwriting it would be the clobbering the marker on every precious file used to prevent, now concentrated in one place. The marker lives in the directory's `README.md`, which says what the directory is and which version wrote it.
+
+### FR-INIT-340 — An upgrade moves what an earlier version wrote elsewhere
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-320]
+depends_on: [FR-INIT-300, FR-INIT-310]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-01
+```
+
+On upgrading a target installed before the directory existed, the installer **shall** move into `srs-dd/` each file an earlier version wrote under `tools/` or as a standard under `specs/`, `grounds/` or `arch/`, delete the copy it leaves behind, and report the new path every hook, pipeline and guide has to call.
+
+**Rationale.** A project installed before 0.22.0 has the tools under `tools/` and the standards beside what they govern, and its hook, pipeline and guide call them there. The upgrade is the one moment both layouts are in front of the installer, so it is the one that moves the files; the hook and the pipeline are the project's (`FR-INIT-290`) and the report that already says whether they call the gate (`FR-INIT-300`, `FR-INIT-310`) now says the path they have to call. Deleting the old copies matters: a stale `srs-dd/tools/srs_check.py` beside a current `srs-dd/tools/srs_check.py` is two checkers, and the project's gate would run whichever its pipeline still names.
+
+### FR-INIT-350 — The installer refuses an area named like a directory the checker skips
+
+```yaml
+status: implemented
+verification: T
+derives_from: []
+depends_on: [FR-CHK-300]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-01
+```
+
+The installer **shall** refuse an area whose name, in lowercase, is a directory the checker skips under `specs/` — `adr`, `archive`.
+
+**Rationale.** An area named `ADR` installs without a word and its file reads fine at the top of `specs/`; grouped into its own folder, `specs/adr/`, it vanishes — the checker skips that folder as the decision log and reports no requirements and no errors. Run on 2026-09-30: `--areas ADR` accepted, the folder made, `Requirements: 0. No errors.` The checker refuses the name as well (`FR-CHK-300`); the installer refuses it first, where the person who chose it is still at the prompt.
+
+### FR-INIT-360 — The agent guides and `.gitattributes` are the project's files
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-290]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-01
+```
+
+The installer **shall** write `AGENTS.md`, `CLAUDE.md` and `.gitattributes` only where the file is absent, with no `--force` to rewrite them.
+
+**Rationale.** The three were precious: refreshed with `--force` where the marker survived, which replaced whatever the project had added — the reason the upgrade notes of 0.21.0 had to tell a project whose guide was its own which lines to add by hand. They join the hook and the pipelines (`FR-INIT-290`): starters, written once, the project's from then on. What the framework needs in them is small and travels another way — the pins of the generated files in `.gitattributes` are named by the report when missing, and the framework's rules in the guide are a region of their own (`FR-INIT-370`). With them, nothing is precious any more and `--force` has nothing left to do; `FR-INIT-060` and `FR-INIT-240` are superseded by this requirement and `FR-INIT-320`.
+
+### FR-INIT-370 — The framework's region of the guide is refreshed in place
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-360]
+depends_on: [FR-SKILL-440]
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-01
+```
+
+On every install and upgrade, the installer **shall** rewrite in the target's `AGENTS.md` only the region between the first line holding nothing but `<!-- srs-dd -->` and the next line holding nothing but `<!-- /srs-dd -->`, replacing it with the current text of `srs-dd/guide.md`, and leave every line outside the region as it is, reporting the text to add where the guide carries no such region.
+
+**Rationale.** An import mechanism exists only in Claude Code's `CLAUDE.md`; every other client reads `AGENTS.md` as plain text, and a line that says to read another file is followed as well as any instruction is — which is not a mechanism. The rules of the method therefore have to be in the guide's text, and the only way to keep them current without touching what the project wrote around them is a region with a border the installer can find. The region is the framework's by place, as the directory is; the file is the project's.
+
+### FR-INIT-380 — What the installer does not own in its directory is reported
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-INIT-320]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/installer-smoke.sh]
+created: 2026-10-02
+```
+
+After installing or upgrading, the installer **shall** report every path under `srs-dd/` in the target that it did not write, naming each.
+
+**Rationale.** The directory is declared the framework's and the installer refreshes the files it owns there, so a file somebody else put beside them stayed for ever and nothing said so: driven through a sandbox on 2026-10-01, `srs-dd/notes-of-mine.md` and `srs-dd/tools/mytool.py` survived three upgrades unmentioned. `FR-INIT-330` does not reach them, because it reads the marker in `srs-dd/README.md` alone and a stranger's file beside a marked README never makes the directory somebody else's.
+It is reported and not deleted. Deleting a file it did not write is what `SRS-DD-ART-030` reserves for the user's explicit confirmation, and `FR-INIT-340` deletes only copies that carry the marker; a path under `srs-dd/` is both at once — in a place declared ours, and written by somebody else — so the installer names it and leaves the choice where it belongs.
+Naming each rather than counting them: the list is what a maintainer acts on, and a count says only that something is there.
+
+### FR-INIT-390 — The installer writes no constitution
+
+```yaml
+status: implemented
+verification: T
+derives_from: [FR-SKILL-430]
+depends_on: []
+refines: []
+conflicts_with: []
+code: [tools/srs_init.py]
+tests: [tests/guide-parity.sh, tests/installer-smoke.sh]
+exempt: [annotation-unpaired]
+created: 2026-10-04
+```
+
+The installer **shall** write no `specs/constitution.md` into a target, in any mode.
+
+**Rationale.** A constitution is a project's own principles in a number space of its own, and everything the framework asserts is an article of the method (`FR-SKILL-430`) — so there is nothing of ours to put in that file, and a starter we wrote is content of the framework's in the project's space.
+What that costs was paid twice in one day: the article on comments shipped as `ART-030`, the first project to receive it found the number taken, renumbered to `ART-050`, and landed on a number the starter's own amendment log names as an article of the method's; the same had happened earlier with `ART-040`.
+The log was the other half of it — a project received four amendments it never made, a ratification date from this repository's history and a version that counted our changes — and both halves go with the file.
+
+A project that wants principles of its own writes the file, and `SRS-DD-ART-130` says where it lives, how it is numbered and how it changes; `docs/install.md` shows one a project may copy.
+Nothing reads the file: the checker and the viewer pass it over as prose, and no procedure cites an article of it by number, so a project without one loses nothing.
+Met by the absence of a write, in the list adopt lays down and in the walk of the payload alike, so there is no line to stand an annotation above and the requirement is excused from `annotation-unpaired`.

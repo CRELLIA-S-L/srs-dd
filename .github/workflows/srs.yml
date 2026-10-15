@@ -1,3 +1,4 @@
+# Copyright (c) 2026 CRELLIA S.L. — part of SRS-DD, distributed under the MIT License
 # CI of the SRS-DD framework repository itself.
 # Target projects get their own workflow from ci/github-workflow.yml via
 # tools/srs_init.py — do not copy this file.
@@ -66,6 +67,9 @@ jobs:
       - name: Arch rules
         run: tests/arch-rules.sh
 
+      - name: Arch document
+        run: tests/arch-doc.sh
+
       - name: Arch check
         run: tests/arch-check.sh
 
@@ -90,11 +94,20 @@ jobs:
       - name: Line width
         run: tests/line-width.sh
 
+      - name: Copyright notice
+        run: tests/notice.sh
+
       - name: Procedure budget
         run: tests/skill-budget.sh
 
       - name: Procedure instructions
         run: tests/skill-instructions.sh
+
+      - name: Plain instructions
+        run: tests/plain-instructions.sh
+
+      - name: Report eval smoke
+        run: tests/report-eval-smoke.sh
 
       - name: Citation eval smoke
         run: tests/cite-eval-smoke.sh
@@ -108,6 +121,9 @@ jobs:
       - name: Standard names every rule
         run: tests/standard-rules.sh
 
+      - name: Standards keep the rules they alone state
+        run: tests/standard-sections.sh
+
       - name: Standards name every value
         run: tests/standard-vocabulary.sh
 
@@ -116,7 +132,7 @@ jobs:
 
       - name: Render the specification
         run: |
-          python3 tools/srs_view.py --html site/index.html \
+          python3 srs-dd/tools/srs_view.py --html site/index.html \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
 
       - uses: actions/upload-artifact@v7
@@ -155,16 +171,16 @@ jobs:
           # over again — nothing copied, and the missing file blamed.
           travels=$(python3 -Bc "import sys; sys.path.insert(0, 'tools'); import srs_init; print(*(srs_init.TOOLS + srs_init.GROUNDS_TOOLS + srs_init.ARCH_TOOLS))")
           for f in $travels; do
-            cp "tools/$f" /tmp/srs-consumer/tools/
+            mkdir -p /tmp/srs-consumer/srs-dd/tools && cp "srs-dd/tools/$f" /tmp/srs-consumer/srs-dd/tools/
           done
           cd /tmp/srs-consumer
-          python3 tools/srs_check.py --strict --no-write
-          python3 tools/srs_grounds.py --no-write --strict
+          python3 srs-dd/tools/srs_check.py --strict --no-write
+          python3 srs-dd/tools/srs_grounds.py --no-write --strict
           # Without --strict: the project's own layer carries warnings of
           # its own, and this job asks whether the tooling accepts the
           # layer, not whether the project has cleared it.
-          python3 tools/srs_arch.py --no-write
-          python3 tools/srs_view.py --html /tmp/consumer-site/index.html
+          python3 srs-dd/tools/srs_arch.py --no-write
+          python3 srs-dd/tools/srs_view.py --html /tmp/consumer-site/index.html
 
   # The published specification (FR-CI-040). Runs only on the default
   # branch and only after the suites pass — a page is worth publishing
@@ -197,13 +213,34 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Render the specification
+      # implements: FR-CI-190
+      # The pages of the layers this project keeps, beside the specification and
+      # from the same revision. Each page is told which others will be there —
+      # nothing guesses, so no page links one that was never rendered. `if`
+      # rather than `[ -d x ] && …`, which under `set -e` fails the step when the
+      # directory is absent.
+      - name: Render the pages
         run: |
-          python3 tools/srs_view.py --html site/index.html \
+          beside=""
+          if [ -d arch ]; then beside="arch.html"; fi
+          if [ -d grounds ]; then beside="${beside:+$beside,}grounds.html"; fi
+          python3 srs-dd/tools/srs_view.py --html site/index.html \
+            ${beside:+--link "$beside"} \
             --repo-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}"
           # The landing page shows the graph of its own requirements by this
           # URL; the name is fixed because README.md addresses it (FR-CI-110).
-          python3 tools/srs_view.py --area DOC --around --svg site/readme-graph.svg
+          python3 srs-dd/tools/srs_view.py --area DOC --around --svg site/readme-graph.svg
+          if [ -d arch ]; then
+            others="index.html"
+            if [ -d grounds ]; then others="index.html,grounds.html"; fi
+            python3 srs-dd/tools/srs_arch_doc.py --html --link "$others" > site/arch.html
+          fi
+          if [ -d grounds ]; then
+            others="index.html"
+            if [ -d arch ]; then others="index.html,arch.html"; fi
+            python3 srs-dd/tools/srs_grounds.py --html --link "$others" > site/grounds.html
+          fi
+      # srs-end: FR-CI-190
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

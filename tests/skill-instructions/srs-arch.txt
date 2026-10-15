@@ -4,20 +4,40 @@
 # instruction; remove one only with the sentence that says why.
 
 # commands
-tools/srs_arch.py
-tools/srs_arch.py --cite
-tools/srs_arch.py --no-write
-tools/srs_view.py
-tools/srs_view.py --code
+srs-dd/tools/srs_arch.py
+srs-dd/tools/srs_arch.py --cite
+srs-dd/tools/srs_arch.py --no-write
+srs-dd/tools/srs_arch.py --drivers
+srs-dd/tools/srs_arch.py --plan
+srs-dd/tools/srs_arch_doc.py
+srs-dd/tools/srs_view.py
+srs-dd/tools/srs_view.py --code
 
 # decisions — none since 2026-09-25: a decision's number points at nothing,
 # or at the project's own decision, in a project the procedure is installed
 # into (ART-070), so the procedure states the reason instead of the number.
 twenty-five edges against seven real ones
 
+# the rule that lives in the standard, pointed at rather than copied (FR-ARCH-770)
+What a cut is drawn from is in *Naming a part*
+
+# readings and acts the procedure must carry
+renamed, split or merged
+protecting nothing in particular is the answer
+write the new file, verify it, and only then delete the old
+
 # files
 AGENTS.md
 arch/90-map.md
-arch/README.md
+srs-dd/arch.md
 arch/edges.json
+arch/10-moves.md
 specs/adr/
+
+# the grain below a path, and the guard a procedure has to carry (FR-SKILL-670)
+Start from the obligations, never from the code
+not where there is a class
+arch/20-shapes.md
+
+# the half of a part the checker cannot read, and how it gets the comparison back (CON-ARCH-040)
+arch/symbols.json
